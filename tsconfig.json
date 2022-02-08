@@ -1,0 +1,29 @@
+{
+  "compilerOptions": {
+    "forceConsistentCasingInFileNames": true,
+    "outDir": "lib",
+    "allowJs": false,
+    "allowSyntheticDefaultImports": true,
+    "declaration": true,
+    "downlevelIteration": true,
+    "diagnostics": true,
+    "esModuleInterop": true,
+    "extendedDiagnostics": true,
+    "listEmittedFiles": true,
+    "module": "commonjs",
+    "removeComments": true,
+    "sourceMap": true,
+    "strict": true,
+    "target": "es5",
+    "noImplicitAny": true,
+    "types": ["jest", "node"]
+  },
+  "include": ["src"],
+  "exclude": [
+    "node_modules",
+    "**/*.spec.ts",
+    "**/*.test.ts",
+    "__mocks__",
+    "lib"
+  ]
+}
