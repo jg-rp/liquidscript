@@ -7,4 +7,5 @@ module.exports = {
     collectCoverage: false,
     coverageDirectory: "<rootDir>/coverage",
     testPathIgnorePatterns: ["/node_modules/"],
+    slowTestThreshold: 10,
   }

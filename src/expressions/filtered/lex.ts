@@ -89,42 +89,55 @@ interface RangeMatch {
 interface FloatMatch {
   TOKEN_FLOAT: string;
 }
+
 interface IntegerMatch {
   TOKEN_INTEGER: string;
 }
+
 interface DotMatch {
   TOKEN_DOT: string;
 }
+
 interface IdentifierMatch {
   TOKEN_IDENT: string;
 }
+
 interface LParenMatch {
   TOKEN_LPAREN: string;
 }
+
 interface RParenMatch {
   TOKEN_RPAREN: string;
 }
+
 interface LBracketMatch {
   TOKEN_LBRACKET: string;
 }
+
 interface RBracketMatch {
   TOKEN_RBRACKET: string;
 }
+
 interface CommaMatch {
   TOKEN_COMMA: string;
 }
+
 interface ColonMatch {
   TOKEN_COLON: string;
 }
+
 interface PipeMatch {
   TOKEN_PIPE: string;
 }
+
 interface NewlineMatch {
   TOKEN_NEWLINE: string;
 }
+
 interface SkipMatch {
   TOKEN_SKIP: string;
 }
+
 interface IllegalMatch {
   TOKEN_ILLEGAL: string;
 }
@@ -155,54 +168,71 @@ type MatchGroups = Readonly<
 function isIdentIndexMatch(match: MatchGroups): match is IdentIndexMatch {
   return match.TOKEN_IDENT_INDEX === undefined ? false : true;
 }
+
 function isIdentStringMatch(match: MatchGroups): match is IdentStringMatch {
   return match.TOKEN_IDENT_STRING === undefined ? false : true;
 }
+
 function isStringMatch(match: MatchGroups): match is StringMatch {
   return match.TOKEN_STRING === undefined ? false : true;
 }
+
 function isRangeMatch(match: MatchGroups): match is RangeMatch {
   return match.TOKEN_RANGE === undefined ? false : true;
 }
+
 function isFloatMatch(match: MatchGroups): match is FloatMatch {
   return match.TOKEN_FLOAT === undefined ? false : true;
 }
+
 function isIntegerMatch(match: MatchGroups): match is IntegerMatch {
   return match.TOKEN_INTEGER === undefined ? false : true;
 }
+
 function isDotMatch(match: MatchGroups): match is DotMatch {
   return match.TOKEN_DOT === undefined ? false : true;
 }
+
 function isIdentifierMatch(match: MatchGroups): match is IdentifierMatch {
   return match.TOKEN_IDENT === undefined ? false : true;
 }
+
 function isLParenMatch(match: MatchGroups): match is LParenMatch {
   return match.TOKEN_LPAREN === undefined ? false : true;
 }
+
 function isRParenMatch(match: MatchGroups): match is RParenMatch {
   return match.TOKEN_RPAREN === undefined ? false : true;
 }
+
 function isLBracketMatch(match: MatchGroups): match is LBracketMatch {
   return match.TOKEN_LBRACKET === undefined ? false : true;
 }
+
 function isRBracketMatch(match: MatchGroups): match is RBracketMatch {
   return match.TOKEN_RBRACKET === undefined ? false : true;
 }
+
 function isCommaMatch(match: MatchGroups): match is CommaMatch {
   return match.TOKEN_COMMA === undefined ? false : true;
 }
+
 function isColonMatch(match: MatchGroups): match is ColonMatch {
   return match.TOKEN_COLON === undefined ? false : true;
 }
+
 function isPipeMatch(match: MatchGroups): match is PipeMatch {
   return match.TOKEN_PIPE === undefined ? false : true;
 }
+
 function isNewlineMatch(match: MatchGroups): match is NewlineMatch {
   return match.TOKEN_NEWLINE === undefined ? false : true;
 }
+
 function isSkipMatch(match: MatchGroups): match is SkipMatch {
   return match.TOKEN_SKIP === undefined ? false : true;
 }
+
 function isIllegalMatch(match: MatchGroups): match is IllegalMatch {
   return match.TOKEN_ILLEGAL === undefined ? false : true;
 }
@@ -214,7 +244,7 @@ function isIllegalMatch(match: MatchGroups): match is IllegalMatch {
  */
 export function* tokenize(
   source: string,
-  startIndex: number = 1
+  startIndex: number = 0
 ): Generator<Token> {
   for (const match of source.matchAll(RE)) {
     const groups = match.groups as MatchGroups;

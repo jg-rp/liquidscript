@@ -102,12 +102,13 @@ export function* tokenize(source: string): Generator<Token> {
     } else if (isTag(groups)) {
       leftStrip = !!groups.rightStripTag;
       yield new Token(TOKEN_TAG, groups.tagName, <number>match.index, source);
-      yield new Token(
-        TOKEN_EXPRESSION,
-        groups.tagExpression,
-        <number>match.index,
-        source
-      );
+      if (groups.tagExpression.length)
+        yield new Token(
+          TOKEN_EXPRESSION,
+          groups.tagExpression,
+          <number>match.index,
+          source
+        );
     } else if (isLiteral(groups)) {
       const rightStrip = !!groups.rightStripLiteral;
       if (leftStrip && rightStrip) {
@@ -128,6 +129,13 @@ export function* tokenize(source: string): Generator<Token> {
         yield new Token(
           TOKEN_LITERAL,
           groups.literal.trimEnd(),
+          <number>match.index,
+          source
+        );
+      } else {
+        yield new Token(
+          TOKEN_LITERAL,
+          groups.literal,
           <number>match.index,
           source
         );

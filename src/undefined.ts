@@ -16,4 +16,8 @@ export class StrictUndefined extends Undefined {
   valueOf() {
     throw new InternalUndefinedError(this.name);
   }
+
+  [Symbol.iterator](): Iterator<unknown> {
+    throw new InternalUndefinedError(this.name);
+  }
 }

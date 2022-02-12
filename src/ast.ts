@@ -6,8 +6,8 @@ import { Token } from "./token";
 
 export interface Node {
   readonly token: Token;
-  render(context: Context, out: RenderStream): Promise<boolean>;
-  children(): Node[];
+  render(context: Context, out: RenderStream): Promise<void>;
+  branches(): Node[];
 }
 
 export class Root {
@@ -17,15 +17,13 @@ export class Root {
 export class BlockNode implements Node {
   constructor(readonly token: Token, public statements: Node[] = []) {}
 
-  public async render(context: Context, out: RenderStream): Promise<boolean> {
-    let output = false;
+  public async render(context: Context, out: RenderStream): Promise<void> {
     for (const statement of this.statements) {
-      output = (await statement.render(context, out)) || output;
+      await statement.render(context, out);
     }
-    return output;
   }
 
-  public children(): Node[] {
+  public branches(): Node[] {
     return this.statements;
   }
 }

@@ -1,4 +1,6 @@
-export const TOKEN_LITERAL = "TOKEN_LITERAL";
+import { LiquidSyntaxError } from "./errors";
+
+export const TOKEN_LITERAL = "literal";
 export const TOKEN_STATEMENT = "TOKEN_STATEMENT";
 export const TOKEN_TAG = "TOKEN_TAG";
 export const TOKEN_RAW = "TOKEN_RAW";
@@ -12,6 +14,10 @@ export class Token {
     readonly index: number,
     readonly input: string
   ) {}
+
+  toString(): string {
+    return `(kind=${this.kind}, value=${this.value})`;
+  }
 }
 
 const EOF = new Token(TOKEN_EOF, "EOF", -1, "");
@@ -20,6 +26,7 @@ export interface TokenStream {
   current: Token;
   peek: Token;
   next(): Token;
+  expect(kind: string): void;
 }
 
 export class TemplateTokenStream implements TokenStream {
@@ -37,6 +44,14 @@ export class TemplateTokenStream implements TokenStream {
 
   public get peek(): Token {
     return this._peek;
+  }
+
+  public expect(kind: string): void {
+    if (this.current.kind !== kind)
+      throw new LiquidSyntaxError(
+        `expected ${String(kind)}, found ${String(this.current.kind)}`,
+        this.current
+      );
   }
 
   public next(): Token {

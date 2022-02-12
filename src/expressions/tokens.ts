@@ -23,7 +23,7 @@ export const TOKEN_STRING = "TOKEN_STRING";
 export const TOKEN_EOF = "TOKEN_EOF";
 export const TOKEN_NEWLINE = "TOKEN_NEWLINE";
 export const TOKEN_EMPTY = "empty";
-export const TOKEN_NIL = "nill";
+export const TOKEN_NIL = "nil";
 export const TOKEN_NULL = "null";
 export const TOKEN_BLANK = "blank";
 export const TOKEN_WITH = "with";
@@ -47,7 +47,7 @@ export const TOKEN_ASSIGN = "TOKEN_ASSIGN";
 
 // Logical operators
 export const TOKEN_AND = "and";
-export const TOKEN_OR = "and";
+export const TOKEN_OR = "or";
 
 // Comparison operators
 export const TOKEN_EQ = "TOKEN_EQ";
@@ -57,6 +57,31 @@ export const TOKEN_LT = "TOKEN_LT";
 export const TOKEN_GT = "TOKEN_GT";
 export const TOKEN_LE = "TOKEN_LE";
 export const TOKEN_GE = "TOKEN_GE";
+
+export const TOKEN_OP = "TOKEN_OP";
+export const OPERATORS = new Map([
+  ["==", TOKEN_EQ],
+  ["!=", TOKEN_NE],
+  ["<>", TOKEN_LG],
+  ["<", TOKEN_LT],
+  [">", TOKEN_GT],
+  ["<=", TOKEN_LE],
+  [">=", TOKEN_GE],
+  ["|", TOKEN_PIPE],
+  [":", TOKEN_COLON],
+  [",", TOKEN_COMMA],
+  [".", TOKEN_DOT],
+  ["(", TOKEN_LPAREN],
+  [")", TOKEN_RPAREN],
+  ["..", TOKEN_RANGE],
+  ["[", TOKEN_LBRACKET],
+  ["]", TOKEN_RBRACKET],
+  ["=", TOKEN_ASSIGN],
+]);
+
+export const REVERSE_OPERATORS = new Map(
+  Array.from(OPERATORS.entries()).map(([k, v]) => [v, k])
+);
 
 const EOF = new Token(TOKEN_EOF, "EOF", -1, "");
 

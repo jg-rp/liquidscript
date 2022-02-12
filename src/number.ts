@@ -31,47 +31,32 @@ export abstract class LiquidNumber {
       : new Float(this.n / _n.n);
   }
 
-  eq(n: N): NumberT {
+  eq(n: N): boolean {
     const _n = parseNumberT(n);
-    const result = this.n === _n.n;
-    return isFloat(this) || isFloat(_n)
-      ? new Float(result)
-      : new Integer(result);
+    return this.n === _n.n;
   }
 
   floor(): NumberT {
     return new Integer(Math.floor(this.n));
   }
 
-  gt(n: N): NumberT {
+  gt(n: N): boolean {
     const _n = parseNumberT(n);
-    const result = this.n > _n.n;
-    return isFloat(this) || isFloat(_n)
-      ? new Float(result)
-      : new Integer(result);
+    return this.n > _n.n;
   }
-  gte(n: N): NumberT {
+  gte(n: N): boolean {
     const _n = parseNumberT(n);
-    const result = this.n >= _n.n;
-    return isFloat(this) || isFloat(_n)
-      ? new Float(result)
-      : new Integer(result);
+    return this.n >= _n.n;
   }
 
-  lt(n: N): NumberT {
+  lt(n: N): boolean {
     const _n = parseNumberT(n);
-    const result = this.n < _n.n;
-    return isFloat(this) || isFloat(_n)
-      ? new Float(result)
-      : new Integer(result);
+    return this.n < _n.n;
   }
 
-  lte(n: N): NumberT {
+  lte(n: N): boolean {
     const _n = parseNumberT(n);
-    const result = this.n <= _n.n;
-    return isFloat(this) || isFloat(_n)
-      ? new Float(result)
-      : new Integer(result);
+    return this.n <= _n.n;
   }
 
   minus(n: N): NumberT {

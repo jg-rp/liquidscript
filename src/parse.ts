@@ -40,13 +40,14 @@ export class TemplateParser implements Parser {
       !(stream.current.kind === TOKEN_TAG && end.has(stream.current.value))
     ) {
       block.statements.push(this.parseStatement(stream));
+      stream.next();
     }
     return block;
   }
 
   private getTag(token: Token): Tag {
     const tag = this.environment.tags[token.value];
-    if (!tag) throw new NoSuchTagError(token.value, token);
+    if (!tag) throw new NoSuchTagError(`unknown tag '${token.value}'`, token);
     return tag;
   }
 
@@ -68,7 +69,10 @@ export class TemplateParser implements Parser {
         node = this.environment.tags["literal"].parse(stream, this.environment);
         break;
       default:
-        throw new LiquidSyntaxError("unexpected token", stream.current);
+        throw new LiquidSyntaxError(
+          `unexpected token ${stream.current.kind}`,
+          stream.current
+        );
     }
     return node;
   }

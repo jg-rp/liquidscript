@@ -1,9 +1,7 @@
+import { isNumberT, NumberT } from "./number";
+
 export function isString(value: unknown): value is string {
   return typeof value === "string";
-}
-
-export function isInteger(value: unknown): value is number {
-  return typeof value === "number" && Number.isInteger(value);
 }
 
 export function isArray(value: unknown): value is Array<unknown> {
@@ -14,7 +12,9 @@ export function isArray(value: unknown): value is Array<unknown> {
 
 export function isObject(value: unknown): value is object {
   const _type = typeof value;
-  return _type === "object" || _type === "function" ? true : false;
+  return (value !== null && _type === "object") || _type === "function"
+    ? true
+    : false;
 }
 
 export function isPropertyKey(value: unknown): value is PropertyKey {
@@ -22,6 +22,18 @@ export function isPropertyKey(value: unknown): value is PropertyKey {
   return _type === "string" || _type === "number" || _type === "symbol"
     ? true
     : false;
+}
+
+export function isNumber(value: unknown): value is number | NumberT {
+  return typeof value === "number" || isNumberT(value);
+}
+
+export function isPrimitiveNumber(value: unknown): value is number {
+  return typeof value === "number";
+}
+
+export function isPrimitiveInteger(value: unknown): value is number {
+  return typeof value === "number" && Number.isInteger(value);
 }
 
 export function toLiquidString(obj: unknown): string {
@@ -32,4 +44,8 @@ export function toLiquidString(obj: unknown): string {
   // TODO: Arrays, ranges, auto escape
 
   return String(obj);
+}
+
+export function isIterable(obj: object): obj is Iterable<unknown> {
+  return Symbol.iterator in obj;
 }

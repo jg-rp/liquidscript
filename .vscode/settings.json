@@ -1,3 +1,21 @@
 {
-  "cSpell.words": ["kwargs", "LPAREN", "Renderable", "RPAREN"]
+  "cSpell.words": [
+    "Dispatchable",
+    "endcapture",
+    "ENDCASE",
+    "ENDFORBLOCK",
+    "ENDFORELSEBLOCK",
+    "ENDTABLEROW",
+    "forloop",
+    "kwargs",
+    "LPAREN",
+    "nosuchthing",
+    "parentloop",
+    "Prec",
+    "Renderable",
+    "RPAREN",
+    "tablerowloop",
+    "TAGBLOCK"
+  ],
+  "editor.tabSize": 2
 }

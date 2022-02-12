@@ -1,7 +1,7 @@
 {
   "name": "liquid-air",
   "version": "1.0.0",
-  "main": "lib/liquid-air.js",
+  "main": "lib/liquid.js",
   "author": "James",
   "license": "MIT",
   "scripts": {
@@ -18,10 +18,12 @@
     "lib/**/*"
   ],
   "devDependencies": {
+    "@types/benchmark": "^2.1.1",
     "@types/jest": "^27.4.0",
     "@types/rewire": "^2.5.28",
     "@typescript-eslint/eslint-plugin": "^5.10.1",
     "@typescript-eslint/parser": "^5.10.1",
+    "benchmark": "^2.1.4",
     "eslint": "^8.8.0",
     "jest": "^27.4.7",
     "prettier": "^2.5.1",

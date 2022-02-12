@@ -32,6 +32,7 @@ export interface Context {
    *
    */
   autoEscape: boolean;
+  counters: Map<string, number>;
 
   /**
    *
@@ -80,6 +81,9 @@ export interface Context {
   copy(scope: ContextScope, disabledTags: string[]): Context;
 }
 
+/**
+ *
+ */
 export class ReadOnlyChainMap {
   private maps: ContextScope[];
   constructor(...maps: ContextScope[]) {
@@ -125,6 +129,9 @@ export class ReadOnlyChainMap {
   }
 }
 
+/**
+ *
+ */
 export class BuiltIn {
   get(key: string): Date | undefined {
     if (key === "now" || key === "today") return new Date();
@@ -137,12 +144,15 @@ export class BuiltIn {
   }
 }
 
+/**
+ *
+ */
 export class DefaultContext implements Context {
   public autoEscape: boolean;
-
+  public counters = new Map<string, number>();
+  public registers = new Map<unknown, unknown>();
   private locals = new Map<string, unknown>();
-  private counters = new Map<string, number>();
-  private registers = new Map<unknown, unknown>();
+
   private scope: ReadOnlyChainMap;
 
   constructor(

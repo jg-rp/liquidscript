@@ -1,5 +1,9 @@
-import { Environment } from "../../environment";
 import { BlockNode, Node } from "../../ast";
+import { Context } from "../../context";
+import { Environment } from "../../environment";
+import { Expression } from "../../expression";
+import { parse } from "../../expressions/boolean/parse";
+import { RenderStream } from "../../io/output_stream";
 import { Tag } from "../../tag";
 import {
   Token,
@@ -8,36 +12,32 @@ import {
   TOKEN_EXPRESSION,
   TOKEN_TAG,
 } from "../../token";
-import { BooleanExpression } from "../../expression";
-import { Context } from "../../context";
-import { RenderStream } from "../../io/output_stream";
-import { parse } from "../../expressions/boolean/parse";
 
-type ConditionalAlternative = {
-  condition: BooleanExpression;
-  consequence: BlockNode;
-};
-
-const TAG_IF = "if";
-const TAG_ENDIF = "endif";
+const TAG_UNLESS = "unless";
+const TAG_ENDUNLESS = "endunless";
 const TAG_ELSIF = "elsif";
 const TAG_ELSE = "else";
 
-const END_IF_BLOCK = new Set([TAG_ENDIF, TAG_ELSIF, TAG_ELSE, TOKEN_EOF]);
-const END_ELSEIF_BLOCK = new Set([TAG_ENDIF, TAG_ELSIF, TAG_ELSE]);
-const END_ELSE_BLOCK = new Set([TAG_ENDIF]);
+const END_IF_BLOCK = new Set([TAG_ENDUNLESS, TAG_ELSIF, TAG_ELSE, TOKEN_EOF]);
+const END_ELSEIF_BLOCK = new Set([TAG_ENDUNLESS, TAG_ELSIF, TAG_ELSE]);
+const END_ELSE_BLOCK = new Set([TAG_ENDUNLESS]);
 
-export class IfTag implements Tag {
+type ConditionalAlternative = {
+  condition: Expression;
+  consequence: BlockNode;
+};
+
+export class UnlessTag implements Tag {
   readonly block = true;
-  readonly name = TAG_IF;
-  readonly end = TAG_ENDIF;
+  readonly name = TAG_UNLESS;
+  readonly end = TAG_ENDUNLESS;
 
-  protected parseExpression(stream: TokenStream): BooleanExpression {
+  protected parseExpression(stream: TokenStream): Expression {
     stream.expect(TOKEN_EXPRESSION);
     return parse(stream.current.value);
   }
 
-  parse(stream: TokenStream, environment: Environment): IfNode {
+  parse(stream: TokenStream, environment: Environment): UnlessNode {
     const parser = environment.getParser();
     const token = stream.next();
     const condition = this.parseExpression(stream);
@@ -65,7 +65,7 @@ export class IfTag implements Tag {
       stream.current.value === TAG_ELSE
     ) {
       stream.next();
-      return new IfNode(
+      return new UnlessNode(
         token,
         condition,
         consequence,
@@ -74,21 +74,26 @@ export class IfTag implements Tag {
       );
     }
 
-    return new IfNode(token, condition, consequence, conditionalAlternatives);
+    return new UnlessNode(
+      token,
+      condition,
+      consequence,
+      conditionalAlternatives
+    );
   }
 }
 
-export class IfNode implements Node {
+export class UnlessNode implements Node {
   constructor(
     readonly token: Token,
-    private condition: BooleanExpression,
+    private condition: Expression,
     private consequence: BlockNode,
     private conditionalAlternatives: ConditionalAlternative[],
     private alternative?: BlockNode
   ) {}
 
   async render(context: Context, out: RenderStream): Promise<void> {
-    if (await this.condition.evaluate(context)) {
+    if (!(await this.condition.evaluate(context))) {
       await this.consequence.render(context, out);
       return;
     }
@@ -112,7 +117,7 @@ export class IfNode implements Node {
         (alt: ConditionalAlternative) => alt.consequence
       ),
     ];
-    if (this.alternative !== undefined) _children.push(this.alternative);
+    if (this.alternative !== undefined) _children.push(this.consequence);
     return _children;
   }
 }

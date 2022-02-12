@@ -81,6 +81,8 @@ export class Template implements TemplateI {
           }
         } else if (error instanceof LiquidError) {
           this.environment.error(error);
+        } else {
+          throw error;
         }
       }
     }

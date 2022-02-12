@@ -16,7 +16,7 @@
     "strict": true,
     "target": "es5",
     "noImplicitAny": true,
-    "types": ["jest", "node"]
+    "types": ["jest", "node", "benchmark"]
   },
   "include": ["src"],
   "exclude": [

@@ -19,25 +19,6 @@ export function isLiquidPrimitive(obj: unknown): obj is LiquidPrimitive {
 }
 
 /**
- * XXX: Same as Python's __str__ or Ruby's to_s.
- * XXX: Should we just use tObject.prototype.toString()?
- */
-export const toLiquidString = Symbol.for("liquid.drop.string");
-
-export interface LiquidStringable {
-  [toLiquidString](): string;
-}
-
-export function isLiquidStringable(obj: unknown): obj is LiquidStringable {
-  // TODO: and is a function
-  return (
-    (typeof obj === "object" || typeof obj === "function") &&
-    obj !== null &&
-    toLiquidString in obj
-  );
-}
-
-/**
  * XXX: Same as Python's __html__ for use with HTML auto escape.
  */
 export const html = Symbol.for("liquid.drop.html");
@@ -46,19 +27,19 @@ export const html = Symbol.for("liquid.drop.html");
  * A whitelist of function/method names that can be called from liquid
  * with no arguments.
  *
- * XXX: Same as Ruby's invokable_methods
+ * XXX: Same as Ruby's invokable_methods (sic)
  */
 export const liquidCallable = Symbol.for("liquid.drop.callable");
 
 export interface LiquidCallable {
-  [liquidCallable](): unknown;
+  [liquidCallable](): string[];
 }
 
 export function isLiquidCallable(obj: unknown): obj is LiquidCallable {
-  // TODO: and is an array
+  // TODO: and is an array of strings
   return (
-    (typeof obj === "object" || typeof obj === "function") &&
     obj !== null &&
+    (typeof obj === "object" || typeof obj === "function") &&
     liquidCallable in obj
   );
 }
@@ -66,5 +47,20 @@ export function isLiquidCallable(obj: unknown): obj is LiquidCallable {
 /**
  * XXX: Same as Ruby's liquid_method_missing. Called with a name argument
  * if the name is not in the whitelist at [liquidCallable].
+ *
+ * Also similar to Python Liquid's __getitem__ approach.
  */
-export const liquidMethodMissing = Symbol.for("liquid.drop.methodMissing");
+export const liquidDispatch = Symbol.for("liquid.drop.dispatch");
+
+export interface LiquidDispatchable {
+  [liquidDispatch](name: string): unknown;
+}
+
+export function isLiquidDispatchable(obj: unknown): obj is LiquidDispatchable {
+  // TODO: and is a function/method
+  return (
+    obj !== null &&
+    (typeof obj === "object" || typeof obj === "function") &&
+    liquidCallable in obj
+  );
+}

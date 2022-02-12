@@ -22,12 +22,11 @@ export class OutputStatement implements Tag {
 export class OutputStatementNode implements Node {
   constructor(readonly token: Token, readonly expression: Expression) {}
 
-  async render(context: Context, out: RenderStream): Promise<boolean> {
+  async render(context: Context, out: RenderStream): Promise<void> {
     out.write(toLiquidString(await this.expression.evaluate(context)));
-    return true;
   }
 
-  children(): Node[] {
+  branches(): Node[] {
     return [];
   }
 
