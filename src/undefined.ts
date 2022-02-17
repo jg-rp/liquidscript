@@ -9,15 +9,29 @@ export abstract class Undefined {
 }
 
 export class StrictUndefined extends Undefined {
-  toString() {
+  public toString() {
     throw new InternalUndefinedError(this.name);
   }
 
-  valueOf() {
+  public valueOf() {
     throw new InternalUndefinedError(this.name);
   }
 
-  [Symbol.iterator](): Iterator<unknown> {
+  public [Symbol.iterator](): Iterator<unknown> {
     throw new InternalUndefinedError(this.name);
+  }
+}
+
+export class LaxUndefined extends Undefined {
+  public toString() {
+    return "";
+  }
+
+  public valueOf() {
+    return "";
+  }
+
+  public [Symbol.iterator](): Iterator<unknown> {
+    return [].values();
   }
 }

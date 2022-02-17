@@ -3,6 +3,7 @@
     "Dispatchable",
     "endcapture",
     "ENDCASE",
+    "endcomment",
     "ENDFORBLOCK",
     "ENDFORELSEBLOCK",
     "ENDTABLEROW",

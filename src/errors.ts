@@ -30,7 +30,21 @@ export class MaxContextDepthError extends InternalLiquidError {}
 export class TemplateNotFoundError extends InternalLiquidError {}
 export class PushedTooFarError extends InternalLiquidError {}
 export class NoSuchFilterError extends InternalLiquidError {}
-export class FilterValueError extends InternalLiquidError {}
+
+export class FilterValueError extends InternalLiquidError {
+  constructor(readonly message: string) {
+    super(message);
+    Object.setPrototypeOf(this, FilterValueError.prototype);
+  }
+}
+
+export class FilterArgumentError extends InternalLiquidError {
+  constructor(readonly message: string) {
+    super(message);
+    Object.setPrototypeOf(this, FilterArgumentError.prototype);
+  }
+}
+
 export class LiquidTypeError extends InternalLiquidError {}
 
 export class LiquidInterrupt extends InternalLiquidError {

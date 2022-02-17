@@ -10,6 +10,7 @@ import { Float, Integer, isInteger, parseNumberT } from "./number";
 import {
   isArray,
   isIterable,
+  isLiquidTruthy,
   isNumber,
   isObject,
   isPrimitiveInteger,
@@ -179,7 +180,7 @@ export class FloatLiteral extends Literal<Float> {
 export class RangeLiteral implements Expression {
   constructor(readonly start: Expression, readonly stop: Expression) {}
 
-  async evaluate(context: Context): Promise<unknown> {
+  async evaluate(context: Context): Promise<Range> {
     let start = new Number(await this.start.evaluate(context));
     let stop = new Number(await this.stop.evaluate(context));
 
@@ -369,7 +370,7 @@ export class BooleanExpression implements Expression {
   }
 
   async evaluate(context: Context): Promise<boolean> {
-    return isTruthy(await this.expression.evaluate(context));
+    return isLiquidTruthy(await this.expression.evaluate(context));
   }
 }
 
@@ -483,19 +484,12 @@ function safe(value: string): string {
   return value;
 }
 
-function isTruthy(obj: unknown): boolean {
-  if (isLiquidPrimitive(obj)) obj = obj[liquidValueOf]();
-  return obj === false || FALSE.equals(obj) || obj === undefined || obj === null
-    ? false
-    : true;
-}
-
 function compare(left: unknown, operator: string, right: unknown): boolean {
   switch (operator) {
     case "and":
-      return isTruthy(left) && isTruthy(right);
+      return isLiquidTruthy(left) && isLiquidTruthy(right);
     case "or":
-      return isTruthy(left) || isTruthy(right);
+      return isLiquidTruthy(left) || isLiquidTruthy(right);
   }
 
   if (isLiquidPrimitive(left)) left = left[liquidValueOf]();

@@ -12,7 +12,7 @@ import {
 import { Tag } from "./tag";
 
 export interface Parser {
-  parse(stream: TokenStream, environment: Environment): Root;
+  parse(stream: TokenStream): Root;
   parseBlock(stream: TokenStream, end: Set<string>): BlockNode;
 }
 

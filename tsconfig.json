@@ -6,17 +6,18 @@
     "allowSyntheticDefaultImports": true,
     "declaration": true,
     "downlevelIteration": true,
-    "diagnostics": true,
+    "diagnostics": false,
     "esModuleInterop": true,
-    "extendedDiagnostics": true,
-    "listEmittedFiles": true,
+    "extendedDiagnostics": false,
+    "listEmittedFiles": false,
     "module": "commonjs",
     "removeComments": true,
     "sourceMap": true,
     "strict": true,
-    "target": "es5",
+    "target": "es6",
     "noImplicitAny": true,
-    "types": ["jest", "node", "benchmark"]
+    "types": ["jest", "node"],
+    "incremental": true
   },
   "include": ["src"],
   "exclude": [

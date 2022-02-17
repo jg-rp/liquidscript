@@ -86,10 +86,9 @@ function isRaw(match: MatchGroups): match is RawMatch {
 }
 
 export function* tokenize(source: string): Generator<Token> {
+  let leftStrip = false;
   for (const match of source.matchAll(RE_P)) {
-    // console.log(match);
     const groups = match.groups as MatchGroups;
-    let leftStrip = false;
 
     if (isStatement(groups)) {
       leftStrip = !!groups.rightStripStatement;

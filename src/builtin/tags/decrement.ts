@@ -11,7 +11,7 @@ export class DecrementTag implements Tag {
   readonly block = false;
   readonly name = "decrement";
 
-  parse(stream: TokenStream): DecrementNode {
+  public parse(stream: TokenStream): DecrementNode {
     const token = stream.next();
     stream.expect(TOKEN_EXPRESSION);
     return new DecrementNode(
@@ -26,7 +26,7 @@ export class DecrementTag implements Tag {
 export class DecrementNode implements Node {
   constructor(readonly token: Token, readonly identifier: string) {}
 
-  async render(context: Context, out: RenderStream): Promise<void> {
+  public async render(context: Context, out: RenderStream): Promise<void> {
     let val = context.counters.get(this.identifier);
     if (val === undefined) val = 0;
     val -= 1;
@@ -34,7 +34,7 @@ export class DecrementNode implements Node {
     out.write(val.toString());
   }
 
-  branches(): Node[] {
+  public branches(): Node[] {
     return [];
   }
 }

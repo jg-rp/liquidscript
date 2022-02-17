@@ -23,9 +23,6 @@ export type ContextPath = Array<number | string | LiquidPrimitive>;
 export type LoadContext = { [index: string]: string | number };
 
 const _missing = Symbol("missing");
-const _cycles = Symbol("cycles");
-const _ifChanged = Symbol("ifChanged");
-const _stopIndex = Symbol("stopIndex");
 
 export interface Context {
   /**
@@ -33,6 +30,7 @@ export interface Context {
    */
   autoEscape: boolean;
   counters: Map<string, number>;
+  registers: Map<string | symbol, Map<string | symbol, unknown>>;
 
   /**
    *
@@ -71,6 +69,12 @@ export interface Context {
     name: string,
     loaderContext: { [index: string]: unknown }
   ): Promise<TemplateI>;
+
+  /**
+   *
+   * @param key
+   */
+  getRegister(key: string | symbol): Map<string | symbol, unknown>;
 
   /**
    *
@@ -150,9 +154,11 @@ export class BuiltIn {
 export class DefaultContext implements Context {
   public autoEscape: boolean;
   public counters = new Map<string, number>();
-  public registers = new Map<unknown, unknown>();
+  readonly registers = new Map<
+    string | symbol,
+    Map<string | symbol, unknown>
+  >();
   private locals = new Map<string, unknown>();
-
   private scope: ReadOnlyChainMap;
 
   constructor(
@@ -169,11 +175,6 @@ export class DefaultContext implements Context {
       new BuiltIn(),
       this.counters
     );
-
-    // TODO: Move these to their node classes?
-    this.registers.set(_cycles, new Map<string, Iterable<unknown>>());
-    this.registers.set(_ifChanged, "");
-    this.registers.set(_stopIndex, new Map<string, string>());
   }
 
   assign(key: string, value: unknown): void {
@@ -208,6 +209,20 @@ export class DefaultContext implements Context {
     loaderContext: { [index: string]: unknown }
   ): Promise<TemplateI> {
     return this.environment.getTemplate(name, loaderContext, this);
+  }
+
+  /**
+   *
+   * @param key
+   * @returns
+   */
+  public getRegister(key: string | symbol): Map<string | symbol, unknown> {
+    let reg = this.registers.get(key);
+    if (reg === undefined) {
+      reg = new Map();
+      this.registers.set(key, reg);
+    }
+    return reg;
   }
 
   filter(name: string): Filter | undefined {

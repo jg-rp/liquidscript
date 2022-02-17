@@ -3,3 +3,9 @@ yarn-error.log
 lib/
 coverage/
 
+# 0x profile flame graph
+*.0x/
+
+# node profiler logs
+benchmark/*.log
+benchmark/*.txt

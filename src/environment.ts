@@ -22,11 +22,13 @@ import { UnlessTag } from "./builtin/tags/unless";
 import { BreakTag, ContinueTag, ForTag } from "./builtin/tags/for";
 import { CaseTag } from "./builtin/tags/case";
 import { AssignTag } from "./builtin/tags/assign";
-import { join } from "./builtin/filters/array";
+import { first, join } from "./builtin/filters/array";
 import { CaptureTag } from "./builtin/tags/capture";
 import { IncrementTag } from "./builtin/tags/increment";
 import { DecrementTag } from "./builtin/tags/decrement";
 import { TableRowTag } from "./builtin/tags/tablerow";
+import { CycleTag } from "./builtin/tags/cycle";
+import { CommentTag } from "./builtin/tags/comment";
 
 export interface Environment {
   // mode: Mode;
@@ -114,6 +116,8 @@ export class DefaultEnvironment implements Environment {
   public tags: { [keys: string]: Tag } = {};
   public loader: Loader;
 
+  private _parser: Parser;
+
   constructor({
     autoEscape,
     globals,
@@ -129,6 +133,7 @@ export class DefaultEnvironment implements Environment {
         : undefinedFactory;
 
     this.loader = new MapLoader();
+    this._parser = new TemplateParser(this);
 
     // XXX: For early testing.
     this.tags[TOKEN_LITERAL] = new TemplateLiteral();
@@ -144,9 +149,17 @@ export class DefaultEnvironment implements Environment {
     this.tags["increment"] = new IncrementTag();
     this.tags["decrement"] = new DecrementTag();
     this.tags["tablerow"] = new TableRowTag();
+    this.tags["cycle"] = new CycleTag();
+    this.tags["comment"] = new CommentTag();
+    // TODO: echo
+    // TODO: ifChanged
+    // TODO: liquid
+    // TODO: include
+    // TODO: render
 
     this.filters["append"] = append;
     this.filters["join"] = join;
+    this.filters["first"] = first;
   }
 
   undefined_(name: string): Undefined {
@@ -185,13 +198,11 @@ export class DefaultEnvironment implements Environment {
 
   getParser(): Parser {
     // TODO: Cache parser.
-    return new TemplateParser(this);
+    return this._parser;
   }
 
   protected parse(source: string): Root {
-    // TODO: Cache parser.
-    const parser = new TemplateParser(this);
-    return parser.parse(new TemplateTokenStream(tokenize(source)));
+    return this.getParser().parse(new TemplateTokenStream(tokenize(source)));
   }
 
   protected makeGlobals(templateGlobals?: ContextGlobals): ContextGlobals {
