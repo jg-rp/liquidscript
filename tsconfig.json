@@ -17,7 +17,8 @@
     "target": "es6",
     "noImplicitAny": true,
     "types": ["jest", "node"],
-    "incremental": true
+    "incremental": true,
+    "importHelpers": true
   },
   "include": ["src"],
   "exclude": [

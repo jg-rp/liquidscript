@@ -1,137 +1,163 @@
-import { isString } from "./object";
+import Decimal from "decimal.js";
+import { isPrimitiveNumber, isString } from "./object";
 
 // eslint-disable-next-line @typescript-eslint/ban-types
 export type N = string | number | Number | LiquidNumber;
 
 export abstract class LiquidNumber {
-  abstract float: boolean;
-  readonly n: number;
+  public abstract float: boolean;
+  public readonly n: Decimal;
 
-  constructor(val: unknown) {
-    this.n = Number(val);
+  public constructor(val: string | number | Decimal) {
+    this.n = new Decimal(val);
   }
 
-  valueOf(): number {
-    return this.n;
+  public valueOf(): number {
+    return this.n.toNumber();
   }
 
-  abs(): NumberT {
-    const result = Math.abs(this.n);
+  public abs(): NumberT {
+    const result = this.n.abs();
     return isFloat(this) ? new Float(result) : new Integer(result);
   }
 
-  ceil(): NumberT {
-    return new Integer(Math.ceil(this.n));
+  public ceil(): NumberT {
+    return new Integer(this.n.ceil());
   }
 
-  div(n: N): NumberT {
+  public div(n: N): NumberT {
     const _n = parseNumberT(n);
     return isInteger(this) && isInteger(_n)
-      ? new Integer((this.n - (this.n % _n.n)) / _n.n)
-      : new Float(this.n / _n.n);
+      ? new Integer(this.n.dividedToIntegerBy(_n.n))
+      : new Float(this.n.dividedBy(_n.n));
   }
 
-  eq(n: N): boolean {
-    const _n = parseNumberT(n);
-    return this.n === _n.n;
+  public eq(n: N): boolean {
+    return this.n.eq(parseNumberT(n).n);
   }
 
-  floor(): NumberT {
-    return new Integer(Math.floor(this.n));
+  public floor(): NumberT {
+    return new Integer(this.n.floor());
   }
 
-  gt(n: N): boolean {
-    const _n = parseNumberT(n);
-    return this.n > _n.n;
-  }
-  gte(n: N): boolean {
-    const _n = parseNumberT(n);
-    return this.n >= _n.n;
+  public gt(n: N): boolean {
+    return this.n.gt(parseNumberT(n).n);
   }
 
-  lt(n: N): boolean {
-    const _n = parseNumberT(n);
-    return this.n < _n.n;
+  public gte(n: N): boolean {
+    return this.n.gte(parseNumberT(n).n);
   }
 
-  lte(n: N): boolean {
-    const _n = parseNumberT(n);
-    return this.n <= _n.n;
+  public lt(n: N): boolean {
+    return this.n.lt(parseNumberT(n).n);
   }
 
-  minus(n: N): NumberT {
+  public lte(n: N): boolean {
+    return this.n.lte(parseNumberT(n).n);
+  }
+
+  public max(n: N): NumberT {
     const _n = parseNumberT(n);
-    const result = this.n - _n.n;
+    return _n.gt(this) ? _n : this;
+  }
+
+  public min(n: N): NumberT {
+    const _n = parseNumberT(n);
+    return _n.lt(this) ? _n : this;
+  }
+
+  public minus(n: N): NumberT {
+    const _n = parseNumberT(n);
+    const result = this.n.minus(_n.n);
     return isFloat(this) || isFloat(_n)
       ? new Float(result)
       : new Integer(result);
   }
 
-  mod(n: N): NumberT {
+  public mod(n: N): NumberT {
     const _n = parseNumberT(n);
-    const result = this.n % _n.n;
+    const result = this.n.mod(_n.n);
     return isFloat(this) || isFloat(_n)
       ? new Float(result)
       : new Integer(result);
   }
 
-  plus(n: N): NumberT {
+  public plus(n: N): NumberT {
     const _n = parseNumberT(n);
-    const result = this.n + _n.n;
+    const result = this.n.plus(_n.n);
     return isFloat(this) || isFloat(_n)
       ? new Float(result)
       : new Integer(result);
   }
 
-  round(nDigits: N | undefined): NumberT {
-    if (nDigits === undefined) return this.trunc();
-    const _nDigits = parseNumberT(nDigits);
-    const amp = Math.pow(10, _nDigits.n);
-    return new Float(Math.round(this.n * amp) / amp);
+  public round(decimalPlaces?: number): NumberT {
+    return decimalPlaces === undefined || this.n.eq(0)
+      ? new Integer(this.n.toDecimalPlaces(0, Decimal.ROUND_HALF_CEIL))
+      : new Float(
+          this.n.toDecimalPlaces(decimalPlaces, Decimal.ROUND_HALF_CEIL)
+        );
   }
 
-  times(n: N): NumberT {
+  public times(n: N): NumberT {
     const _n = parseNumberT(n);
-    const result = this.n * _n.n;
+    const result = this.n.times(_n.n);
     return isFloat(this) || isFloat(_n)
       ? new Float(result)
       : new Integer(result);
   }
 
-  trunc(): NumberT {
+  public trunc(): NumberT {
     // Equivalent to Math.trunc(this.num), for the benefit of IE.
-    return new Integer((this.n > 0 ? Math.floor : Math.ceil)(this.n));
+    return new Integer(this.n.trunc());
+  }
+
+  public isFinite(): boolean {
+    return this.n.isFinite();
   }
 }
 
 export class Float extends LiquidNumber {
-  readonly float: true = true;
+  public readonly float: true = true;
 
-  toString(): string {
+  public toString(): string {
     const s = this.n.toString();
     return s.toString().indexOf(".") === -1 ? s + ".0" : s;
   }
 }
 
 export class Integer extends LiquidNumber {
-  readonly float: false = false;
+  public readonly float: false = false;
 
-  toString(): string {
-    // Don't call this.trunc() here. You'll get a recursive call to toString().
-    return (this.n > 0 ? Math.floor : Math.ceil)(this.n).toString();
+  public toString(): string {
+    return this.n.toString();
   }
 }
 
 export type NumberT = Integer | Float;
 
+/**
+ *
+ * @param val
+ * @returns
+ */
 export function isNumberT(val: unknown): val is NumberT {
   return val instanceof Integer || val instanceof Float;
 }
 
+/**
+ *
+ * @param val
+ * @returns
+ */
 export function isInteger(val: unknown): val is Integer {
   return val instanceof Integer;
 }
 
+/**
+ *
+ * @param val
+ * @returns
+ */
 export function isFloat(val: unknown): val is Float {
   return val instanceof Float;
 }
@@ -143,9 +169,23 @@ function _stringToNumberT(s: string): NumberT {
   return s.indexOf(".") === -1 ? new Integer(Number(s)) : new Float(Number(s));
 }
 
+/**
+ *
+ * @param val
+ * @returns
+ */
+export function isN(val: unknown): val is N {
+  return isNumberT(val) || isString(val) || isFinite(val as number);
+}
+
+/**
+ *
+ * @param n
+ * @returns
+ */
 export function parseNumberT(n: N): NumberT {
   if (n instanceof Number) return new Integer(n.valueOf());
-  if (typeof n === "number") return new Integer(n);
+  if (isPrimitiveNumber(n)) return new Integer(n);
   if (isString(n)) return _stringToNumberT(n);
   return n;
 }
