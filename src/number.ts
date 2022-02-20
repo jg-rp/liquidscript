@@ -107,7 +107,6 @@ export abstract class LiquidNumber {
   }
 
   public trunc(): NumberT {
-    // Equivalent to Math.trunc(this.num), for the benefit of IE.
     return new Integer(this.n.trunc());
   }
 

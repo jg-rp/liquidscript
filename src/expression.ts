@@ -56,9 +56,10 @@ export class Empty implements Expression {
   }
 
   equals(other: unknown): boolean {
-    if (other instanceof Empty) return false;
+    if (other instanceof Empty) return true;
     if (other === null) return false;
     if (isString(other) || isArray(other)) return !other.length;
+    if (other instanceof Map || other instanceof Set) return other.size === 0;
     if (isObject(other)) {
       for (const i in other) return false;
       return true;
@@ -311,6 +312,8 @@ export class FilteredExpression implements Expression {
         // TODO: Look at strict mode and continue if needed
         throw new NoSuchFilterError(`unknown filter ${filter.name}`);
       }
+      // TODO: Prepend registered filter name to error messages.
+      // TODO: Remove hard coded names from built-in filters.
       try {
         result = _filter.apply(context, [
           result,

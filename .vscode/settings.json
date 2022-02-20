@@ -10,13 +10,15 @@
     "forloop",
     "kwargs",
     "LPAREN",
+    "lstrip",
     "nosuchthing",
     "parentloop",
     "Prec",
     "Renderable",
     "RPAREN",
     "tablerowloop",
-    "TAGBLOCK"
+    "TAGBLOCK",
+    "truncatewords"
   ],
   "editor.tabSize": 2
 }

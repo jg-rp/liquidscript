@@ -292,6 +292,11 @@ function inputIterable(value: unknown): Iterable<unknown> {
  * @returns
  */
 function flatten(it: Iterable<unknown>, level: number = 5): unknown[] {
+  /**
+   *
+   * @param it
+   * @param level
+   */
   function* _flatten(
     it: Iterable<unknown>,
     level: number = 5

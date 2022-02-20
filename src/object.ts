@@ -1,6 +1,7 @@
 import { isLiquidPrimitive, liquidValueOf } from "./drop";
 import { FALSE } from "./expression";
 import { isNumberT, NumberT } from "./number";
+import { Undefined } from "./undefined";
 
 export function isString(value: unknown): value is string {
   return typeof value === "string";
@@ -58,13 +59,35 @@ export function toLiquidString(obj: unknown): string {
   return String(obj);
 }
 
+/**
+ *
+ * @param value
+ * @returns
+ */
 export function isIterable(value: unknown): value is Iterable<unknown> {
   return isObject(value) ? Symbol.iterator in value : false;
 }
 
-export function isLiquidTruthy(obj: unknown): boolean {
-  if (isLiquidPrimitive(obj)) obj = obj[liquidValueOf]();
-  return obj === false || FALSE.equals(obj) || obj === undefined || obj === null
+/**
+ *
+ * @param value
+ * @returns
+ */
+export function isLiquidTruthy(value: unknown): boolean {
+  if (isLiquidPrimitive(value)) value = value[liquidValueOf]();
+  return value === false ||
+    FALSE.equals(value) ||
+    value === undefined ||
+    value === null
     ? false
     : true;
+}
+
+/**
+ *
+ * @param value
+ * @returns
+ */
+export function isUndefined(value: unknown): value is Undefined {
+  return value === undefined || value instanceof Undefined;
 }
