@@ -9,7 +9,12 @@ import {
 import { Environment } from "./environment";
 import { Root } from "./ast";
 import { DefaultOutputStream, RenderStream } from "./io/output_stream";
-import { LiquidError, LiquidInterrupt, LiquidSyntaxError } from "./errors";
+import {
+  InternalLiquidError,
+  LiquidError,
+  LiquidInterrupt,
+  LiquidSyntaxError,
+} from "./errors";
 
 export interface TemplateI {
   render(globals?: ContextGlobals): Promise<string>;
@@ -54,7 +59,8 @@ export class Template implements TemplateI {
   async render(globals: ContextGlobals = {}): Promise<string> {
     const context = new DefaultContext(
       this.environment,
-      this.makeGlobals(globals)
+      this.makeGlobals(globals),
+      this.name
     );
     const outputStream = new DefaultOutputStream();
     await this.renderWithContext(context, outputStream);
@@ -79,6 +85,8 @@ export class Template implements TemplateI {
           } else {
             throw error;
           }
+        } else if (error instanceof InternalLiquidError) {
+          this.environment.error(error.withToken(node.token, this.name));
         } else if (error instanceof LiquidError) {
           this.environment.error(error);
         } else {

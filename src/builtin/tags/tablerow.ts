@@ -1,7 +1,7 @@
 import { BlockNode, Node } from "../../ast";
 import { Context } from "../../context";
 import { Environment } from "../../environment";
-import { LiquidTypeError } from "../../errors";
+import { InternalTypeError } from "../../errors";
 import { LoopExpression } from "../../expression";
 import { parse } from "../../expressions/loop/parse";
 import { RenderStream } from "../../io/output_stream";
@@ -53,7 +53,7 @@ export class TableRowNode implements Node {
     if (isInteger(cols)) {
       cols = cols.valueOf();
     } else if (!isPrimitiveInteger(cols)) {
-      throw new LiquidTypeError(
+      throw new InternalTypeError(
         `tablerow cols must be an integer, found '${cols}'`
       );
     }

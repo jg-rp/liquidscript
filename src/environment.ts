@@ -12,23 +12,9 @@ import { Undefined, StrictUndefined } from "./undefined";
 import { Root } from "./ast";
 import { Parser, TemplateParser } from "./parse";
 import { tokenize } from "./lex";
-import { TemplateTokenStream, TOKEN_LITERAL } from "./token";
+import { TemplateTokenStream } from "./token";
 import { Loader, MapLoader } from "./loader";
-import { OutputStatement } from "./builtin/tags/statement";
-import { append } from "./builtin/filters/string";
-import { IfTag } from "./builtin/tags/if";
-import { TemplateLiteral } from "./builtin/tags/literal";
-import { UnlessTag } from "./builtin/tags/unless";
-import { BreakTag, ContinueTag, ForTag } from "./builtin/tags/for";
-import { CaseTag } from "./builtin/tags/case";
-import { AssignTag } from "./builtin/tags/assign";
-import { first, join } from "./builtin/filters/array";
-import { CaptureTag } from "./builtin/tags/capture";
-import { IncrementTag } from "./builtin/tags/increment";
-import { DecrementTag } from "./builtin/tags/decrement";
-import { TableRowTag } from "./builtin/tags/tablerow";
-import { CycleTag } from "./builtin/tags/cycle";
-import { CommentTag } from "./builtin/tags/comment";
+import { registerBuiltin } from "./builtin/register";
 
 export interface Environment {
   // mode: Mode;
@@ -134,32 +120,7 @@ export class DefaultEnvironment implements Environment {
 
     this.loader = new MapLoader();
     this._parser = new TemplateParser(this);
-
-    // XXX: For early testing.
-    this.tags[TOKEN_LITERAL] = new TemplateLiteral();
-    this.tags["statement"] = new OutputStatement();
-    this.tags["if"] = new IfTag();
-    this.tags["unless"] = new UnlessTag();
-    this.tags["for"] = new ForTag();
-    this.tags["break"] = new BreakTag();
-    this.tags["continue"] = new ContinueTag();
-    this.tags["case"] = new CaseTag();
-    this.tags["assign"] = new AssignTag();
-    this.tags["capture"] = new CaptureTag();
-    this.tags["increment"] = new IncrementTag();
-    this.tags["decrement"] = new DecrementTag();
-    this.tags["tablerow"] = new TableRowTag();
-    this.tags["cycle"] = new CycleTag();
-    this.tags["comment"] = new CommentTag();
-    // TODO: echo
-    // TODO: ifChanged
-    // TODO: liquid
-    // TODO: include
-    // TODO: render
-
-    this.filters["append"] = append;
-    this.filters["join"] = join;
-    this.filters["first"] = first;
+    registerBuiltin(this);
   }
 
   undefined_(name: string): Undefined {
@@ -205,7 +166,7 @@ export class DefaultEnvironment implements Environment {
     return this.getParser().parse(new TemplateTokenStream(tokenize(source)));
   }
 
-  protected makeGlobals(templateGlobals?: ContextGlobals): ContextGlobals {
+  public makeGlobals(templateGlobals?: ContextGlobals): ContextGlobals {
     if (templateGlobals === undefined) return this.mapLike(this.globals);
     return new ReadOnlyChainMap(
       this.mapLike(templateGlobals),

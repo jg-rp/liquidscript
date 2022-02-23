@@ -20,6 +20,10 @@ export class StrictUndefined extends Undefined {
   public [Symbol.iterator](): Iterator<unknown> {
     throw new InternalUndefinedError(this.name);
   }
+
+  static [Symbol.hasInstance]() {
+    throw new InternalUndefinedError(this.name);
+  }
 }
 
 export class LaxUndefined extends Undefined {
@@ -32,6 +36,23 @@ export class LaxUndefined extends Undefined {
   }
 
   public [Symbol.iterator](): Iterator<unknown> {
+    return [].values();
+  }
+}
+
+export class LoggingUndefined extends Undefined {
+  public toString() {
+    console.log(`${this.name} is undefined`);
+    return "";
+  }
+
+  public valueOf() {
+    console.log(`${this.name} is undefined`);
+    return "";
+  }
+
+  public [Symbol.iterator](): Iterator<unknown> {
+    console.log(`${this.name} is undefined`);
     return [].values();
   }
 }

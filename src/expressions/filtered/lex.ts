@@ -35,7 +35,7 @@ import {
   TOKEN_BLANK,
 } from "../tokens";
 
-const RULES = [
+export const RULES = [
   [TOKEN_IDENT_INDEX, IDENT_INDEX_PATTERN],
   [TOKEN_IDENT_STRING, IDENT_STRING_PATTERN],
   [TOKEN_STRING, STRING_PATTERN],
@@ -65,7 +65,10 @@ const KEYWORDS = new Set<string>([
   TOKEN_BLANK,
 ]);
 
-const RE = new RegExp(RULES.map(([n, p]) => `(?<${n}>${p})`).join("|"), "gs");
+export const RE = new RegExp(
+  RULES.map(([n, p]) => `(?<${n}>${p})`).join("|"),
+  "gs"
+);
 
 interface IdentIndexMatch {
   TOKEN_IDENT_INDEX: string;

@@ -16,6 +16,7 @@
     "Prec",
     "Renderable",
     "RPAREN",
+    "rstrip",
     "tablerowloop",
     "TAGBLOCK",
     "truncatewords"

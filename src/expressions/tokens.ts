@@ -1,7 +1,7 @@
 // TODO: comments
 
 import { LiquidSyntaxError, PushedTooFarError } from "../errors";
-import { Token } from "../token";
+import { Token, TokenStream } from "../token";
 
 export const TOKEN_SKIP = "TOKEN_SKIP";
 export const TOKEN_ILLEGAL = "TOKEN_ILLEGAL";
@@ -85,7 +85,7 @@ export const REVERSE_OPERATORS = new Map(
 
 const EOF = new Token(TOKEN_EOF, "EOF", -1, "");
 
-export class ExpressionTokenStream {
+export class ExpressionTokenStream implements TokenStream {
   private _current: Token;
   private _peek: Token;
   private _buf: Token | undefined = undefined;

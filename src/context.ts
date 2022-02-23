@@ -31,6 +31,7 @@ export interface Context {
   autoEscape: boolean;
   counters: Map<string, number>;
   registers: Map<string | symbol, Map<string | symbol, unknown>>;
+  templateName?: string;
 
   /**
    *
@@ -44,13 +45,13 @@ export interface Context {
    * @param name
    * @param path
    */
-  get(name: string, path: ContextPath): Promise<unknown>;
+  get(name: string, path: ContextPath, default_?: unknown): Promise<unknown>;
 
   /**
    *
    * @param name
    */
-  resolve(name: string): Promise<unknown>;
+  resolve(name: string): unknown;
 
   /**
    *
@@ -164,6 +165,7 @@ export class DefaultContext implements Context {
   constructor(
     private environment: Environment,
     private globals: ContextScope,
+    readonly templateName: string = "<string>",
     private disabledTags: string[] = [],
     private copyDepth: number = 0
   ) {
@@ -181,23 +183,29 @@ export class DefaultContext implements Context {
     this.locals.set(key, value);
   }
 
-  async resolve(name: string): Promise<unknown> {
+  resolve(name: string): unknown {
     const value = this.scope.resolve(name);
     if (value === _missing) return this.environment.undefined_(name);
     return value;
   }
 
-  async get(name: string, path: ContextPath): Promise<unknown> {
-    let obj = await this.resolve(name);
-    if (!path.length) return obj;
+  async get(
+    name: string,
+    path?: ContextPath,
+    default_: unknown = _missing
+  ): Promise<unknown> {
+    let obj = this.resolve(name);
+    if (!path || !path.length) return obj;
 
     for (const item of path) {
       try {
         obj = await getItem(obj, item);
       } catch (error) {
         if (error instanceof InternalKeyError) {
+          if (default_ !== _missing) return default_;
           return this.environment.undefined_(`${item}`);
         }
+        throw error;
       }
     }
 
@@ -246,6 +254,7 @@ export class DefaultContext implements Context {
     return new DefaultContext(
       this.environment,
       new ReadOnlyChainMap(scope, this.globals),
+      this.templateName,
       disabledTags,
       this.copyDepth + 1
     );

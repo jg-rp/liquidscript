@@ -1,4 +1,5 @@
 import { Context } from "./context";
+import { InternalLiquidError } from "./errors";
 import { RenderStream } from "./io/output_stream";
 import { Token } from "./token";
 
@@ -19,7 +20,14 @@ export class BlockNode implements Node {
 
   public async render(context: Context, out: RenderStream): Promise<void> {
     for (const statement of this.statements) {
-      await statement.render(context, out);
+      try {
+        await statement.render(context, out);
+      } catch (error) {
+        if (error instanceof InternalLiquidError) {
+          throw error.withToken(statement.token, context.templateName);
+        }
+        throw error;
+      }
     }
   }
 

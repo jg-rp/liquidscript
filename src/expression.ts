@@ -3,8 +3,8 @@ import { isLiquidPrimitive, LiquidPrimitive, liquidValueOf } from "./drop";
 import {
   FilterValueError,
   InternalKeyError,
-  LiquidTypeError,
-  NoSuchFilterError,
+  InternalTypeError,
+  FilterNotFoundError,
 } from "./errors";
 import { Float, Integer, isInteger, parseNumberT } from "./number";
 import {
@@ -14,11 +14,15 @@ import {
   isNumber,
   isObject,
   isPrimitiveInteger,
+  isPromise,
   isString,
 } from "./object";
 import { range, Range } from "./range";
+import { Undefined } from "./undefined";
 
 // TODO: Explicit public modifier
+
+// TODO: Add a token to the expression interface?
 
 export interface Expression {
   evaluate(context: Context): Promise<unknown>;
@@ -310,7 +314,7 @@ export class FilteredExpression implements Expression {
       const _filter = context.filter(filter.name);
       if (_filter === undefined) {
         // TODO: Look at strict mode and continue if needed
-        throw new NoSuchFilterError(`unknown filter ${filter.name}`);
+        throw new FilterNotFoundError(`unknown filter ${filter.name}`);
       }
       // TODO: Prepend registered filter name to error messages.
       // TODO: Remove hard coded names from built-in filters.
@@ -319,6 +323,7 @@ export class FilteredExpression implements Expression {
           result,
           ...(await filter.evalArgs(context)),
         ]);
+        if (isPromise(result)) result = await result;
       } catch (error) {
         if (error instanceof FilterValueError) continue;
         // TODO: Wrap errors in LiquidError
@@ -424,7 +429,7 @@ export class LoopExpression implements Expression {
       const it = isIterable(obj) ? obj : Object.entries(obj);
       return [it, Object.keys(obj).length];
     }
-    throw new LiquidTypeError(
+    throw new InternalTypeError(
       `expected an iterable object, at ${this.iterable}, ` +
         `found ${typeof this.iterable}`
     );
@@ -460,7 +465,7 @@ export class LoopExpression implements Expression {
       _it = this.drop(_it, offset.valueOf());
       _length -= offset.valueOf();
     } else if (offset !== undefined) {
-      throw new LiquidTypeError(
+      throw new InternalTypeError(
         `loop offset must be an integer, found '${offset}'`
       );
     }
@@ -472,7 +477,7 @@ export class LoopExpression implements Expression {
       _it = this.take(_it, limit.valueOf());
       _length = Math.min(_length, limit.valueOf());
     } else if (limit !== undefined) {
-      throw new LiquidTypeError(
+      throw new InternalTypeError(
         `loop limit must be an integer, found '${limit}'`
       );
     }
@@ -515,7 +520,7 @@ function compare(left: unknown, operator: string, right: unknown): boolean {
       case ">=":
         return _left.gte(right);
     }
-    throw new LiquidTypeError(
+    throw new InternalTypeError(
       `invalid operator '${left} ${operator} ${right}'`
     );
   }
@@ -535,7 +540,9 @@ function compare(left: unknown, operator: string, right: unknown): boolean {
       if (isArray(left)) return left.indexOf(right) !== -1;
   }
 
-  throw new LiquidTypeError(
+  if (left instanceof Undefined || right instanceof Undefined) return false;
+
+  throw new InternalTypeError(
     `invalid comparison operator '${left} ${operator} ${right}'`
   );
 }

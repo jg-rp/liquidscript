@@ -91,3 +91,14 @@ export function isLiquidTruthy(value: unknown): boolean {
 export function isUndefined(value: unknown): value is Undefined {
   return value === undefined || value instanceof Undefined;
 }
+
+/**
+ *
+ * @param value
+ * @returns
+ */
+export function isPromise(value: unknown): value is Promise<unknown> {
+  return (
+    isObject(value) && typeof value["then" as keyof typeof value] === "function"
+  );
+}

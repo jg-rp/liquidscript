@@ -15,8 +15,12 @@ export class Token {
     readonly input: string
   ) {}
 
-  toString(): string {
+  public toString(): string {
     return `(kind=${this.kind}, value=${this.value})`;
+  }
+
+  public lineNumber(): number {
+    return this.input.slice(0, this.index).split("\n").length;
   }
 }
 
