@@ -3,7 +3,7 @@ import { TemplateI } from "./template";
 import { Filter } from "./filter";
 import { InternalKeyError, MaxContextDepthError } from "./errors";
 import { isLiquidPrimitive, LiquidPrimitive, liquidValueOf } from "./drop";
-import { isPropertyKey } from "./object";
+import { isPropertyKey } from "./types";
 
 export type ContextGlobals =
   | Map<string, unknown>

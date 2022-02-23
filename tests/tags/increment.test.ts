@@ -1,7 +1,7 @@
-import { DefaultEnvironment } from "../../src/environment";
+import { Environment } from "../../src/environment";
 
 describe("built-in increment tag", () => {
-  const env = new DefaultEnvironment({});
+  const env = new Environment({});
   test("named counter", async () => {
     const template = env.fromString(
       "{% increment foo %}{{ foo }} {% increment foo %}{{ foo }}"

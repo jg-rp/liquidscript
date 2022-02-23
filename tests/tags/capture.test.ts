@@ -1,7 +1,7 @@
-import { DefaultEnvironment } from "../../src/environment";
+import { Environment } from "../../src/environment";
 
 describe("built-in capture tag", () => {
-  const env = new DefaultEnvironment({
+  const env = new Environment({
     globals: { customer: { first_name: "Sally" } },
   });
 

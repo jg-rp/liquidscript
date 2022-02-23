@@ -1,5 +1,5 @@
 import Decimal from "decimal.js";
-import { isPrimitiveNumber, isString } from "./object";
+import { isPrimitiveNumber, isString } from "./types";
 
 // eslint-disable-next-line @typescript-eslint/ban-types
 export type N = string | number | Number | LiquidNumber;

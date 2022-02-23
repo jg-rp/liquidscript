@@ -1,9 +1,9 @@
-import { DefaultEnvironment } from "../../src/environment";
+import { Environment } from "../../src/environment";
 
 // TODO: Finish tests
 
 describe("built-in case/when tag", () => {
-  const env = new DefaultEnvironment({});
+  const env = new Environment({});
 
   test("switch on variable with literal 'whens'", async () => {
     const template = env.fromString(

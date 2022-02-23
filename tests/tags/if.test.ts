@@ -1,9 +1,9 @@
-import { DefaultEnvironment } from "../../src/environment";
+import { Environment } from "../../src/environment";
 
 // TODO: Finish tests
 
 describe("built-in if tag", () => {
-  const env = new DefaultEnvironment({});
+  const env = new Environment({});
 
   test("if true", async () => {
     const template = env.fromString("{% if true %}hello{% endif %}");

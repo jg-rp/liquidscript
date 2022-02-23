@@ -1,9 +1,9 @@
-import { DefaultEnvironment } from "../../src/environment";
+import { Environment } from "../../src/environment";
 
 // TODO: Finish tests, reversed
 
 describe("built-in for tag", () => {
-  const env = new DefaultEnvironment({});
+  const env = new Environment({});
   test("range", async () => {
     const template = env.fromString("{% for i in (1..3) %}{{ i }}{% endfor %}");
     const result = await template.render();
@@ -53,7 +53,7 @@ describe("built-in for tag", () => {
     });
     expect(result).toBe("sports garden ");
   });
-  test("iterate a hash/object", async () => {
+  test("iterate a hash/types", async () => {
     const template = env.fromString(
       "{% for field in collection %}{{ field[0] }}: {{ field[1] }}, {% endfor %}"
     );

@@ -19,7 +19,7 @@ const {
   parseIdentifier,
   parseIntegerLiteral,
 } = require("../../../lib/expressions/common");
-const { isUndefined } = require("../../../lib/object");
+const { isUndefined } = require("../../../lib/types");
 
 const END_PAGINATE_BLOCK = new Set(["endpaginate"]);
 

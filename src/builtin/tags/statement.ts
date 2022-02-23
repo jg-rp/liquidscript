@@ -5,7 +5,7 @@ import { Tag } from "../../tag";
 import { Token, TokenStream } from "../../token";
 import { parse } from "../../expressions/filtered/parse";
 import { Expression } from "../../expression";
-import { toLiquidString } from "../../object";
+import { toLiquidString } from "../../types";
 
 export class OutputStatement implements Tag {
   readonly block = false;

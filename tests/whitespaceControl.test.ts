@@ -1,7 +1,7 @@
-import { DefaultEnvironment } from "../src/environment";
+import { Environment } from "../src/environment";
 
 describe("built-in comment tag", () => {
-  const env = new DefaultEnvironment({});
+  const env = new Environment({});
 
   test("strip whitespace preceding an output statement", async () => {
     const template = env.fromString("\t\n {{- 'hello' }}");

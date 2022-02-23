@@ -1,12 +1,12 @@
 import { last } from "../../src/builtin/filters/array";
 import { DefaultContext } from "../../src/context";
-import { DefaultEnvironment } from "../../src/environment";
+import { Environment } from "../../src/environment";
 import { FilterContext } from "../../src/filter";
 
 // TODO: Last of a range.
 
 describe("last filter", () => {
-  const env = new DefaultEnvironment({});
+  const env = new Environment({});
   const ctx = new DefaultContext(env, new Map<string, unknown>());
   const filterContext: FilterContext = { context: ctx };
 

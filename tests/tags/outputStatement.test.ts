@@ -1,7 +1,7 @@
-import { DefaultEnvironment } from "../../src/environment";
+import { Environment } from "../../src/environment";
 
 describe("output statements", () => {
-  const env = new DefaultEnvironment({});
+  const env = new Environment({});
 
   test("string literal single quotes", async () => {
     const template = env.fromString("{{ 'hello' }}");

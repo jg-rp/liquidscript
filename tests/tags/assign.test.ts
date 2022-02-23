@@ -1,7 +1,7 @@
-import { DefaultEnvironment } from "../../src/environment";
+import { Environment } from "../../src/environment";
 
 describe("built-in assign tag", () => {
-  const env = new DefaultEnvironment({});
+  const env = new Environment({});
 
   test("assign a literal", async () => {
     const template = env.fromString("{% assign x = 'hello' %}{{ x }}");

@@ -16,75 +16,8 @@ import { TemplateTokenStream } from "./token";
 import { Loader, MapLoader } from "./loader";
 import { registerBuiltin } from "./builtin/register";
 
-export interface Environment {
-  // mode: Mode;
-
-  /**
-   *
-   */
-  autoEscape: boolean;
-
-  /**
-   *
-   */
-  filters: { [keys: string]: Filter };
-
-  /**
-   *
-   */
-  maxContextDepth: number;
-
-  /**
-   *
-   */
-  tags: { [keys: string]: Tag };
-
-  /**
-   *
-   * @param name
-   * @param loaderContext
-   * @param context
-   */
-  getTemplate(
-    name: string,
-    globals?: ContextGlobals,
-    context?: Context,
-    loaderContext?: { [index: string]: unknown }
-  ): Promise<TemplateI>;
-
-  /**
-   *
-   * @param source
-   * @param name
-   * @param globals
-   * @param matter
-   */
-  fromString(
-    source: string,
-    name?: string,
-    globals?: ContextGlobals,
-    matter?: ContextGlobals
-  ): TemplateI;
-
-  /**
-   *
-   * @param name
-   */
-  undefined_(name: string): Undefined;
-
-  /**
-   *
-   */
-  getParser(): Parser;
-
-  /**
-   *
-   * @param err
-   */
-  error(err: Error): void;
-}
-
 export type EnvironmentOptions = {
+  // TODO: Complete options
   // mode?
   autoEscape?: boolean;
   globals?: ContextGlobals;
@@ -92,18 +25,23 @@ export type EnvironmentOptions = {
   undefinedFactory?: (name: string) => Undefined;
 };
 
-export class DefaultEnvironment implements Environment {
+/**
+ *
+ */
+export class Environment {
   public autoEscape: boolean;
   public globals: ContextGlobals;
   public maxContextDepth: number;
   public undefinedFactory: (name: string) => Undefined;
-
   public filters: { [keys: string]: Filter } = {};
   public tags: { [keys: string]: Tag } = {};
   public loader: Loader;
-
   private _parser: Parser;
 
+  /**
+   *
+   * @param param0
+   */
   constructor({
     autoEscape,
     globals,
@@ -123,12 +61,25 @@ export class DefaultEnvironment implements Environment {
     registerBuiltin(this);
   }
 
-  undefined_(name: string): Undefined {
+  /**
+   *
+   * @param name
+   * @returns
+   */
+  public undefined_(name: string): Undefined {
     // TODO: Change name/factory pattern?
     return this.undefinedFactory(name);
   }
 
-  async getTemplate(
+  /**
+   *
+   * @param name
+   * @param globals
+   * @param context
+   * @param loaderContext
+   * @returns
+   */
+  public async getTemplate(
     name: string,
     globals?: ContextGlobals,
     context?: Context,
@@ -137,7 +88,15 @@ export class DefaultEnvironment implements Environment {
     return await this.loader.load(name, this, context, globals, loaderContext);
   }
 
-  fromString(
+  /**
+   *
+   * @param source
+   * @param name
+   * @param globals
+   * @param matter
+   * @returns
+   */
+  public fromString(
     source: string,
     name?: string,
     globals?: ContextGlobals,
@@ -152,20 +111,38 @@ export class DefaultEnvironment implements Environment {
     );
   }
 
-  error(err: Error): void {
+  /**
+   *
+   * @param err
+   */
+  public error(err: Error): void {
     // TODO: implement
     throw err;
   }
 
-  getParser(): Parser {
+  /**
+   *
+   * @returns
+   */
+  public getParser(): Parser {
     // TODO: Cache parser.
     return this._parser;
   }
 
+  /**
+   *
+   * @param source
+   * @returns
+   */
   protected parse(source: string): Root {
     return this.getParser().parse(new TemplateTokenStream(tokenize(source)));
   }
 
+  /**
+   *
+   * @param templateGlobals
+   * @returns
+   */
   public makeGlobals(templateGlobals?: ContextGlobals): ContextGlobals {
     if (templateGlobals === undefined) return this.mapLike(this.globals);
     return new ReadOnlyChainMap(
@@ -174,6 +151,11 @@ export class DefaultEnvironment implements Environment {
     );
   }
 
+  /**
+   *
+   * @param obj
+   * @returns
+   */
   protected mapLike(obj: ContextGlobals): ContextScope {
     if (isContextScope(obj)) return obj;
     return new Map<string, unknown>(Object.keys(obj).map((k) => [k, obj[k]]));

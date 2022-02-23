@@ -1,12 +1,12 @@
 import { slice } from "../../src/builtin/filters/misc";
 import { DefaultContext } from "../../src/context";
-import { DefaultEnvironment } from "../../src/environment";
+import { Environment } from "../../src/environment";
 import { FilterArgumentError } from "../../src/errors";
 import { FilterContext } from "../../src/filter";
 import { Integer } from "../../src/number";
 
 describe("slice filter", () => {
-  const env = new DefaultEnvironment({});
+  const env = new Environment({});
   const ctx = new DefaultContext(env, new Map<string, unknown>());
   const filterContext: FilterContext = { context: ctx };
 

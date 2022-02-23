@@ -1,6 +1,6 @@
 import { FilterArgumentError } from "../../errors";
 import { FilterContext } from "../../filter";
-import { toLiquidString } from "../../object";
+import { toLiquidString } from "../../types";
 import { escape as escapeHTML, unescape } from "../../html";
 
 // TODO: Implement Markup string wrapper

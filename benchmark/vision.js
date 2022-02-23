@@ -4,7 +4,7 @@ const path = require("path");
 const { performance, PerformanceObserver } = require("perf_hooks");
 const yaml = require("js-yaml");
 
-const { DefaultEnvironment } = require("..");
+const { Environment } = require("..");
 const { json } = require("./mocks/filters/json");
 const { money, moneyWithCurrency } = require("./mocks/filters/money");
 const {
@@ -185,7 +185,7 @@ function registerMocks(env) {
   env.tags["paginate"] = PaginateTag;
 }
 
-const environment = new DefaultEnvironment({
+const environment = new Environment({
   globals: loadData(),
   undefinedFactory: (n) => new LaxUndefined(n),
 });

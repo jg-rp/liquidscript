@@ -1,7 +1,7 @@
-import { DefaultEnvironment } from "../src/environment";
+import { Environment } from "../src/environment";
 
 describe("some edge cases", () => {
-  const env = new DefaultEnvironment({});
+  const env = new Environment({});
 
   test("empty string", async () => {
     const template = env.fromString("");

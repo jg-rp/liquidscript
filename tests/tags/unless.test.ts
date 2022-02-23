@@ -1,9 +1,9 @@
-import { DefaultEnvironment } from "../../src/environment";
+import { Environment } from "../../src/environment";
 
 // TODO: Finish tests
 
 describe("built-in unless tag", () => {
-  const env = new DefaultEnvironment({});
+  const env = new Environment({});
 
   test("unless true", async () => {
     const template = env.fromString("{% unless true %}hello{% endunless %}");

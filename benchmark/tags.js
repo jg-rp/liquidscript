@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 const { performance, PerformanceObserver } = require("perf_hooks");
-const { DefaultEnvironment } = require("..");
+const { Environment } = require("..");
 
 const obs = new PerformanceObserver((list, observer) => {
   console.log(list.getEntries());
@@ -9,7 +9,7 @@ const obs = new PerformanceObserver((list, observer) => {
 
 obs.observe({ entryTypes: ["measure"], buffer: true });
 
-const env = new DefaultEnvironment({});
+const env = new Environment({});
 const templates = [
   '{% if "foobar" %}foo{% endif %}',
   '{% unless "foo"%}true{% else %}false{% endunless %}',

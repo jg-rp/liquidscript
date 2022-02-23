@@ -1,7 +1,7 @@
-import { DefaultEnvironment } from "../../src/environment";
+import { Environment } from "../../src/environment";
 
 describe("built-in cycle tag", () => {
-  const env = new DefaultEnvironment({});
+  const env = new Environment({});
   test("strings", async () => {
     const template = env.fromString(
       "{% cycle 'a', 'b', 'c' %} " +

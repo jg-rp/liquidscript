@@ -11,7 +11,7 @@ import {
   isString,
   isUndefined,
   toLiquidString,
-} from "../../object";
+} from "../../types";
 
 /**
  *

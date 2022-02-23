@@ -1,10 +1,10 @@
 import { truncate } from "../../src/builtin/filters/string";
 import { DefaultContext } from "../../src/context";
-import { DefaultEnvironment } from "../../src/environment";
+import { Environment } from "../../src/environment";
 import { FilterContext } from "../../src/filter";
 
 describe("truncate filter", () => {
-  const env = new DefaultEnvironment({});
+  const env = new Environment({});
   const ctx = new DefaultContext(env, new Map<string, unknown>());
   const filterContext: FilterContext = { context: ctx };
 

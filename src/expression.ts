@@ -16,7 +16,7 @@ import {
   isPrimitiveInteger,
   isPromise,
   isString,
-} from "./object";
+} from "./types";
 import { range, Range } from "./range";
 import { Undefined } from "./undefined";
 

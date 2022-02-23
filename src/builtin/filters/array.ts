@@ -9,7 +9,7 @@ import {
   isString,
   isSymbol,
   toLiquidString,
-} from "../../object";
+} from "../../types";
 import { Undefined } from "../../undefined";
 
 // XXX: Multiple cases of unnecessary array copying if input is already an array?
