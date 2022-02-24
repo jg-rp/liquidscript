@@ -38,7 +38,7 @@ export class Environment {
     globals,
     maxContextDepth,
     undefinedFactory,
-  }: EnvironmentOptions) {
+  }: EnvironmentOptions = {}) {
     this.autoEscape = autoEscape === undefined ? false : autoEscape;
     this.globals = globals === undefined ? {} : globals;
     this.maxContextDepth = maxContextDepth === undefined ? 30 : maxContextDepth;

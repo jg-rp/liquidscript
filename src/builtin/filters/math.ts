@@ -2,7 +2,7 @@ import { FilterArgumentError } from "../../errors";
 import { FilterContext } from "../../filter";
 import { isN, NumberT, parseNumberT, ZERO } from "../../number";
 
-// TODO: test NaN and Inf
+// TODO: test NaN and Inf and undefined and null
 
 /**
  *
@@ -236,17 +236,4 @@ function parseNumberOrZero(value: unknown): NumberT {
     return !num.isFinite() ? ZERO : num;
   }
   return ZERO;
-}
-
-/**
- *
- * @param value
- * @returns
- */
-function parseNumberOrThrow(value: unknown): NumberT {
-  if (isN(value)) {
-    const num = parseNumberT(value);
-    if (num.isFinite()) return num;
-  }
-  throw new FilterArgumentError(`could not coerce '${value}' to a number`);
 }

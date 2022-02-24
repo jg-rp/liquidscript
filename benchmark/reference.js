@@ -33,8 +33,7 @@ const {
 const { weight, weightWithUnit } = require("./mocks/filters/weight");
 const { CommentFormTag } = require("./mocks/tags/commentForm");
 const { PaginateTag } = require("./mocks/tags/paginate");
-const { Context } = require("../lib/context");
-const { LoggingUndefined, LaxUndefined } = require("../lib/undefined");
+const { LaxUndefined } = require("../lib/undefined");
 
 const obs = new PerformanceObserver((list, observer) => {
   const measures = {
@@ -244,14 +243,6 @@ async function renderThemes(themes) {
 }
 
 function parse(number = 100) {
-  const n = themeSources
-    .map((t) => t.templates.length)
-    .reduce((a, b) => a + b + 1, 0);
-  console.log(
-    `parsing ${themeSources.length} themes with ${n} templates total, ` +
-      `repeating ${number} times`
-  );
-
   performance.mark("parse-start");
   for (let i = 0; i < number; i++) {
     parseThemes(themeSources);
@@ -261,16 +252,7 @@ function parse(number = 100) {
 }
 
 async function render(number = 100) {
-  const n = themeSources
-    .map((t) => t.templates.length)
-    .reduce((a, b) => a + b + 1, 0);
-
   const themes = parseThemes(themeSources);
-
-  console.log(
-    `rendering ${themeSources.length} themes with ${n} templates total, ` +
-      `repeating ${number} times`
-  );
   performance.mark("render-async-start");
   for (let i = 0; i < number; i++) {
     await renderThemes(themes);
@@ -280,16 +262,7 @@ async function render(number = 100) {
 }
 
 function renderSync(number = 100) {
-  const n = themeSources
-    .map((t) => t.templates.length)
-    .reduce((a, b) => a + b + 1, 0);
-
   const themes = parseThemes(themeSources);
-
-  console.log(
-    `rendering ${themeSources.length} themes with ${n} templates total, ` +
-      `repeating ${number} times`
-  );
   performance.mark("render-sync-start");
   for (let i = 0; i < number; i++) {
     renderThemesSync(themes);
@@ -298,18 +271,33 @@ function renderSync(number = 100) {
   performance.measure("render sync", "render-sync-start", "render-sync-end");
 }
 
-async function main(repeat = 5) {
+async function main(number = 100, repeat = 5) {
+  const n = themeSources
+    .map((t) => t.templates.length)
+    .reduce((a, b) => a + b, 0);
+
+  console.log(`parsing ${n * 2} templates ${number} times, best of ${repeat}`);
   for (let i = 0; i < repeat; i++) {
-    parse();
+    parse(number);
   }
 
+  console.log(
+    `synchronously rendering ${
+      n * 2
+    } templates ${number} times, best of ${repeat}`
+  );
   for (let i = 0; i < repeat; i++) {
-    renderSync();
+    renderSync(number);
   }
 
-  for (let i = 0; i < repeat; i++) {
-    await render();
-  }
+  // console.log(
+  //   `asynchronously rendering ${
+  //     n * 2
+  //   } templates ${number} times, best of ${repeat}`
+  // );
+  // for (let i = 0; i < repeat; i++) {
+  //   await render(number);
+  // }
 }
 
 main();

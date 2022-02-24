@@ -3,8 +3,16 @@ import { Template } from "./template";
 import { Filter } from "./filter";
 import { InternalKeyError, MaxContextDepthError } from "./errors";
 import { isLiquidPrimitive, LiquidPrimitive, liquidValueOf } from "./drop";
-import { isPropertyKey } from "./types";
+import {
+  isArray,
+  isIterable,
+  isObject,
+  isPrimitiveNumber,
+  isPropertyKey,
+  isString,
+} from "./types";
 import { chainObjects, Missing, ObjectChain } from "./chainObject";
+import { isNumberT } from "./number";
 
 export type ContextScope = { [index: string]: unknown };
 export type ContextPath = Array<number | string | LiquidPrimitive>;
@@ -222,23 +230,20 @@ export class Context {
  * @returns
  */
 function getItemSync(obj: unknown, item: unknown): unknown {
-  if (obj === null) {
-    throw new InternalKeyError(`can't get property of null`);
-  }
-  if (item === null) {
-    throw new InternalKeyError(`can't read null property`);
-  }
-  if (isLiquidPrimitive(item)) {
-    item = item[liquidValueOf]();
-  }
-  if (!isPropertyKey(item)) {
-    throw new InternalKeyError(`${item} is not a valid property key`);
-  }
-  if (typeof obj === "object" && item in obj) {
-    return Reflect.get(obj, item);
-  }
+  if (obj === null) throw new InternalKeyError(`can't get property of null`);
+  if (item === null) throw new InternalKeyError(`can't read null property`);
 
-  // TODO: size, first and last.
+  if (isLiquidPrimitive(item)) item = item[liquidValueOf]();
+  if (!isPropertyKey(item))
+    throw new InternalKeyError(`${item} is not a valid property key`);
+
+  // TODO: Drop protocol item getter
+
+  if (item === "size") return getSize(obj);
+  else if (item === "first") return getFirst(obj);
+  else if (item === "last") return getLast(obj);
+  else if (typeof obj === "object" && item in obj)
+    return Reflect.get(obj, item);
 
   throw new InternalKeyError(`${obj}[${String(item)}]`);
 }
@@ -252,4 +257,45 @@ function getItemSync(obj: unknown, item: unknown): unknown {
 async function getItem(obj: unknown, item: unknown): Promise<unknown> {
   // TODO: getItem with async drop protocol
   return getItemSync(obj, item);
+}
+
+function getSize(obj: unknown): number {
+  if (isNumberT(obj) || isPrimitiveNumber(obj)) {
+    // XXX: This is not necessarily the case for wrapped decimal numbers
+    return 8;
+  } else if (isArray(obj) || isString(obj)) {
+    return obj.length;
+  } else if (isObject(obj)) {
+    if ("size" in obj) {
+      return Reflect.get(obj, "size");
+    } else {
+      return Object.keys(obj).length;
+    }
+  }
+  throw new InternalKeyError(`${obj}[size]`);
+}
+
+// TODO: First/Last of Map and/or Set?
+
+function getFirst(obj: unknown): unknown {
+  // First of a string is not supported.
+  if (isString(obj)) return null;
+  if (isObject(obj) && "first" in obj) return Reflect.get(obj, "first");
+  // Iterable objects are OK.
+  if (isObject(obj) && isIterable(obj))
+    return obj[Symbol.iterator]().next().value;
+  // XXX: Object.entries does not guarantee insertion order.
+  if (isObject(obj)) {
+    const val = Object.entries(obj).entries().next().value;
+    return val === undefined ? null : (val as unknown as Array<unknown>)[1];
+  }
+  return null;
+}
+
+function getLast(obj: unknown): unknown {
+  // Last of a string is not supported.
+  if (isString(obj)) return null;
+  if (isObject(obj) && "last" in obj) return Reflect.get(obj, "last");
+  if (isArray(obj)) return obj[obj.length - 1];
+  return null;
 }

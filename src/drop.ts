@@ -52,6 +52,8 @@ export function isLiquidCallable(obj: unknown): obj is LiquidCallable {
  */
 export const liquidDispatch = Symbol.for("liquid.drop.dispatch");
 
+// TODO: sync and async version of dispatch method
+
 export interface LiquidDispatchable {
   [liquidDispatch](name: string): unknown;
 }
