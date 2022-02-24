@@ -1,25 +1,43 @@
 import { Environment } from "../../src/environment";
 
+type Case = {
+  description: string;
+  source: string;
+  want: string;
+};
+
 describe("built-in assign tag", () => {
   const env = new Environment({});
+  const cases: Case[] = [
+    {
+      description: "assign a literal",
+      source: "{% assign x = 'hello' %}{{ x }}",
+      want: "hello",
+    },
+    {
+      description: "assign a filtered literal",
+      source: "{% assign x = 'hello ' | append: 'world' %}{{ x }}",
+      want: "hello world",
+    },
+    {
+      description: "assign a range literal",
+      source: "{% assign x = (1..3) %}{{ x | join: '#' }}",
+      want: "1#2#3",
+    },
+  ];
 
-  test("assign a literal", async () => {
-    const template = env.fromString("{% assign x = 'hello' %}{{ x }}");
-    const result = await template.render();
-    expect(result).toBe("hello");
+  describe("async", () => {
+    test.each<Case>(cases)("$description", async ({ source, want }: Case) => {
+      const template = env.fromString(source);
+      const result = await template.render();
+      expect(result).toBe(want);
+    });
   });
-  test("assign a filtered literal", async () => {
-    const template = env.fromString(
-      "{% assign x = 'hello ' | append: 'world' %}{{ x }}"
-    );
-    const result = await template.render();
-    expect(result).toBe("hello world");
-  });
-  test("assign a range literal", async () => {
-    const template = env.fromString(
-      "{% assign x = (1..3) %}{{ x | join: '#' }}"
-    );
-    const result = await template.render();
-    expect(result).toBe("1#2#3");
+
+  describe("sync", () => {
+    test.each<Case>(cases)("$description", async ({ source, want }: Case) => {
+      const template = env.fromString(source);
+      expect(template.renderSync()).toBe(want);
+    });
   });
 });

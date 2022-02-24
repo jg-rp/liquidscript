@@ -22,8 +22,12 @@ export class OutputStatement implements Tag {
 export class OutputStatementNode implements Node {
   constructor(readonly token: Token, readonly expression: Expression) {}
 
-  async render(context: Context, out: RenderStream): Promise<void> {
+  public async render(context: Context, out: RenderStream): Promise<void> {
     out.write(toLiquidString(await this.expression.evaluate(context)));
+  }
+
+  public renderSync(context: Context, out: RenderStream): void {
+    out.write(toLiquidString(this.expression.evaluateSync(context)));
   }
 
   branches(): Node[] {

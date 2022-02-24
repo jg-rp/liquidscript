@@ -94,7 +94,7 @@ export class CaseNode implements Node {
     readonly default_?: BlockNode
   ) {}
 
-  async render(context: Context, out: RenderStream): Promise<void> {
+  public async render(context: Context, out: RenderStream): Promise<void> {
     let rendered = false;
     for (const _when of this.whens) {
       if (await _when.condition.evaluate(context)) {
@@ -105,6 +105,20 @@ export class CaseNode implements Node {
 
     if (!rendered && this.default_ !== undefined) {
       await this.default_.render(context, out);
+    }
+  }
+
+  public renderSync(context: Context, out: RenderStream): void {
+    let rendered = false;
+    for (const _when of this.whens) {
+      if (_when.condition.evaluateSync(context)) {
+        rendered = true;
+        _when.block.renderSync(context, out);
+      }
+    }
+
+    if (!rendered && this.default_ !== undefined) {
+      this.default_.renderSync(context, out);
     }
   }
 

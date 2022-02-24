@@ -1,12 +1,12 @@
 import { atLeast } from "../../src/builtin/filters/math";
-import { DefaultContext } from "../../src/context";
+import { Context } from "../../src/context";
 import { Environment } from "../../src/environment";
 import { FilterContext } from "../../src/filter";
 import { isInteger } from "../../src/number";
 
 describe("at_least filter", () => {
   const env = new Environment({});
-  const ctx = new DefaultContext(env, new Map<string, unknown>());
+  const ctx = new Context(env);
   const filterContext: FilterContext = { context: ctx };
 
   test("two numbers", () => {

@@ -33,14 +33,15 @@ const {
 const { weight, weightWithUnit } = require("./mocks/filters/weight");
 const { CommentFormTag } = require("./mocks/tags/commentForm");
 const { PaginateTag } = require("./mocks/tags/paginate");
-const { DefaultContext } = require("../lib/context");
+const { Context } = require("../lib/context");
 const { LoggingUndefined, LaxUndefined } = require("../lib/undefined");
 
 const obs = new PerformanceObserver((list, observer) => {
   const measures = {
     lex: [],
     parse: [],
-    render: [],
+    "render async": [],
+    "render sync": [],
     lexParseAndRender: [],
   };
 
@@ -192,6 +193,8 @@ const environment = new Environment({
 registerMocks(environment);
 environment.globals.page_title = "Page Title";
 
+const themeSources = loadThemes("./fixtures/");
+
 function parseThemeTemplates(theme) {
   const templates = [];
   for (const t of theme.templates) {
@@ -214,10 +217,23 @@ function parseThemes(themes) {
   return themes.map(parseThemeTemplates);
 }
 
+function renderThemeTemplatesSync(theme) {
+  for (const template of theme.templates) {
+    const content = template.renderSync();
+    theme.layout.renderSync({ content_for_layout: content });
+  }
+}
+
 async function renderThemeTemplates(theme) {
   for (const template of theme.templates) {
     const content = await template.render();
     await theme.layout.render({ content_for_layout: content });
+  }
+}
+
+function renderThemesSync(themes) {
+  for (const theme of themes) {
+    renderThemeTemplatesSync(theme);
   }
 }
 
@@ -228,7 +244,6 @@ async function renderThemes(themes) {
 }
 
 function parse(number = 100) {
-  const themeSources = loadThemes("./fixtures/");
   const n = themeSources
     .map((t) => t.templates.length)
     .reduce((a, b) => a + b + 1, 0);
@@ -246,7 +261,6 @@ function parse(number = 100) {
 }
 
 async function render(number = 100) {
-  const themeSources = loadThemes("./fixtures/");
   const n = themeSources
     .map((t) => t.templates.length)
     .reduce((a, b) => a + b + 1, 0);
@@ -257,18 +271,42 @@ async function render(number = 100) {
     `rendering ${themeSources.length} themes with ${n} templates total, ` +
       `repeating ${number} times`
   );
-  performance.mark("render-start");
+  performance.mark("render-async-start");
   for (let i = 0; i < number; i++) {
     await renderThemes(themes);
   }
-  performance.mark("render-end");
-  performance.measure("render", "render-start", "render-end");
+  performance.mark("render-async-end");
+  performance.measure("render async", "render-async-start", "render-async-end");
+}
+
+function renderSync(number = 100) {
+  const n = themeSources
+    .map((t) => t.templates.length)
+    .reduce((a, b) => a + b + 1, 0);
+
+  const themes = parseThemes(themeSources);
+
+  console.log(
+    `rendering ${themeSources.length} themes with ${n} templates total, ` +
+      `repeating ${number} times`
+  );
+  performance.mark("render-sync-start");
+  for (let i = 0; i < number; i++) {
+    renderThemesSync(themes);
+  }
+  performance.mark("render-sync-end");
+  performance.measure("render sync", "render-sync-start", "render-sync-end");
 }
 
 async function main(repeat = 5) {
   for (let i = 0; i < repeat; i++) {
     parse();
   }
+
+  for (let i = 0; i < repeat; i++) {
+    renderSync();
+  }
+
   for (let i = 0; i < repeat; i++) {
     await render();
   }

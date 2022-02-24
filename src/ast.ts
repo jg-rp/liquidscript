@@ -3,11 +3,10 @@ import { InternalLiquidError } from "./errors";
 import { RenderStream } from "./io/output_stream";
 import { Token } from "./token";
 
-// TODO: render Promise<void>?
-
 export interface Node {
   readonly token: Token;
   render(context: Context, out: RenderStream): Promise<void>;
+  renderSync(context: Context, out: RenderStream): void;
   branches(): Node[];
 }
 
@@ -22,6 +21,19 @@ export class BlockNode implements Node {
     for (const statement of this.statements) {
       try {
         await statement.render(context, out);
+      } catch (error) {
+        if (error instanceof InternalLiquidError) {
+          throw error.withToken(statement.token, context.templateName);
+        }
+        throw error;
+      }
+    }
+  }
+
+  public renderSync(context: Context, out: RenderStream): void {
+    for (const statement of this.statements) {
+      try {
+        statement.renderSync(context, out);
       } catch (error) {
         if (error instanceof InternalLiquidError) {
           throw error.withToken(statement.token, context.templateName);

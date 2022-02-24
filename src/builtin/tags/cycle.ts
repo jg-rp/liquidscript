@@ -51,18 +51,35 @@ export class CycleNode implements Node {
     // TODO: pre evaluate constant expressions.
   }
 
-  public async render(context: Context, out: RenderStream): Promise<void> {
-    const groupName = this.group
-      ? await this.group.evaluate(context)
-      : undefined;
-    const args = await Promise.all(
-      this.args.map(async (arg) => await arg.evaluate(context))
-    );
+  protected cycle(
+    context: Context,
+    out: RenderStream,
+    groupName: unknown,
+    args: unknown[]
+  ): void {
     const key = [groupName, args].toString();
     const cycles = context.getRegister(Cycles);
     const index = <number>(cycles.has(key) ? cycles.get(key) : 0);
     out.write(`${args[index]}`);
     cycles.set(key, (index + 1) % args.length);
+  }
+
+  public async render(context: Context, out: RenderStream): Promise<void> {
+    const groupName = this.group
+      ? await this.group.evaluate(context)
+      : undefined;
+
+    const args = await Promise.all(
+      this.args.map(async (arg) => await arg.evaluate(context))
+    );
+
+    this.cycle(context, out, groupName, args);
+  }
+
+  public renderSync(context: Context, out: RenderStream): void {
+    const groupName = this.group ? this.group.evaluateSync(context) : undefined;
+    const args = this.args.map((arg) => arg.evaluateSync(context));
+    this.cycle(context, out, groupName, args);
   }
 
   public branches(): Node[] {

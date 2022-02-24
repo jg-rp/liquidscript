@@ -27,10 +27,14 @@ export class DecrementNode implements Node {
   constructor(readonly token: Token, readonly identifier: string) {}
 
   public async render(context: Context, out: RenderStream): Promise<void> {
-    let val = context.counters.get(this.identifier);
+    this.renderSync(context, out);
+  }
+
+  public renderSync(context: Context, out: RenderStream): void {
+    let val = context.counters[this.identifier];
     if (val === undefined) val = 0;
     val -= 1;
-    context.counters.set(this.identifier, val);
+    context.counters[this.identifier] = val;
     out.write(val.toString());
   }
 

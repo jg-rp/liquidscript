@@ -1,85 +1,118 @@
 import { Environment } from "../../src/environment";
 
+type Case = {
+  description: string;
+  source: string;
+  globals: { [index: string]: unknown };
+  want: string;
+};
+
 describe("built-in cycle tag", () => {
   const env = new Environment({});
-  test("strings", async () => {
-    const template = env.fromString(
-      "{% cycle 'a', 'b', 'c' %} " +
+  const cases: Case[] = [
+    {
+      description: "strings",
+      source:
         "{% cycle 'a', 'b', 'c' %} " +
         "{% cycle 'a', 'b', 'c' %} " +
-        "{% cycle 'a', 'b', 'c' %}"
-    );
-    const result = await template.render();
-    expect(result).toBe("a b c a");
-  });
-  test("integers", async () => {
-    const template = env.fromString(
-      "{% cycle 1, 2, 3 %} {% cycle 1, 2, 3 %} {% cycle 1, 2, 3 %} {% cycle 1, 2, 3 %}"
-    );
-    const result = await template.render();
-    expect(result).toBe("1 2 3 1");
-  });
-  test("booleans", async () => {
-    const template = env.fromString(
-      "{% cycle true, true, false %} " +
+        "{% cycle 'a', 'b', 'c' %} " +
+        "{% cycle 'a', 'b', 'c' %}",
+      globals: {},
+      want: "a b c a",
+    },
+    {
+      description: "integers",
+      source:
+        "{% cycle 1, 2, 3 %} " +
+        "{% cycle 1, 2, 3 %} " +
+        "{% cycle 1, 2, 3 %} " +
+        "{% cycle 1, 2, 3 %}",
+      globals: {},
+      want: "1 2 3 1",
+    },
+    {
+      description: "booleans",
+      source:
         "{% cycle true, true, false %} " +
         "{% cycle true, true, false %} " +
-        "{% cycle true, true, false %}"
-    );
-    const result = await template.render();
-    expect(result).toBe("true true false true");
-  });
-  test("string named group", async () => {
-    const template = env.fromString(
-      "{% cycle 'x': 'a', 'b', 'c' %} " +
+        "{% cycle true, true, false %} " +
+        "{% cycle true, true, false %}",
+      globals: {},
+      want: "true true false true",
+    },
+    {
+      description: "string named group",
+      source:
         "{% cycle 'x': 'a', 'b', 'c' %} " +
         "{% cycle 'x': 'a', 'b', 'c' %} " +
-        "{% cycle 'x': 'a', 'b', 'c' %}"
-    );
-    const result = await template.render();
-    expect(result).toBe("a b c a");
-  });
-  test("multiple string named groups", async () => {
-    const template = env.fromString(
-      "{% cycle 'x': 'a', 'b', 'c' %} " +
+        "{% cycle 'x': 'a', 'b', 'c' %} " +
+        "{% cycle 'x': 'a', 'b', 'c' %}",
+      globals: {},
+      want: "a b c a",
+    },
+    {
+      description: "multiple string named groups",
+      source:
+        "{% cycle 'x': 'a', 'b', 'c' %} " +
         "{% cycle 'x': 'a', 'b', 'c' %} " +
         "{% cycle 'y': 'a', 'b', 'c' %} " +
         "{% cycle 'x': 'a', 'b', 'c' %} " +
-        "{% cycle 'x': 'a', 'b', 'c' %}"
-    );
-    const result = await template.render();
-    expect(result).toBe("a b a c a");
-  });
-  test("variable named groups", async () => {
-    const template = env.fromString(
-      "{% cycle x: 'a', 'b', 'c' %} " +
+        "{% cycle 'x': 'a', 'b', 'c' %}",
+      globals: {},
+      want: "a b a c a",
+    },
+    {
+      description: "variable named groups",
+      source:
+        "{% cycle x: 'a', 'b', 'c' %} " +
         "{% cycle x: 'a', 'b', 'c' %} " +
         "{% cycle y: 'a', 'b', 'c' %} " +
         "{% cycle x: 'a', 'b', 'c' %} " +
-        "{% cycle x: 'a', 'b', 'c' %}"
-    );
-    const result = await template.render({ x: "x", y: "y" });
-    expect(result).toBe("a b a c a");
-  });
-  test("variable named groups with the same value", async () => {
-    const template = env.fromString(
-      "{% cycle x: 'a', 'b', 'c' %} " +
+        "{% cycle x: 'a', 'b', 'c' %}",
+      globals: { x: "x", y: "y" },
+      want: "a b a c a",
+    },
+    {
+      description: "variable named groups with the same value",
+      source:
+        "{% cycle x: 'a', 'b', 'c' %} " +
         "{% cycle x: 'a', 'b', 'c' %} " +
         "{% cycle y: 'a', 'b', 'c' %} " +
         "{% cycle x: 'a', 'b', 'c' %} " +
-        "{% cycle x: 'a', 'b', 'c' %}"
+        "{% cycle x: 'a', 'b', 'c' %}",
+      globals: { x: "x", y: "x" },
+      want: "a b c a b",
+    },
+    {
+      description: "variables",
+      source:
+        "{% cycle a, b, c %} " +
+        "{% cycle a, b, c %} " +
+        "{% cycle a, b, c %} " +
+        "{% cycle a, b, c %}",
+      globals: { a: "x", b: "y", c: "z" },
+      want: "x y z x",
+    },
+  ];
+
+  describe("async", () => {
+    test.each<Case>(cases)(
+      "$description",
+      async ({ source, globals, want }: Case) => {
+        const template = env.fromString(source);
+        const result = await template.render(globals);
+        expect(result).toBe(want);
+      }
     );
-    const result = await template.render({ x: "x", y: "x" });
-    expect(result).toBe("a b c a b");
   });
-  test("variables", async () => {
-    const template = env.fromString(
-      "{% cycle a, b, c %} " +
-        "{% cycle a, b, c %} " +
-        "{% cycle a, b, c %} " +
-        "{% cycle a, b, c %}"
+
+  describe("sync", () => {
+    test.each<Case>(cases)(
+      "$description",
+      async ({ source, globals, want }: Case) => {
+        const template = env.fromString(source);
+        expect(template.renderSync(globals)).toBe(want);
+      }
     );
-    const result = await template.render({ a: "x", b: "y", c: "z" });
-    expect(result).toBe("x y z x");
   });
 });

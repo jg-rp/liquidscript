@@ -115,6 +115,17 @@ export abstract class InternalLiquidError extends Error {
   abstract withToken(token: Token, templateName?: string): LiquidError;
 }
 
+export class ReadOnlyObjectChainError extends InternalLiquidError {
+  constructor(public message: string) {
+    super(message);
+    Object.setPrototypeOf(this, ReadOnlyObjectChainError.prototype);
+  }
+
+  public withToken(token: Token, templateName?: string): LiquidError {
+    return new LiquidError(this.message, token, templateName);
+  }
+}
+
 export class InternalKeyError extends InternalLiquidError {
   constructor(public message: string) {
     super(message);
@@ -122,7 +133,7 @@ export class InternalKeyError extends InternalLiquidError {
   }
 
   public withToken(token: Token, templateName?: string): LiquidError {
-    return new LiquidUndefinedError(this.message, token);
+    return new LiquidUndefinedError(this.message, token, templateName);
   }
 }
 

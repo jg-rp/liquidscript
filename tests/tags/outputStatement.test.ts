@@ -1,79 +1,121 @@
 import { Environment } from "../../src/environment";
 
+type Case = {
+  description: string;
+  source: string;
+  globals: { [index: string]: unknown };
+  want: string;
+};
+
 describe("output statements", () => {
   const env = new Environment({});
+  const cases: Case[] = [
+    {
+      description: "string literal single quotes",
+      source: "{{ 'hello' }}",
+      globals: {},
+      want: "hello",
+    },
+    {
+      description: "string literal double quotes",
+      source: '{{ "hello" }}',
+      globals: {},
+      want: "hello",
+    },
+    {
+      description: "integer literal",
+      source: "{{ 1 }}",
+      globals: {},
+      want: "1",
+    },
+    {
+      description: "float literal",
+      source: "{{ 1.1 }}",
+      globals: {},
+      want: "1.1",
+    },
+    {
+      description: "true literal",
+      source: "{{ true }}",
+      globals: {},
+      want: "true",
+    },
+    {
+      description: "false literal",
+      source: "{{ false }}",
+      globals: {},
+      want: "false",
+    },
+    {
+      description: "range literal",
+      source: "{{ (1..3) }}",
+      globals: {},
+      want: "1..3",
+    },
+    {
+      description: "simple filter",
+      source: '{{ "hello " | append: "world!" }}',
+      globals: {},
+      want: "hello world!",
+    },
+    {
+      description: "simple identifier",
+      source: "{{ greeting }}",
+      globals: { greeting: "good evening" },
+      want: "good evening",
+    },
+    {
+      description: "identifier indexed array access",
+      source: "{{ greetings[0] }}",
+      globals: {
+        greetings: ["good morning", "good evening"],
+      },
+      want: "good morning",
+    },
+    {
+      description: "identifier property access",
+      source: "{{ greetings.pm }}",
+      globals: {
+        greetings: { am: "good morning", pm: "good evening" },
+      },
+      want: "good evening",
+    },
+    {
+      description: "identifier bracketed property access",
+      source: "{{ greetings['pm'] }}",
+      globals: {
+        greetings: { am: "good morning", pm: "good evening" },
+      },
+      want: "good evening",
+    },
+    {
+      description: "identifier chained property access",
+      source: "{{ greetings.english['pm'] }}",
+      globals: {
+        greetings: { english: { am: "good morning", pm: "good evening" } },
+      },
+      want: "good evening",
+    },
+  ];
 
-  test("string literal single quotes", async () => {
-    const template = env.fromString("{{ 'hello' }}");
-    const result = await template.render();
-    expect(result).toBe("hello");
+  describe("async", () => {
+    test.each<Case>(cases)(
+      "$description",
+      async ({ source, globals, want }: Case) => {
+        const template = env.fromString(source);
+        const result = await template.render(globals);
+        expect(result).toBe(want);
+      }
+    );
   });
-  test("string literal double quotes", async () => {
-    const template = env.fromString('{{ "hello" }}');
-    const result = await template.render();
-    expect(result).toBe("hello");
-  });
-  test("integer literal", async () => {
-    const template = env.fromString("{{ 1 }}");
-    const result = await template.render();
-    expect(result).toBe("1");
-  });
-  test("float literal", async () => {
-    const template = env.fromString("{{ 1.1 }}");
-    const result = await template.render();
-    expect(result).toBe("1.1");
-  });
-  test("true literal", async () => {
-    const template = env.fromString("{{ true }}");
-    const result = await template.render();
-    expect(result).toBe("true");
-  });
-  test("false literal", async () => {
-    const template = env.fromString("{{ false }}");
-    const result = await template.render();
-    expect(result).toBe("false");
-  });
-  test("range literal", async () => {
-    const template = env.fromString("{{ (1..3) }}");
-    const result = await template.render();
-    expect(result).toBe("1..3");
-  });
-  test("simple filter", async () => {
-    const template = env.fromString('{{ "hello " | append: "world!" }}');
-    const result = await template.render();
-    expect(result).toBe("hello world!");
-  });
-  test("simple identifier", async () => {
-    const template = env.fromString("{{ greeting }}");
-    const result = await template.render({ greeting: "good evening" });
-    expect(result).toBe("good evening");
-  });
-  test("identifier indexed array access", async () => {
-    const template = env.fromString("{{ greetings[0] }}");
-    const result = await template.render({
-      greetings: ["good morning", "good evening"],
-    });
-    expect(result).toBe("good morning");
-  });
-  test("identifier property access", async () => {
-    const template = env.fromString("{{ greetings.pm }}");
-    const result = await template.render({
-      greetings: { am: "good morning", pm: "good evening" },
-    });
-    expect(result).toBe("good evening");
-  });
-  test("identifier bracketed property access", async () => {
-    const template = env.fromString("{{ greetings['pm'] }}");
-    const result = await template.render({
-      greetings: { am: "good morning", pm: "good evening" },
-    });
-    expect(result).toBe("good evening");
-  });
-  test("identifier chained property access", async () => {
-    const template = env.fromString("{{ greetings.english['pm'] }}");
-    const result = await template.render({
-      greetings: { english: { am: "good morning", pm: "good evening" } },
-    });
-    expect(result).toBe("good evening");
+
+  describe("sync", () => {
+    test.each<Case>(cases)(
+      "$description",
+      async ({ source, globals, want }: Case) => {
+        const template = env.fromString(source);
+        expect(template.renderSync(globals)).toBe(want);
+      }
+    );
   });
 });

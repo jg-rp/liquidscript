@@ -142,9 +142,53 @@ function paginateNode(token, ident, pageSize, block) {
         }
       }
 
-      context.push(new Map([["paginate", pagination]]));
+      context.push({ paginate: pagination });
       try {
         await block.render(context, out);
+      } finally {
+        context.pop();
+      }
+    },
+    renderSync: function (context, out) {
+      const collection = ident.evaluateSync(context);
+      const collectionSize = collection.length;
+      const pageCount = Math.ceil(collectionSize / pageSize);
+
+      const contextPage = context.getSync("current_page");
+      const currentPage = isUndefined(contextPage) ? 1 : contextPage;
+
+      const pagination = {
+        page_size: pageSize,
+        current_page: currentPage,
+        current_offset: currentPage * pageSize,
+        items: collectionSize,
+        pages: pageCount,
+        parts: [],
+        previous: null,
+        next: null,
+      };
+
+      if (currentPage > 1) {
+        pagination.next = link("&laquo; Previous", currentPage - 1);
+      }
+
+      if (currentPage < pageCount) {
+        pagination.next = link("Next &raquo;", currentPage + 1);
+      }
+
+      if (pageCount > 1) {
+        for (let i = 1; i <= pageCount; i++) {
+          if (currentPage == i) {
+            pagination.parts.push(noLink(i));
+          } else {
+            pagination.parts.push(link(i, i));
+          }
+        }
+      }
+
+      context.push({ paginate: pagination });
+      try {
+        block.renderSync(context, out);
       } finally {
         context.pop();
       }

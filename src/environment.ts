@@ -1,11 +1,5 @@
-import {
-  Context,
-  ContextGlobals,
-  ContextScope,
-  isContextScope,
-  ReadOnlyChainMap,
-} from "./context";
-import { Template, TemplateI } from "./template";
+import { Context, ContextScope } from "./context";
+import { Template } from "./template";
 import { Tag } from "./tag";
 import { Filter } from "./filter";
 import { Undefined, StrictUndefined } from "./undefined";
@@ -15,12 +9,13 @@ import { tokenize } from "./lex";
 import { TemplateTokenStream } from "./token";
 import { Loader, MapLoader } from "./loader";
 import { registerBuiltin } from "./builtin/register";
+import { chainObjects } from "./chainObject";
 
 export type EnvironmentOptions = {
   // TODO: Complete options
   // mode?
   autoEscape?: boolean;
-  globals?: ContextGlobals;
+  globals?: ContextScope;
   maxContextDepth?: number;
   undefinedFactory?: (name: string) => Undefined;
 };
@@ -30,7 +25,7 @@ export type EnvironmentOptions = {
  */
 export class Environment {
   public autoEscape: boolean;
-  public globals: ContextGlobals;
+  public globals: ContextScope;
   public maxContextDepth: number;
   public undefinedFactory: (name: string) => Undefined;
   public filters: { [keys: string]: Filter } = {};
@@ -38,10 +33,6 @@ export class Environment {
   public loader: Loader;
   private _parser: Parser;
 
-  /**
-   *
-   * @param param0
-   */
   constructor({
     autoEscape,
     globals,
@@ -68,6 +59,7 @@ export class Environment {
    */
   public undefined_(name: string): Undefined {
     // TODO: Change name/factory pattern?
+    // XXX: Maybe use "missing" instead of "undefined"
     return this.undefinedFactory(name);
   }
 
@@ -81,11 +73,20 @@ export class Environment {
    */
   public async getTemplate(
     name: string,
-    globals?: ContextGlobals,
+    globals?: ContextScope,
     context?: Context,
     loaderContext?: { [index: string]: unknown }
-  ): Promise<TemplateI> {
+  ): Promise<Template> {
     return await this.loader.load(name, this, context, globals, loaderContext);
+  }
+
+  public getTemplateSync(
+    name: string,
+    globals?: ContextScope,
+    context?: Context,
+    loaderContext?: { [index: string]: unknown }
+  ): Template {
+    return this.loader.loadSync(name, this, context, globals, loaderContext);
   }
 
   /**
@@ -99,9 +100,9 @@ export class Environment {
   public fromString(
     source: string,
     name?: string,
-    globals?: ContextGlobals,
-    matter?: ContextGlobals
-  ): TemplateI {
+    globals?: ContextScope,
+    matter?: ContextScope
+  ): Template {
     return new Template(
       this,
       this.parse(source),
@@ -143,21 +144,8 @@ export class Environment {
    * @param templateGlobals
    * @returns
    */
-  public makeGlobals(templateGlobals?: ContextGlobals): ContextGlobals {
-    if (templateGlobals === undefined) return this.mapLike(this.globals);
-    return new ReadOnlyChainMap(
-      this.mapLike(templateGlobals),
-      this.mapLike(this.globals)
-    );
-  }
-
-  /**
-   *
-   * @param obj
-   * @returns
-   */
-  protected mapLike(obj: ContextGlobals): ContextScope {
-    if (isContextScope(obj)) return obj;
-    return new Map<string, unknown>(Object.keys(obj).map((k) => [k, obj[k]]));
+  public makeGlobals(templateGlobals?: ContextScope): ContextScope {
+    if (templateGlobals === undefined) return this.globals;
+    return chainObjects(templateGlobals, this.globals);
   }
 }

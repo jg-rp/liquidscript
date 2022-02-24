@@ -1,5 +1,5 @@
 import { BlockNode, Node } from "../../ast";
-import { Context } from "../../context";
+import { Context, ContextScope } from "../../context";
 import { Environment } from "../../environment";
 import { InternalTypeError } from "../../errors";
 import { LoopExpression } from "../../expression";
@@ -41,7 +41,7 @@ export class TableRowNode implements Node {
     readonly block: BlockNode
   ) {}
 
-  async render(context: Context, out: RenderStream): Promise<void> {
+  public async render(context: Context, out: RenderStream): Promise<void> {
     const name = this.expression.name;
     const [it, length] = await this.expression.evaluate(context);
 
@@ -59,17 +59,54 @@ export class TableRowNode implements Node {
     }
 
     const tablerowloop = new TableRowLoopDrop(name, it, length, cols as number);
-    const namespace: Map<string, unknown> = new Map([
-      ["tablerowloop", tablerowloop],
-    ]);
+    const namespace: ContextScope = { tablerowloop: tablerowloop };
     context.push(namespace);
 
     try {
       out.write('<tr class="row1">\n');
       for (const item of tablerowloop) {
-        namespace.set(name, item);
+        namespace[name] = item;
         out.write(`<td class="col${tablerowloop.col}">`);
         await this.block.render(context, out);
+        out.write("</td>");
+
+        if (tablerowloop.col_last && !tablerowloop.last) {
+          out.write(`</tr>\n<tr class="row${tablerowloop.row + 1}">`);
+        }
+      }
+      out.write("</tr>\n");
+    } finally {
+      context.pop();
+    }
+  }
+
+  public renderSync(context: Context, out: RenderStream): void {
+    const name = this.expression.name;
+    const [it, length] = this.expression.evaluateSync(context);
+
+    let cols =
+      this.expression.cols === undefined
+        ? length
+        : this.expression.cols.evaluateSync(context);
+
+    if (isInteger(cols)) {
+      cols = cols.valueOf();
+    } else if (!isPrimitiveInteger(cols)) {
+      throw new InternalTypeError(
+        `tablerow cols must be an integer, found '${cols}'`
+      );
+    }
+
+    const tablerowloop = new TableRowLoopDrop(name, it, length, cols as number);
+    const namespace: ContextScope = { tablerowloop: tablerowloop };
+    context.push(namespace);
+
+    try {
+      out.write('<tr class="row1">\n');
+      for (const item of tablerowloop) {
+        namespace[name] = item;
+        out.write(`<td class="col${tablerowloop.col}">`);
+        this.block.renderSync(context, out);
         out.write("</td>");
 
         if (tablerowloop.col_last && !tablerowloop.last) {

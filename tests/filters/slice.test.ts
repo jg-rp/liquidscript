@@ -1,5 +1,5 @@
 import { slice } from "../../src/builtin/filters/misc";
-import { DefaultContext } from "../../src/context";
+import { Context } from "../../src/context";
 import { Environment } from "../../src/environment";
 import { FilterArgumentError } from "../../src/errors";
 import { FilterContext } from "../../src/filter";
@@ -7,7 +7,7 @@ import { Integer } from "../../src/number";
 
 describe("slice filter", () => {
   const env = new Environment({});
-  const ctx = new DefaultContext(env, new Map<string, unknown>());
+  const ctx = new Context(env);
   const filterContext: FilterContext = { context: ctx };
 
   test("first character of a string", () => {

@@ -61,6 +61,6 @@ export function isLiquidDispatchable(obj: unknown): obj is LiquidDispatchable {
   return (
     obj !== null &&
     (typeof obj === "object" || typeof obj === "function") &&
-    liquidCallable in obj
+    liquidDispatch in obj
   );
 }

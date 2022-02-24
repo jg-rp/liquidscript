@@ -1,12 +1,12 @@
 import { uniq } from "../../src/builtin/filters/array";
-import { DefaultContext } from "../../src/context";
+import { Context } from "../../src/context";
 import { Environment } from "../../src/environment";
 import { FilterArgumentError } from "../../src/errors";
 import { FilterContext } from "../../src/filter";
 
 describe("uniq filter", () => {
   const env = new Environment({});
-  const ctx = new DefaultContext(env, new Map<string, unknown>());
+  const ctx = new Context(env);
   const filterContext: FilterContext = { context: ctx };
 
   test("array of strings", () => {

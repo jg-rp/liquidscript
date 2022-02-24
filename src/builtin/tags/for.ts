@@ -1,5 +1,5 @@
 import { BlockNode, Node } from "../../ast";
-import { Context } from "../../context";
+import { Context, ContextScope } from "../../context";
 import { Environment } from "../../environment";
 import { BreakIteration, ContinueIteration } from "../../errors";
 import { LoopExpression } from "../../expression";
@@ -67,11 +67,15 @@ export class ForTag implements Tag {
 export class BreakNode implements Node {
   constructor(readonly token: Token) {}
 
-  toString(): string {
+  public toString(): string {
     return "[break]";
   }
 
-  async render(): Promise<void> {
+  public async render(): Promise<void> {
+    throw new BreakIteration("break");
+  }
+
+  public renderSync(): void {
     throw new BreakIteration("break");
   }
 
@@ -83,11 +87,15 @@ export class BreakNode implements Node {
 export class ContinueNode implements Node {
   constructor(readonly token: Token) {}
 
-  toString(): string {
+  public toString(): string {
     return "[continue]";
   }
 
-  async render(): Promise<void> {
+  public async render(): Promise<void> {
+    throw new ContinueIteration("continue");
+  }
+
+  public renderSync(): void {
     throw new ContinueIteration("continue");
   }
 
@@ -104,7 +112,7 @@ export class ForNode implements Node {
     readonly default_?: BlockNode
   ) {}
 
-  async render(context: Context, out: RenderStream): Promise<void> {
+  public async render(context: Context, out: RenderStream): Promise<void> {
     const [it, length] = await this.expression.evaluate(context);
 
     if (length > 0) {
@@ -117,12 +125,12 @@ export class ForNode implements Node {
         length
       );
 
-      const namespace: Map<string, unknown> = new Map([["forloop", forloop]]);
+      const namespace: ContextScope = { forloop: forloop };
       context.push(namespace);
 
       try {
         for (const item of forloop) {
-          namespace.set(name, item);
+          namespace[name] = item;
           try {
             await this.block.render(context, out);
           } catch (error) {
@@ -140,6 +148,45 @@ export class ForNode implements Node {
       }
     } else if (this.default_ !== undefined) {
       await this.default_.render(context, out);
+    }
+  }
+
+  public renderSync(context: Context, out: RenderStream): void {
+    const [it, length] = this.expression.evaluateSync(context);
+
+    if (length > 0) {
+      const name = this.expression.name;
+
+      // TODO: parentloop
+      const forloop = new ForLoopDrop(
+        `${name}-${this.expression.iterable}`,
+        it,
+        length
+      );
+
+      const namespace: ContextScope = { forloop: forloop };
+      context.push(namespace);
+
+      try {
+        for (const item of forloop) {
+          namespace[name] = item;
+          try {
+            this.block.renderSync(context, out);
+          } catch (error) {
+            if (error instanceof BreakIteration) {
+              break;
+            } else if (error instanceof ContinueIteration) {
+              continue;
+            } else {
+              throw error;
+            }
+          }
+        }
+      } finally {
+        context.pop();
+      }
+    } else if (this.default_ !== undefined) {
+      this.default_.renderSync(context, out);
     }
   }
 

@@ -92,7 +92,7 @@ export class UnlessNode implements Node {
     private alternative?: BlockNode
   ) {}
 
-  async render(context: Context, out: RenderStream): Promise<void> {
+  public async render(context: Context, out: RenderStream): Promise<void> {
     if (!(await this.condition.evaluate(context))) {
       await this.consequence.render(context, out);
       return;
@@ -107,6 +107,24 @@ export class UnlessNode implements Node {
 
     if (this.alternative !== undefined) {
       await this.alternative.render(context, out);
+    }
+  }
+
+  public renderSync(context: Context, out: RenderStream): void {
+    if (!this.condition.evaluateSync(context)) {
+      this.consequence.renderSync(context, out);
+      return;
+    }
+
+    for (const alt of this.conditionalAlternatives) {
+      if (alt.condition.evaluateSync(context)) {
+        alt.consequence.renderSync(context, out);
+        return;
+      }
+    }
+
+    if (this.alternative !== undefined) {
+      this.alternative.renderSync(context, out);
     }
   }
 

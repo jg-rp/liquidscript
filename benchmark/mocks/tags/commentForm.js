@@ -27,15 +27,13 @@ const CommentFormTag = {
   },
 };
 
-// TODO: Read about JS functions, objects and classes again.
-
 function commentFormNode(token, article, block) {
   return {
     token,
     render: async function (context, out) {
       const _article = await article.evaluate(context);
 
-      const form = new Map([
+      const form = Object.fromEntries([
         [
           "posted_successfully?",
           await context.get("posted_successfully", [], true),
@@ -51,9 +49,37 @@ function commentFormNode(token, article, block) {
           `class="comment-form" method="post" action="">\n`
       );
 
-      context.push(new Map([["form", form]]));
+      context.push({ form: form });
       try {
         await block.render(context, out);
+      } finally {
+        context.pop();
+      }
+
+      out.write("\n</form>");
+    },
+    renderSync: function (context, out) {
+      const _article = article.evaluateSync(context);
+
+      const form = Object.fromEntries([
+        [
+          "posted_successfully?",
+          context.getSync("posted_successfully", [], true),
+        ],
+        ["errors", context.getSync("comment", ["errors"], [])],
+        ["author", context.getSync("comment", ["author"])],
+        ["email", context.getSync("comment", ["email"])],
+        ["body", context.getSync("comment", ["body"])],
+      ]);
+
+      out.write(
+        `<form id="article-${article.id}-comment-form" ` +
+          `class="comment-form" method="post" action="">\n`
+      );
+
+      context.push({ form: form });
+      try {
+        block.renderSync(context, out);
       } finally {
         context.pop();
       }

@@ -1,92 +1,124 @@
 import { Environment } from "../../src/environment";
 
-// TODO: Finish tests
+type Case = {
+  description: string;
+  source: string;
+  globals: { [index: string]: unknown };
+  want: string;
+};
 
 describe("built-in case/when tag", () => {
   const env = new Environment({});
-
-  test("switch on variable with literal 'whens'", async () => {
-    const template = env.fromString(
-      "{% case greeting %}" +
+  const cases: Case[] = [
+    {
+      description: "switch on variable with literal 'whens'",
+      source:
+        "{% case greeting %}" +
         "{% when 'hello' %}HELLO WORLD" +
         "{% when 'goodbye' %}GOODBYE WORLD" +
-        "{% endcase %}"
-    );
-    const result = await template.render({ greeting: "hello" });
-    expect(result).toBe("HELLO WORLD");
-  });
-  test("switch on variable with variable 'when'", async () => {
-    const template = env.fromString(
-      "{% case greeting %}" +
+        "{% endcase %}",
+
+      globals: { greeting: "hello" },
+      want: "HELLO WORLD",
+    },
+    {
+      description: "switch on variable with variable 'when'",
+      source:
+        "{% case greeting %}" +
         "{% when a %}HELLO WORLD" +
         "{% when 'goodbye' %}GOODBYE WORLD" +
-        "{% endcase %}"
-    );
-    const result = await template.render({ greeting: "hello", a: "hello" });
-    expect(result).toBe("HELLO WORLD");
-  });
-  test("nested tag inside 'when' block", async () => {
-    const template = env.fromString(
-      "{% case greeting %}" +
+        "{% endcase %}",
+
+      globals: { greeting: "hello", a: "hello" },
+      want: "HELLO WORLD",
+    },
+    {
+      description: "nested tag inside 'when' block",
+      source:
+        "{% case greeting %}" +
         "{% when a %}" +
         "{% if true %}HELLO WORLD{% endif %}" +
         "{% when 'goodbye' %}GOODBYE WORLD" +
-        "{% endcase %}"
-    );
-    const result = await template.render({ greeting: "hello", a: "hello" });
-    expect(result).toBe("HELLO WORLD");
-  });
-  test("no match and no default", async () => {
-    const template = env.fromString(
-      "{% case greeting %}" +
+        "{% endcase %}",
+
+      globals: { greeting: "hello", a: "hello" },
+      want: "HELLO WORLD",
+    },
+    {
+      description: "no match and no default",
+      source:
+        "{% case greeting %}" +
         "{% when a %}HELLO WORLD" +
         "{% when 'goodbye' %}GOODBYE WORLD" +
-        "{% endcase %}"
-    );
-    const result = await template.render({ greeting: "something", a: "hello" });
-    expect(result).toBe("");
-  });
-  test("no match with default", async () => {
-    const template = env.fromString(
-      "{% case greeting %}" +
+        "{% endcase %}",
+
+      globals: { greeting: "something", a: "hello" },
+      want: "",
+    },
+    {
+      description: "no match with default",
+      source:
+        "{% case greeting %}" +
         "{% when a %}HELLO WORLD" +
         "{% when 'goodbye' %}GOODBYE WORLD" +
         "{% else %}G'DAY" +
-        "{% endcase %}"
-    );
-    const result = await template.render({ greeting: "something", a: "hello" });
-    expect(result).toBe("G'DAY");
-  });
-  test("no blocks", async () => {
-    const template = env.fromString("{% case greeting %}{% endcase %}");
-    const result = await template.render();
-    expect(result).toBe("");
-  });
-  test("just default block", async () => {
-    const template = env.fromString(
-      "{% case greeting %}{% else %}hello{% endcase %}"
-    );
-    const result = await template.render();
-    expect(result).toBe("hello");
-  });
-  test("comma separated when expression", async () => {
-    const template = env.fromString(
-      "{% case greeting %}" +
+        "{% endcase %}",
+
+      globals: { greeting: "something", a: "hello" },
+      want: "G'DAY",
+    },
+    {
+      description: "no blocks",
+      source: "{% case greeting %}{% endcase %}",
+      globals: {},
+      want: "",
+    },
+    {
+      description: "just default block",
+      source: "{% case greeting %}{% else %}hello{% endcase %}",
+      globals: {},
+      want: "hello",
+    },
+    {
+      description: "comma separated when expression",
+      source:
+        "{% case greeting %}" +
         "{% when a %}HELLO WORLD" +
         "{% when 'goodbye', 'something' %}GOODBYE WORLD" +
-        "{% endcase %}"
-    );
-    const result = await template.render({ greeting: "something", a: "hello" });
-    expect(result).toBe("GOODBYE WORLD");
-  });
-  test("multiple matching blocks", async () => {
-    const template = env.fromString(
-      "{% case greeting %}" +
+        "{% endcase %}",
+      globals: { greeting: "something", a: "hello" },
+      want: "GOODBYE WORLD",
+    },
+    {
+      description: "multiple matching blocks",
+      source:
+        "{% case greeting %}" +
         "{% when a %}HELLO WORLD " +
         "{% when 'hello', a %}GOODBYE WORLD " +
-        "{% endcase %}"
+        "{% endcase %}",
+      globals: { greeting: "hello", a: "hello" },
+      want: "HELLO WORLD GOODBYE WORLD GOODBYE WORLD ",
+    },
+  ];
+
+  describe("async", () => {
+    test.each<Case>(cases)(
+      "$description",
+      async ({ source, globals, want }: Case) => {
+        const template = env.fromString(source);
+        const result = await template.render(globals);
+        expect(result).toBe(want);
+      }
     );
-    const result = await template.render({ greeting: "hello", a: "hello" });
-    expect(result).toBe("HELLO WORLD GOODBYE WORLD GOODBYE WORLD ");
+  });
+
+  describe("sync", () => {
+    test.each<Case>(cases)(
+      "$description",
+      async ({ source, globals, want }: Case) => {
+        const template = env.fromString(source);
+        expect(template.renderSync(globals)).toBe(want);
+      }
+    );
   });
 });

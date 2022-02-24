@@ -1,4 +1,6 @@
 import { Node } from "../../ast";
+import { Context } from "../../context";
+import { RenderStream } from "../../io/output_stream";
 import { Tag } from "../../tag";
 import { Token, TokenStream, TOKEN_EOF, TOKEN_TAG } from "../../token";
 
@@ -24,7 +26,12 @@ export class CommentTag implements Tag {
 
 export class CommentNode implements Node {
   constructor(readonly token: Token) {}
+
   public async render(): Promise<void> {
+    return;
+  }
+
+  public renderSync(): void {
     return;
   }
 

@@ -1,13 +1,6 @@
-import {
-  Context,
-  ContextGlobals,
-  ContextScope,
-  isContextScope,
-  DefaultContext,
-  ReadOnlyChainMap,
-} from "./context";
+import { ContextScope, Context } from "./context";
 import { Environment } from "./environment";
-import { Root } from "./ast";
+import { Node, Root } from "./ast";
 import { DefaultOutputStream, RenderStream } from "./io/output_stream";
 import {
   InternalLiquidError,
@@ -15,20 +8,11 @@ import {
   LiquidInterrupt,
   LiquidSyntaxError,
 } from "./errors";
-
-export interface TemplateI {
-  render(globals?: ContextGlobals): Promise<string>;
-  renderWithContext(
-    context: Context,
-    out: RenderStream,
-    blockScope: boolean,
-    partial: boolean
-  ): Promise<void>;
-}
+import { chainObjects } from "./chainObject";
 
 // TODO: upToDate
 
-export class Template implements TemplateI {
+export class Template {
   private environment: Environment;
   readonly tree: Root;
   readonly name: string;
@@ -39,25 +23,21 @@ export class Template implements TemplateI {
     environment: Environment,
     tree: Root,
     name: string,
-    globals?: ContextGlobals,
-    matter?: ContextGlobals
+    globals?: ContextScope,
+    matter?: ContextScope
   ) {
     this.environment = environment;
     this.tree = tree;
     this.name = name;
-    this.globals =
-      globals === undefined
-        ? new Map<string, unknown>()
-        : this.mapLike(globals);
-    this.matter =
-      matter === undefined ? new Map<string, unknown>() : this.mapLike(matter);
+    this.globals = globals === undefined ? {} : globals;
+    this.matter = matter === undefined ? {} : matter;
   }
 
   // TODO: Move current constructor to a factory function and make the
   // constructor equivalent to `fromString`.
 
-  async render(globals: ContextGlobals = {}): Promise<string> {
-    const context = new DefaultContext(
+  public async render(globals: ContextScope = {}): Promise<string> {
+    const context = new Context(
       this.environment,
       this.makeGlobals(globals),
       this.name
@@ -67,7 +47,41 @@ export class Template implements TemplateI {
     return outputStream.toString();
   }
 
-  async renderWithContext(
+  public renderSync(globals: ContextScope = {}): string {
+    const context = new Context(
+      this.environment,
+      this.makeGlobals(globals),
+      this.name
+    );
+    const outputStream = new DefaultOutputStream();
+    this.renderWithContextSync(context, outputStream);
+    return outputStream.toString();
+  }
+
+  protected handleError(
+    error: unknown,
+    node: Node,
+    blockScope: boolean,
+    partial: boolean
+  ): void {
+    if (error instanceof LiquidInterrupt) {
+      if (!partial || blockScope) {
+        this.environment.error(
+          new LiquidSyntaxError(`unexpected ${error}`, node.token)
+        );
+      } else {
+        throw error;
+      }
+    } else if (error instanceof InternalLiquidError) {
+      this.environment.error(error.withToken(node.token, this.name));
+    } else if (error instanceof LiquidError) {
+      this.environment.error(error);
+    } else {
+      throw error;
+    }
+  }
+
+  public async renderWithContext(
     context: Context,
     outputStream: RenderStream,
     blockScope: boolean = false,
@@ -77,35 +91,27 @@ export class Template implements TemplateI {
       try {
         await node.render(context, outputStream);
       } catch (error) {
-        if (error instanceof LiquidInterrupt) {
-          if (!partial || blockScope) {
-            this.environment.error(
-              new LiquidSyntaxError(`unexpected ${error}`, node.token)
-            );
-          } else {
-            throw error;
-          }
-        } else if (error instanceof InternalLiquidError) {
-          this.environment.error(error.withToken(node.token, this.name));
-        } else if (error instanceof LiquidError) {
-          this.environment.error(error);
-        } else {
-          throw error;
-        }
+        this.handleError(error, node, blockScope, partial);
       }
     }
   }
 
-  protected makeGlobals(templateGlobals: ContextGlobals): ContextScope {
-    return new ReadOnlyChainMap(
-      this.mapLike(templateGlobals),
-      this.matter,
-      this.globals
-    );
+  public renderWithContextSync(
+    context: Context,
+    outputStream: RenderStream,
+    blockScope: boolean = false,
+    partial: boolean = false
+  ): void {
+    for (const node of this.tree.statements) {
+      try {
+        node.renderSync(context, outputStream);
+      } catch (error) {
+        this.handleError(error, node, blockScope, partial);
+      }
+    }
   }
 
-  protected mapLike(obj: ContextGlobals): ContextScope {
-    if (isContextScope(obj)) return obj;
-    return new Map<string, unknown>(Object.keys(obj).map((k) => [k, obj[k]]));
+  protected makeGlobals(templateGlobals: ContextScope): ContextScope {
+    return chainObjects(templateGlobals, this.matter, this.globals);
   }
 }

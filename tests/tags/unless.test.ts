@@ -2,93 +2,130 @@ import { Environment } from "../../src/environment";
 
 // TODO: Finish tests
 
+type Case = {
+  description: string;
+  source: string;
+  globals: { [index: string]: unknown };
+  want: string;
+};
+
 describe("built-in unless tag", () => {
   const env = new Environment({});
+  const cases: Case[] = [
+    {
+      description: "unless true",
+      source: "{% unless true %}hello{% endunless %}",
+      globals: {},
+      want: "",
+    },
+    {
+      description: "unless false",
+      source: "{% unless false %}hello{% endunless %}",
+      globals: {},
+      want: "hello",
+    },
+    {
+      description: "true alternative branch",
+      source: "{% unless true %}hello{% else %}goodbye{% endunless %}",
+      globals: {},
+      want: "goodbye",
+    },
+    {
+      description: "false alternative branch",
+      source: "{% unless false %}hello{% else %}goodbye{% endunless %}",
+      globals: {},
+      want: "hello",
+    },
+    {
+      description: "true conditional alternative branch",
+      source: "{% unless true %}hello{% elsif true %}g'day{% endunless %}",
+      globals: {},
+      want: "g'day",
+    },
+    {
+      description: "false conditional alternative branch",
+      source: "{% unless true %}hello{% elsif false %}g'day{% endunless %}",
+      globals: {},
+      want: "",
+    },
+    {
+      description:
+        "true conditional alternative branch with alternative branch",
+      source:
+        "{% unless true %}hello{% elsif true %}g'day{% else %}goodbye{% endunless %}",
+      globals: {},
+      want: "g'day",
+    },
+    {
+      description:
+        "false conditional alternative branch with alternative branch",
+      source:
+        "{% unless true %}hello{% elsif false %}g'day{% else %}goodbye{% endunless %}",
+      globals: {},
+      want: "goodbye",
+    },
+    {
+      description: "nested conditional block",
+      source:
+        "{% unless false %}{% unless false %}hello{% endunless %}{% endunless %}",
+      globals: {},
+      want: "hello",
+    },
+    {
+      description:
+        "conditionally evaluate a block from a truthy context variable",
+      source: "{% unless a %}hello{% endunless %}",
+      globals: { a: true },
+      want: "",
+    },
+    {
+      description:
+        "conditionally evaluate a block from a falsy context variable",
+      source: "{% unless a %}hello{% endunless %}",
+      globals: { a: false },
+      want: "hello",
+    },
+    {
+      description: "conditionally evaluate a block with equality test",
+      source: "{% unless a == true %}hello{% endunless %}",
 
-  test("unless true", async () => {
-    const template = env.fromString("{% unless true %}hello{% endunless %}");
-    const result = await template.render();
-    expect(result).toBe("");
-  });
-  test("unless false", async () => {
-    const template = env.fromString("{% unless false %}hello{% endunless %}");
-    const result = await template.render();
-    expect(result).toBe("hello");
-  });
-  test("true alternative branch", async () => {
-    const template = env.fromString(
-      "{% unless true %}hello{% else %}goodbye{% endunless %}"
+      globals: { a: false },
+      want: "hello",
+    },
+    {
+      description:
+        "conditionally evaluate a block with truthy less than operator",
+      source: "{% unless a < 5 %}hello{% endunless %}",
+      globals: { a: 3 },
+      want: "",
+    },
+    {
+      description:
+        "conditionally evaluate a block with falsy less than operator",
+      source: "{% unless a < 5 %}hello{% endunless %}",
+      globals: { a: 6 },
+      want: "hello",
+    },
+  ];
+
+  describe("async", () => {
+    test.each<Case>(cases)(
+      "$description",
+      async ({ source, globals, want }: Case) => {
+        const template = env.fromString(source);
+        const result = await template.render(globals);
+        expect(result).toBe(want);
+      }
     );
-    const result = await template.render();
-    expect(result).toBe("goodbye");
   });
-  test("false alternative branch", async () => {
-    const template = env.fromString(
-      "{% unless false %}hello{% else %}goodbye{% endunless %}"
+
+  describe("sync", () => {
+    test.each<Case>(cases)(
+      "$description",
+      async ({ source, globals, want }: Case) => {
+        const template = env.fromString(source);
+        expect(template.renderSync(globals)).toBe(want);
+      }
     );
-    const result = await template.render();
-    expect(result).toBe("hello");
-  });
-  test("true conditional alternative branch", async () => {
-    const template = env.fromString(
-      "{% unless true %}hello{% elsif true %}g'day{% endunless %}"
-    );
-    const result = await template.render();
-    expect(result).toBe("g'day");
-  });
-  test("false conditional alternative branch", async () => {
-    const template = env.fromString(
-      "{% unless true %}hello{% elsif false %}g'day{% endunless %}"
-    );
-    const result = await template.render();
-    expect(result).toBe("");
-  });
-  test("true conditional alternative branch with alternative branch", async () => {
-    const template = env.fromString(
-      "{% unless true %}hello{% elsif true %}g'day{% else %}goodbye{% endunless %}"
-    );
-    const result = await template.render();
-    expect(result).toBe("g'day");
-  });
-  test("false conditional alternative branch with alternative branch", async () => {
-    const template = env.fromString(
-      "{% unless true %}hello{% elsif false %}g'day{% else %}goodbye{% endunless %}"
-    );
-    const result = await template.render();
-    expect(result).toBe("goodbye");
-  });
-  test("nested conditional block", async () => {
-    const template = env.fromString(
-      "{% unless false %}{% unless false %}hello{% endunless %}{% endunless %}"
-    );
-    const result = await template.render();
-    expect(result).toBe("hello");
-  });
-  test("conditionally evaluate a block from a truthy context variable", async () => {
-    const template = env.fromString("{% unless a %}hello{% endunless %}");
-    const result = await template.render({ a: true });
-    expect(result).toBe("");
-  });
-  test("conditionally evaluate a block from a falsy context variable", async () => {
-    const template = env.fromString("{% unless a %}hello{% endunless %}");
-    const result = await template.render({ a: false });
-    expect(result).toBe("hello");
-  });
-  test("conditionally evaluate a block with equality test", async () => {
-    const template = env.fromString(
-      "{% unless a == true %}hello{% endunless %}"
-    );
-    const result = await template.render({ a: false });
-    expect(result).toBe("hello");
-  });
-  test("conditionally evaluate a block with truthy less than operator", async () => {
-    const template = env.fromString("{% unless a < 5 %}hello{% endunless %}");
-    const result = await template.render({ a: 3 });
-    expect(result).toBe("");
-  });
-  test("conditionally evaluate a block with falsy less than operator", async () => {
-    const template = env.fromString("{% unless a < 5 %}hello{% endunless %}");
-    const result = await template.render({ a: 6 });
-    expect(result).toBe("hello");
   });
 });

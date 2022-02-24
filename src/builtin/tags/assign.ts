@@ -14,7 +14,7 @@ export class AssignTag implements Tag {
   readonly block = false;
   readonly name = TAG_ASSIGN;
 
-  parse(stream: TokenStream): AssignNode {
+  public parse(stream: TokenStream): AssignNode {
     const token = stream.next();
     stream.expect(TOKEN_EXPRESSION);
 
@@ -37,8 +37,12 @@ export class AssignNode implements Node {
     readonly expression: Expression
   ) {}
 
-  async render(context: Context): Promise<void> {
+  public async render(context: Context): Promise<void> {
     context.assign(this.name, await this.expression.evaluate(context));
+  }
+
+  public renderSync(context: Context): void {
+    context.assign(this.name, this.expression.evaluateSync(context));
   }
 
   branches(): Node[] {

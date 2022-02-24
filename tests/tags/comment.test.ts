@@ -1,29 +1,48 @@
 import { Environment } from "../../src/environment";
 
+type Case = {
+  description: string;
+  source: string;
+  want: string;
+};
+
 describe("built-in comment tag", () => {
   const env = new Environment({});
-
-  test("only comment", async () => {
-    const template = env.fromString("{% comment %}hello{% endcomment %}");
-    const result = await template.render();
-    expect(result).toBe("");
-  });
-  test("whitespace control", async () => {
-    const template = env.fromString(
-      "\n{%- comment %}hello{% endcomment -%}\t \r"
-    );
-    const result = await template.render();
-    expect(result).toBe("");
-  });
-  test("don't render commented out tags", async () => {
-    const template = env.fromString(
-      "{% comment %}" +
+  const cases: Case[] = [
+    {
+      description: "only comment",
+      source: "{% comment %}hello{% endcomment %}",
+      want: "",
+    },
+    {
+      description: "whitespace control",
+      source: "\n{%- comment %}hello{% endcomment -%}\t \r",
+      want: "",
+    },
+    {
+      description: "don't render commented out tags",
+      source:
+        "{% comment %}" +
         "{% if true %}" +
         "{{ title }}" +
         "{% endif %}" +
-        "{% endcomment %}"
-    );
-    const result = await template.render();
-    expect(result).toBe("");
+        "{% endcomment %}",
+      want: "",
+    },
+  ];
+
+  describe("async", () => {
+    test.each<Case>(cases)("$description", async ({ source, want }: Case) => {
+      const template = env.fromString(source);
+      const result = await template.render();
+      expect(result).toBe(want);
+    });
+  });
+
+  describe("sync", () => {
+    test.each<Case>(cases)("$description", async ({ source, want }: Case) => {
+      const template = env.fromString(source);
+      expect(template.renderSync()).toBe(want);
+    });
   });
 });

@@ -17,7 +17,7 @@ export class CaptureTag implements Tag {
   readonly name = TAG_CAPTURE;
   readonly end = TAG_END_CAPTURE;
 
-  parse(stream: TokenStream, environment: Environment): CaptureNode {
+  public parse(stream: TokenStream, environment: Environment): CaptureNode {
     const parser = environment.getParser();
     const token = stream.next();
     stream.expect(TOKEN_EXPRESSION);
@@ -45,9 +45,15 @@ export class CaptureNode implements Node {
     readonly block: BlockNode
   ) {}
 
-  async render(context: Context): Promise<void> {
+  public async render(context: Context): Promise<void> {
     const buf = new DefaultOutputStream();
     await this.block.render(context, buf);
+    context.assign(this.name, buf.toString());
+  }
+
+  public renderSync(context: Context): void {
+    const buf = new DefaultOutputStream();
+    this.block.renderSync(context, buf);
     context.assign(this.name, buf.toString());
   }
 

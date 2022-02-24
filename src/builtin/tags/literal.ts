@@ -20,6 +20,10 @@ export class LiteralNode implements Node {
     out.write(this.token.value);
   }
 
+  public renderSync(context: Context, out: RenderStream): void {
+    out.write(this.token.value);
+  }
+
   branches(): Node[] {
     return [];
   }

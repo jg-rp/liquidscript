@@ -1,12 +1,12 @@
 import { truncateWords } from "../../src/builtin/filters/string";
-import { DefaultContext } from "../../src/context";
+import { Context } from "../../src/context";
 import { Environment } from "../../src/environment";
 import { FilterArgumentError } from "../../src/errors";
 import { FilterContext } from "../../src/filter";
 
 describe("truncatewords filter", () => {
   const env = new Environment({});
-  const ctx = new DefaultContext(env, new Map<string, unknown>());
+  const ctx = new Context(env);
   const filterContext: FilterContext = { context: ctx };
 
   test("number of words defaults to 15", () => {
