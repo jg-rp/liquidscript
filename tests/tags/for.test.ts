@@ -1,8 +1,6 @@
 import { Environment } from "../../src/environment";
 import { LaxUndefined } from "../../src/undefined";
 
-// TODO: Finish tests, reversed
-
 type Case = {
   description: string;
   source: string;
@@ -181,6 +179,12 @@ describe("built-in for tag", () => {
         "i=2 j=1 k=1 i=2 j=1 k=2 " +
         "i=2 j=2 k=1 i=2 j=2 k=2 ",
       globals: {},
+    },
+    {
+      description: "loop over an array in reverse",
+      source: "{% for tag in product.tags reversed %}{{ tag }} {% endfor %}",
+      want: "garden sports ",
+      globals: { product: { tags: ["sports", "garden"] } },
     },
   ];
 

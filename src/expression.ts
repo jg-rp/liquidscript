@@ -19,21 +19,11 @@ import {
 import { range, Range } from "./range";
 import { Undefined } from "./undefined";
 
-// TODO: Explicit public modifier
-
-// TODO: Add a token to the expression interface?
-
 export interface Expression {
   evaluate(context: Context): Promise<unknown>;
   evaluateSync(context: Context): unknown;
   equals(other: unknown): boolean;
   toString(): string;
-}
-
-function isExpression(obj: unknown): obj is Expression {
-  return (
-    !!obj && typeof obj === "object" && "equals" in obj && "evaluate" in obj
-  );
 }
 
 export class Nil implements Expression {
@@ -127,11 +117,11 @@ export class Continue implements Expression {
     return 0;
   }
 
-  equals(other: unknown): boolean {
+  public equals(other: unknown): boolean {
     return other instanceof Continue;
   }
 
-  toString(): string {
+  public toString(): string {
     return "continue";
   }
 }
@@ -408,7 +398,6 @@ export class FilteredExpression implements Expression {
         ]);
       } catch (error) {
         if (error instanceof FilterValueError) continue;
-        // TODO: Wrap errors in LiquidError
         throw error;
       }
     }
@@ -583,9 +572,8 @@ export class LoopExpression implements Expression {
     context: Context
   ): Promise<[Iterator<unknown>, number]> {
     const [it, length] = this.toIter(await this.iterable.evaluate(context));
-    // TODO: this.reversed
     return this.limitAndOffset(
-      it,
+      this.reversed ? Array.from(it).reverse() : it,
       length,
       await this.limit?.evaluate(context),
       await this.offset?.evaluate(context)
@@ -594,9 +582,8 @@ export class LoopExpression implements Expression {
 
   public evaluateSync(context: Context): [Iterator<unknown>, number] {
     const [it, length] = this.toIter(this.iterable.evaluateSync(context));
-    // TODO: this.reversed
     return this.limitAndOffset(
-      it,
+      this.reversed ? Array.from(it).reverse() : it,
       length,
       this.limit?.evaluateSync(context),
       this.offset?.evaluateSync(context)
@@ -604,11 +591,34 @@ export class LoopExpression implements Expression {
   }
 }
 
+/**
+ *
+ * @param obj
+ * @returns
+ */
+function isExpression(obj: unknown): obj is Expression {
+  return (
+    !!obj && typeof obj === "object" && "equals" in obj && "evaluate" in obj
+  );
+}
+
+/**
+ *
+ * @param value
+ * @returns
+ */
 function safe(value: string): string {
   // TODO: implement html safe string
   return value;
 }
 
+/**
+ *
+ * @param left
+ * @param operator
+ * @param right
+ * @returns
+ */
 function compare(left: unknown, operator: string, right: unknown): boolean {
   switch (operator) {
     case "and":

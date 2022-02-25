@@ -38,15 +38,15 @@ export class LiquidTypeError extends LiquidError {
 }
 
 export class LiquidFilterValueError extends LiquidError {
-  constructor(public message: string, token: Token) {
-    super(message, token);
+  constructor(public message: string, token: Token, templateName?: string) {
+    super(message, token, templateName);
     Object.setPrototypeOf(this, LiquidFilterValueError.prototype);
   }
 }
 
 export class LiquidFilterArgumentError extends LiquidError {
-  constructor(public message: string, token: Token) {
-    super(message, token);
+  constructor(public message: string, token: Token, templateName?: string) {
+    super(message, token, templateName);
     Object.setPrototypeOf(this, LiquidFilterArgumentError.prototype);
   }
 }
@@ -199,7 +199,7 @@ export class FilterValueError extends InternalLiquidError {
   }
 
   public withToken(token: Token, templateName?: string): LiquidError {
-    return new LiquidFilterValueError(this.message, token);
+    return new LiquidFilterValueError(this.message, token, templateName);
   }
 }
 
