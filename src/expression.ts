@@ -109,12 +109,12 @@ export const BLANK = new Blank();
  *
  */
 export class Continue implements Expression {
-  async evaluate(): Promise<number> {
-    return 0;
+  async evaluate(): Promise<Continue> {
+    return this;
   }
 
-  public evaluateSync(): number {
-    return 0;
+  public evaluateSync(): Continue {
+    return this;
   }
 
   public equals(other: unknown): boolean {
@@ -465,14 +465,19 @@ export class BooleanExpression implements Expression {
   }
 }
 
-export type LoopArgument = IntegerLiteral | FloatLiteral | Identifier;
+export type LoopArgument =
+  | IntegerLiteral
+  | FloatLiteral
+  | Identifier
+  | Continue;
+export const For = Symbol.for("liquid.tags.for");
 
 export class LoopExpression implements Expression {
   constructor(
     readonly name: string,
     readonly iterable: RangeLiteral | Identifier,
     readonly limit?: LoopArgument,
-    readonly offset?: LoopArgument,
+    readonly offset?: LoopArgument | Continue,
     readonly cols?: LoopArgument,
     readonly reversed: boolean = false
   ) {}
@@ -532,15 +537,21 @@ export class LoopExpression implements Expression {
   }
 
   protected limitAndOffset(
+    context: Context,
     it: Iterable<unknown>,
     length: number,
     limit: unknown,
     offset: unknown
   ): [Iterator<unknown>, number] {
+    const offsets = context.getRegister(For);
+    const _name = `${this.name}-${this.iterable}`;
     let _it = it[Symbol.iterator]();
     let _length = length;
 
-    // TODO: Implement offset: continue
+    if (offset === CONTINUE) {
+      offset = offsets.get(_name);
+    }
+
     if (isPrimitiveInteger(offset)) {
       _it = this.drop(_it, offset);
       _length -= offset;
@@ -554,15 +565,21 @@ export class LoopExpression implements Expression {
     }
 
     if (isPrimitiveInteger(limit)) {
-      _it = this.drop(_it, limit);
       _length = Math.min(_length, limit);
+      _it = this.take(_it, _length);
     } else if (isInteger(limit)) {
-      _it = this.take(_it, limit.valueOf());
       _length = Math.min(_length, limit.valueOf());
+      _it = this.take(_it, _length);
     } else if (limit !== undefined) {
       throw new InternalTypeError(
         `loop limit must be an integer, found '${limit}'`
       );
+    }
+
+    if (offset) {
+      offsets.set(_name, _length + (offset as unknown as number));
+    } else {
+      offsets.set(_name, _length);
     }
 
     return [_it, _length];
@@ -573,6 +590,7 @@ export class LoopExpression implements Expression {
   ): Promise<[Iterator<unknown>, number]> {
     const [it, length] = this.toIter(await this.iterable.evaluate(context));
     return this.limitAndOffset(
+      context,
       this.reversed ? Array.from(it).reverse() : it,
       length,
       await this.limit?.evaluate(context),
@@ -583,6 +601,7 @@ export class LoopExpression implements Expression {
   public evaluateSync(context: Context): [Iterator<unknown>, number] {
     const [it, length] = this.toIter(this.iterable.evaluateSync(context));
     return this.limitAndOffset(
+      context,
       this.reversed ? Array.from(it).reverse() : it,
       length,
       this.limit?.evaluateSync(context),

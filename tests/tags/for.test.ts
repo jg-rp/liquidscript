@@ -186,6 +186,207 @@ describe("built-in for tag", () => {
       want: "garden sports ",
       globals: { product: { tags: ["sports", "garden"] } },
     },
+    {
+      description: "continue a loop",
+      source:
+        "{% for item in array limit: 3 %}" +
+        "a{{ item }} " +
+        "{% endfor %}" +
+        "{% for item in array offset: continue %}" +
+        "b{{ item }} " +
+        "{% endfor %}",
+      want: "a1 a2 a3 b4 b5 b6 ",
+      globals: { array: [1, 2, 3, 4, 5, 6] },
+    },
+    {
+      description: "continue a loop over an assigned range",
+      source:
+        "{% assign nums = (1..5) %}" +
+        "{% for item in nums limit: 3 %}" +
+        "a{{ item }} " +
+        "{% endfor %}" +
+        "{% for item in nums offset: continue %}" +
+        "b{{ item }} " +
+        "{% endfor %}",
+      globals: {},
+      want: "a1 a2 a3 b4 b5 ",
+    },
+    {
+      description: "continue a loop over a changing array",
+      source:
+        "{% assign foo = '1,2,3,4,5,6' | split: ',' %}" +
+        "{% for item in foo limit: 3 %}" +
+        "{{ item }} " +
+        "{% endfor %}" +
+        "{% assign foo = 'u,v,w,x,y,z' | split: ',' %}" +
+        "{% for item in foo offset: continue %}" +
+        "{{ item }} " +
+        "{% endfor %}",
+      want: "1 2 3 x y z ",
+      globals: {},
+    },
+    {
+      description: "continue with changing loop var",
+      source:
+        "{% for foo in array limit: 3 %}" +
+        "{{ foo }} " +
+        "{% endfor %}" +
+        "{% for bar in array offset: continue %}" +
+        "{{ bar }} " +
+        "{% endfor %}",
+      want: "1 2 3 1 2 3 4 5 6 ",
+      globals: { array: [1, 2, 3, 4, 5, 6] },
+    },
+    {
+      description: "nothing to continue from",
+      source:
+        "{% for item in array %}" +
+        "a{{ item }} " +
+        "{% endfor %}" +
+        "{% for item in array offset: continue %}" +
+        "b{{ item }} " +
+        "{% endfor %}",
+      want: "a1 a2 a3 a4 a5 a6 ",
+      globals: { array: [1, 2, 3, 4, 5, 6] },
+    },
+    {
+      description: "offset continue without preceding loop",
+      source: "{% for item in array offset: continue %}{{ item }} {% endfor %}",
+      want: "1 2 3 4 5 6 ",
+      globals: { array: [1, 2, 3, 4, 5, 6] },
+    },
+    {
+      description: "limit that is greater than length",
+      source:
+        "{% for item in array limit: 99 %}" + "a{{ item }} " + "{% endfor %}",
+      want: "a1 a2 a3 a4 a5 a6 ",
+      globals: { array: [1, 2, 3, 4, 5, 6] },
+    },
+    {
+      description: "continue from a limit that is greater than length",
+      source:
+        "{% for item in array limit: 99 %}" +
+        "a{{ item }} " +
+        "{% endfor %}" +
+        "{% for item in array offset: continue %}" +
+        "b{{ item }} " +
+        "{% endfor %}",
+      want: "a1 a2 a3 a4 a5 a6 ",
+      globals: { array: [1, 2, 3, 4, 5, 6] },
+    },
+    {
+      description: "continue from a range expression",
+      source:
+        "{% for item in (1..6) limit: 3 %}" +
+        "a{{ item }} " +
+        "{% endfor %}" +
+        "{% for item in (1..6) offset: continue %}" +
+        "b{{ item }} " +
+        "{% endfor %}",
+      want: "a1 a2 a3 b4 b5 b6 ",
+      globals: { array: [1, 2, 3, 4, 5, 6] },
+    },
+    {
+      description: "offset continue twice with limit",
+      source:
+        "{% for item in (1..6) limit: 2 %}" +
+        "a{{ item }} " +
+        "{% endfor %}" +
+        "{% for item in (1..6) limit: 2 offset: continue %}" +
+        "b{{ item }} " +
+        "{% endfor %}" +
+        "{% for item in (1..6) offset: continue %}" +
+        "c{{ item }} " +
+        "{% endfor %}",
+      globals: {},
+      want: "a1 a2 b3 b4 c5 c6 ",
+    },
+    {
+      description: "offset continue twice with changing limit",
+      source:
+        "{% for item in (1..6) limit: 2 %}" +
+        "a{{ item }} " +
+        "{% endfor %}" +
+        "{% for item in (1..6) limit: 3 offset: continue %}" +
+        "b{{ item }} " +
+        "{% endfor %}" +
+        "{% for item in (1..6) offset: continue %}" +
+        "c{{ item }} " +
+        "{% endfor %}",
+      globals: {},
+      want: "a1 a2 b3 b4 b5 c6 ",
+    },
+    {
+      description: "offset continue twice with no second limit",
+      source:
+        "{% for item in (1..6) limit: 2 %}" +
+        "a{{ item }} " +
+        "{% endfor %}" +
+        "{% for item in (1..6) offset: continue %}" +
+        "b{{ item }} " +
+        "{% endfor %}" +
+        "{% for item in (1..6) offset: continue %}" +
+        "c{{ item }} " +
+        "{% endfor %}",
+      globals: {},
+      want: "a1 a2 b3 b4 b5 b6 ",
+    },
+    {
+      description: "offset continue from a broken loop",
+      source:
+        "{% for item in (1..6) limit: 4 %}" +
+        "{% if item == 3 %}{% break %}{% endif %}" +
+        "a{{ item }} " +
+        "{% endfor %}" +
+        "{% for item in (1..6) offset: continue %}" +
+        "b{{ item }} " +
+        "{% endfor %}",
+      globals: {},
+      want: "a1 a2 b5 b6 ",
+    },
+    {
+      description: "offset continue from a broken loop with preceding limit",
+      source:
+        "{% for item in (1..6) limit: 3 %}" +
+        "a{{ item }} " +
+        "{% endfor %}" +
+        "{% for item in (1..6) %}" +
+        "{% if item == 3 %}{% break %}{% endif %}" +
+        "b{{ item }} " +
+        "{% endfor %}" +
+        "{% for item in (1..6) offset: continue %}" +
+        "c{{ item }} " +
+        "{% endfor %}",
+      globals: {},
+      want: "a1 a2 a3 b1 b2 ",
+    },
+    {
+      description: "offset continue forloop length",
+      source:
+        "{% for item in (1..6) limit: 2 %}" +
+        "a{{ item }} - {{ forloop.length }}, " +
+        "{% endfor %}" +
+        "{% for item in (1..6) offset: continue %}" +
+        "b{{ item }} - {{ forloop.length }}, " +
+        "{% endfor %}",
+      globals: {},
+      want: "a1 - 2, a2 - 2, b3 - 4, b4 - 4, b5 - 4, b6 - 4, ",
+    },
+    {
+      description: "first and last with offset continue",
+      source:
+        "{% for tag in product.tags limit: 1 %}" +
+        "{% endfor %}" +
+        "{% for tag in product.tags offset: continue %}" +
+        "{{ forloop.first }} {{ forloop.last }} " +
+        "{% endfor %}",
+      want: "true false false false false false false false false true ",
+      globals: {
+        product: {
+          tags: ["sports", "garden", "home", "diy", "motoring", "fashion"],
+        },
+      },
+    },
   ];
 
   describe("async", () => {

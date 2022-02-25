@@ -17,6 +17,7 @@ import {
   ExpressionTokenStream,
   TOKEN_COLON,
   TOKEN_COLS,
+  TOKEN_CONTINUE,
   TOKEN_EOF,
   TOKEN_FLOAT,
   TOKEN_IDENT,
@@ -48,7 +49,7 @@ export const TOKEN_MAP = new Map<string, parseFunc>([
   [TOKEN_IDENT, parseIdentifier],
   [TOKEN_INTEGER, parseIntegerLiteral],
   [TOKEN_FLOAT, parseFloatLiteral],
-  // TODO: [TOKEN_CONTINUE, parseContinue],
+  [TOKEN_CONTINUE, parseContinue],
 ]);
 
 function parseLoopArgument(stream: ExpressionTokenStream): LoopArgument {
