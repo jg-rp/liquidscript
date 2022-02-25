@@ -1,5 +1,5 @@
 import { FilterArgumentError, FilterValueError } from "../../errors";
-import { FilterContext } from "../../filter";
+import { checkArguments, FilterContext } from "../../filter";
 import {
   isArray,
   isComparable,
@@ -26,11 +26,7 @@ export function join(
   left: unknown,
   separator?: unknown
 ): string {
-  if (arguments.length > 2)
-    throw new FilterArgumentError(
-      `join: too many arguments, expected 0 or 1, found ${arguments.length - 1}`
-    );
-
+  checkArguments(arguments.length, 1);
   if (separator === undefined) separator = " ";
   return Array.from(inputIterable(left)).join(toLiquidString(separator));
 }
@@ -42,6 +38,7 @@ export function join(
  * @returns
  */
 export function first(this: FilterContext, left: unknown): unknown {
+  checkArguments(arguments.length, 0);
   // First of a string is not supported.
   if (isString(left)) return null;
   // Iterable objects are OK.
@@ -57,6 +54,7 @@ export function first(this: FilterContext, left: unknown): unknown {
  * @returns
  */
 export function last(this: FilterContext, left: unknown): unknown {
+  checkArguments(arguments.length, 0);
   if (isArray(left)) return left[left.length - 1];
   return null;
 }
@@ -72,13 +70,7 @@ export function compact(
   left: unknown,
   prop?: unknown
 ): unknown[] {
-  if (arguments.length > 2)
-    throw new FilterArgumentError(
-      `compact: too many arguments, expected 0 or 1, found ${
-        arguments.length - 1
-      }`
-    );
-
+  checkArguments(arguments.length, 1);
   if (prop === undefined)
     return Array.from(inputIterable(left)).filter(
       (v) => v !== undefined && v !== null
@@ -102,11 +94,10 @@ export function concat(
   left: unknown,
   arg: unknown
 ): unknown[] {
+  checkArguments(arguments.length, 1, 1);
   // XXX: Support concat-ing iterables?
   if (!isArray(arg))
-    throw new FilterArgumentError(
-      `concat expected an array, found ${typeof arg}`
-    );
+    throw new FilterArgumentError(`expected an array, found ${typeof arg}`);
 
   if (left instanceof Undefined) return arg;
   return Array.from(inputIterable(left)).concat(arg);
@@ -124,6 +115,7 @@ export function map(
   left: unknown,
   key: unknown
 ): unknown[] {
+  checkArguments(arguments.length, 1, 1);
   if (!isIterable(left)) {
     throw new FilterValueError("can't map non-iterable");
   }
@@ -137,10 +129,7 @@ export function map(
  * @returns
  */
 export function reverse(this: FilterContext, left: unknown): unknown[] {
-  if (arguments.length > 1)
-    throw new FilterArgumentError(
-      `reverse: too many arguments, expected 0, found ${arguments.length - 1}`
-    );
+  checkArguments(arguments.length, 0);
   return Array.from(inputIterable(left)).reverse();
 }
 
@@ -156,11 +145,7 @@ export function sort(
   left: unknown,
   key?: unknown
 ): unknown[] {
-  if (arguments.length > 2)
-    throw new FilterArgumentError(
-      `sort: too many arguments, expected 0 or 1, found ${arguments.length - 1}`
-    );
-
+  checkArguments(arguments.length, 1);
   if (key === undefined) {
     return Array.from(inputIterable(left)).sort(compare);
   }
@@ -182,13 +167,7 @@ export function sortNatural(
   left: unknown,
   key?: unknown
 ): unknown[] {
-  if (arguments.length > 2)
-    throw new FilterArgumentError(
-      `sort_natural: too many arguments, expected 0 or 1, found ${
-        arguments.length - 1
-      }`
-    );
-
+  checkArguments(arguments.length, 1);
   if (key === undefined) {
     return Array.from(inputIterable(left)).sort(naturalCompare);
   }
@@ -210,6 +189,7 @@ export function uniq(
   left: unknown,
   prop?: unknown
 ): unknown[] {
+  checkArguments(arguments.length, 1);
   const map = new Map<unknown, unknown>();
   let key: unknown;
 
@@ -246,20 +226,7 @@ export function where(
   prop: unknown,
   value?: unknown
 ): unknown[] {
-  if (arguments.length < 2)
-    throw new FilterArgumentError(
-      `where: not enough arguments, expected 1 or 2, found ${
-        arguments.length - 1
-      }`
-    );
-
-  if (arguments.length > 3)
-    throw new FilterArgumentError(
-      `where: too many arguments, expected 1 or 2, found ${
-        arguments.length - 1
-      }`
-    );
-
+  checkArguments(arguments.length, 2, 1);
   if (value === undefined) {
     return Array.from(inputIterable(left)).filter((v) =>
       isLiquidTruthy(getItem(v, prop))
@@ -273,6 +240,7 @@ export function where(
 /**
  * Coerce an unknown array filter input to an iterable.
  * @param value
+ * @returns
  */
 function inputIterable(value: unknown): Iterable<unknown> {
   if (isArray(value)) {

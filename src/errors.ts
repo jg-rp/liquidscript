@@ -41,6 +41,11 @@ export class LiquidFilterValueError extends LiquidError {
   constructor(public message: string, token: Token, templateName?: string) {
     super(message, token, templateName);
     Object.setPrototypeOf(this, LiquidFilterValueError.prototype);
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, LiquidFilterValueError);
+    }
+    this.name = "LiquidFilterValueError";
+    this.message = _message(message, token, templateName);
   }
 }
 
@@ -48,6 +53,11 @@ export class LiquidFilterArgumentError extends LiquidError {
   constructor(public message: string, token: Token, templateName?: string) {
     super(message, token, templateName);
     Object.setPrototypeOf(this, LiquidFilterArgumentError.prototype);
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, LiquidFilterArgumentError);
+    }
+    this.name = "LiquidFilterArgumentError";
+    this.message = _message(message, token, templateName);
   }
 }
 
@@ -210,7 +220,7 @@ export class FilterArgumentError extends InternalLiquidError {
   }
 
   public withToken(token: Token, templateName?: string): LiquidError {
-    return new LiquidFilterArgumentError(this.message, token);
+    return new LiquidFilterArgumentError(this.message, token, templateName);
   }
 }
 
@@ -258,5 +268,5 @@ function _message(
   token: Token,
   templateName?: string
 ): string {
-  return `${message} (${templateName || "unknown"}:${token.lineNumber()})`;
+  return `${message} (${templateName || "<string>"}:${token.lineNumber()})`;
 }

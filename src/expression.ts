@@ -5,6 +5,7 @@ import {
   InternalKeyError,
   InternalTypeError,
   FilterNotFoundError,
+  FilterArgumentError,
 } from "./errors";
 import { Float, Integer, isInteger, parseNumberT } from "./number";
 import {
@@ -380,8 +381,6 @@ export class FilteredExpression implements Expression {
         // TODO: Look at strict mode and continue if needed
         throw new FilterNotFoundError(`unknown filter ${filter.name}`);
       }
-      // TODO: Prepend registered filter name to error messages.
-      // TODO: Remove hard coded names from built-in filters.
       try {
         result = _filter.apply(
           { context, options: await filter.evalKeywordArgs(context) },
@@ -389,6 +388,9 @@ export class FilteredExpression implements Expression {
         );
       } catch (error) {
         if (error instanceof FilterValueError) continue;
+        if (error instanceof FilterArgumentError) {
+          error.message = `${filter.name}: ${error.message}`;
+        }
         throw error;
       }
     }
@@ -403,8 +405,6 @@ export class FilteredExpression implements Expression {
         // TODO: Look at strict mode and continue if needed
         throw new FilterNotFoundError(`unknown filter ${filter.name}`);
       }
-      // TODO: Prepend registered filter name to error messages.
-      // TODO: Remove hard coded names from built-in filters.
       try {
         result = _filter.apply(
           { context, options: filter.evalKeywordArgsSync(context) },
@@ -412,6 +412,9 @@ export class FilteredExpression implements Expression {
         );
       } catch (error) {
         if (error instanceof FilterValueError) continue;
+        if (error instanceof FilterArgumentError) {
+          error.message = `${filter.name}: ${error.message}`;
+        }
         throw error;
       }
     }

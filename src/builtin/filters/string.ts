@@ -1,5 +1,5 @@
 import { FilterArgumentError } from "../../errors";
-import { FilterContext } from "../../filter";
+import { checkArguments, FilterContext } from "../../filter";
 import { toLiquidString } from "../../types";
 import { escape as escapeHTML, unescape } from "../../html";
 
@@ -18,14 +18,11 @@ export function append(
   left: unknown,
   other: unknown
 ): string {
-  if (arguments.length < 2)
-    throw new FilterArgumentError("append: missing argument");
-  if (arguments.length > 2)
-    throw new FilterArgumentError(
-      `append: too many arguments, expected 1, found ${arguments.length - 1}`
-    );
+  checkArguments(arguments.length, 1, 1);
   return toLiquidString(left) + toLiquidString(other);
 }
+
+// TODO: base64 filters
 
 export function base64Encode(this: FilterContext, left: unknown): string {
   throw new Error("not implemented");
@@ -56,12 +53,7 @@ export function base64UrlSafeDecode(
  * @returns
  */
 export function capitalize(this: FilterContext, left: unknown): string {
-  if (arguments.length > 1)
-    throw new FilterArgumentError(
-      `capitalize: too many arguments, expected 0, found ${
-        arguments.length - 1
-      }`
-    );
+  checkArguments(arguments.length, 0);
   // TODO: read locale from context.
   const s = toLiquidString(left);
   return s.charAt(0).toLocaleUpperCase() + s.slice(1).toLocaleLowerCase();
@@ -74,10 +66,7 @@ export function capitalize(this: FilterContext, left: unknown): string {
  * @returns
  */
 export function downcase(this: FilterContext, left: unknown): string {
-  if (arguments.length > 1)
-    throw new FilterArgumentError(
-      `downcase: too many arguments, expected 0, found ${arguments.length - 1}`
-    );
+  checkArguments(arguments.length, 0);
   // TODO: read locale from context.
   return toLiquidString(left).toLocaleLowerCase();
 }
@@ -89,10 +78,7 @@ export function downcase(this: FilterContext, left: unknown): string {
  * @returns
  */
 export function escape(this: FilterContext, left: unknown): string {
-  if (arguments.length > 1)
-    throw new FilterArgumentError(
-      `escape: too many arguments, expected 0, found ${arguments.length - 1}`
-    );
+  checkArguments(arguments.length, 0);
   return escapeHTML(toLiquidString(left));
 }
 
@@ -103,12 +89,7 @@ export function escape(this: FilterContext, left: unknown): string {
  * @returns
  */
 export function escapeOnce(this: FilterContext, left: unknown): string {
-  if (arguments.length > 1)
-    throw new FilterArgumentError(
-      `escape_once: too many arguments, expected 0, found ${
-        arguments.length - 1
-      }`
-    );
+  checkArguments(arguments.length, 0);
   return escapeHTML(unescape(toLiquidString(left)));
 }
 
@@ -119,10 +100,7 @@ export function escapeOnce(this: FilterContext, left: unknown): string {
  * @returns
  */
 export function lstrip(this: FilterContext, left: unknown): string {
-  if (arguments.length > 1)
-    throw new FilterArgumentError(
-      `too many arguments, expected 0, found ${arguments.length - 1}`
-    );
+  checkArguments(arguments.length, 0);
   return toLiquidString(left).trimStart();
 }
 
@@ -133,12 +111,7 @@ export function lstrip(this: FilterContext, left: unknown): string {
  * @returns
  */
 export function newlineToBr(this: FilterContext, left: unknown): string {
-  if (arguments.length > 1)
-    throw new FilterArgumentError(
-      `newline_to_br: too many arguments, expected 0, found ${
-        arguments.length - 1
-      }`
-    );
+  checkArguments(arguments.length, 0);
   return toLiquidString(left).replace(/\r?\n/g, "<br />\n");
 }
 
@@ -154,12 +127,7 @@ export function prepend(
   left: unknown,
   arg: unknown
 ): string {
-  if (arguments.length < 2)
-    throw new FilterArgumentError("prepend: missing argument");
-  if (arguments.length > 2)
-    throw new FilterArgumentError(
-      `prepend: too many arguments, expected 1, found ${arguments.length - 1}`
-    );
+  checkArguments(arguments.length, 1, 1);
   return toLiquidString(arg) + toLiquidString(left);
 }
 
@@ -168,18 +136,14 @@ export function prepend(
  * @param this
  * @param left
  * @param arg
+ * @returns
  */
 export function remove(
   this: FilterContext,
   left: unknown,
   arg: unknown
 ): string {
-  if (arguments.length < 2)
-    throw new FilterArgumentError("remove: missing argument");
-  if (arguments.length > 2)
-    throw new FilterArgumentError(
-      `remove: too many arguments, expected 1, found ${arguments.length - 1}`
-    );
+  checkArguments(arguments.length, 1, 1);
   return toLiquidString(left).replace(new RegExp(toLiquidString(arg), "g"), "");
 }
 
@@ -195,12 +159,7 @@ export function removeFirst(
   left: unknown,
   arg: unknown
 ): string {
-  if (arguments.length < 2)
-    throw new FilterArgumentError("remove: missing argument");
-  if (arguments.length > 2)
-    throw new FilterArgumentError(
-      `remove: too many arguments, expected 1, found ${arguments.length - 1}`
-    );
+  checkArguments(arguments.length, 1, 1);
   return toLiquidString(left).replace(toLiquidString(arg), "");
 }
 
@@ -210,6 +169,7 @@ export function removeFirst(
  * @param left
  * @param subString
  * @param newSubString
+ * @returns
  */
 export function replace(
   this: FilterContext,
@@ -217,15 +177,7 @@ export function replace(
   subString: unknown,
   newSubString?: unknown
 ): string {
-  if (arguments.length < 2)
-    throw new FilterArgumentError("replace: missing argument");
-  if (arguments.length > 3)
-    throw new FilterArgumentError(
-      `replace: too many arguments, expected 1 or 2, found ${
-        arguments.length - 1
-      }`
-    );
-
+  checkArguments(arguments.length, 2, 1);
   return toLiquidString(left).replace(
     new RegExp(toLiquidString(subString), "g"),
     toLiquidString(newSubString)
@@ -246,15 +198,7 @@ export function replaceFirst(
   subString: unknown,
   newSubString?: unknown
 ): string {
-  if (arguments.length < 2)
-    throw new FilterArgumentError("replace_first: missing argument");
-  if (arguments.length > 3)
-    throw new FilterArgumentError(
-      `replace_first: too many arguments, expected 1 or 2, found ${
-        arguments.length - 1
-      }`
-    );
-
+  checkArguments(arguments.length, 2, 1);
   return toLiquidString(left).replace(
     toLiquidString(subString),
     toLiquidString(newSubString)
@@ -268,10 +212,7 @@ export function replaceFirst(
  * @returns
  */
 export function upcase(this: FilterContext, left: unknown): string {
-  if (arguments.length > 1)
-    throw new FilterArgumentError(
-      `too many arguments, expected 0, found ${arguments.length - 1}`
-    );
+  checkArguments(arguments.length, 0);
   // TODO: read locale from context.
   return toLiquidString(left).toLocaleUpperCase();
 }
@@ -288,12 +229,7 @@ export function split(
   left: unknown,
   subString: unknown
 ): string[] {
-  if (arguments.length < 2) throw new FilterArgumentError("missing argument");
-  if (arguments.length > 2)
-    throw new FilterArgumentError(
-      `too many arguments, expected 1, found ${arguments.length - 1}`
-    );
-
+  checkArguments(arguments.length, 1, 1);
   return toLiquidString(left).split(toLiquidString(subString));
 }
 
@@ -304,11 +240,7 @@ export function split(
  * @returns
  */
 export function strip(this: FilterContext, left: unknown): string {
-  if (arguments.length > 1)
-    throw new FilterArgumentError(
-      `too many arguments, expected 0, found ${arguments.length - 1}`
-    );
-
+  checkArguments(arguments.length, 0);
   return toLiquidString(left).trim();
 }
 
@@ -319,11 +251,7 @@ export function strip(this: FilterContext, left: unknown): string {
  * @returns
  */
 export function rstrip(this: FilterContext, left: unknown): string {
-  if (arguments.length > 1)
-    throw new FilterArgumentError(
-      `too many arguments, expected 0, found ${arguments.length - 1}`
-    );
-
+  checkArguments(arguments.length, 0);
   return toLiquidString(left).trimEnd();
 }
 
@@ -343,11 +271,7 @@ const STRIP_HTML_TAGS = new RegExp("<.*?>", "gs");
  * @returns
  */
 export function stripHtml(this: FilterContext, left: unknown): string {
-  if (arguments.length > 1)
-    throw new FilterArgumentError(
-      `too many arguments, expected 0, found ${arguments.length - 1}`
-    );
-
+  checkArguments(arguments.length, 0);
   return toLiquidString(left)
     .replace(STRIP_HTML_BLOCKS, "")
     .replace(STRIP_HTML_TAGS, "");
@@ -360,10 +284,7 @@ export function stripHtml(this: FilterContext, left: unknown): string {
  * @returns
  */
 export function stripNewlines(this: FilterContext, left: unknown): string {
-  if (arguments.length > 1)
-    throw new FilterArgumentError(
-      `too many arguments, expected 0, found ${arguments.length - 1}`
-    );
+  checkArguments(arguments.length, 0);
   return toLiquidString(left).replace(/\r?\n/, "");
 }
 
@@ -381,6 +302,7 @@ export function truncate(
   length: unknown = 50,
   end: unknown = "..."
 ): string {
+  checkArguments(arguments.length, 2);
   const _left = toLiquidString(left);
   const _length = Number(length);
   if (!Number.isInteger(_length))
@@ -411,6 +333,7 @@ export function truncateWords(
   wordCount: unknown = 15,
   end: unknown = "..."
 ): string {
+  checkArguments(arguments.length, 2);
   const _left = toLiquidString(left);
   let _wordCount = Number(wordCount);
   if (!Number.isInteger(_wordCount))
@@ -449,10 +372,7 @@ function fixedEncodeURIComponent(s: string): string {
  * @returns
  */
 export function urlEncode(this: FilterContext, left: unknown): string {
-  if (arguments.length > 1)
-    throw new FilterArgumentError(
-      `too many arguments, expected 0, found ${arguments.length - 1}`
-    );
+  checkArguments(arguments.length, 0);
   return fixedEncodeURIComponent(toLiquidString(left)).replace(/%20/g, "+");
 }
 
@@ -463,9 +383,6 @@ export function urlEncode(this: FilterContext, left: unknown): string {
  * @returns
  */
 export function urlDecode(this: FilterContext, left: unknown): string {
-  if (arguments.length > 1)
-    throw new FilterArgumentError(
-      `too many arguments, expected 0, found ${arguments.length - 1}`
-    );
+  checkArguments(arguments.length, 0);
   return decodeURIComponent(toLiquidString(left).replace(/\+/g, " "));
 }

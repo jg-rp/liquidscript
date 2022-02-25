@@ -1,5 +1,5 @@
 import { FilterArgumentError } from "../../errors";
-import { FilterContext } from "../../filter";
+import { checkArguments, FilterContext } from "../../filter";
 import { isN, NumberT, parseNumberT, ZERO } from "../../number";
 
 // TODO: test NaN and Inf and undefined and null
@@ -11,10 +11,7 @@ import { isN, NumberT, parseNumberT, ZERO } from "../../number";
  * @returns
  */
 export function abs(this: FilterContext, left: unknown): NumberT {
-  if (arguments.length > 1)
-    throw new FilterArgumentError(
-      `abs: too many arguments, expected 0, found ${arguments.length - 1}`
-    );
+  checkArguments(arguments.length, 0);
   return parseNumberOrZero(left).abs();
 }
 
@@ -30,13 +27,7 @@ export function atLeast(
   left: unknown,
   arg: unknown
 ): NumberT {
-  if (arguments.length < 2)
-    throw new FilterArgumentError("at_least: missing argument");
-  if (arguments.length > 2)
-    throw new FilterArgumentError(
-      `at_least: too many arguments, expected 1, found ${arguments.length - 1}`
-    );
-
+  checkArguments(arguments.length, 1, 1);
   return parseNumberOrZero(left).max(parseNumberOrZero(arg));
 }
 
@@ -52,13 +43,7 @@ export function atMost(
   left: unknown,
   arg: unknown
 ): NumberT {
-  if (arguments.length < 2)
-    throw new FilterArgumentError("at_most: missing argument");
-  if (arguments.length > 2)
-    throw new FilterArgumentError(
-      `at_most: too many arguments, expected 1, found ${arguments.length - 1}`
-    );
-
+  checkArguments(arguments.length, 1, 1);
   return parseNumberOrZero(left).min(parseNumberOrZero(arg));
 }
 
@@ -69,10 +54,7 @@ export function atMost(
  * @returns
  */
 export function ceil(this: FilterContext, left: unknown): NumberT {
-  if (arguments.length > 1)
-    throw new FilterArgumentError(
-      `ceil: too many arguments, expected 0, found ${arguments.length - 1}`
-    );
+  checkArguments(arguments.length, 0);
   return parseNumberOrZero(left).ceil();
 }
 
@@ -88,15 +70,7 @@ export function dividedBy(
   left: unknown,
   divisor: unknown
 ): NumberT {
-  if (arguments.length < 2)
-    throw new FilterArgumentError("divided_by: missing argument");
-  if (arguments.length > 2)
-    throw new FilterArgumentError(
-      `divided_by: too many arguments, expected 1, found ${
-        arguments.length - 1
-      }`
-    );
-
+  checkArguments(arguments.length, 1, 1);
   const _divisor = parseNumberOrZero(divisor);
   if (_divisor.eq(0)) throw new FilterArgumentError("can't divide by zero");
   return parseNumberOrZero(left).div(_divisor);
@@ -109,10 +83,7 @@ export function dividedBy(
  * @returns
  */
 export function floor(this: FilterContext, left: unknown): NumberT {
-  if (arguments.length > 1)
-    throw new FilterArgumentError(
-      `floor: too many arguments, expected 0, found ${arguments.length - 1}`
-    );
+  checkArguments(arguments.length, 0);
   return parseNumberOrZero(left).floor();
 }
 
@@ -128,13 +99,7 @@ export function minus(
   left: unknown,
   right: unknown
 ): NumberT {
-  if (arguments.length < 2)
-    throw new FilterArgumentError("minus: missing argument");
-  if (arguments.length > 2)
-    throw new FilterArgumentError(
-      `minus: too many arguments, expected 1, found ${arguments.length - 1}`
-    );
-
+  checkArguments(arguments.length, 1, 1);
   return parseNumberOrZero(left).minus(parseNumberOrZero(right));
 }
 
@@ -150,13 +115,7 @@ export function modulo(
   left: unknown,
   right: unknown
 ): NumberT {
-  if (arguments.length < 2)
-    throw new FilterArgumentError("modulo: missing argument");
-  if (arguments.length > 2)
-    throw new FilterArgumentError(
-      `modulo: too many arguments, expected 1, found ${arguments.length - 1}`
-    );
-
+  checkArguments(arguments.length, 1, 1);
   // undefined or invalid arguments get caught by "divide by zero" check.
   const _right = parseNumberOrZero(right);
   if (_right.eq(0)) throw new FilterArgumentError("can't divide by zero");
@@ -175,13 +134,7 @@ export function plus(
   left: unknown,
   right: unknown
 ): NumberT {
-  if (arguments.length < 2)
-    throw new FilterArgumentError("plus: missing argument");
-  if (arguments.length > 2)
-    throw new FilterArgumentError(
-      `plus: too many arguments, expected 1, found ${arguments.length - 1}`
-    );
-
+  checkArguments(arguments.length, 1, 1);
   return parseNumberOrZero(left).plus(parseNumberOrZero(right));
 }
 
@@ -197,6 +150,7 @@ export function round(
   left: unknown,
   decimalPlaces?: unknown
 ): NumberT {
+  checkArguments(arguments.length, 1);
   const _decimalPlaces = Number(decimalPlaces);
   if (isFinite(_decimalPlaces)) {
     return parseNumberOrZero(left).round(_decimalPlaces);
@@ -216,12 +170,7 @@ export function times(
   left: unknown,
   right: unknown
 ): NumberT {
-  if (arguments.length < 2)
-    throw new FilterArgumentError("times: missing argument");
-  if (arguments.length > 2)
-    throw new FilterArgumentError(
-      `times: too many arguments, expected 1, found ${arguments.length - 1}`
-    );
+  checkArguments(arguments.length, 1, 1);
   return parseNumberOrZero(left).times(parseNumberOrZero(right));
 }
 

@@ -3,7 +3,7 @@ import { DefaultMap } from "../../collections";
 import { isLiquidPrimitive, liquidValueOf } from "../../drop";
 import { FilterArgumentError } from "../../errors";
 import { EMPTY } from "../../expression";
-import { FilterContext } from "../../filter";
+import { checkArguments, FilterContext } from "../../filter";
 import {
   isArray,
   isLiquidTruthy,
@@ -20,6 +20,7 @@ import {
  * @returns
  */
 export function size(this: FilterContext, left: unknown): number {
+  checkArguments(arguments.length, 0);
   if (isArray(left) || isString(left)) return left.length;
   if (left instanceof Map) return left.size;
   if (isObject(left)) return Object.keys(left).length;
@@ -39,6 +40,7 @@ export function default_(
   left: unknown,
   _default: unknown
 ): unknown {
+  checkArguments(arguments.length, 1, 1);
   const _left = isLiquidPrimitive(left) ? left[liquidValueOf]() : left;
   if (isLiquidTruthy(this.options["allow_false"]) && _left === false)
     return left;
@@ -106,6 +108,7 @@ export function date(
   left: unknown,
   format: unknown
 ): string {
+  checkArguments(arguments.length, 1, 1);
   if (isUndefined(left)) return "";
   if (isUndefined(format)) return String(left);
 
@@ -146,6 +149,7 @@ export function slice(
   offset: unknown,
   length?: unknown
 ): string | unknown[] {
+  checkArguments(arguments.length, 2, 1);
   const _offset = Number(offset);
   if (!Number.isInteger(_offset))
     throw new FilterArgumentError(
