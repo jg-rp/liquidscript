@@ -157,7 +157,7 @@ export class Context {
    */
   public getTemplateSync(
     name: string,
-    loaderContext: { [index: string]: unknown }
+    loaderContext: { [index: string]: unknown } = {}
   ): Template {
     return this.environment.getTemplateSync(name, loaderContext, this);
   }

@@ -102,3 +102,14 @@ export function isPromise(value: unknown): value is Promise<unknown> {
     isObject(value) && typeof value["then" as keyof typeof value] === "function"
   );
 }
+
+export type LiquidArrayLike = Array<unknown>; // XXX: others?
+
+/**
+ *
+ * @param value
+ * @returns
+ */
+export function isLiquidArrayLike(value: unknown): value is LiquidArrayLike {
+  return isArray(value);
+}

@@ -16,6 +16,7 @@ export type EnvironmentOptions = {
   // mode?
   autoEscape?: boolean;
   globals?: ContextScope;
+  loader?: Loader;
   maxContextDepth?: number;
   undefinedFactory?: (name: string) => Undefined;
 };
@@ -36,6 +37,7 @@ export class Environment {
   constructor({
     autoEscape,
     globals,
+    loader,
     maxContextDepth,
     undefinedFactory,
   }: EnvironmentOptions = {}) {
@@ -47,7 +49,7 @@ export class Environment {
         ? (name: string) => new StrictUndefined(name)
         : undefinedFactory;
 
-    this.loader = new MapLoader();
+    this.loader = loader === undefined ? new MapLoader() : loader;
     this._parser = new TemplateParser(this);
     registerBuiltin(this);
   }
