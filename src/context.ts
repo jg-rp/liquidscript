@@ -215,7 +215,7 @@ export class Context {
 
     return new Context(
       this.environment,
-      Object.assign({}, this.globals, scope), // XXX: should we be copying scopes?
+      chainObjects(scope, this.globals),
       this.templateName,
       disabledTags,
       this.copyDepth + 1
