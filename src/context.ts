@@ -13,6 +13,7 @@ import {
 } from "./types";
 import { chainObjects, Missing, ObjectChain } from "./chainObject";
 import { isNumberT } from "./number";
+import { ForLoopDrop } from "./builtin/drops/forloop";
 
 export type ContextScope = { [index: string]: unknown };
 export type ContextPath = Array<number | string | LiquidPrimitive>;
@@ -32,15 +33,18 @@ export const builtIn = {
 export class Context {
   public autoEscape: boolean;
   public counters: { [index: string]: number } = {};
+
+  readonly forLoops: ForLoopDrop[] = [];
   readonly registers = new Map<
     string | symbol,
     Map<string | symbol, unknown>
   >();
+
   private locals: ContextScope = {};
   private scope: ObjectChain;
 
   constructor(
-    private environment: Environment,
+    readonly environment: Environment,
     private globals: ContextScope = {},
     readonly templateName: string = "<string>",
     private disabledTags: string[] = [],

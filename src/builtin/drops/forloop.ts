@@ -1,5 +1,6 @@
 import { liquidDispatch, LiquidDispatchable } from "../../drop";
 import { InternalKeyError } from "../../errors";
+import { Undefined } from "../../undefined";
 
 export class ForLoopDrop implements LiquidDispatchable, Iterable<unknown> {
   private static _keys = new Set([
@@ -19,10 +20,9 @@ export class ForLoopDrop implements LiquidDispatchable, Iterable<unknown> {
   constructor(
     readonly name: string,
     readonly it: Iterator<unknown>,
-    readonly length: number
-  ) {
-    // TODO: parentloop
-  }
+    readonly length: number,
+    readonly parentloop: ForLoopDrop | Undefined
+  ) {}
 
   *[Symbol.iterator](): Iterator<unknown> {
     for (;;) {

@@ -117,16 +117,18 @@ export class ForNode implements Node {
 
     if (length > 0) {
       const name = this.expression.name;
-
-      // TODO: parentloop
       const forloop = new ForLoopDrop(
         `${name}-${this.expression.iterable}`,
         it,
-        length
+        length,
+        context.forLoops.length
+          ? context.forLoops[context.forLoops.length - 1]
+          : context.environment.undefined_("parentloop")
       );
 
       const namespace: ContextScope = { forloop: forloop };
       context.push(namespace);
+      context.forLoops.push(forloop);
 
       try {
         for (const item of forloop) {
@@ -144,6 +146,7 @@ export class ForNode implements Node {
           }
         }
       } finally {
+        context.forLoops.pop();
         context.pop();
       }
     } else if (this.default_ !== undefined) {
@@ -156,16 +159,18 @@ export class ForNode implements Node {
 
     if (length > 0) {
       const name = this.expression.name;
-
-      // TODO: parentloop
       const forloop = new ForLoopDrop(
         `${name}-${this.expression.iterable}`,
         it,
-        length
+        length,
+        context.forLoops.length
+          ? context.forLoops[context.forLoops.length - 1]
+          : context.environment.undefined_("parentloop")
       );
 
       const namespace: ContextScope = { forloop: forloop };
       context.push(namespace);
+      context.forLoops.push(forloop);
 
       try {
         for (const item of forloop) {
@@ -184,6 +189,7 @@ export class ForNode implements Node {
         }
       } finally {
         context.pop();
+        context.forLoops.pop();
       }
     } else if (this.default_ !== undefined) {
       this.default_.renderSync(context, out);

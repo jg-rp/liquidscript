@@ -149,7 +149,8 @@ export class RenderNode implements Node {
         const forloop = new ForLoopDrop(
           bindKey,
           bindValue.values(),
-          bindValue.length
+          bindValue.length,
+          context.environment.undefined_("parentloop")
         );
 
         scope.forloop = forloop;
@@ -189,7 +190,8 @@ export class RenderNode implements Node {
         const forloop = new ForLoopDrop(
           bindKey,
           bindValue.values(),
-          bindValue.length
+          bindValue.length,
+          context.environment.undefined_("parentloop")
         );
 
         scope.forloop = forloop;

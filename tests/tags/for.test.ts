@@ -1,4 +1,5 @@
 import { Environment } from "../../src/environment";
+import { LaxUndefined } from "../../src/undefined";
 
 // TODO: Finish tests, reversed
 
@@ -10,7 +11,7 @@ type Case = {
 };
 
 describe("built-in for tag", () => {
-  const env = new Environment({});
+  const env = new Environment({ undefinedFactory: (n) => new LaxUndefined(n) });
   const cases: Case[] = [
     {
       description: "range",
@@ -132,6 +133,54 @@ describe("built-in for tag", () => {
         tags: ["sports", "garden", "household"],
       },
       want: "2 2 ",
+    },
+    {
+      description: "parentloop is normally undefined",
+      source: "{% for i in (1..2)%}{{ forloop.parentloop.index }}{% endfor %}",
+      want: "",
+      globals: {},
+    },
+    {
+      description: "access parentloop",
+      source:
+        "{% for i in (1..2)%}" +
+        "{% for j in (1..2) %}" +
+        "{{ i }} {{j}} {{ forloop.parentloop.index }} {{ forloop.index }} " +
+        "{% endfor %}" +
+        "{% endfor %}",
+      want: "1 1 1 1 1 2 1 2 2 1 2 1 2 2 2 2 ",
+      globals: {},
+    },
+    {
+      description: "parentloop goes out of scope",
+      source:
+        "{% for i in (1..2)%}" +
+        "{% for j in (1..2) %}" +
+        "{{ i }} {{ j }} " +
+        "{% endfor %}" +
+        "{{ forloop.parentloop.index }}" +
+        "{% endfor %}",
+      want: "1 1 1 2 2 1 2 2 ",
+      globals: {},
+    },
+    {
+      description: "parent's parentloop",
+      source:
+        "{% for i in (1..2) %}" +
+        "{% for j in (1..2) %}" +
+        "{% for k in (1..2) %}" +
+        "i={{ forloop.parentloop.parentloop.index }} " +
+        "j={{ forloop.parentloop.index }} " +
+        "k={{ forloop.index }} " +
+        "{% endfor %}" +
+        "{% endfor %}" +
+        "{% endfor %}",
+      want:
+        "i=1 j=1 k=1 i=1 j=1 k=2 " +
+        "i=1 j=2 k=1 i=1 j=2 k=2 " +
+        "i=2 j=1 k=1 i=2 j=1 k=2 " +
+        "i=2 j=2 k=1 i=2 j=2 k=2 ",
+      globals: {},
     },
   ];
 
