@@ -7,7 +7,7 @@ import { isInteger } from "../../src/number";
 describe("at_most filter", () => {
   const env = new Environment({});
   const ctx = new Context(env);
-  const filterContext: FilterContext = { context: ctx };
+  const filterContext: FilterContext = { context: ctx, options: {} };
 
   test("two numbers", () => {
     const result = atMost.apply(filterContext, [5, 8]);

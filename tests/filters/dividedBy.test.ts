@@ -8,7 +8,7 @@ import { isFloat, Float, Integer, isInteger } from "../../src/number";
 describe("divide by filter", () => {
   const env = new Environment({});
   const ctx = new Context(env);
-  const filterContext: FilterContext = { context: ctx };
+  const filterContext: FilterContext = { context: ctx, options: {} };
 
   test("two numbers", () => {
     const result = dividedBy.apply(filterContext, [10, 2]);

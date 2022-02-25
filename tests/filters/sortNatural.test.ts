@@ -7,7 +7,7 @@ import { LaxUndefined } from "../../src/undefined";
 describe("sort natural filter", () => {
   const env = new Environment({});
   const ctx = new Context(env);
-  const filterContext: FilterContext = { context: ctx };
+  const filterContext: FilterContext = { context: ctx, options: {} };
 
   test("array of strings", () => {
     const result = sortNatural.apply(filterContext, [

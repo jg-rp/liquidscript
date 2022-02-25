@@ -7,7 +7,7 @@ import { isFloat, Float, Integer, isInteger } from "../../src/number";
 describe("round filter", () => {
   const env = new Environment({});
   const ctx = new Context(env);
-  const filterContext: FilterContext = { context: ctx };
+  const filterContext: FilterContext = { context: ctx, options: {} };
 
   test("number round down", () => {
     const result = round.apply(filterContext, [5.1]);

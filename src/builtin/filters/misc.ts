@@ -37,11 +37,11 @@ export function size(this: FilterContext, left: unknown): number {
 export function default_(
   this: FilterContext,
   left: unknown,
-  _default: unknown,
-  allowFalse: unknown = false
+  _default: unknown
 ): unknown {
   const _left = isLiquidPrimitive(left) ? left[liquidValueOf]() : left;
-  if (isLiquidTruthy(allowFalse) && _left === false) return left;
+  if (isLiquidTruthy(this.options["allow_false"]) && _left === false)
+    return left;
   if (!isLiquidTruthy(_left) || EMPTY.equals(_left)) return _default;
   return left;
 }

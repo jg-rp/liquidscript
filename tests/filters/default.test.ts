@@ -13,7 +13,7 @@ describe("default filter", () => {
       ["b", false],
     ])
   );
-  const filterContext: FilterContext = { context: ctx };
+  const filterContext: FilterContext = { context: ctx, options: {} };
 
   test("false", () => {
     const result = default_.apply(filterContext, [false, "foo"]);
@@ -72,31 +72,43 @@ describe("default filter", () => {
     expect(result).toStrictEqual(new Set([1]));
   });
   test("allow false", () => {
-    const result = default_.apply(filterContext, [false, "foo", true]);
+    const _filterContext: FilterContext = {
+      context: ctx,
+      options: { allow_false: true },
+    };
+    const result = default_.apply(_filterContext, [false, "foo"]);
     expect(result).toBe(false);
   });
   test("allow false with TRUE", () => {
-    const result = default_.apply(filterContext, [false, "foo", TRUE]);
+    const _filterContext: FilterContext = {
+      context: ctx,
+      options: { allow_false: TRUE },
+    };
+    const result = default_.apply(_filterContext, [false, "foo"]);
     expect(result).toBe(false);
   });
   test("allow false with FALSE", () => {
-    const result = default_.apply(filterContext, [false, "foo", FALSE]);
+    const _filterContext: FilterContext = {
+      context: ctx,
+      options: { allow_false: FALSE },
+    };
+    const result = default_.apply(_filterContext, [false, "foo"]);
     expect(result).toBe("foo");
   });
   test("allow false from false variable", async () => {
-    const result = default_.apply(filterContext, [
-      false,
-      "foo",
-      await ctx.resolve("a"),
-    ]);
+    const _filterContext: FilterContext = {
+      context: ctx,
+      options: { allow_false: await ctx.resolve("a") },
+    };
+    const result = default_.apply(_filterContext, [false, "foo"]);
     expect(result).toBe(false);
   });
   test("allow false from true variable", async () => {
-    const result = default_.apply(filterContext, [
-      false,
-      "foo",
-      await ctx.resolve("b"),
-    ]);
+    const _filterContext: FilterContext = {
+      context: ctx,
+      options: { allow_false: await ctx.resolve("b") },
+    };
+    const result = default_.apply(_filterContext, [false, "foo"]);
     expect(result).toBe("foo");
   });
 });

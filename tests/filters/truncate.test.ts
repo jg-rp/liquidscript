@@ -6,7 +6,7 @@ import { FilterContext } from "../../src/filter";
 describe("truncate filter", () => {
   const env = new Environment({});
   const ctx = new Context(env);
-  const filterContext: FilterContext = { context: ctx };
+  const filterContext: FilterContext = { context: ctx, options: {} };
 
   test("default length is 50", () => {
     const result = truncate.apply(filterContext, [

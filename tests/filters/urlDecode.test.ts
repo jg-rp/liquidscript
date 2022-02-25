@@ -6,7 +6,7 @@ import { FilterContext } from "../../src/filter";
 describe("url_decode filter", () => {
   const env = new Environment({});
   const ctx = new Context(env);
-  const filterContext: FilterContext = { context: ctx };
+  const filterContext: FilterContext = { context: ctx, options: {} };
 
   test("reference test", () => {
     const result = urlDecode.apply(filterContext, ["foo%2B1%40example.com"]);

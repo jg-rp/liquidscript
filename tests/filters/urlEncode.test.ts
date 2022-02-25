@@ -6,7 +6,7 @@ import { FilterContext } from "../../src/filter";
 describe("url_encode filter", () => {
   const env = new Environment({});
   const ctx = new Context(env);
-  const filterContext: FilterContext = { context: ctx };
+  const filterContext: FilterContext = { context: ctx, options: {} };
 
   test("reference test", () => {
     const result = urlEncode.apply(filterContext, ["foo+1@example.com"]);

@@ -8,7 +8,7 @@ import { LaxUndefined } from "../../src/undefined";
 describe("concat filter", () => {
   const env = new Environment({});
   const ctx = new Context(env);
-  const filterContext: FilterContext = { context: ctx };
+  const filterContext: FilterContext = { context: ctx, options: {} };
 
   test("two arrays", () => {
     const result = concat.apply(filterContext, [

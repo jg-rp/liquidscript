@@ -7,7 +7,7 @@ import { LaxUndefined } from "../../src/undefined";
 describe("compact filter", () => {
   const env = new Environment({});
   const ctx = new Context(env);
-  const filterContext: FilterContext = { context: ctx };
+  const filterContext: FilterContext = { context: ctx, options: {} };
 
   test("array with a null", () => {
     const result = compact.apply(filterContext, [["b", "a", null, "A"]]);

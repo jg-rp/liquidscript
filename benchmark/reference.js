@@ -300,4 +300,4 @@ async function main(number = 100, repeat = 5) {
   // }
 }
 
-main();
+main(1000);

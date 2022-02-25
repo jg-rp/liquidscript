@@ -8,7 +8,7 @@ import { FilterContext } from "../../src/filter";
 describe("last filter", () => {
   const env = new Environment({});
   const ctx = new Context(env);
-  const filterContext: FilterContext = { context: ctx };
+  const filterContext: FilterContext = { context: ctx, options: {} };
 
   test("last of array", () => {
     const result = last.apply(filterContext, [[1, 2, 3]]);

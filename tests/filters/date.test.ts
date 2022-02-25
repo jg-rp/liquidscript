@@ -7,7 +7,7 @@ import { FilterContext } from "../../src/filter";
 describe("date filter", () => {
   const env = new Environment({});
   const ctx = new Context(env);
-  const filterContext: FilterContext = { context: ctx };
+  const filterContext: FilterContext = { context: ctx, options: {} };
 
   test("month from sql-style string", () => {
     expect(date.apply(filterContext, ["2006-05-05 10:00:00", "%B"])).toBe(

@@ -7,7 +7,7 @@ import { Float, Integer, ZERO } from "../../src/number";
 describe("ceil filter", () => {
   const env = new Environment({});
   const ctx = new Context(env);
-  const filterContext: FilterContext = { context: ctx };
+  const filterContext: FilterContext = { context: ctx, options: {} };
 
   test("positive number", () => {
     const result = ceil.apply(filterContext, [2]);

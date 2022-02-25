@@ -7,7 +7,7 @@ import { LaxUndefined } from "../../src/undefined";
 describe("reverse filter", () => {
   const env = new Environment({});
   const ctx = new Context(env);
-  const filterContext: FilterContext = { context: ctx };
+  const filterContext: FilterContext = { context: ctx, options: {} };
 
   test("array of strings", () => {
     const result = reverse.apply(filterContext, [["b", "a", "B", "A"]]);

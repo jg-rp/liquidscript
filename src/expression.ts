@@ -259,7 +259,6 @@ export class Identifier implements Expression {
   }
 
   public async evaluate(context: Context): Promise<unknown> {
-    // TODO: Simplify with explicit Any and map?
     const path: Array<string | number | LiquidPrimitive> = [];
     let prop: unknown;
     for (const e of this.path) {
@@ -322,15 +321,31 @@ export class Filter {
   }
 
   public async evalArgs(context: Context): Promise<unknown[]> {
-    // TODO: kwargs
     return Promise.all(
       this.args.map(async (arg) => await arg.evaluate(context))
     );
   }
 
+  public async evalKeywordArgs(
+    context: Context
+  ): Promise<{ [index: string]: unknown }> {
+    const kwargs: { [index: string]: unknown } = {};
+    for (const [key, value] of this.kwargs.entries()) {
+      kwargs[key] = await value.evaluate(context);
+    }
+    return kwargs;
+  }
+
   public evalArgsSync(context: Context): unknown[] {
-    // TODO: kwargs
     return this.args.map((arg) => arg.evaluateSync(context));
+  }
+
+  public evalKeywordArgsSync(context: Context): { [index: string]: unknown } {
+    const kwargs: { [index: string]: unknown } = {};
+    for (const [key, value] of this.kwargs.entries()) {
+      kwargs[key] = value.evaluateSync(context);
+    }
+    return kwargs;
   }
 }
 
@@ -368,13 +383,12 @@ export class FilteredExpression implements Expression {
       // TODO: Prepend registered filter name to error messages.
       // TODO: Remove hard coded names from built-in filters.
       try {
-        result = _filter.apply(context, [
-          result,
-          ...(await filter.evalArgs(context)),
-        ]);
+        result = _filter.apply(
+          { context, options: await filter.evalKeywordArgs(context) },
+          [result, ...(await filter.evalArgs(context))]
+        );
       } catch (error) {
         if (error instanceof FilterValueError) continue;
-        // TODO: Wrap errors in LiquidError
         throw error;
       }
     }
@@ -392,10 +406,10 @@ export class FilteredExpression implements Expression {
       // TODO: Prepend registered filter name to error messages.
       // TODO: Remove hard coded names from built-in filters.
       try {
-        result = _filter.apply(context, [
-          result,
-          ...filter.evalArgsSync(context),
-        ]);
+        result = _filter.apply(
+          { context, options: filter.evalKeywordArgsSync(context) },
+          [result, ...filter.evalArgsSync(context)]
+        );
       } catch (error) {
         if (error instanceof FilterValueError) continue;
         throw error;

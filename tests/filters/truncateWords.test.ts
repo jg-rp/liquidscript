@@ -7,7 +7,7 @@ import { FilterContext } from "../../src/filter";
 describe("truncatewords filter", () => {
   const env = new Environment({});
   const ctx = new Context(env);
-  const filterContext: FilterContext = { context: ctx };
+  const filterContext: FilterContext = { context: ctx, options: {} };
 
   test("number of words defaults to 15", () => {
     const result = truncateWords.apply(filterContext, [

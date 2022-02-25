@@ -6,7 +6,7 @@ import { FilterContext } from "../../src/filter";
 describe("escapeOnce filter", () => {
   const env = new Environment({});
   const ctx = new Context(env);
-  const filterContext: FilterContext = { context: ctx };
+  const filterContext: FilterContext = { context: ctx, options: {} };
 
   test("paragraph", () => {
     const result = escapeOnce.apply(filterContext, [

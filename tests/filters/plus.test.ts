@@ -7,7 +7,7 @@ import { isFloat, Float, Integer, isInteger } from "../../src/number";
 describe("plus filter", () => {
   const env = new Environment({});
   const ctx = new Context(env);
-  const filterContext: FilterContext = { context: ctx };
+  const filterContext: FilterContext = { context: ctx, options: {} };
 
   test("two numbers", () => {
     const result = plus.apply(filterContext, [10, 2]);

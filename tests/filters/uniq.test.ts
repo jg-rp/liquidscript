@@ -7,7 +7,7 @@ import { FilterContext } from "../../src/filter";
 describe("uniq filter", () => {
   const env = new Environment({});
   const ctx = new Context(env);
-  const filterContext: FilterContext = { context: ctx };
+  const filterContext: FilterContext = { context: ctx, options: {} };
 
   test("array of strings", () => {
     const result = uniq.apply(filterContext, [["a", "b", "b", "a"]]);

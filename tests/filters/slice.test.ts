@@ -8,7 +8,7 @@ import { Integer } from "../../src/number";
 describe("slice filter", () => {
   const env = new Environment({});
   const ctx = new Context(env);
-  const filterContext: FilterContext = { context: ctx };
+  const filterContext: FilterContext = { context: ctx, options: {} };
 
   test("first character of a string", () => {
     const result = slice.apply(filterContext, ["hello", 0]);

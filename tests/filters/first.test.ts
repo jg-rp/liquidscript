@@ -8,7 +8,7 @@ import { FilterContext } from "../../src/filter";
 describe("first filter", () => {
   const env = new Environment({});
   const ctx = new Context(env);
-  const filterContext: FilterContext = { context: ctx };
+  const filterContext: FilterContext = { context: ctx, options: {} };
 
   test("first of array", () => {
     const result = first.apply(filterContext, [[1, 2, 3]]);

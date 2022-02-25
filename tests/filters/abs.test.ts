@@ -7,7 +7,7 @@ import { Float, Integer, ZERO } from "../../src/number";
 describe("abs filter", () => {
   const env = new Environment({});
   const ctx = new Context(env);
-  const filterContext: FilterContext = { context: ctx };
+  const filterContext: FilterContext = { context: ctx, options: {} };
 
   test("positive number", () => {
     const result = abs.apply(filterContext, [2]);
