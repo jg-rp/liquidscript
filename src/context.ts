@@ -6,6 +6,7 @@ import { isLiquidPrimitive, LiquidPrimitive, liquidValueOf } from "./drop";
 import {
   isArray,
   isIterable,
+  isNumber,
   isObject,
   isPrimitiveNumber,
   isPropertyKey,
@@ -33,7 +34,7 @@ export const builtIn = {
 export class Context {
   public autoEscape: boolean;
   public counters: { [index: string]: number } = {};
-
+  public ifchanged: string = "";
   readonly forLoops: ForLoopDrop[] = [];
   readonly registers = new Map<
     string | symbol,
@@ -246,7 +247,10 @@ function getItemSync(obj: unknown, item: unknown): unknown {
   if (item === "size") return getSize(obj);
   else if (item === "first") return getFirst(obj);
   else if (item === "last") return getLast(obj);
-  else if (typeof obj === "object" && item in obj)
+  else if (isArray(obj) && isNumber(item)) {
+    if (item < 0) return obj[item + obj.length];
+    return obj[item];
+  } else if (typeof obj === "object" && item in obj)
     return Reflect.get(obj, item);
 
   throw new InternalKeyError(`${obj}[${String(item)}]`);

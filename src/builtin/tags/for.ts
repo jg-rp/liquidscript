@@ -1,10 +1,10 @@
-import { BlockNode, Node } from "../../ast";
+import { BlockNode, forcedOutput, Node, walk } from "../../ast";
 import { Context, ContextScope } from "../../context";
 import { Environment } from "../../environment";
 import { BreakIteration, ContinueIteration } from "../../errors";
 import { LoopExpression } from "../../expression";
 import { parse } from "../../expressions/loop/parse";
-import { RenderStream } from "../../io/output_stream";
+import { DefaultOutputStream, RenderStream } from "../../io/output_stream";
 import { Tag } from "../../tag";
 import { Token, TokenStream, TOKEN_EXPRESSION, TOKEN_TAG } from "../../token";
 import { ForLoopDrop } from "../drops/forloop";
@@ -79,7 +79,7 @@ export class BreakNode implements Node {
     throw new BreakIteration("break");
   }
 
-  branches(): Node[] {
+  children(): Node[] {
     return [];
   }
 }
@@ -99,21 +99,27 @@ export class ContinueNode implements Node {
     throw new ContinueIteration("continue");
   }
 
-  branches(): Node[] {
+  children(): Node[] {
     return [];
   }
 }
 
 export class ForNode implements Node {
+  public forceOutput = false;
   constructor(
     readonly token: Token,
     readonly expression: LoopExpression,
     readonly block: BlockNode,
     readonly default_?: BlockNode
-  ) {}
+  ) {
+    this.forceOutput = forcedOutput(this);
+  }
 
   public async render(context: Context, out: RenderStream): Promise<void> {
     const [it, length] = await this.expression.evaluate(context);
+    // This intermediate buffer is used to detect and possibly
+    // suppress blocks that, when rendered, contain only whitespace
+    const buf = new DefaultOutputStream();
 
     if (length > 0) {
       const name = this.expression.name;
@@ -134,7 +140,7 @@ export class ForNode implements Node {
         for (const item of forloop) {
           namespace[name] = item;
           try {
-            await this.block.render(context, out);
+            await this.block.render(context, buf);
           } catch (error) {
             if (error instanceof BreakIteration) {
               break;
@@ -150,12 +156,16 @@ export class ForNode implements Node {
         context.pop();
       }
     } else if (this.default_ !== undefined) {
-      await this.default_.render(context, out);
+      await this.default_.render(context, buf);
     }
+
+    const buffered = buf.toString();
+    if (this.forceOutput || /\S/.test(buffered)) out.write(buffered);
   }
 
   public renderSync(context: Context, out: RenderStream): void {
     const [it, length] = this.expression.evaluateSync(context);
+    const buf = new DefaultOutputStream();
 
     if (length > 0) {
       const name = this.expression.name;
@@ -176,7 +186,7 @@ export class ForNode implements Node {
         for (const item of forloop) {
           namespace[name] = item;
           try {
-            this.block.renderSync(context, out);
+            this.block.renderSync(context, buf);
           } catch (error) {
             if (error instanceof BreakIteration) {
               break;
@@ -192,11 +202,16 @@ export class ForNode implements Node {
         context.forLoops.pop();
       }
     } else if (this.default_ !== undefined) {
-      this.default_.renderSync(context, out);
+      this.default_.renderSync(context, buf);
     }
+
+    const buffered = buf.toString();
+    if (this.forceOutput || /\S/.test(buffered)) out.write(buffered);
   }
 
-  branches(): Node[] {
-    return [];
+  children(): Node[] {
+    const _children = [...this.block.statements];
+    if (this.default_) _children.push(this.default_);
+    return _children;
   }
 }

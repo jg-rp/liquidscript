@@ -37,7 +37,7 @@ export class IncrementNode implements Node {
     out.write(val.toString());
   }
 
-  branches(): Node[] {
+  children(): Node[] {
     return [];
   }
 }

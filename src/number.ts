@@ -1,6 +1,8 @@
 import Decimal from "decimal.js";
 import { isPrimitiveNumber, isString } from "./types";
 
+Decimal.set({ precision: 16 });
+
 // eslint-disable-next-line @typescript-eslint/ban-types
 export type N = string | number | Number | LiquidNumber;
 

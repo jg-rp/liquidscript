@@ -8,9 +8,11 @@ import {
   isObject,
   isString,
   isSymbol,
+  isUndefined,
   toLiquidString,
 } from "../../types";
 import { Undefined } from "../../undefined";
+import { Range } from "../../range";
 
 // XXX: Multiple cases of unnecessary array copying if input is already an array?
 
@@ -28,7 +30,9 @@ export function join(
 ): string {
   checkArguments(arguments.length, 1);
   if (separator === undefined) separator = " ";
-  return Array.from(inputIterable(left)).join(toLiquidString(separator));
+  return Array.from(inputIterable(left))
+    .map(toLiquidString)
+    .join(toLiquidString(separator));
 }
 
 /**
@@ -44,6 +48,9 @@ export function first(this: FilterContext, left: unknown): unknown {
   // Iterable objects are OK.
   if (isObject(left) && isIterable(left))
     return left[Symbol.iterator]().next().value;
+  if (isObject(left)) {
+    return Object.entries(left)[Symbol.iterator]().next().value;
+  }
   return null;
 }
 
@@ -56,6 +63,7 @@ export function first(this: FilterContext, left: unknown): unknown {
 export function last(this: FilterContext, left: unknown): unknown {
   checkArguments(arguments.length, 0);
   if (isArray(left)) return left[left.length - 1];
+  if (left instanceof Range) return left.stop;
   return null;
 }
 
@@ -117,7 +125,7 @@ export function map(
 ): unknown[] {
   checkArguments(arguments.length, 1, 1);
   if (!isIterable(left)) {
-    throw new FilterValueError("can't map non-iterable");
+    throw new FilterArgumentError("can't map non-iterable");
   }
   return Array.from(left).map((v) => getItem(v, key));
 }
@@ -146,7 +154,7 @@ export function sort(
   key?: unknown
 ): unknown[] {
   checkArguments(arguments.length, 1);
-  if (key === undefined) {
+  if (isUndefined(key)) {
     return Array.from(inputIterable(left)).sort(compare);
   }
 
@@ -168,7 +176,7 @@ export function sortNatural(
   key?: unknown
 ): unknown[] {
   checkArguments(arguments.length, 1);
-  if (key === undefined) {
+  if (isUndefined(key)) {
     return Array.from(inputIterable(left)).sort(naturalCompare);
   }
 
@@ -202,7 +210,7 @@ export function uniq(
     }
   } else {
     for (const obj of inputIterable(left)) {
-      key = JSON.stringify(getItemOrThrow(obj, prop));
+      key = JSON.stringify(getItem(obj, prop));
       if (!map.has(key)) {
         map.set(key, obj);
       }
@@ -244,7 +252,7 @@ export function where(
  */
 function inputIterable(value: unknown): Iterable<unknown> {
   if (isArray(value)) {
-    return flatten(value);
+    return value.flat(5);
   }
   // XXX: Not flattening iterables.
   if (isIterable(value)) {
@@ -255,40 +263,14 @@ function inputIterable(value: unknown): Iterable<unknown> {
 
 /**
  *
- * @param it
- * @param level
- * @returns
- */
-function flatten(it: Iterable<unknown>, level: number = 5): unknown[] {
-  /**
-   *
-   * @param it
-   * @param level
-   */
-  function* _flatten(
-    it: Iterable<unknown>,
-    level: number = 5
-  ): Generator<unknown> {
-    for (const obj of it) {
-      if (!level || !isIterable(obj)) {
-        yield obj;
-      } else {
-        yield* _flatten(obj, level - 1);
-      }
-    }
-  }
-  return Array.from(_flatten(it, level));
-}
-
-/**
- *
  * @param obj
  * @param key
  * @returns
  */
 function getItem(obj: unknown, key: unknown): unknown {
   // XXX: nill, undefined or Undefined?
-  if (!isObject(obj)) return undefined;
+  if (!isObject(obj))
+    throw new FilterArgumentError(`can't read property ${obj}[${key}]`);
 
   if (obj instanceof Map) {
     return obj.get(key);
@@ -341,7 +323,7 @@ function naturalCompare(a: unknown, b: unknown): -1 | 0 | 1 {
   if (a !== undefined && b === undefined) return -1;
 
   // XXX: Hack?
-  const _a = `${a}`.toLowerCase();
-  const _b = `${b}`.toLowerCase();
+  const _a = JSON.stringify(a).toLowerCase();
+  const _b = JSON.stringify(b).toLowerCase();
   return _a < _b ? -1 : _a > _b ? 1 : 0;
 }

@@ -50,13 +50,14 @@ export function isComparable(
 }
 
 export function toLiquidString(obj: unknown): string {
-  if (obj === null) {
-    return "";
-  }
+  if (obj === null) return "";
+  if (isUndefined(obj)) return "";
+  if (isArray(obj)) return obj.join("");
 
-  // TODO: Arrays, ranges, auto escape
-
-  return String(obj);
+  // TODO: auto escape
+  // TODO: Drop protocol
+  const s = String(obj);
+  return s === "[object Object]" ? JSON.stringify(obj) : s;
 }
 
 /**
@@ -78,7 +79,8 @@ export function isLiquidTruthy(value: unknown): boolean {
   return value === false ||
     FALSE.equals(value) ||
     value === undefined ||
-    value === null
+    value === null ||
+    value instanceof Undefined
     ? false
     : true;
 }

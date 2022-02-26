@@ -1,5 +1,5 @@
 import { Environment } from "../../environment";
-import { BlockNode, Node } from "../../ast";
+import { BlockNode, forcedOutput, Node, walk } from "../../ast";
 import { Tag } from "../../tag";
 import {
   Token,
@@ -10,7 +10,7 @@ import {
 } from "../../token";
 import { BooleanExpression } from "../../expression";
 import { Context } from "../../context";
-import { RenderStream } from "../../io/output_stream";
+import { DefaultOutputStream, RenderStream } from "../../io/output_stream";
 import { parse } from "../../expressions/boolean/parse";
 
 type ConditionalAlternative = {
@@ -79,51 +79,70 @@ export class IfTag implements Tag {
 }
 
 export class IfNode implements Node {
+  public forceOutput = false;
   constructor(
     readonly token: Token,
     private condition: BooleanExpression,
     private consequence: BlockNode,
     private conditionalAlternatives: ConditionalAlternative[],
     private alternative?: BlockNode
-  ) {}
+  ) {
+    this.forceOutput = forcedOutput(this);
+  }
 
   public async render(context: Context, out: RenderStream): Promise<void> {
-    if (await this.condition.evaluate(context)) {
-      await this.consequence.render(context, out);
-      return;
-    }
+    // This intermediate buffer is used to detect and possibly
+    // suppress blocks that, when rendered, contain only whitespace
+    const buf = new DefaultOutputStream();
+    let rendered = false;
 
-    for (const alt of this.conditionalAlternatives) {
-      if (await alt.condition.evaluate(context)) {
-        await alt.consequence.render(context, out);
-        return;
+    if (await this.condition.evaluate(context)) {
+      await this.consequence.render(context, buf);
+      rendered = true;
+    } else {
+      for (const alt of this.conditionalAlternatives) {
+        if (await alt.condition.evaluate(context)) {
+          await alt.consequence.render(context, buf);
+          rendered = true;
+          break;
+        }
       }
     }
 
-    if (this.alternative !== undefined) {
-      await this.alternative.render(context, out);
+    if (!rendered && this.alternative !== undefined) {
+      await this.alternative.render(context, buf);
     }
+
+    const buffered = buf.toString();
+    if (this.forceOutput || /\S/.test(buffered)) out.write(buffered);
   }
 
   public renderSync(context: Context, out: RenderStream): void {
-    if (this.condition.evaluateSync(context)) {
-      this.consequence.renderSync(context, out);
-      return;
-    }
+    const buf = new DefaultOutputStream();
+    let rendered = false;
 
-    for (const alt of this.conditionalAlternatives) {
-      if (alt.condition.evaluateSync(context)) {
-        alt.consequence.renderSync(context, out);
-        return;
+    if (this.condition.evaluateSync(context)) {
+      this.consequence.renderSync(context, buf);
+      rendered = true;
+    } else {
+      for (const alt of this.conditionalAlternatives) {
+        if (alt.condition.evaluateSync(context)) {
+          alt.consequence.renderSync(context, buf);
+          rendered = true;
+          break;
+        }
       }
     }
 
-    if (this.alternative !== undefined) {
-      this.alternative.renderSync(context, out);
+    if (!rendered && this.alternative !== undefined) {
+      this.alternative.renderSync(context, buf);
     }
+
+    const buffered = buf.toString();
+    if (this.forceOutput || /\S/.test(buffered)) out.write(buffered);
   }
 
-  branches(): Node[] {
+  children(): Node[] {
     const _children = [
       this.consequence,
       ...this.conditionalAlternatives.map(

@@ -203,20 +203,20 @@ export class RangeLiteral implements Expression {
   constructor(readonly start: Expression, readonly stop: Expression) {}
 
   public async evaluate(context: Context): Promise<Range> {
-    let start = new Number(await this.start.evaluate(context));
-    let stop = new Number(await this.stop.evaluate(context));
-    if (isNaN(start.valueOf())) start = Number(0);
-    if (isNaN(stop.valueOf())) stop = Number(0);
-    if (start > stop) return range(0);
+    let start = Number(await this.start.evaluate(context));
+    let stop = Number(await this.stop.evaluate(context));
+    if (isNaN(start.valueOf())) start = 0;
+    if (isNaN(stop.valueOf())) stop = 0;
+    if (start > stop) return range(-1);
     return range(start.valueOf(), stop.valueOf());
   }
 
   public evaluateSync(context: Context): Range {
-    let start = new Number(this.start.evaluateSync(context));
-    let stop = new Number(this.stop.evaluateSync(context));
-    if (isNaN(start.valueOf())) start = Number(0);
-    if (isNaN(stop.valueOf())) stop = Number(0);
-    if (start > stop) return range(0);
+    let start = Number(this.start.evaluateSync(context));
+    let stop = Number(this.stop.evaluateSync(context));
+    if (isNaN(start.valueOf())) start = 0;
+    if (isNaN(stop.valueOf())) stop = 0;
+    if (start > stop) return range(-1);
     return range(start.valueOf(), stop.valueOf());
   }
 
@@ -688,8 +688,15 @@ function compare(left: unknown, operator: string, right: unknown): boolean {
     );
   }
 
-  if (right instanceof Empty || right instanceof Blank || right instanceof Nil)
+  if (
+    right instanceof Empty ||
+    right instanceof Blank ||
+    right instanceof Nil ||
+    right instanceof Range
+  )
     [left, right] = [right, left];
+
+  if (left instanceof Range) return left.equals(right);
 
   switch (operator) {
     case "==":

@@ -387,6 +387,21 @@ describe("built-in for tag", () => {
         },
       },
     },
+    {
+      description: "suppress empty blocks",
+      source:
+        "!{% for i in (1..3) %}" +
+        "\n\n\n    {% assign x = 7 %}\n" +
+        "{% endfor %}!",
+      want: "!!",
+      globals: {},
+    },
+    {
+      description: "don't suppress blocks with output statements",
+      source: "!{% for i in (1..3) %}\n\n\n    {{ '' }}\n{% endfor %}!",
+      want: "!\n\n\n    \n\n\n\n    \n\n\n\n    \n!",
+      globals: {},
+    },
   ];
 
   describe("async", () => {

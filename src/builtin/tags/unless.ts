@@ -1,9 +1,9 @@
-import { BlockNode, Node } from "../../ast";
+import { BlockNode, forcedOutput, Node, walk } from "../../ast";
 import { Context } from "../../context";
 import { Environment } from "../../environment";
 import { Expression } from "../../expression";
 import { parse } from "../../expressions/boolean/parse";
-import { RenderStream } from "../../io/output_stream";
+import { DefaultOutputStream, RenderStream } from "../../io/output_stream";
 import { Tag } from "../../tag";
 import {
   Token,
@@ -84,51 +84,68 @@ export class UnlessTag implements Tag {
 }
 
 export class UnlessNode implements Node {
+  public forceOutput = false;
   constructor(
     readonly token: Token,
     private condition: Expression,
     private consequence: BlockNode,
     private conditionalAlternatives: ConditionalAlternative[],
     private alternative?: BlockNode
-  ) {}
+  ) {
+    this.forceOutput = forcedOutput(this);
+  }
 
   public async render(context: Context, out: RenderStream): Promise<void> {
-    if (!(await this.condition.evaluate(context))) {
-      await this.consequence.render(context, out);
-      return;
-    }
+    const buf = new DefaultOutputStream();
+    let rendered = false;
 
-    for (const alt of this.conditionalAlternatives) {
-      if (await alt.condition.evaluate(context)) {
-        await alt.consequence.render(context, out);
-        return;
+    if (!(await this.condition.evaluate(context))) {
+      await this.consequence.render(context, buf);
+      rendered = true;
+    } else {
+      for (const alt of this.conditionalAlternatives) {
+        if (await alt.condition.evaluate(context)) {
+          await alt.consequence.render(context, buf);
+          rendered = true;
+          break;
+        }
       }
     }
 
-    if (this.alternative !== undefined) {
-      await this.alternative.render(context, out);
+    if (!rendered && this.alternative !== undefined) {
+      await this.alternative.render(context, buf);
     }
+
+    const buffered = buf.toString();
+    if (this.forceOutput || /\S/.test(buffered)) out.write(buffered);
   }
 
   public renderSync(context: Context, out: RenderStream): void {
-    if (!this.condition.evaluateSync(context)) {
-      this.consequence.renderSync(context, out);
-      return;
-    }
+    const buf = new DefaultOutputStream();
+    let rendered = false;
 
-    for (const alt of this.conditionalAlternatives) {
-      if (alt.condition.evaluateSync(context)) {
-        alt.consequence.renderSync(context, out);
-        return;
+    if (!this.condition.evaluateSync(context)) {
+      this.consequence.renderSync(context, buf);
+      rendered = true;
+    } else {
+      for (const alt of this.conditionalAlternatives) {
+        if (alt.condition.evaluateSync(context)) {
+          alt.consequence.renderSync(context, buf);
+          rendered = true;
+          break;
+        }
       }
     }
 
-    if (this.alternative !== undefined) {
-      this.alternative.renderSync(context, out);
+    if (!rendered && this.alternative !== undefined) {
+      this.alternative.renderSync(context, buf);
     }
+
+    const buffered = buf.toString();
+    if (this.forceOutput || /\S/.test(buffered)) out.write(buffered);
   }
 
-  branches(): Node[] {
+  children(): Node[] {
     const _children = [
       this.consequence,
       ...this.conditionalAlternatives.map(

@@ -20,6 +20,7 @@ export class OutputStatement implements Tag {
 }
 
 export class OutputStatementNode implements Node {
+  readonly forceOutput = true;
   constructor(readonly token: Token, readonly expression: Expression) {}
 
   public async render(context: Context, out: RenderStream): Promise<void> {
@@ -30,7 +31,7 @@ export class OutputStatementNode implements Node {
     out.write(toLiquidString(this.expression.evaluateSync(context)));
   }
 
-  branches(): Node[] {
+  children(): Node[] {
     return [];
   }
 

@@ -15,6 +15,11 @@ describe("first filter", () => {
     expect(result).toBe(1);
   });
 
+  test("first of an object", () => {
+    const result = first.apply(filterContext, [{ b: 1, c: 2 }]);
+    expect(result).toStrictEqual(["b", 1]);
+  });
+
   test("first of map", () => {
     const result = first.apply(filterContext, [
       new Map([

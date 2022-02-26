@@ -1,9 +1,9 @@
-import { BlockNode, Node } from "../../ast";
+import { BlockNode, forcedOutput, Node, walk } from "../../ast";
 import { Context } from "../../context";
 import { Environment } from "../../environment";
 import { BooleanExpression } from "../../expression";
 import { parse } from "../../expressions/boolean/parse";
-import { RenderStream } from "../../io/output_stream";
+import { DefaultOutputStream, RenderStream } from "../../io/output_stream";
 import { Tag } from "../../tag";
 import {
   Token,
@@ -88,41 +88,54 @@ export class CaseTag implements Tag {
 }
 
 export class CaseNode implements Node {
+  public forceOutput = false;
   constructor(
     readonly token: Token,
     readonly whens: ConditionalAlternative[],
     readonly default_?: BlockNode
-  ) {}
+  ) {
+    this.forceOutput = forcedOutput(this);
+  }
 
   public async render(context: Context, out: RenderStream): Promise<void> {
+    const buf = new DefaultOutputStream();
     let rendered = false;
+
     for (const _when of this.whens) {
       if (await _when.condition.evaluate(context)) {
         rendered = true;
-        await _when.block.render(context, out);
+        await _when.block.render(context, buf);
       }
     }
 
     if (!rendered && this.default_ !== undefined) {
-      await this.default_.render(context, out);
+      await this.default_.render(context, buf);
     }
+
+    const buffered = buf.toString();
+    if (this.forceOutput || /\S/.test(buffered)) out.write(buffered);
   }
 
   public renderSync(context: Context, out: RenderStream): void {
+    const buf = new DefaultOutputStream();
     let rendered = false;
+
     for (const _when of this.whens) {
       if (_when.condition.evaluateSync(context)) {
         rendered = true;
-        _when.block.renderSync(context, out);
+        _when.block.renderSync(context, buf);
       }
     }
 
     if (!rendered && this.default_ !== undefined) {
-      this.default_.renderSync(context, out);
+      this.default_.renderSync(context, buf);
     }
+
+    const buffered = buf.toString();
+    if (this.forceOutput || /\S/.test(buffered)) out.write(buffered);
   }
 
-  branches(): Node[] {
+  children(): Node[] {
     const _children = Array.from(
       this.whens.map((alt: ConditionalAlternative) => alt.block)
     );

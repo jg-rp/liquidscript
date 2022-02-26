@@ -28,7 +28,7 @@ describe("divide by filter", () => {
       new Integer(3),
     ]);
     expect(isFloat(result)).toBeTruthy();
-    expect(result.valueOf()).toBe(1.6666666666666667);
+    expect(result.valueOf()).toBe(1.666666666666667);
   });
   test("integer dividend, float divisor", () => {
     const result = dividedBy.apply(filterContext, [
@@ -36,17 +36,17 @@ describe("divide by filter", () => {
       new Float(3.0),
     ]);
     expect(isFloat(result)).toBeTruthy();
-    expect(result.valueOf()).toBe(1.6666666666666667);
+    expect(result.valueOf()).toBe(1.666666666666667);
   });
   test("number dividend, float divisor", () => {
     const result = dividedBy.apply(filterContext, [5, new Float(3.0)]);
     expect(isFloat(result)).toBeTruthy();
-    expect(result.valueOf()).toBe(1.6666666666666667);
+    expect(result.valueOf()).toBe(1.666666666666667);
   });
   test("float dividend, number divisor", () => {
     const result = dividedBy.apply(filterContext, [new Float(5), 3]);
     expect(isFloat(result)).toBeTruthy();
-    expect(result.valueOf()).toBe(1.6666666666666667);
+    expect(result.valueOf()).toBe(1.666666666666667);
   });
   test("argument is not a number", () => {
     expect(() => dividedBy.apply(filterContext, [10, "foo"])).toThrow(

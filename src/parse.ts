@@ -45,13 +45,13 @@ export class TemplateParser implements Parser {
     return block;
   }
 
-  private getTag(token: Token): Tag {
+  protected getTag(token: Token): Tag {
     const tag = this.environment.tags[token.value];
     if (!tag) throw new NoSuchTagError(`unknown tag '${token.value}'`, token);
     return tag;
   }
 
-  private parseStatement(stream: TokenStream): Node {
+  protected parseStatement(stream: TokenStream): Node {
     let node: Node;
     switch (stream.current.kind) {
       case TOKEN_STATEMENT:

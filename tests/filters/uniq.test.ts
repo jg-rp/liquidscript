@@ -1,7 +1,6 @@
 import { uniq } from "../../src/builtin/filters/array";
 import { Context } from "../../src/context";
 import { Environment } from "../../src/environment";
-import { FilterArgumentError } from "../../src/errors";
 import { FilterContext } from "../../src/filter";
 
 describe("uniq filter", () => {
@@ -38,17 +37,22 @@ describe("uniq filter", () => {
       { title: "bar", name: "c" },
     ]);
   });
-  test("array of objects with key property", () => {
-    expect(() =>
-      uniq.apply(filterContext, [
-        [
-          { title: "foo", name: "a" },
-          { title: "foo", name: "b" },
-          { title: "bar", name: "c" },
-          { heading: "bar", name: "c" },
-        ],
-        "title",
-      ])
-    ).toThrow(FilterArgumentError);
+
+  test("array of objects with missing key property", () => {
+    const result = uniq.apply(filterContext, [
+      [
+        { title: "foo", name: "a" },
+        { title: "foo", name: "b" },
+        { title: "bar", name: "c" },
+        { heading: "bar", name: "c" },
+        { foo: "bar", name: "c" },
+      ],
+      "title",
+    ]);
+    expect(result).toStrictEqual([
+      { title: "foo", name: "a" },
+      { title: "bar", name: "c" },
+      { heading: "bar", name: "c" },
+    ]);
   });
 });

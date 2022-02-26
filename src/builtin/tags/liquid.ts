@@ -122,7 +122,7 @@ export class LiquidNode implements Node {
     this.block.renderSync(context, out);
   }
 
-  branches(): Node[] {
-    throw new Error("Method not implemented.");
+  children(): Node[] {
+    return [];
   }
 }

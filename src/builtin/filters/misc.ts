@@ -23,6 +23,7 @@ export function size(this: FilterContext, left: unknown): number {
   checkArguments(arguments.length, 0);
   if (isArray(left) || isString(left)) return left.length;
   if (left instanceof Map) return left.size;
+  if (isUndefined(left)) return 0;
   if (isObject(left)) return Object.keys(left).length;
   return 0;
 }
@@ -38,9 +39,9 @@ export function size(this: FilterContext, left: unknown): number {
 export function default_(
   this: FilterContext,
   left: unknown,
-  _default: unknown
+  _default: unknown = ""
 ): unknown {
-  checkArguments(arguments.length, 1, 1);
+  checkArguments(arguments.length, 1);
   const _left = isLiquidPrimitive(left) ? left[liquidValueOf]() : left;
   if (isLiquidTruthy(this.options["allow_false"]) && _left === false)
     return left;
@@ -151,12 +152,12 @@ export function slice(
 ): string | unknown[] {
   checkArguments(arguments.length, 2, 1);
   const _offset = Number(offset);
-  if (!Number.isInteger(_offset))
+  if (isUndefined(offset) || !Number.isInteger(_offset))
     throw new FilterArgumentError(
       `expected an integer offset, found ${offset}`
     );
 
-  const _length = length === undefined ? 1 : Number(length);
+  const _length = isUndefined(length) ? 1 : Number(length);
   if (!Number.isInteger(_length))
     throw new FilterArgumentError(
       `expected an integer length, found ${length}`

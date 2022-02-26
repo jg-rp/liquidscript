@@ -82,8 +82,8 @@ export class CycleNode implements Node {
     this.cycle(context, out, groupName, args);
   }
 
-  public branches(): Node[] {
-    throw new Error("Method not implemented.");
+  public children(): Node[] {
+    return [];
   }
 }
 
@@ -110,6 +110,7 @@ function* parseArgs(stream: ExpressionTokenStream): Generator<Expression> {
 /**
  *
  * @param tokens
+ * @yields
  * @returns
  */
 function* splitAtFirstColon(

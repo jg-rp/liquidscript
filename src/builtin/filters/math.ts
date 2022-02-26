@@ -1,6 +1,6 @@
 import { FilterArgumentError } from "../../errors";
 import { checkArguments, FilterContext } from "../../filter";
-import { isN, NumberT, parseNumberT, ZERO } from "../../number";
+import { isN, isNumberT, NumberT, parseNumberT, ZERO } from "../../number";
 
 // TODO: test NaN and Inf and undefined and null
 
@@ -182,7 +182,7 @@ export function times(
 function parseNumberOrZero(value: unknown): NumberT {
   if (isN(value)) {
     const num = parseNumberT(value);
-    return !num.isFinite() ? ZERO : num;
+    return !isNumberT(num) || !num.isFinite() ? ZERO : num;
   }
   return ZERO;
 }

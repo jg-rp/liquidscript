@@ -38,6 +38,16 @@ export class LaxUndefined extends Undefined {
   public [Symbol.iterator](): Iterator<unknown> {
     return [].values();
   }
+
+  public [Symbol.toPrimitive](hint: string) {
+    if (hint === "number") {
+      return 0;
+    }
+    if (hint === "string") {
+      return "";
+    }
+    return null;
+  }
 }
 
 export class LoggingUndefined extends Undefined {

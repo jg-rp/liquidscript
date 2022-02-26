@@ -184,7 +184,7 @@ export class IncludeNode implements Node {
     }
   }
 
-  branches(): Node[] {
-    throw new Error("Method not implemented.");
+  children(): Node[] {
+    return [];
   }
 }

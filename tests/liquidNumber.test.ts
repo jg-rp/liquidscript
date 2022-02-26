@@ -16,4 +16,9 @@ describe("internal number representation", () => {
     const i = new Integer(2) as unknown as number;
     expect(i + 5).toBe(7);
   });
+
+  test("integer is finite", () => {
+    const i = new Integer(2);
+    expect(i.isFinite()).toBe(true);
+  });
 });

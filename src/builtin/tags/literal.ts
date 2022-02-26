@@ -24,7 +24,7 @@ export class LiteralNode implements Node {
     out.write(this.token.value);
   }
 
-  branches(): Node[] {
+  children(): Node[] {
     return [];
   }
 }

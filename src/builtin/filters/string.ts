@@ -1,6 +1,6 @@
 import { FilterArgumentError } from "../../errors";
 import { checkArguments, FilterContext } from "../../filter";
-import { toLiquidString } from "../../types";
+import { isUndefined, toLiquidString } from "../../types";
 import { escape as escapeHTML, unescape } from "../../html";
 
 // TODO: Implement Markup string wrapper
@@ -285,7 +285,7 @@ export function stripHtml(this: FilterContext, left: unknown): string {
  */
 export function stripNewlines(this: FilterContext, left: unknown): string {
   checkArguments(arguments.length, 0);
-  return toLiquidString(left).replace(/\r?\n/, "");
+  return toLiquidString(left).replace(/\r?\n/g, "");
 }
 
 /**
@@ -305,7 +305,7 @@ export function truncate(
   checkArguments(arguments.length, 2);
   const _left = toLiquidString(left);
   const _length = Number(length);
-  if (!Number.isInteger(_length))
+  if (isUndefined(length) || !Number.isInteger(_length))
     throw new FilterArgumentError(
       `expected an integer length, found ${length}`
     );
@@ -336,7 +336,7 @@ export function truncateWords(
   checkArguments(arguments.length, 2);
   const _left = toLiquidString(left);
   let _wordCount = Number(wordCount);
-  if (!Number.isInteger(_wordCount))
+  if (isUndefined(wordCount) || !Number.isInteger(_wordCount))
     throw new FilterArgumentError(
       `expected an integer length, found ${wordCount}`
     );
@@ -348,7 +348,7 @@ export function truncateWords(
     );
 
   const _end = toLiquidString(end);
-  const words = _left.split(" ");
+  const words = _left.split(/\s+/g);
 
   if (words.length <= _wordCount) return _left;
   return words.slice(0, _wordCount).join(" ") + _end;

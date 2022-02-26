@@ -74,6 +74,7 @@ import { RenderTag } from "./tags/render";
 import { OutputStatement } from "./tags/statement";
 import { TableRowTag } from "./tags/tablerow";
 import { UnlessTag } from "./tags/unless";
+import { IfChangedTag } from "./tags/ifchanged";
 
 /**
  *
@@ -91,6 +92,7 @@ export function registerBuiltin(env: Environment): void {
   env.tags["continue"] = new ContinueTag();
   env.tags["break"] = new BreakTag();
   env.tags["if"] = new IfTag();
+  env.tags["ifchanged"] = new IfChangedTag();
   env.tags["include"] = new IncludeTag();
   env.tags["increment"] = new IncrementTag();
   env.tags["literal"] = new TemplateLiteral();

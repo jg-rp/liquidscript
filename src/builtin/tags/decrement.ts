@@ -38,7 +38,7 @@ export class DecrementNode implements Node {
     out.write(val.toString());
   }
 
-  public branches(): Node[] {
+  public children(): Node[] {
     return [];
   }
 }

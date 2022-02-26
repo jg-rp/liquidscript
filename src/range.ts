@@ -1,5 +1,7 @@
-import { Integer } from "./number";
-
+/**
+ *
+ * @param stop
+ */
 export function range(stop: number): Range;
 export function range(start: number, stop: number): Range;
 export function range(...args: number[]): Range {
@@ -15,20 +17,32 @@ export function range(...args: number[]): Range {
 
 export class Range implements Iterable<number> {
   readonly length: number;
+  readonly start: number;
+  readonly stop: number;
 
-  constructor(readonly start: number, readonly stop: number) {
+  constructor(start: number, stop: number) {
     // TODO: slice.
     // TODO: join.
-    this.length = this.stop - this.start + 1;
+    this.start = Math.trunc(start);
+    this.stop = Math.trunc(stop);
+    this.length = this.stop - this.start + (this.start === this.stop ? 0 : 1);
   }
 
-  *[Symbol.iterator](): Iterator<number> {
+  public *[Symbol.iterator](): Iterator<number> {
     // TODO: Store the first X Integer objects as constants? or
     // maintain an Integer and Float object pool?
     for (let i = this.start; i <= this.stop; i++) yield i;
   }
 
-  toString(): string {
+  public equals(other: unknown): boolean {
+    return (
+      other instanceof Range &&
+      this.start === other.start &&
+      this.stop === other.stop
+    );
+  }
+
+  public toString(): string {
     return `${this.start}..${this.stop}`;
   }
 }

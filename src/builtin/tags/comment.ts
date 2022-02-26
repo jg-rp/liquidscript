@@ -35,7 +35,7 @@ export class CommentNode implements Node {
     return;
   }
 
-  branches(): Node[] {
-    throw new Error("Method not implemented.");
+  children(): Node[] {
+    return [];
   }
 }

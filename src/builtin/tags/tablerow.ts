@@ -119,7 +119,7 @@ export class TableRowNode implements Node {
     }
   }
 
-  branches(): Node[] {
-    throw new Error("Method not implemented.");
+  children(): Node[] {
+    return [this.block];
   }
 }

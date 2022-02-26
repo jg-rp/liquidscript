@@ -7,8 +7,6 @@ import {
 import { parse } from "../src/expressions/loop/parse";
 import { Integer } from "../src/number";
 
-// TODO: finish tests
-
 describe("parse loop expression", () => {
   test("identifier", () => {
     const expr = parse("product in products");

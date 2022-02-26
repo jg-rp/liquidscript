@@ -39,6 +39,7 @@ export class CaptureTag implements Tag {
 }
 
 export class CaptureNode implements Node {
+  readonly captureOutput = true;
   constructor(
     readonly token: Token,
     readonly name: string,
@@ -57,7 +58,7 @@ export class CaptureNode implements Node {
     context.assign(this.name, buf.toString());
   }
 
-  branches(): Node[] {
-    return [];
+  children(): Node[] {
+    return [this.block];
   }
 }

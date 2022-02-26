@@ -45,7 +45,7 @@ export class AssignNode implements Node {
     context.assign(this.name, this.expression.evaluateSync(context));
   }
 
-  branches(): Node[] {
+  children(): Node[] {
     return [];
   }
 }

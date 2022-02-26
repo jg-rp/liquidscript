@@ -1,7 +1,7 @@
 import { map } from "../../src/builtin/filters/array";
 import { Context } from "../../src/context";
 import { Environment } from "../../src/environment";
-import { FilterValueError } from "../../src/errors";
+import { FilterArgumentError } from "../../src/errors";
 import { FilterContext } from "../../src/filter";
 import { LaxUndefined } from "../../src/undefined";
 
@@ -28,7 +28,7 @@ describe("map filter", () => {
 
   test("left value is not iterable", () => {
     expect(() => map.apply(filterContext, [123, "title"])).toThrow(
-      FilterValueError
+      FilterArgumentError
     );
   });
 
