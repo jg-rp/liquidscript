@@ -1,4 +1,4 @@
-import { BlockNode, forcedOutput, Node, walk } from "../../ast";
+import { BlockNode, forcedOutput, Node } from "../../ast";
 import { Context, ContextScope } from "../../context";
 import { Environment } from "../../environment";
 import { BreakIteration, ContinueIteration } from "../../errors";
@@ -210,7 +210,7 @@ export class ForNode implements Node {
   }
 
   children(): Node[] {
-    const _children = [...this.block.statements];
+    const _children = [...this.block.nodes];
     if (this.default_) _children.push(this.default_);
     return _children;
   }

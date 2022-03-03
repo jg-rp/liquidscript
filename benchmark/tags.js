@@ -3,7 +3,21 @@ const { performance, PerformanceObserver } = require("perf_hooks");
 const { Environment } = require("..");
 
 const obs = new PerformanceObserver((list, observer) => {
-  console.log(list.getEntries());
+  const measures = {
+    "Parse and Render Tags": [],
+    "Parse Tags": [],
+    "Render Tags": [],
+    "Render Tags Sync": [],
+  };
+
+  list.getEntries().forEach((e) => measures[e.name].push(e.duration));
+
+  for (const [name, durations] of Object.entries(measures)) {
+    const best = Math.min(...durations) / 1000;
+    console.log(
+      `${name} (best of ${durations.length}): ${best.toFixed(2)} seconds`
+    );
+  }
   observer.disconnect();
 });
 
@@ -22,43 +36,78 @@ const templates = [
   "{% tablerow i in (1..10) cols:3 %}{% endtablerow %}",
 ];
 
-async function parseAndRenderTags() {
+// async function parseAndRenderTags(number = 100) {
+//   performance.mark("tags-start");
+//   for (let i = 0; i < number; i++) {
+//     const _templates = templates.map((source) => env.fromString(source));
+//     await Promise.all(_templates.map((t) => t.render()));
+//   }
+//   performance.mark("tags-end");
+//   performance.measure("Parse and Render Tags", "tags-start", "tags-end");
+// }
+
+function parseAndRenderTagsSync(number = 100) {
   performance.mark("tags-start");
-  for (let i = 0; i < 10000; i++) {
-    Promise.all(templates.map((source) => env.fromString(source).render()));
+  for (let i = 0; i < number; i++) {
+    templates.map((source) => env.fromString(source).renderSync());
   }
   performance.mark("tags-end");
   performance.measure("Parse and Render Tags", "tags-start", "tags-end");
 }
 
-parseAndRenderTags().then();
-
-async function parseTags() {
+function parseTags(number = 100) {
   performance.mark("parse-tags-start");
-  for (let i = 0; i < 10000; i++) {
+  for (let i = 0; i < number; i++) {
     templates.map((source) => env.fromString(source));
   }
   performance.mark("parse-tags-end");
   performance.measure("Parse Tags", "parse-tags-start", "parse-tags-end");
 }
 
-parseTags().then();
-
-async function renderTags() {
+async function renderTagsAsync(number = 100) {
   const _templates = templates.map((source) => env.fromString(source));
   performance.mark("render-tags-start");
-  for (let i = 0; i < 10000; i++) {
-    Promise.all(
-      _templates.map((t) => {
-        t.render();
-      })
-    );
+  for (let i = 0; i < number; i++) {
+    for (const t of _templates) await t.render();
   }
   performance.mark("render-tags-end");
   performance.measure("Render Tags", "render-tags-start", "render-tags-end");
 }
 
-renderTags().then();
+function renderTagsSync(number = 100) {
+  const _templates = templates.map((source) => env.fromString(source));
+  performance.mark("render-tags-sync-start");
+  for (let i = 0; i < number; i++) {
+    _templates.map((t) => t.renderSync());
+  }
+  performance.mark("render-tags-sync-end");
+  performance.measure(
+    "Render Tags Sync",
+    "render-tags-sync-start",
+    "render-tags-sync-end"
+  );
+}
 
-// TODO: LRU / proxy cache
-// TODO: cache getParser
+function main(number = 1000, repeat = 5) {
+  console.log(`parse and render, best of ${repeat}`);
+  for (let i = 0; i < repeat; i++) {
+    parseAndRenderTagsSync(number);
+  }
+
+  console.log(`parse, best of ${repeat}`);
+  for (let i = 0; i < repeat; i++) {
+    parseTags(number);
+  }
+
+  console.log(`render sync, best of ${repeat}`);
+  for (let i = 0; i < repeat; i++) {
+    renderTagsSync(number);
+  }
+
+  console.log(`render async, best of ${repeat}`);
+  for (let i = 0; i < repeat; i++) {
+    renderTagsAsync(number);
+  }
+}
+
+main(10000);

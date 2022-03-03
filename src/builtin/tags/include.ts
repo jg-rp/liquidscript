@@ -52,8 +52,7 @@ export class IncludeTag implements Tag {
     const templateName = parseStringOrIdentifier(exprStream);
     exprStream.next();
 
-    // Optionally bind an object to a name while rendering
-    // the included template, possibly with an alias.
+    // Optionally bind an object to a name while rendering the included template, possibly with an alias.
     let bindName: Identifier | undefined = undefined;
     let alias: string | undefined = undefined;
 

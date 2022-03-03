@@ -1,3 +1,4 @@
+import { LiteralNode } from "./builtin/tags/literal";
 import { Context } from "./context";
 import { InternalLiquidError } from "./errors";
 import { RenderStream } from "./io/output_stream";
@@ -24,19 +25,23 @@ export interface Node {
 }
 
 export class Root {
-  public statements: Node[] = [];
+  public nodes: Node[] = [];
 }
 
 export class BlockNode implements Node {
-  constructor(readonly token: Token, public statements: Node[] = []) {}
+  constructor(readonly token: Token, public nodes: Node[] = []) {}
 
   public async render(context: Context, out: RenderStream): Promise<void> {
-    for (const statement of this.statements) {
+    for (const node of this.nodes) {
       try {
-        await statement.render(context, out);
+        if (node instanceof LiteralNode) {
+          node.renderSync(context, out);
+        } else {
+          await node.render(context, out);
+        }
       } catch (error) {
         if (error instanceof InternalLiquidError) {
-          throw error.withToken(statement.token, context.templateName);
+          throw error.withToken(node.token, context.templateName);
         }
         throw error;
       }
@@ -44,12 +49,12 @@ export class BlockNode implements Node {
   }
 
   public renderSync(context: Context, out: RenderStream): void {
-    for (const statement of this.statements) {
+    for (const node of this.nodes) {
       try {
-        statement.renderSync(context, out);
+        node.renderSync(context, out);
       } catch (error) {
         if (error instanceof InternalLiquidError) {
-          throw error.withToken(statement.token, context.templateName);
+          throw error.withToken(node.token, context.templateName);
         }
         throw error;
       }
@@ -57,7 +62,7 @@ export class BlockNode implements Node {
   }
 
   public children(): Node[] {
-    return this.statements;
+    return this.nodes;
   }
 }
 

@@ -17,7 +17,7 @@ describe("walk a syntax tree", () => {
         "{% endfor %}"
     );
 
-    const tokenKinds = Array.from(walk(template.tree.statements[0])).map(
+    const tokenKinds = Array.from(walk(template.tree.nodes[0])).map(
       (n) => n.token.kind
     );
 

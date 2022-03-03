@@ -36,7 +36,7 @@ function commentFormNode(token, article, block) {
       const form = Object.fromEntries([
         [
           "posted_successfully?",
-          await context.get("posted_successfully", [], true),
+          await context.get("posted_successfully?", [], true),
         ],
         ["errors", await context.get("comment", ["errors"], [])],
         ["author", await context.get("comment", ["author"])],
@@ -45,7 +45,7 @@ function commentFormNode(token, article, block) {
       ]);
 
       out.write(
-        `<form id="article-${article.id}-comment-form" ` +
+        `<form id="article-${_article.id}-comment-form" ` +
           `class="comment-form" method="post" action="">\n`
       );
 
@@ -64,7 +64,7 @@ function commentFormNode(token, article, block) {
       const form = Object.fromEntries([
         [
           "posted_successfully?",
-          context.getSync("posted_successfully", [], true),
+          context.getSync("posted_successfully?", [], true),
         ],
         ["errors", context.getSync("comment", ["errors"], [])],
         ["author", context.getSync("comment", ["author"])],
@@ -73,7 +73,7 @@ function commentFormNode(token, article, block) {
       ]);
 
       out.write(
-        `<form id="article-${article.id}-comment-form" ` +
+        `<form id="article-${_article.id}-comment-form" ` +
           `class="comment-form" method="post" action="">\n`
       );
 

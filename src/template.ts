@@ -9,6 +9,7 @@ import {
   LiquidSyntaxError,
 } from "./errors";
 import { chainObjects } from "./chainObject";
+import { LiteralNode } from "./builtin/tags/literal";
 
 // TODO: upToDate
 
@@ -87,9 +88,13 @@ export class Template {
     blockScope: boolean = false,
     partial: boolean = false
   ): Promise<void> {
-    for (const node of this.tree.statements) {
+    for (const node of this.tree.nodes) {
       try {
-        await node.render(context, outputStream);
+        if (node instanceof LiteralNode) {
+          node.renderSync(context, outputStream);
+        } else {
+          await node.render(context, outputStream);
+        }
       } catch (error) {
         this.handleError(error, node, blockScope, partial);
       }
@@ -102,7 +107,7 @@ export class Template {
     blockScope: boolean = false,
     partial: boolean = false
   ): void {
-    for (const node of this.tree.statements) {
+    for (const node of this.tree.nodes) {
       try {
         node.renderSync(context, outputStream);
       } catch (error) {

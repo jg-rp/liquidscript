@@ -79,7 +79,7 @@ export class Environment {
     context?: Context,
     loaderContext?: { [index: string]: unknown }
   ): Promise<Template> {
-    return await this.loader.load(name, this, context, globals, loaderContext);
+    return this.loader.load(name, this, context, globals, loaderContext);
   }
 
   public getTemplateSync(

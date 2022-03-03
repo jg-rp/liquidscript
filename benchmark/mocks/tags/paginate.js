@@ -134,7 +134,7 @@ function paginateNode(token, ident, pageSize, block) {
 
       if (pageCount > 1) {
         for (let i = 1; i <= pageCount; i++) {
-          if (currentPage == i) {
+          if (currentPage === i) {
             pagination.parts.push(noLink(i));
           } else {
             pagination.parts.push(link(i, i));
@@ -178,7 +178,7 @@ function paginateNode(token, ident, pageSize, block) {
 
       if (pageCount > 1) {
         for (let i = 1; i <= pageCount; i++) {
-          if (currentPage == i) {
+          if (currentPage === i) {
             pagination.parts.push(noLink(i));
           } else {
             pagination.parts.push(link(i, i));

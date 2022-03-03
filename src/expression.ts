@@ -203,8 +203,16 @@ export class RangeLiteral implements Expression {
   constructor(readonly start: Expression, readonly stop: Expression) {}
 
   public async evaluate(context: Context): Promise<Range> {
-    let start = Number(await this.start.evaluate(context));
-    let stop = Number(await this.stop.evaluate(context));
+    let start = Number(
+      this.start instanceof Literal
+        ? this.start.evaluateSync(context)
+        : await this.start.evaluate(context)
+    );
+    let stop = Number(
+      this.stop instanceof Literal
+        ? this.stop.evaluateSync(context)
+        : await this.stop.evaluate(context)
+    );
     if (isNaN(start.valueOf())) start = 0;
     if (isNaN(stop.valueOf())) stop = 0;
     if (start > stop) return range(-1);
@@ -263,7 +271,10 @@ export class Identifier implements Expression {
     const path: Array<string | number | LiquidPrimitive> = [];
     let prop: unknown;
     for (const e of this.path) {
-      prop = await e.evaluate(context);
+      prop =
+        e instanceof Literal
+          ? e.evaluateSync(context)
+          : await e.evaluate(context);
       if (isInteger(prop)) {
         path.push(prop.valueOf());
       } else if (
@@ -276,7 +287,7 @@ export class Identifier implements Expression {
         throw new InternalKeyError(`can't access property with '${prop}'`);
       }
     }
-    return await context.get(this.root, path);
+    return context.get(this.root, path);
   }
 
   public evaluateSync(context: Context): unknown {
@@ -323,7 +334,11 @@ export class Filter {
 
   public async evalArgs(context: Context): Promise<unknown[]> {
     return Promise.all(
-      this.args.map(async (arg) => await arg.evaluate(context))
+      this.args.map(async (arg) =>
+        arg instanceof Literal
+          ? arg.evaluateSync(context)
+          : await arg.evaluate(context)
+      )
     );
   }
 
@@ -332,7 +347,10 @@ export class Filter {
   ): Promise<{ [index: string]: unknown }> {
     const kwargs: { [index: string]: unknown } = {};
     for (const [key, value] of this.kwargs.entries()) {
-      kwargs[key] = await value.evaluate(context);
+      kwargs[key] =
+        value instanceof Literal
+          ? value.evaluateSync(context)
+          : await value.evaluate(context);
     }
     return kwargs;
   }
@@ -374,7 +392,10 @@ export class FilteredExpression implements Expression {
   }
 
   public async evaluate(context: Context): Promise<unknown> {
-    let result = await this.expression.evaluate(context);
+    let result =
+      this.expression instanceof Literal
+        ? this.expression.evaluateSync(context)
+        : await this.expression.evaluate(context);
     for (const filter of this.filters) {
       const _filter = context.filter(filter.name);
       if (_filter === undefined) {
@@ -444,9 +465,13 @@ export class InfixExpression implements Expression {
 
   public async evaluate(context: Context): Promise<boolean> {
     return compare(
-      await this.left.evaluate(context),
+      this.left instanceof Literal
+        ? this.left.evaluateSync(context)
+        : await this.left.evaluate(context),
       this.operator,
-      await this.right.evaluate(context)
+      this.right instanceof Literal
+        ? this.right.evaluateSync(context)
+        : await this.right.evaluate(context)
     );
   }
 

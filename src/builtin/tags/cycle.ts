@@ -70,7 +70,7 @@ export class CycleNode implements Node {
       : undefined;
 
     const args = await Promise.all(
-      this.args.map(async (arg) => await arg.evaluate(context))
+      this.args.map((arg) => arg.evaluate(context))
     );
 
     this.cycle(context, out, groupName, args);

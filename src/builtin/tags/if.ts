@@ -1,5 +1,5 @@
 import { Environment } from "../../environment";
-import { BlockNode, forcedOutput, Node, walk } from "../../ast";
+import { BlockNode, forcedOutput, Node } from "../../ast";
 import { Tag } from "../../tag";
 import {
   Token,

@@ -1,7 +1,7 @@
-import { BlockNode, forcedOutput, Node, walk } from "../../ast";
+import { BlockNode, forcedOutput, Node } from "../../ast";
 import { Context } from "../../context";
 import { Environment } from "../../environment";
-import { BooleanExpression } from "../../expression";
+import { BooleanExpression, Literal } from "../../expression";
 import { parse } from "../../expressions/boolean/parse";
 import { DefaultOutputStream, RenderStream } from "../../io/output_stream";
 import { Tag } from "../../tag";
@@ -102,7 +102,11 @@ export class CaseNode implements Node {
     let rendered = false;
 
     for (const _when of this.whens) {
-      if (await _when.condition.evaluate(context)) {
+      if (
+        _when.condition instanceof Literal
+          ? _when.condition.evaluateSync(context)
+          : await _when.condition.evaluate(context)
+      ) {
         rendered = true;
         await _when.block.render(context, buf);
       }

@@ -1,7 +1,7 @@
 import { Node } from "../../ast";
 import { Context } from "../../context";
 import { LiquidSyntaxError } from "../../errors";
-import { Expression } from "../../expression";
+import { Expression, Literal } from "../../expression";
 import { ASSIGN_IDENTIFIER_PATTERN } from "../../expressions/common";
 import { parse } from "../../expressions/filtered/parse";
 import { Tag } from "../../tag";
@@ -38,7 +38,12 @@ export class AssignNode implements Node {
   ) {}
 
   public async render(context: Context): Promise<void> {
-    context.assign(this.name, await this.expression.evaluate(context));
+    context.assign(
+      this.name,
+      this.expression instanceof Literal
+        ? this.expression.evaluateSync(context)
+        : await this.expression.evaluate(context)
+    );
   }
 
   public renderSync(context: Context): void {

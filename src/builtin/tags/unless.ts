@@ -1,4 +1,4 @@
-import { BlockNode, forcedOutput, Node, walk } from "../../ast";
+import { BlockNode, forcedOutput, Node } from "../../ast";
 import { Context } from "../../context";
 import { Environment } from "../../environment";
 import { Expression } from "../../expression";

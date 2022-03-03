@@ -13,7 +13,7 @@
     "test": "jest",
     "coverage": "jest --collectCoverage",
     "clean": "rm -rf ./lib ./benchmark/*0x ./benchmark/*log",
-    "benchmark": "npm run build && cd benchmark && node tags.js"
+    "benchmark": "npm run build && cd benchmark && node reference.js"
   },
   "files": [
     "lib/**/*"

@@ -23,7 +23,7 @@ export class TemplateParser implements Parser {
     const root = new Root();
     while (stream.current.kind !== TOKEN_EOF) {
       try {
-        root.statements.push(this.parseStatement(stream));
+        root.nodes.push(this.parseStatement(stream));
       } catch (error) {
         if (error instanceof Error) this.environment.error(error);
         else throw error;
@@ -39,7 +39,7 @@ export class TemplateParser implements Parser {
       stream.current.kind !== TOKEN_EOF &&
       !(stream.current.kind === TOKEN_TAG && end.has(stream.current.value))
     ) {
-      block.statements.push(this.parseStatement(stream));
+      block.nodes.push(this.parseStatement(stream));
       stream.next();
     }
     return block;

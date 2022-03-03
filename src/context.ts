@@ -151,7 +151,7 @@ export class Context {
     name: string,
     loaderContext: { [index: string]: unknown }
   ): Promise<Template> {
-    return await this.environment.getTemplate(name, loaderContext, this);
+    return this.environment.getTemplate(name, loaderContext, this);
   }
 
   /**
