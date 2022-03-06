@@ -1,5 +1,5 @@
 import { Node } from "../../ast";
-import { Context, ContextScope } from "../../context";
+import { RenderContext, ContextScope } from "../../context";
 import { LiquidSyntaxError } from "../../errors";
 import { Expression, Identifier, StringLiteral } from "../../expression";
 import {
@@ -128,7 +128,10 @@ export class RenderNode implements Node {
     readonly args: { [index: string]: Expression } = {}
   ) {}
 
-  public async render(context: Context, out: RenderStream): Promise<void> {
+  public async render(
+    context: RenderContext,
+    out: RenderStream
+  ): Promise<void> {
     const templateName = `${await this.templateName.evaluate(context)}`;
     const template = await context.getTemplate(templateName, { tag: this.tag });
     const scope: ContextScope = {};
@@ -150,7 +153,7 @@ export class RenderNode implements Node {
           bindKey,
           bindValue.values(),
           bindValue.length,
-          context.environment.undefined_("parentloop")
+          context.environment.undefinedFactory("parentloop")
         );
 
         scope.forloop = forloop;
@@ -168,7 +171,7 @@ export class RenderNode implements Node {
     }
   }
 
-  public renderSync(context: Context, out: RenderStream): void {
+  public renderSync(context: RenderContext, out: RenderStream): void {
     const templateName = `${this.templateName.evaluateSync(context)}`;
     const template = context.getTemplateSync(templateName, { tag: this.tag });
     const scope: ContextScope = Object.fromEntries(
@@ -191,7 +194,7 @@ export class RenderNode implements Node {
           bindKey,
           bindValue.values(),
           bindValue.length,
-          context.environment.undefined_("parentloop")
+          context.environment.undefinedFactory("parentloop")
         );
 
         scope.forloop = forloop;

@@ -1,12 +1,12 @@
-import { liquidDispatch, LiquidDispatchable } from "../../drop";
+import { LiquidDispatchableSync, liquidDispatchSync } from "../../drop";
 import { InternalKeyError } from "../../errors";
 
-export class DateDrop implements LiquidDispatchable {
+export class DateDrop implements LiquidDispatchableSync {
   private date: Date;
   constructor(date?: Date) {
     this.date = date === undefined ? new Date() : date;
   }
-  [liquidDispatch](name: string): string {
+  [liquidDispatchSync](name: string): string {
     switch (name) {
       case "now":
         return this.date.toLocaleString();

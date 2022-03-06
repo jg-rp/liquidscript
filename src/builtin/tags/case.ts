@@ -1,5 +1,5 @@
 import { BlockNode, forcedOutput, Node } from "../../ast";
-import { Context } from "../../context";
+import { RenderContext } from "../../context";
 import { Environment } from "../../environment";
 import { BooleanExpression, Literal } from "../../expression";
 import { parse } from "../../expressions/boolean/parse";
@@ -41,7 +41,7 @@ export class CaseTag implements Tag {
   }
 
   public parse(stream: TokenStream, environment: Environment): CaseNode {
-    const parser = environment.getParser();
+    const parser = environment.parser;
     const token = stream.next();
     stream.expect(TOKEN_EXPRESSION);
     const _case = stream.next().value;
@@ -97,7 +97,10 @@ export class CaseNode implements Node {
     this.forceOutput = forcedOutput(this);
   }
 
-  public async render(context: Context, out: RenderStream): Promise<void> {
+  public async render(
+    context: RenderContext,
+    out: RenderStream
+  ): Promise<void> {
     const buf = new DefaultOutputStream();
     let rendered = false;
 
@@ -120,7 +123,7 @@ export class CaseNode implements Node {
     if (this.forceOutput || /\S/.test(buffered)) out.write(buffered);
   }
 
-  public renderSync(context: Context, out: RenderStream): void {
+  public renderSync(context: RenderContext, out: RenderStream): void {
     const buf = new DefaultOutputStream();
     let rendered = false;
 

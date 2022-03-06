@@ -19,9 +19,11 @@
     "Renderable",
     "RPAREN",
     "rstrip",
+    "Stringable",
     "tablerowloop",
     "TAGBLOCK",
     "truncatewords"
   ],
-  "editor.tabSize": 2
+  "editor.tabSize": 2,
+  "jest.showCoverageOnLoad": true
 }

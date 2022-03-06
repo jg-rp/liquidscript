@@ -1,5 +1,5 @@
 import { BlockNode, Node } from "../../ast";
-import { Context, ContextScope } from "../../context";
+import { RenderContext, ContextScope } from "../../context";
 import { Environment } from "../../environment";
 import { InternalTypeError } from "../../errors";
 import { LoopExpression } from "../../expression";
@@ -21,7 +21,6 @@ export class TableRowTag implements Tag {
   readonly end = TAG_ENDTABLEROW;
 
   parse(stream: TokenStream, environment: Environment): TableRowNode {
-    const parser = environment.getParser(); // TODO: inline getParser
     const token = stream.next();
     stream.expect(TOKEN_EXPRESSION);
     const expr = parse(stream.current.value);
@@ -29,7 +28,7 @@ export class TableRowTag implements Tag {
     return new TableRowNode(
       token,
       expr,
-      parser.parseBlock(stream, END_TAGBLOCK)
+      environment.parser.parseBlock(stream, END_TAGBLOCK)
     );
   }
 }
@@ -41,7 +40,10 @@ export class TableRowNode implements Node {
     readonly block: BlockNode
   ) {}
 
-  public async render(context: Context, out: RenderStream): Promise<void> {
+  public async render(
+    context: RenderContext,
+    out: RenderStream
+  ): Promise<void> {
     const name = this.expression.name;
     const [it, length] = await this.expression.evaluate(context);
 
@@ -60,7 +62,7 @@ export class TableRowNode implements Node {
 
     const tablerowloop = new TableRowLoopDrop(name, it, length, cols as number);
     const namespace: ContextScope = { tablerowloop: tablerowloop };
-    context.push(namespace);
+    context.scope.push(namespace);
 
     try {
       out.write('<tr class="row1">\n');
@@ -76,11 +78,11 @@ export class TableRowNode implements Node {
       }
       out.write("</tr>\n");
     } finally {
-      context.pop();
+      context.scope.pop();
     }
   }
 
-  public renderSync(context: Context, out: RenderStream): void {
+  public renderSync(context: RenderContext, out: RenderStream): void {
     const name = this.expression.name;
     const [it, length] = this.expression.evaluateSync(context);
 
@@ -99,7 +101,7 @@ export class TableRowNode implements Node {
 
     const tablerowloop = new TableRowLoopDrop(name, it, length, cols as number);
     const namespace: ContextScope = { tablerowloop: tablerowloop };
-    context.push(namespace);
+    context.scope.push(namespace);
 
     try {
       out.write('<tr class="row1">\n');
@@ -115,7 +117,7 @@ export class TableRowNode implements Node {
       }
       out.write("</tr>\n");
     } finally {
-      context.pop();
+      context.scope.pop();
     }
   }
 

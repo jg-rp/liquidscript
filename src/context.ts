@@ -1,10 +1,23 @@
+import { ForLoopDrop } from "./builtin/drops/forloop";
+import { chainObjects, Missing, ObjectChain } from "./chainObject";
+import {
+  hasLiquidCallable,
+  isLiquidCallable,
+  isLiquidDispatchable,
+  isLiquidDispatchableSync,
+  isLiquidPrimitive,
+  liquidDispatch,
+  liquidDispatchSync,
+  LiquidPrimitive,
+  toLiquidPrimitive,
+} from "./drop";
 import { Environment } from "./environment";
-import { Template } from "./template";
-import { Filter } from "./filter";
 import { InternalKeyError, MaxContextDepthError } from "./errors";
-import { isLiquidPrimitive, LiquidPrimitive, liquidValueOf } from "./drop";
+import { isNumberT } from "./number";
+import { Template } from "./template";
 import {
   isArray,
+  isFunction,
   isIterable,
   isNumber,
   isObject,
@@ -12,86 +25,142 @@ import {
   isPropertyKey,
   isString,
 } from "./types";
-import { chainObjects, Missing, ObjectChain } from "./chainObject";
-import { isNumberT } from "./number";
-import { ForLoopDrop } from "./builtin/drops/forloop";
 
 export type ContextScope = { [index: string]: unknown };
 export type ContextPath = Array<number | string | LiquidPrimitive>;
-export type LoadContext = { [index: string]: string | number };
 
-/**
- *
- */
-export const builtIn = {
-  now: () => new Date(),
-  today: () => new Date(),
+export type RenderContextOptions = {
+  templateName?: string;
+  disabledTags?: Set<string>;
+  copyDepth?: number;
 };
 
 /**
+ * A RenderContext manages template scopes, internal registers and
+ * access to the bound environment during the rendering of a template.
  *
+ * A new RenderContext is created automatically every time `render()`
+ * is called on a `Template`, so you probably don't want to instantiate
+ * it directly.
  */
-export class Context {
-  public autoEscape: boolean;
-  public counters: { [index: string]: number } = {};
-  public ifchanged: string = "";
+export class RenderContext {
+  /**
+   * A distinct scope for counters set using the `increment` and
+   * `decrement` tags.
+   */
+  readonly counters: { [index: string]: number } = {};
+
+  /**
+   * A stack of `ForLoopDrop` objects. Used to populate the `parentloop`
+   * property of a `ForLoopDrop`.
+   */
   readonly forLoops: ForLoopDrop[] = [];
+
+  /**
+   * A register is a Map used by tags and/or filters to store arbitrary
+   * values that are not available to template authors. Use `getRegister()`
+   * to obtain a named register.
+   */
   readonly registers = new Map<
     string | symbol,
     Map<string | symbol, unknown>
   >();
 
+  /**
+   * A namespace for variables set using the `assign` or `capture` tags.
+   */
   private locals: ContextScope = {};
-  private scope: ObjectChain;
 
+  /**
+   * A chain of scopes. When resolving names, each scope in the chain is
+   * searched in order. If a new scope if pushed on to a RenderContext,
+   * it is pushed to the front if this chain.
+   */
+  readonly scope: ObjectChain;
+
+  /**
+   * A set of tag names that are disallowed in this render context. For
+   * example, the `include` tag is not allowed in templates rendered
+   * with the `render` tag.
+   */
+  readonly disabledTags: Set<string>;
+
+  /** The name of the template being rendered. Will be `<string>` for
+   * templates parsed using `Environment.fromString()` without being
+   * given a name.
+   */
+  readonly templateName: string;
+
+  /**
+   * The number of times this render context has been copied or
+   * extended. This helps us guard against recursive use of `include`
+   * or `render` tags.
+   */
+  private copyDepth: number;
+
+  /**
+   *
+   * @param environment - The environment from which this context was created.
+   * @param globals - Global template variables, passed down from the
+   * Environment, Template, Loader and arguments to `.render()`.
+   * @param options - Extra render context options.
+   */
   constructor(
     readonly environment: Environment,
     private globals: ContextScope = {},
-    readonly templateName: string = "<string>",
-    private disabledTags: string[] = [],
-    private copyDepth: number = 0
+    { disabledTags, templateName, copyDepth }: RenderContextOptions = {}
   ) {
-    this.autoEscape = environment.autoEscape;
-
+    this.disabledTags = disabledTags ?? new Set();
+    this.templateName = templateName ?? "<string>";
+    this.copyDepth = copyDepth ?? 0;
+    // Scopes are searched in this order.
     this.scope = chainObjects(
       this.locals,
       this.globals,
-      builtIn,
+      BuiltIn,
       this.counters
     );
   }
 
   /**
-   *
-   * @param key
-   * @param value
+   * Assign or re-assign a template local variable, probably from either the
+   * `assign` or `capture` tags.
+   * @param key - The name of the template local variable.
+   * @param value - The value of the template local variable.
    */
   public assign(key: string, value: unknown): void {
     this.locals[key] = value;
   }
 
   /**
-   *
-   * @param name
-   * @returns
+   * Resolve a template variable by searching the scope chain. Unlike `get`,
+   * `resolve` performs a single, top level search of the scope chain. It
+   * does not expect a dotted or bracketed identifier.
+   * @param name - The name of the template variable to resolve.
+   * @returns The value stored against the given name, or an instance of
+   * the `Missing` class defined on the attached environment.
    */
   public resolve(name: string): unknown {
     const value = this.scope[name];
-    if (value === Missing) return this.environment.undefined_(name);
+    if (value === Missing) return this.environment.undefinedFactory(name);
     return value;
   }
 
   /**
-   *
-   * @param name
-   * @param path
-   * @param default_
-   * @returns
+   * Search the current scope for a template variable and, if found, follow
+   * the given path. This is a bit like resolving a JSONPath expression.
+   * @param name - The name of the template variable to resolve.
+   * @param path - An optional array of path elements to follow.
+   * @param missing - A default value used if the name and path fail to find
+   * a value.
+   * @returns The value at `path`, starting from the given name, or `missing`
+   * otherwise. If `missing` is not given, an instance of the `Undefined`
+   * class defined on the attached environment will be used.
    */
   public async get(
     name: string,
     path?: ContextPath,
-    default_: unknown = Missing
+    missing: unknown = Missing
   ): Promise<unknown> {
     let obj = this.resolve(name);
     if (!path || !path.length) return obj;
@@ -101,8 +170,8 @@ export class Context {
         obj = await getItem(obj, item);
       } catch (error) {
         if (error instanceof InternalKeyError) {
-          if (default_ !== Missing) return default_;
-          return this.environment.undefined_(`${item}`);
+          if (missing !== Missing) return missing;
+          return this.environment.undefinedFactory(`${item}`);
         }
         throw error;
       }
@@ -112,16 +181,13 @@ export class Context {
   }
 
   /**
-   *
-   * @param name
-   * @param path
-   * @param default_
-   * @returns
+   * A synchronous version of `RenderContext.get()`.
+   * @see {@link get}
    */
   public getSync(
     name: string,
     path?: ContextPath,
-    default_: unknown = Missing
+    missing: unknown = Missing
   ): unknown {
     let obj = this.resolve(name);
     if (!path || !path.length) return obj;
@@ -131,8 +197,8 @@ export class Context {
         obj = getItemSync(obj, item);
       } catch (error) {
         if (error instanceof InternalKeyError) {
-          if (default_ !== Missing) return default_;
-          return this.environment.undefined_(`${item}`);
+          if (missing !== Missing) return missing;
+          return this.environment.undefinedFactory(`${item}`);
         }
         throw error;
       }
@@ -142,10 +208,13 @@ export class Context {
   }
 
   /**
-   *
-   * @param name
-   * @param loaderContext
-   * @returns
+   * A convenience method for loading a template from the attached environment.
+   * @param name - The name or identifier of the template to load.
+   * @param loaderContext - Additional, arbitrary data that a loader can use
+   * to scope or otherwise narrow its search space.
+   * @returns A `Template`, ready to be rendered.
+   * @throws `NoSuchTemplateError` if a template with the given name can not
+   * be found.
    */
   public async getTemplate(
     name: string,
@@ -155,10 +224,8 @@ export class Context {
   }
 
   /**
-   *
-   * @param name
-   * @param loaderContext
-   * @returns
+   * A synchronous version of `RenderContext.getTemplate()`.
+   * @see {@link getTemplate}
    */
   public getTemplateSync(
     name: string,
@@ -168,9 +235,12 @@ export class Context {
   }
 
   /**
+   * Fetch a render context register, creating one if it does not exist.
    *
-   * @param key
-   * @returns
+   * A register is a place for tags and/or filters to store arbitrary data,
+   * without leaking said data into the template scope.
+   * @param key - An identifier for the register.
+   * @returns A register.
    */
   public getRegister(key: string | symbol): Map<string | symbol, unknown> {
     let reg = this.registers.get(key);
@@ -182,89 +252,177 @@ export class Context {
   }
 
   /**
-   *
-   * @param name
-   * @returns
+   * Create a new context by copying this one, without any local variables and
+   * registers, and extending the copy with the given scope.
+   * @param scope - A scope with which to extend the current context.
+   * @param disabledTags - The names of any tags that should be disallowed in
+   * the new context.
+   * @returns An extended copy of this context.
    */
-  public filter(name: string): Filter | undefined {
-    return this.environment.filters[name];
-  }
-
-  /**
-   *
-   * @param scope
-   */
-  public push(scope: ContextScope): void {
-    this.scope.push(scope);
-  }
-
-  /**
-   *
-   * @returns
-   */
-  public pop(): object | undefined {
-    return this.scope.pop();
-  }
-
-  /**
-   *
-   * @param scope
-   * @param disabledTags
-   * @returns
-   */
-  public copy(scope: ContextScope, disabledTags: string[]): Context {
+  public copy(
+    scope: ContextScope,
+    disabledTags: Iterable<string>
+  ): RenderContext {
     if (this.copyDepth > this.environment.maxContextDepth)
       throw new MaxContextDepthError(
         "maximum context depth reached, possible recursive render"
       );
 
-    return new Context(
+    return new RenderContext(
       this.environment,
       chainObjects(scope, this.globals),
-      this.templateName,
-      disabledTags,
-      this.copyDepth + 1
+      {
+        templateName: this.templateName,
+        disabledTags: new Set(disabledTags),
+        copyDepth: this.copyDepth + 1,
+      }
     );
   }
 }
 
 /**
- *
- * @param obj
- * @param item
- * @returns
+ * Get a property of an object while adhering to Liquid semantics.
+ * @param obj - An object that may or may not implement some of the Drop
+ * protocol.
+ * @param item - The item to get from the object.
+ * @returns An unknown value.
+ * @throws InternalKeyError if the item does not exist on the object or
+ * is not allowed in Liquid.
  */
-function getItemSync(obj: unknown, item: unknown): unknown {
+export function getItemSync(obj: unknown, item: unknown): unknown {
   if (obj === null) throw new InternalKeyError(`can't get property of null`);
   if (item === null) throw new InternalKeyError(`can't read null property`);
 
-  if (isLiquidPrimitive(item)) item = item[liquidValueOf]();
+  // `toLiquidPrimitive` is part of the Drop protocol. If defined, an
+  // object can be used as an array index, or compared to to a boolean,
+  // for example.
+  if (isLiquidPrimitive(item)) item = item[toLiquidPrimitive]();
+
   if (!isPropertyKey(item))
     throw new InternalKeyError(`${item} is not a valid property key`);
 
-  // TODO: Drop protocol item getter
-
+  // Special, built-in properties.
   if (item === "size") return getSize(obj);
-  else if (item === "first") return getFirst(obj);
-  else if (item === "last") return getLast(obj);
-  else if (isArray(obj) && isNumber(item)) {
-    if (item < 0) return obj[item + obj.length];
-    return obj[item];
-  } else if (typeof obj === "object" && item in obj)
-    return Reflect.get(obj, item);
+  if (item === "first") return getFirst(obj);
+  if (item === "last") return getLast(obj);
+
+  // Access arrays using positive or negative integers, or enumerable
+  // properties set on array sub classes.
+  if (isArray(obj)) {
+    // Integers are OK
+    if (isNumber(item) && item < 0) {
+      return obj[item + obj.length];
+    }
+
+    // .length is not OK
+    if (Object.propertyIsEnumerable.call(obj, item)) {
+      return Reflect.get(obj, item);
+    }
+
+    throw new InternalKeyError(
+      `can't read non-enumerable property '${String(item)}' of Array`
+    );
+  }
+
+  if (typeof obj === "object") {
+    if (item === "__proto__" || item === "constructor") {
+      throw new InternalKeyError(`can't access property '${item}'`);
+    }
+
+    if (item in obj) {
+      const result = obj[item as keyof typeof obj] as unknown;
+      // Functions will only be called if they are explicitly whitelisted.
+      if (isFunction(result)) {
+        // `liquidCallable` is part of the Drop protocol. If defined it
+        // should return `true` if the given function name is allowed
+        // to be called.
+        if (hasLiquidCallable(obj) && obj[isLiquidCallable](item))
+          return Reflect.apply(result, obj, []);
+
+        // Pretend the function does not exist.
+        throw new InternalKeyError(
+          `function '${String(item)}' is not liquid callable`
+        );
+      }
+      return result;
+    } else if (isLiquidDispatchableSync(obj)) {
+      return obj[liquidDispatchSync](item);
+    }
+  }
 
   throw new InternalKeyError(`${obj}[${String(item)}]`);
 }
 
+// TODO: Refactor to avoid duplicated code. The only difference between
+// getItem and getItemSync is the calls to liquidDispatch and liquidDispatchSync.
+
 /**
- *
- * @param obj
- * @param item
- * @returns
+ * An asynchronous version of `getItemSync()`.
  */
 async function getItem(obj: unknown, item: unknown): Promise<unknown> {
-  // TODO: getItem with async drop protocol
-  return getItemSync(obj, item);
+  if (obj === null) throw new InternalKeyError(`can't get property of null`);
+  if (item === null) throw new InternalKeyError(`can't read null property`);
+
+  // `toLiquidPrimitive` is part of the Drop protocol. If defined, an
+  // object can be used as an array index, or compared to to a boolean,
+  // for example.
+  if (isLiquidPrimitive(item)) item = item[toLiquidPrimitive]();
+
+  if (!isPropertyKey(item))
+    throw new InternalKeyError(`${item} is not a valid property key`);
+
+  // Special, built-in properties.
+  if (item === "size") return getSize(obj);
+  if (item === "first") return getFirst(obj);
+  if (item === "last") return getLast(obj);
+
+  // Access arrays using positive or negative integers, or enumerable
+  // properties set on array sub classes.
+  if (isArray(obj)) {
+    // Integers are OK
+    if (isNumber(item) && item < 0) {
+      return obj[item + obj.length];
+    }
+
+    // .length is not OK
+    if (Object.propertyIsEnumerable.call(obj, item)) {
+      return Reflect.get(obj, item);
+    }
+
+    throw new InternalKeyError(
+      `can't read non-enumerable property '${String(item)}' of Array`
+    );
+  }
+
+  if (typeof obj === "object") {
+    if (item === "__proto__" || item === "constructor") {
+      throw new InternalKeyError(`can't access property '${item}'`);
+    }
+
+    if (item in obj) {
+      const result = obj[item as keyof typeof obj] as unknown;
+      // Functions will only be called if they are explicitly whitelisted.
+      if (isFunction(result)) {
+        // `liquidCallable` is part of the Drop protocol. If defined it
+        // should return `true` if the given function name is allowed
+        // to be called.
+        if (hasLiquidCallable(obj) && obj[isLiquidCallable](item))
+          return Reflect.apply(result, obj, []);
+
+        // Pretend the function does not exist.
+        throw new InternalKeyError(
+          `function '${String(item)}' is not liquid callable`
+        );
+      }
+      return result;
+    } else if (isLiquidDispatchable(obj)) {
+      return obj[liquidDispatch](item);
+    } else if (isLiquidDispatchableSync(obj)) {
+      return obj[liquidDispatchSync](item);
+    }
+  }
+
+  throw new InternalKeyError(`${obj}[${String(item)}]`);
 }
 
 function getSize(obj: unknown): number {
@@ -307,3 +465,11 @@ function getLast(obj: unknown): unknown {
   if (isArray(obj)) return obj[obj.length - 1];
   return null;
 }
+
+/**
+ * An object implementing the special, built-in `now` and `today` objects.
+ */
+export const BuiltIn = {
+  now: () => new Date(),
+  today: () => new Date(),
+};

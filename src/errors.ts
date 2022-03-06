@@ -3,6 +3,9 @@ import { Token } from "./token";
 // We're manually setting the prototype for each error subclass. See
 // https://github.com/Microsoft/TypeScript-wiki/blob/main/Breaking-Changes.md#extending-built-ins-like-error-array-and-map-may-no-longer-work
 
+/**
+ * The base class for all user-facing Liquid errors.
+ */
 export class LiquidError extends Error {
   constructor(public message: string, token: Token, templateName?: string) {
     super(message);
@@ -15,8 +18,9 @@ export class LiquidError extends Error {
   }
 }
 
-// TODO: review error names
-
+/**
+ * An error thrown when a template syntax error is found.
+ */
 export class LiquidSyntaxError extends LiquidError {
   constructor(public message: string, token: Token) {
     super(message, token);
@@ -24,6 +28,9 @@ export class LiquidSyntaxError extends LiquidError {
   }
 }
 
+/**
+ * An error thrown when a tag or filter are given an argument of an unacceptable type.
+ */
 export class LiquidTypeError extends LiquidError {
   constructor(public message: string, token: Token, templateName?: string) {
     super(message, token);
@@ -37,6 +44,9 @@ export class LiquidTypeError extends LiquidError {
   }
 }
 
+/**
+ * An error thrown when there's a problem with a filter's left value.
+ */
 export class LiquidFilterValueError extends LiquidError {
   constructor(public message: string, token: Token, templateName?: string) {
     super(message, token, templateName);
@@ -49,6 +59,9 @@ export class LiquidFilterValueError extends LiquidError {
   }
 }
 
+/**
+ * An error thrown when there's a problem with one or more filter arguments.
+ */
 export class LiquidFilterArgumentError extends LiquidError {
   constructor(public message: string, token: Token, templateName?: string) {
     super(message, token, templateName);
@@ -61,32 +74,58 @@ export class LiquidFilterArgumentError extends LiquidError {
   }
 }
 
+/**
+ * An error thrown when a template contains an unregistered tag.
+ */
 export class NoSuchTagError extends LiquidError {
-  constructor(public message: string, token: Token) {
+  constructor(public message: string, token: Token, templateName?: string) {
     super(message, token);
     Object.setPrototypeOf(this, NoSuchTagError.prototype);
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, NoSuchTagError);
+    }
+    this.name = "NoSuchTagError";
+    this.message = _message(message, token, templateName);
   }
 }
 
+/**
+ * An error thrown when a template uses an unregistered filter.
+ */
 export class NoSuchFilterError extends LiquidError {
-  constructor(public message: string, token: Token) {
+  constructor(public message: string, token: Token, templateName?: string) {
     super(message, token);
     Object.setPrototypeOf(this, NoSuchFilterError.prototype);
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, NoSuchFilterError);
+    }
+    this.name = "NoSuchFilterError";
+    this.message = _message(message, token, templateName);
   }
 }
 
+/**
+ * An error thrown when a render context is copied or extended too many times.
+ */
 export class ContextDepthError extends LiquidError {
-  constructor(public message: string, token: Token) {
+  constructor(public message: string, token: Token, templateName?: string) {
     super(message, token);
     Object.setPrototypeOf(this, ContextDepthError.prototype);
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, ContextDepthError);
+    }
+    this.name = "ContextDepthError";
+    this.message = _message(message, token, templateName);
   }
 }
 
+/**
+ * An error thrown by the {@link StrictUndefined} class.
+ */
 export class LiquidUndefinedError extends LiquidError {
   constructor(public message: string, token: Token, templateName?: string) {
     super(message, token);
     Object.setPrototypeOf(this, LiquidUndefinedError.prototype);
-
     if (Error.captureStackTrace) {
       Error.captureStackTrace(this, LiquidUndefinedError);
     }
@@ -95,27 +134,54 @@ export class LiquidUndefinedError extends LiquidError {
   }
 }
 
+/**
+ * An error thrown when a template loader can not locate a template.
+ */
 export class NoSuchTemplateError extends LiquidError {
-  constructor(public message: string, token: Token) {
+  constructor(public message: string, token: Token, templateName?: string) {
     super(message, token);
     Object.setPrototypeOf(this, NoSuchTemplateError.prototype);
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, NoSuchTemplateError);
+    }
+    this.name = "NoSuchTemplateError";
+    this.message = _message(message, token, templateName);
   }
 }
 
+/**
+ * An error thrown when a `break` tag appears outside an `if` tag.
+ */
 export class OrphanedBreakTagError extends LiquidError {
-  constructor(public message: string, token: Token) {
+  constructor(public message: string, token: Token, templateName?: string) {
     super(message, token);
     Object.setPrototypeOf(this, OrphanedBreakTagError.prototype);
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, OrphanedBreakTagError);
+    }
+    this.name = "OrphanedBreakTagError";
+    this.message = _message(message, token, templateName);
   }
 }
 
+/**
+ * An error thrown when a `continue` tag appears outside an `if` tag.
+ */
 export class OrphanedContinueTagError extends LiquidError {
-  constructor(public message: string, token: Token) {
+  constructor(public message: string, token: Token, templateName?: string) {
     super(message, token);
     Object.setPrototypeOf(this, OrphanedContinueTagError.prototype);
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, OrphanedContinueTagError);
+    }
+    this.name = "OrphanedContinueTagError";
+    this.message = _message(message, token, templateName);
   }
 }
 
+/**
+ * The base class for all internal Liquid errors.
+ */
 export abstract class InternalLiquidError extends Error {
   constructor(public message: string) {
     super(message);
@@ -125,6 +191,9 @@ export abstract class InternalLiquidError extends Error {
   abstract withToken(token: Token, templateName?: string): LiquidError;
 }
 
+/**
+ * An error thrown when someone tries to set a property on an {@link ObjectChain}.
+ */
 export class ReadOnlyObjectChainError extends InternalLiquidError {
   constructor(public message: string) {
     super(message);
@@ -136,6 +205,9 @@ export class ReadOnlyObjectChainError extends InternalLiquidError {
   }
 }
 
+/**
+ * An error thrown when a render context can not resolve a variable name and path.
+ */
 export class InternalKeyError extends InternalLiquidError {
   constructor(public message: string) {
     super(message);
@@ -147,6 +219,19 @@ export class InternalKeyError extends InternalLiquidError {
   }
 }
 
+/**
+ * An error thrown by a Liquid {@link Drop} dispatch method if a name does not exist.
+ */
+export class LiquidKeyError extends InternalKeyError {
+  constructor(public message: string) {
+    super(message);
+    Object.setPrototypeOf(this, LiquidKeyError.prototype);
+  }
+}
+
+/**
+ * An error thrown by the {@link StrictUndefined} type.
+ */
 export class InternalUndefinedError extends InternalLiquidError {
   constructor(public message: string) {
     super(message);
@@ -158,6 +243,9 @@ export class InternalUndefinedError extends InternalLiquidError {
   }
 }
 
+/**
+ * An error thrown when a render context is copied or extended too many times.
+ */
 export class MaxContextDepthError extends InternalLiquidError {
   constructor(public message: string) {
     super(message);
@@ -165,10 +253,13 @@ export class MaxContextDepthError extends InternalLiquidError {
   }
 
   public withToken(token: Token, templateName?: string): LiquidError {
-    return new ContextDepthError(this.message, token);
+    return new ContextDepthError(this.message, token, templateName);
   }
 }
 
+/**
+ * An error thrown when a template loader can not locate a template.
+ */
 export class TemplateNotFoundError extends InternalLiquidError {
   constructor(public message: string) {
     super(message);
@@ -176,10 +267,14 @@ export class TemplateNotFoundError extends InternalLiquidError {
   }
 
   public withToken(token: Token, templateName?: string): LiquidError {
-    return new NoSuchTemplateError(this.message, token);
+    return new NoSuchTemplateError(this.message, token, templateName);
   }
 }
 
+/**
+ * An error thrown by an {@link ExpressionTokenStream} if too many tokens are
+ * pushed back onto the stream.
+ */
 export class PushedTooFarError extends InternalLiquidError {
   constructor(public message: string) {
     super(message);
@@ -187,10 +282,13 @@ export class PushedTooFarError extends InternalLiquidError {
   }
 
   public withToken(token: Token, templateName?: string): LiquidError {
-    return new LiquidError(this.message, token);
+    return new LiquidError(this.message, token, templateName);
   }
 }
 
+/**
+ * An error thrown when a template uses an unregistered filter.
+ */
 export class FilterNotFoundError extends InternalLiquidError {
   constructor(public message: string) {
     super(message);
@@ -198,10 +296,13 @@ export class FilterNotFoundError extends InternalLiquidError {
   }
 
   public withToken(token: Token, templateName?: string): LiquidError {
-    return new NoSuchFilterError(this.message, token);
+    return new NoSuchFilterError(this.message, token, templateName);
   }
 }
 
+/**
+ * An error thrown when there's a problem with a filter's left value.
+ */
 export class FilterValueError extends InternalLiquidError {
   constructor(public message: string) {
     super(message);
@@ -213,6 +314,9 @@ export class FilterValueError extends InternalLiquidError {
   }
 }
 
+/**
+ * An error thrown when there's a problem with one or more filter arguments.
+ */
 export class FilterArgumentError extends InternalLiquidError {
   constructor(public message: string) {
     super(message);
@@ -224,6 +328,9 @@ export class FilterArgumentError extends InternalLiquidError {
   }
 }
 
+/**
+ * An error thrown when a tag or filter are given an argument of an unacceptable type.
+ */
 export class InternalTypeError extends InternalLiquidError {
   constructor(public message: string) {
     super(message);
@@ -242,6 +349,9 @@ export abstract class LiquidInterrupt extends Error {
   }
 }
 
+/**
+ * An error thrown to indicate a Liquid for loop should be broken.
+ */
 export class BreakIteration extends LiquidInterrupt {
   constructor(public message: string) {
     super(message);
@@ -249,17 +359,20 @@ export class BreakIteration extends LiquidInterrupt {
   }
 
   public withToken(token: Token, templateName?: string): LiquidError {
-    return new OrphanedBreakTagError(this.message, token);
+    return new OrphanedBreakTagError(this.message, token, templateName);
   }
 }
 
+/**
+ * An error thrown to indicate a Liquid for loop should continue to the next iteration.
+ */
 export class ContinueIteration extends LiquidInterrupt {
   constructor(public message: string) {
     super(message);
     Object.setPrototypeOf(this, ContinueIteration.prototype);
   }
   public withToken(token: Token, templateName?: string): LiquidError {
-    return new OrphanedContinueTagError(this.message, token);
+    return new OrphanedContinueTagError(this.message, token, templateName);
   }
 }
 

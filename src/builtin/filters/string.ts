@@ -1,6 +1,6 @@
 import { FilterArgumentError } from "../../errors";
 import { checkArguments, FilterContext } from "../../filter";
-import { isUndefined, toLiquidString } from "../../types";
+import { isUndefined, liquidStringify } from "../../types";
 import { escape as escapeHTML, unescape } from "../../html";
 
 // TODO: Implement Markup string wrapper
@@ -19,7 +19,7 @@ export function append(
   other: unknown
 ): string {
   checkArguments(arguments.length, 1, 1);
-  return toLiquidString(left) + toLiquidString(other);
+  return liquidStringify(left) + liquidStringify(other);
 }
 
 // TODO: base64 filters
@@ -55,7 +55,7 @@ export function base64UrlSafeDecode(
 export function capitalize(this: FilterContext, left: unknown): string {
   checkArguments(arguments.length, 0);
   // TODO: read locale from context.
-  const s = toLiquidString(left);
+  const s = liquidStringify(left);
   return s.charAt(0).toLocaleUpperCase() + s.slice(1).toLocaleLowerCase();
 }
 
@@ -68,7 +68,7 @@ export function capitalize(this: FilterContext, left: unknown): string {
 export function downcase(this: FilterContext, left: unknown): string {
   checkArguments(arguments.length, 0);
   // TODO: read locale from context.
-  return toLiquidString(left).toLocaleLowerCase();
+  return liquidStringify(left).toLocaleLowerCase();
 }
 
 /**
@@ -79,7 +79,7 @@ export function downcase(this: FilterContext, left: unknown): string {
  */
 export function escape(this: FilterContext, left: unknown): string {
   checkArguments(arguments.length, 0);
-  return escapeHTML(toLiquidString(left));
+  return escapeHTML(liquidStringify(left));
 }
 
 /**
@@ -90,7 +90,7 @@ export function escape(this: FilterContext, left: unknown): string {
  */
 export function escapeOnce(this: FilterContext, left: unknown): string {
   checkArguments(arguments.length, 0);
-  return escapeHTML(unescape(toLiquidString(left)));
+  return escapeHTML(unescape(liquidStringify(left)));
 }
 
 /**
@@ -101,7 +101,7 @@ export function escapeOnce(this: FilterContext, left: unknown): string {
  */
 export function lstrip(this: FilterContext, left: unknown): string {
   checkArguments(arguments.length, 0);
-  return toLiquidString(left).trimStart();
+  return liquidStringify(left).trimStart();
 }
 
 /**
@@ -112,7 +112,7 @@ export function lstrip(this: FilterContext, left: unknown): string {
  */
 export function newlineToBr(this: FilterContext, left: unknown): string {
   checkArguments(arguments.length, 0);
-  return toLiquidString(left).replace(/\r?\n/g, "<br />\n");
+  return liquidStringify(left).replace(/\r?\n/g, "<br />\n");
 }
 
 /**
@@ -128,7 +128,7 @@ export function prepend(
   arg: unknown
 ): string {
   checkArguments(arguments.length, 1, 1);
-  return toLiquidString(arg) + toLiquidString(left);
+  return liquidStringify(arg) + liquidStringify(left);
 }
 
 /**
@@ -144,7 +144,10 @@ export function remove(
   arg: unknown
 ): string {
   checkArguments(arguments.length, 1, 1);
-  return toLiquidString(left).replace(new RegExp(toLiquidString(arg), "g"), "");
+  return liquidStringify(left).replace(
+    new RegExp(liquidStringify(arg), "g"),
+    ""
+  );
 }
 
 /**
@@ -160,7 +163,7 @@ export function removeFirst(
   arg: unknown
 ): string {
   checkArguments(arguments.length, 1, 1);
-  return toLiquidString(left).replace(toLiquidString(arg), "");
+  return liquidStringify(left).replace(liquidStringify(arg), "");
 }
 
 /**
@@ -178,9 +181,9 @@ export function replace(
   newSubString?: unknown
 ): string {
   checkArguments(arguments.length, 2, 1);
-  return toLiquidString(left).replace(
-    new RegExp(toLiquidString(subString), "g"),
-    toLiquidString(newSubString)
+  return liquidStringify(left).replace(
+    new RegExp(liquidStringify(subString), "g"),
+    liquidStringify(newSubString)
   );
 }
 
@@ -199,9 +202,9 @@ export function replaceFirst(
   newSubString?: unknown
 ): string {
   checkArguments(arguments.length, 2, 1);
-  return toLiquidString(left).replace(
-    toLiquidString(subString),
-    toLiquidString(newSubString)
+  return liquidStringify(left).replace(
+    liquidStringify(subString),
+    liquidStringify(newSubString)
   );
 }
 
@@ -214,7 +217,7 @@ export function replaceFirst(
 export function upcase(this: FilterContext, left: unknown): string {
   checkArguments(arguments.length, 0);
   // TODO: read locale from context.
-  return toLiquidString(left).toLocaleUpperCase();
+  return liquidStringify(left).toLocaleUpperCase();
 }
 
 /**
@@ -230,7 +233,7 @@ export function split(
   subString: unknown
 ): string[] {
   checkArguments(arguments.length, 1, 1);
-  return toLiquidString(left).split(toLiquidString(subString));
+  return liquidStringify(left).split(liquidStringify(subString));
 }
 
 /**
@@ -241,7 +244,7 @@ export function split(
  */
 export function strip(this: FilterContext, left: unknown): string {
   checkArguments(arguments.length, 0);
-  return toLiquidString(left).trim();
+  return liquidStringify(left).trim();
 }
 
 /**
@@ -252,7 +255,7 @@ export function strip(this: FilterContext, left: unknown): string {
  */
 export function rstrip(this: FilterContext, left: unknown): string {
   checkArguments(arguments.length, 0);
-  return toLiquidString(left).trimEnd();
+  return liquidStringify(left).trimEnd();
 }
 
 // We're aiming for consistency with the reference implementation here,
@@ -272,7 +275,7 @@ const STRIP_HTML_TAGS = new RegExp("<.*?>", "gs");
  */
 export function stripHtml(this: FilterContext, left: unknown): string {
   checkArguments(arguments.length, 0);
-  return toLiquidString(left)
+  return liquidStringify(left)
     .replace(STRIP_HTML_BLOCKS, "")
     .replace(STRIP_HTML_TAGS, "");
 }
@@ -285,7 +288,7 @@ export function stripHtml(this: FilterContext, left: unknown): string {
  */
 export function stripNewlines(this: FilterContext, left: unknown): string {
   checkArguments(arguments.length, 0);
-  return toLiquidString(left).replace(/\r?\n/g, "");
+  return liquidStringify(left).replace(/\r?\n/g, "");
 }
 
 /**
@@ -303,7 +306,7 @@ export function truncate(
   end: unknown = "..."
 ): string {
   checkArguments(arguments.length, 2);
-  const _left = toLiquidString(left);
+  const _left = liquidStringify(left);
   const _length = Number(length);
   if (isUndefined(length) || !Number.isInteger(_length))
     throw new FilterArgumentError(
@@ -312,7 +315,7 @@ export function truncate(
 
   if (_left.length <= _length) return _left;
 
-  const _end = toLiquidString(end);
+  const _end = liquidStringify(end);
   const stop = _length - _end.length < 0 ? 0 : _length - _end.length;
   return `${_left.slice(0, stop)}${_end}`;
 }
@@ -334,7 +337,7 @@ export function truncateWords(
   end: unknown = "..."
 ): string {
   checkArguments(arguments.length, 2);
-  const _left = toLiquidString(left);
+  const _left = liquidStringify(left);
   let _wordCount = Number(wordCount);
   if (isUndefined(wordCount) || !Number.isInteger(_wordCount))
     throw new FilterArgumentError(
@@ -347,7 +350,7 @@ export function truncateWords(
       `integer ${wordCount} too big for truncatewords`
     );
 
-  const _end = toLiquidString(end);
+  const _end = liquidStringify(end);
   const words = _left.split(/\s+/g);
 
   if (words.length <= _wordCount) return _left;
@@ -373,7 +376,7 @@ function fixedEncodeURIComponent(s: string): string {
  */
 export function urlEncode(this: FilterContext, left: unknown): string {
   checkArguments(arguments.length, 0);
-  return fixedEncodeURIComponent(toLiquidString(left)).replace(/%20/g, "+");
+  return fixedEncodeURIComponent(liquidStringify(left)).replace(/%20/g, "+");
 }
 
 /**
@@ -384,5 +387,5 @@ export function urlEncode(this: FilterContext, left: unknown): string {
  */
 export function urlDecode(this: FilterContext, left: unknown): string {
   checkArguments(arguments.length, 0);
-  return decodeURIComponent(toLiquidString(left).replace(/\+/g, " "));
+  return decodeURIComponent(liquidStringify(left).replace(/\+/g, " "));
 }

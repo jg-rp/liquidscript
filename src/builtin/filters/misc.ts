@@ -1,6 +1,6 @@
 import { DateTime } from "luxon";
 import { DefaultMap } from "../../collections";
-import { isLiquidPrimitive, liquidValueOf } from "../../drop";
+import { isLiquidPrimitive, toLiquidPrimitive } from "../../drop";
 import { FilterArgumentError } from "../../errors";
 import { EMPTY } from "../../expression";
 import { checkArguments, FilterContext } from "../../filter";
@@ -10,7 +10,7 @@ import {
   isObject,
   isString,
   isUndefined,
-  toLiquidString,
+  liquidStringify,
 } from "../../types";
 
 /**
@@ -42,7 +42,7 @@ export function default_(
   _default: unknown = ""
 ): unknown {
   checkArguments(arguments.length, 1);
-  const _left = isLiquidPrimitive(left) ? left[liquidValueOf]() : left;
+  const _left = isLiquidPrimitive(left) ? left[toLiquidPrimitive]() : left;
   if (isLiquidTruthy(this.options["allow_false"]) && _left === false)
     return left;
   if (!isLiquidTruthy(_left) || EMPTY.equals(_left)) return _default;
@@ -115,7 +115,6 @@ export function date(
 
   let _date: DateTime;
 
-  // TODO: Drop protocol?
   // TODO: Parse date numbers
 
   if (isString(left)) {
@@ -164,7 +163,7 @@ export function slice(
     );
 
   // Arrays and strings only.
-  const _left = isArray(left) ? left : toLiquidString(left);
+  const _left = isArray(left) ? left : liquidStringify(left);
   const start = _offset < 0 ? _left.length + _offset : _offset;
   return _left.slice(start, start + _length);
 }

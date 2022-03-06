@@ -1,58 +1,110 @@
-import { ContextScope, Context } from "./context";
-import { Environment } from "./environment";
 import { Node, Root } from "./ast";
-import { DefaultOutputStream, RenderStream } from "./io/output_stream";
+import { LiteralNode } from "./builtin/tags/literal";
+import { chainObjects } from "./chainObject";
+import { ContextScope, RenderContext } from "./context";
+import { Environment, EnvironmentOptions } from "./environment";
 import {
   InternalLiquidError,
   LiquidError,
   LiquidInterrupt,
   LiquidSyntaxError,
 } from "./errors";
-import { chainObjects } from "./chainObject";
-import { LiteralNode } from "./builtin/tags/literal";
+import { DefaultOutputStream, RenderStream } from "./io/output_stream";
 
-// TODO: upToDate
-
+/**
+ * A Liquid template that has been parsed and is bound to an environment,
+ * ready to be rendered. Rather than constructing a template directly, you
+ * should use `Template.fromString()`, `Environment.fromString()` or
+ * `Environment.getTemplate()`.
+ */
 export class Template {
-  private environment: Environment;
+  readonly environment: Environment;
   readonly tree: Root;
   readonly name: string;
   readonly globals: ContextScope;
   readonly matter: ContextScope;
+  readonly isUpToDate: () => Promise<boolean>;
+  readonly isUpToDateSync: () => boolean;
 
+  /**
+   * Parse a Liquid template, automatically creating an environment to
+   * bind it to.
+   * @param source - The Liquid template source code.
+   * @param options - Options to set on the implicit environment.
+   * @returns A new template, bound to an implicit environment.
+   */
+  static fromString(
+    source: string,
+    options: EnvironmentOptions = {}
+  ): Template {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { globals, loader, ...opts } = options;
+    return Environment.getImplicitEnvironment(opts).fromString(
+      source,
+      "<string>",
+      globals
+    );
+  }
+
+  /**
+   * Template constructor.Rather than constructing a template directly, you
+   * should use `Template.fromString()`, `Environment.fromString()` or
+   * `Environment.getTemplate()`.
+   * @param environment - The environment this template is bound to.
+   * @param tree - The root of the abstract syntax tree representing this
+   * template.
+   * @param name - A name or identifier for this template.
+   * @param globals - An optional object who's properties will be added
+   * to the render context every time this template is rendered.
+   * @param matter - Extra globals, usually added by a template loader.
+   * @param upToDate - A function that will return `true` if this template is
+   * up to date, or `false` if it needs to loaded again.
+   * @param upToDateSync - A synchronous version of `upToDate`.
+   */
   constructor(
     environment: Environment,
     tree: Root,
     name: string,
     globals?: ContextScope,
-    matter?: ContextScope
+    matter?: ContextScope,
+    upToDate?: () => Promise<boolean>,
+    upToDateSync?: () => boolean
   ) {
     this.environment = environment;
     this.tree = tree;
     this.name = name;
     this.globals = globals === undefined ? {} : globals;
     this.matter = matter === undefined ? {} : matter;
+    this.isUpToDate = upToDate ?? (async () => true);
+    this.isUpToDateSync = upToDateSync ?? (() => true);
   }
 
-  // TODO: Move current constructor to a factory function and make the
-  // constructor equivalent to `fromString`.
-
+  /**
+   * Render the template.
+   * @param globals - An optional object who's properties will be added
+   * to the render context,
+   * @returns The rendered template.
+   */
   public async render(globals: ContextScope = {}): Promise<string> {
-    const context = new Context(
+    const context = new RenderContext(
       this.environment,
       this.makeGlobals(globals),
-      this.name
+      { templateName: this.name }
     );
     const outputStream = new DefaultOutputStream();
     await this.renderWithContext(context, outputStream);
     return outputStream.toString();
   }
 
+  /**
+   * A synchronous version of `render`.
+   * @see {@link render}
+   */
   public renderSync(globals: ContextScope = {}): string {
-    const context = new Context(
+    const context = new RenderContext(
       this.environment,
       this.makeGlobals(globals),
-      this.name
+      { templateName: this.name }
     );
     const outputStream = new DefaultOutputStream();
     this.renderWithContextSync(context, outputStream);
@@ -82,8 +134,12 @@ export class Template {
     }
   }
 
+  /**
+   * Render a template given an existing render context and output stream.
+   * This is used by the built-in `include` and `render` tags.
+   */
   public async renderWithContext(
-    context: Context,
+    context: RenderContext,
     outputStream: RenderStream,
     blockScope: boolean = false,
     partial: boolean = false
@@ -101,8 +157,12 @@ export class Template {
     }
   }
 
+  /**
+   * A synchronous version of `renderWithContext`.
+   * @see {@link renderWithContext}
+   */
   public renderWithContextSync(
-    context: Context,
+    context: RenderContext,
     outputStream: RenderStream,
     blockScope: boolean = false,
     partial: boolean = false
@@ -116,6 +176,9 @@ export class Template {
     }
   }
 
+  /**
+   * Override this to change global template scope priorities.
+   */
   protected makeGlobals(templateGlobals: ContextScope): ContextScope {
     return chainObjects(templateGlobals, this.matter, this.globals);
   }

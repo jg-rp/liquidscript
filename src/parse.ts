@@ -55,7 +55,6 @@ export class TemplateParser implements Parser {
     let node: Node;
     switch (stream.current.kind) {
       case TOKEN_STATEMENT:
-        // TODO: change "statement" to a symbol
         node = this.environment.tags["statement"].parse(
           stream,
           this.environment
@@ -65,7 +64,6 @@ export class TemplateParser implements Parser {
         node = this.getTag(stream.current).parse(stream, this.environment);
         break;
       case TOKEN_LITERAL:
-        // TODO: change "literal" to a symbol
         node = this.environment.tags["literal"].parse(stream, this.environment);
         break;
       default:

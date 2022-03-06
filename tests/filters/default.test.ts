@@ -1,12 +1,12 @@
 import { default_ } from "../../src/builtin/filters/misc";
-import { Context } from "../../src/context";
+import { RenderContext } from "../../src/context";
 import { Environment } from "../../src/environment";
 import { EMPTY, FALSE, NIL, TRUE } from "../../src/expression";
 import { FilterContext } from "../../src/filter";
 
 describe("default filter", () => {
   const env = new Environment({});
-  const ctx = new Context(
+  const ctx = new RenderContext(
     env,
     Object.fromEntries([
       ["a", true],

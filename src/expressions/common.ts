@@ -231,9 +231,3 @@ export function makeParseRange(
   }
   return _parseRangeLiteral;
 }
-
-// TODO: Write tests parseRange
-// TODO: Write tests parseStringOrIdent
-// TODO: Write tests parseUnchained
-// TS docs
-// date parsing dependency

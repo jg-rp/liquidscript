@@ -1,5 +1,5 @@
 import { Node } from "../../ast";
-import { Context } from "../../context";
+import { RenderContext } from "../../context";
 import { LiquidSyntaxError } from "../../errors";
 import { Expression, Literal } from "../../expression";
 import { ASSIGN_IDENTIFIER_PATTERN } from "../../expressions/common";
@@ -37,7 +37,7 @@ export class AssignNode implements Node {
     readonly expression: Expression
   ) {}
 
-  public async render(context: Context): Promise<void> {
+  public async render(context: RenderContext): Promise<void> {
     context.assign(
       this.name,
       this.expression instanceof Literal
@@ -46,7 +46,7 @@ export class AssignNode implements Node {
     );
   }
 
-  public renderSync(context: Context): void {
+  public renderSync(context: RenderContext): void {
     context.assign(this.name, this.expression.evaluateSync(context));
   }
 

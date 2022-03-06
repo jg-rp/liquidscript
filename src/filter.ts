@@ -1,8 +1,8 @@
-import { Context } from "./context";
+import { RenderContext } from "./context";
 import { FilterArgumentError } from "./errors";
 
 export type FilterContext = {
-  context: Context;
+  context: RenderContext;
   options: { [index: string]: unknown };
 };
 

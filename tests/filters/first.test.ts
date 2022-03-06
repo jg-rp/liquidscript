@@ -1,5 +1,5 @@
 import { first } from "../../src/builtin/filters/array";
-import { Context } from "../../src/context";
+import { RenderContext } from "../../src/context";
 import { Environment } from "../../src/environment";
 import { FilterContext } from "../../src/filter";
 
@@ -7,7 +7,7 @@ import { FilterContext } from "../../src/filter";
 
 describe("first filter", () => {
   const env = new Environment({});
-  const ctx = new Context(env);
+  const ctx = new RenderContext(env);
   const filterContext: FilterContext = { context: ctx, options: {} };
 
   test("first of array", () => {

@@ -9,7 +9,7 @@ import {
   TOKEN_TAG,
 } from "../../token";
 import { BooleanExpression } from "../../expression";
-import { Context } from "../../context";
+import { RenderContext } from "../../context";
 import { DefaultOutputStream, RenderStream } from "../../io/output_stream";
 import { parse } from "../../expressions/boolean/parse";
 
@@ -38,7 +38,7 @@ export class IfTag implements Tag {
   }
 
   parse(stream: TokenStream, environment: Environment): IfNode {
-    const parser = environment.getParser();
+    const parser = environment.parser;
     const token = stream.next();
     const condition = this.parseExpression(stream);
     stream.next();
@@ -90,7 +90,10 @@ export class IfNode implements Node {
     this.forceOutput = forcedOutput(this);
   }
 
-  public async render(context: Context, out: RenderStream): Promise<void> {
+  public async render(
+    context: RenderContext,
+    out: RenderStream
+  ): Promise<void> {
     // This intermediate buffer is used to detect and possibly
     // suppress blocks that, when rendered, contain only whitespace
     const buf = new DefaultOutputStream();
@@ -117,7 +120,7 @@ export class IfNode implements Node {
     if (this.forceOutput || /\S/.test(buffered)) out.write(buffered);
   }
 
-  public renderSync(context: Context, out: RenderStream): void {
+  public renderSync(context: RenderContext, out: RenderStream): void {
     const buf = new DefaultOutputStream();
     let rendered = false;
 

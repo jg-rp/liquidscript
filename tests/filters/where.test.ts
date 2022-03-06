@@ -1,11 +1,11 @@
 import { where } from "../../src/builtin/filters/array";
-import { Context } from "../../src/context";
+import { RenderContext } from "../../src/context";
 import { Environment } from "../../src/environment";
 import { FilterContext } from "../../src/filter";
 
 describe("where filter", () => {
   const env = new Environment({});
-  const ctx = new Context(env);
+  const ctx = new RenderContext(env);
   const filterContext: FilterContext = { context: ctx, options: {} };
 
   test("array of objects with an undefined", () => {

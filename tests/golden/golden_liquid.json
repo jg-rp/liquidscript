@@ -1087,15 +1087,6 @@
       "name": "liquid.golden.date_filter",
       "tests": [
         {
-          "name": "literal percent",
-          "template": "{{ 'March 14, 2016' | date: '%%%b %d, %y' }}",
-          "want": "%Mar 14, 16",
-          "context": {},
-          "partials": {},
-          "error": false,
-          "strict": false
-        },
-        {
           "name": "missing argument",
           "template": "{{ 'March 14, 2016' | date }}",
           "want": "",
@@ -1126,15 +1117,6 @@
           "name": "undefined left value",
           "template": "{{ nosuchthing | date: '%b %d, %y' }}",
           "want": "",
-          "context": {},
-          "partials": {},
-          "error": false,
-          "strict": false
-        },
-        {
-          "name": "well formed string",
-          "template": "{{ 'March 14, 2016' | date: '%b %d, %y' }}",
-          "want": "Mar 14, 16",
           "context": {},
           "partials": {},
           "error": false,

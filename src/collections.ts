@@ -1,8 +1,5 @@
 type DefaultFactory<V> = () => V;
 
-/**
- *
- */
 export class DefaultMap<K, V> extends Map<K, V> {
   readonly default: DefaultFactory<V>;
 

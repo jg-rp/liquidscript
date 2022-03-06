@@ -21,16 +21,14 @@ export class Range implements Iterable<number> {
   readonly stop: number;
 
   constructor(start: number, stop: number) {
-    // TODO: slice.
-    // TODO: join.
     this.start = Math.trunc(start);
     this.stop = Math.trunc(stop);
     this.length = this.stop - this.start + (this.start === this.stop ? 0 : 1);
   }
 
   public *[Symbol.iterator](): Iterator<number> {
-    // TODO: Store the first X Integer objects as constants? or
-    // maintain an Integer and Float object pool?
+    // TODO: Store the first X Integer objects as constants?
+    // or maintain an Integer and Float object pool?
     for (let i = this.start; i <= this.stop; i++) yield i;
   }
 

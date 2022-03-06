@@ -1,12 +1,12 @@
 import { ceil } from "../../src/builtin/filters/math";
-import { Context } from "../../src/context";
+import { RenderContext } from "../../src/context";
 import { Environment } from "../../src/environment";
 import { FilterContext } from "../../src/filter";
 import { Float, Integer, ZERO } from "../../src/number";
 
 describe("ceil filter", () => {
   const env = new Environment({});
-  const ctx = new Context(env);
+  const ctx = new RenderContext(env);
   const filterContext: FilterContext = { context: ctx, options: {} };
 
   test("positive number", () => {

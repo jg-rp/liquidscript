@@ -1,103 +1,211 @@
-import { Context, ContextScope } from "./context";
-import { Template } from "./template";
-import { Tag } from "./tag";
-import { Filter } from "./filter";
-import { Undefined, StrictUndefined } from "./undefined";
 import { Root } from "./ast";
-import { Parser, TemplateParser } from "./parse";
-import { tokenize } from "./lex";
-import { TemplateTokenStream } from "./token";
-import { Loader, MapLoader } from "./loader";
 import { registerBuiltin } from "./builtin/register";
 import { chainObjects } from "./chainObject";
+import { LRUCache } from "./cache";
+import { ContextScope, RenderContext } from "./context";
+import { Filter } from "./filter";
+import { compileRules, tokenize } from "./lex";
+import { Loader, MapLoader } from "./loader";
+import { Parser, TemplateParser } from "./parse";
+import { Tag } from "./tag";
+import { Template } from "./template";
+import { TemplateTokenStream } from "./token";
+import { StrictUndefined, Undefined } from "./undefined";
+
+const implicitEnvironmentCache = new LRUCache<string, Environment>(10);
 
 export type EnvironmentOptions = {
-  // TODO: Complete options
-  // mode?
+  /**
+   * When `true`, render context variables will be HTML escaped before output.
+   * @defaultValue `true`
+   */
   autoEscape?: boolean;
+
+  /**
+   * An optional object who's properties will be added to the render context
+   * of every template rendered from this environment.
+   *
+   * `globals` is not copied, so updates to it after environment construction
+   * will be visible to templates.
+   * @defaultValue An empty `Object`.
+   */
   globals?: ContextScope;
+
+  /**
+   * A template loader. Used to load templates from a file system or database,
+   * for example.
+   * @defaultValue An empty `MapLoader`.
+   */
   loader?: Loader;
+
+  /**
+   * The maximum number of times a render context can be copied or extended.
+   * This helps us guard against recursive use of the `include` or `render`
+   * tags.
+   * @defaultValue 30
+   */
   maxContextDepth?: number;
+
+  /**
+   * The sequence of characters indicating the start of a liquid output statement.
+   * @defaultValue `{{`
+   */
+  statementStartString?: string;
+
+  /**
+   * The sequence of characters indicating the end of a liquid output statement.
+   * @defaultValue `}}`
+   */
+  statementEndString?: string;
+
+  /**
+   * When `true`, a `NoSuchFilterError` will be raised if a template attempts
+   * to use an undefined filter. When `false`, undefined filters are silently
+   * ignored.
+   * @defaultValue `true`
+   */
+  strictFilters?: boolean;
+
+  /**
+   * The sequence of characters indicating the start of a liquid tag.
+   * @defaultValue `{%`
+   */
+  tagStartString?: string;
+
+  /**
+   * The sequence of characters indicating the end of a liquid tag.
+   * @defaultValue `}}`
+   */
+  tagEndString?: string;
+
+  /**
+   * A function that accepts the name of a template variable name and
+   * returns a subclass of `Undefined`.
+   * @defaultValue A `StrictUndefined` factory function.
+   */
   undefinedFactory?: (name: string) => Undefined;
 };
 
 /**
- *
+ * Shared configuration from which templates can be loaded and parsed.
+ * @see {@link EnvironmentOptions}
  */
 export class Environment {
   public autoEscape: boolean;
   public globals: ContextScope;
-  public maxContextDepth: number;
-  public undefinedFactory: (name: string) => Undefined;
-  public filters: { [keys: string]: Filter } = {};
-  public tags: { [keys: string]: Tag } = {};
   public loader: Loader;
-  private _parser: Parser;
+  public maxContextDepth: number;
+  readonly statementStartString: string;
+  readonly statementEndString: string;
+  public strictFilters: boolean;
+  readonly tagStartString: string;
+  readonly tagEndString: string;
+  readonly undefinedFactory: (name: string) => Undefined;
+
+  /**
+   * An object mapping filter names to filter functions.
+   */
+  readonly filters: { [keys: string]: Filter } = {};
+
+  /**
+   * An object mapping tag names to tag implementations.
+   */
+  readonly tags: { [keys: string]: Tag } = {};
+
+  #tokenRules: RegExp;
+  #parser: Parser;
 
   constructor({
     autoEscape,
     globals,
     loader,
     maxContextDepth,
+    statementStartString,
+    statementEndString,
+    strictFilters,
+    tagStartString,
+    tagEndString,
     undefinedFactory,
   }: EnvironmentOptions = {}) {
-    this.autoEscape = autoEscape === undefined ? false : autoEscape;
-    this.globals = globals === undefined ? {} : globals;
-    this.maxContextDepth = maxContextDepth === undefined ? 30 : maxContextDepth;
+    this.autoEscape = autoEscape ?? true;
+    this.globals = globals ?? {};
+    this.loader = loader ?? new MapLoader();
+    this.maxContextDepth = maxContextDepth ?? 30;
+    this.statementStartString = statementStartString ?? "{{";
+    this.statementEndString = statementEndString ?? "}}";
+    this.strictFilters = strictFilters ?? true;
+    this.tagStartString = tagStartString ?? "{%";
+    this.tagEndString = tagEndString ?? "%}";
     this.undefinedFactory =
-      undefinedFactory === undefined
-        ? (name: string) => new StrictUndefined(name)
-        : undefinedFactory;
+      undefinedFactory ?? ((name: string) => new StrictUndefined(name));
 
-    this.loader = loader === undefined ? new MapLoader() : loader;
-    this._parser = new TemplateParser(this);
+    this.#tokenRules = compileRules(
+      this.statementStartString,
+      this.statementEndString,
+      this.tagStartString,
+      this.tagEndString
+    );
+
+    this.#parser = new TemplateParser(this);
+
     registerBuiltin(this);
   }
 
-  /**
-   *
-   * @param name
-   * @returns
-   */
-  public undefined_(name: string): Undefined {
-    // TODO: Change name/factory pattern?
-    // XXX: Maybe use "missing" instead of "undefined"
-    return this.undefinedFactory(name);
+  static getImplicitEnvironment(options: EnvironmentOptions = {}): Environment {
+    const cacheKey = JSON.stringify(options, Object.keys(options).sort());
+    let env = implicitEnvironmentCache.get(cacheKey);
+    if (!env) {
+      env = new Environment(options);
+      implicitEnvironmentCache.set(cacheKey, env);
+    }
+    return env;
   }
 
   /**
-   *
-   * @param name
-   * @param globals
-   * @param context
-   * @param loaderContext
-   * @returns
+   * Load a template from the configured template loader.
+   * @param name - The name or identifier of the template to load.
+   * @param globals - An optional object who's properties will be added
+   * to the render context every time the resulting template is rendered.
+   * @param context - A reference to the active render context, if one is
+   * active.
+   * @param loaderContext - Additional, arbitrary data that a loader can use
+   * to scope or otherwise narrow its search space.
+   * @returns A `Template` bound to this environment, ready to be rendered.
+   * @throws `NoSuchTemplateError` if a template with the given name can not
+   * be found.
    */
   public async getTemplate(
     name: string,
     globals?: ContextScope,
-    context?: Context,
+    context?: RenderContext,
     loaderContext?: { [index: string]: unknown }
   ): Promise<Template> {
     return this.loader.load(name, this, context, globals, loaderContext);
   }
 
+  /**
+   * A synchronous version of `Environment.getTemplate()`.
+   * @see {@link getTemplate}
+   */
   public getTemplateSync(
     name: string,
     globals?: ContextScope,
-    context?: Context,
+    context?: RenderContext,
     loaderContext?: { [index: string]: unknown }
   ): Template {
     return this.loader.loadSync(name, this, context, globals, loaderContext);
   }
 
   /**
-   *
-   * @param source
-   * @param name
-   * @param globals
-   * @param matter
-   * @returns
+   * Parse the given string as a Liquid template.
+   * @param source - The Liquid template source code.
+   * @param name - An optional name identifying the template.
+   * @param globals - An optional object who's properties will be added
+   * to the render context every time the resulting template is rendered.
+   * @param matter - Extra globals, usually added by a template loader.
+   * @returns A `Template` bound to this environment, ready to be rendered.
+   * @throws `NoSuchTemplateError` if a template with the given name can not
+   * be found.
    */
   public fromString(
     source: string,
@@ -115,38 +223,25 @@ export class Environment {
   }
 
   /**
+   * Re-throw an error.
    *
-   * @param err
+   * Override this method if you want to implement a "lax mode".
    */
   public error(err: Error): void {
-    // TODO: implement
     throw err;
   }
 
-  /**
-   *
-   * @returns
-   */
-  public getParser(): Parser {
-    // TODO: Cache parser.
-    return this._parser;
+  get parser(): Parser {
+    return this.#parser;
   }
 
-  /**
-   *
-   * @param source
-   * @returns
-   */
   protected parse(source: string): Root {
-    return this.getParser().parse(new TemplateTokenStream(tokenize(source)));
+    return this.parser.parse(
+      new TemplateTokenStream(tokenize(source, this.#tokenRules))
+    );
   }
 
-  /**
-   *
-   * @param templateGlobals
-   * @returns
-   */
-  public makeGlobals(templateGlobals?: ContextScope): ContextScope {
+  protected makeGlobals(templateGlobals?: ContextScope): ContextScope {
     if (templateGlobals === undefined) return this.globals;
     return chainObjects(templateGlobals, this.globals);
   }

@@ -1,5 +1,5 @@
 import { BlockNode, forcedOutput, Node } from "../../ast";
-import { Context } from "../../context";
+import { RenderContext } from "../../context";
 import { Environment } from "../../environment";
 import { Expression } from "../../expression";
 import { parse } from "../../expressions/boolean/parse";
@@ -38,7 +38,7 @@ export class UnlessTag implements Tag {
   }
 
   parse(stream: TokenStream, environment: Environment): UnlessNode {
-    const parser = environment.getParser();
+    const parser = environment.parser;
     const token = stream.next();
     const condition = this.parseExpression(stream);
     stream.next();
@@ -95,7 +95,10 @@ export class UnlessNode implements Node {
     this.forceOutput = forcedOutput(this);
   }
 
-  public async render(context: Context, out: RenderStream): Promise<void> {
+  public async render(
+    context: RenderContext,
+    out: RenderStream
+  ): Promise<void> {
     const buf = new DefaultOutputStream();
     let rendered = false;
 
@@ -120,7 +123,7 @@ export class UnlessNode implements Node {
     if (this.forceOutput || /\S/.test(buffered)) out.write(buffered);
   }
 
-  public renderSync(context: Context, out: RenderStream): void {
+  public renderSync(context: RenderContext, out: RenderStream): void {
     const buf = new DefaultOutputStream();
     let rendered = false;
 

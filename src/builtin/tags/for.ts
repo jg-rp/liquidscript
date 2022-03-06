@@ -1,12 +1,12 @@
 import { BlockNode, forcedOutput, Node } from "../../ast";
-import { Context, ContextScope } from "../../context";
+import { ContextScope, RenderContext } from "../../context";
 import { Environment } from "../../environment";
 import { BreakIteration, ContinueIteration } from "../../errors";
 import { LoopExpression } from "../../expression";
 import { parse } from "../../expressions/loop/parse";
 import { DefaultOutputStream, RenderStream } from "../../io/output_stream";
 import { Tag } from "../../tag";
-import { Token, TokenStream, TOKEN_EXPRESSION, TOKEN_TAG } from "../../token";
+import { Token, TOKEN_EXPRESSION, TOKEN_TAG, TokenStream } from "../../token";
 import { ForLoopDrop } from "../drops/forloop";
 
 const TAG_FOR = "for";
@@ -41,13 +41,12 @@ export class ForTag implements Tag {
   readonly end = TAG_ENDFOR;
 
   parse(stream: TokenStream, environment: Environment): ForNode {
-    const parser = environment.getParser();
     const token = stream.next();
 
     stream.expect(TOKEN_EXPRESSION);
     const expr = parse(stream.current.value);
     stream.next();
-    const block = parser.parseBlock(stream, ENDFORBLOCK);
+    const block = environment.parser.parseBlock(stream, ENDFORBLOCK);
 
     let _default: BlockNode | undefined = undefined;
 
@@ -56,7 +55,7 @@ export class ForTag implements Tag {
       stream.current.value === TAG_ELSE
     ) {
       stream.next();
-      _default = parser.parseBlock(stream, ENDFORELSEBLOCK);
+      _default = environment.parser.parseBlock(stream, ENDFORELSEBLOCK);
     }
 
     stream.expect(TOKEN_TAG);
@@ -115,7 +114,10 @@ export class ForNode implements Node {
     this.forceOutput = forcedOutput(this);
   }
 
-  public async render(context: Context, out: RenderStream): Promise<void> {
+  public async render(
+    context: RenderContext,
+    out: RenderStream
+  ): Promise<void> {
     const [it, length] = await this.expression.evaluate(context);
     // This intermediate buffer is used to detect and possibly
     // suppress blocks that, when rendered, contain only whitespace
@@ -129,11 +131,11 @@ export class ForNode implements Node {
         length,
         context.forLoops.length
           ? context.forLoops[context.forLoops.length - 1]
-          : context.environment.undefined_("parentloop")
+          : context.environment.undefinedFactory("parentloop")
       );
 
       const namespace: ContextScope = { forloop: forloop };
-      context.push(namespace);
+      context.scope.push(namespace);
       context.forLoops.push(forloop);
 
       try {
@@ -153,7 +155,7 @@ export class ForNode implements Node {
         }
       } finally {
         context.forLoops.pop();
-        context.pop();
+        context.scope.pop();
       }
     } else if (this.default_ !== undefined) {
       await this.default_.render(context, buf);
@@ -163,7 +165,7 @@ export class ForNode implements Node {
     if (this.forceOutput || /\S/.test(buffered)) out.write(buffered);
   }
 
-  public renderSync(context: Context, out: RenderStream): void {
+  public renderSync(context: RenderContext, out: RenderStream): void {
     const [it, length] = this.expression.evaluateSync(context);
     const buf = new DefaultOutputStream();
 
@@ -175,11 +177,11 @@ export class ForNode implements Node {
         length,
         context.forLoops.length
           ? context.forLoops[context.forLoops.length - 1]
-          : context.environment.undefined_("parentloop")
+          : context.environment.undefinedFactory("parentloop")
       );
 
       const namespace: ContextScope = { forloop: forloop };
-      context.push(namespace);
+      context.scope.push(namespace);
       context.forLoops.push(forloop);
 
       try {
@@ -198,7 +200,7 @@ export class ForNode implements Node {
           }
         }
       } finally {
-        context.pop();
+        context.scope.pop();
         context.forLoops.pop();
       }
     } else if (this.default_ !== undefined) {

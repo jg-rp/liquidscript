@@ -1,10 +1,14 @@
 import { LiteralNode } from "./builtin/tags/literal";
-import { Context } from "./context";
+import { RenderContext } from "./context";
 import { InternalLiquidError } from "./errors";
 import { RenderStream } from "./io/output_stream";
 import { Token } from "./token";
 
 export interface Node {
+  /**
+   * The token that started this node. Used to add line and column numbers
+   * to error messages.
+   */
   readonly token: Token;
 
   /**
@@ -19,19 +23,42 @@ export interface Node {
    */
   readonly captureOutput?: boolean;
 
-  render(context: Context, out: RenderStream): Promise<void>;
-  renderSync(context: Context, out: RenderStream): void;
+  /**
+   * Render this not to the given output stream.
+   * @param context - The active render context.
+   * @param out - The stream to output to.
+   */
+  render(context: RenderContext, out: RenderStream): Promise<void>;
+
+  /**
+   * A synchronous version of `render`.
+   * @see {@link render}
+   */
+  renderSync(context: RenderContext, out: RenderStream): void;
+
+  /**
+   * Return an array of child nodes.
+   */
   children(): Node[];
 }
 
+/**
+ * The root of an abstract syntax tree.
+ */
 export class Root {
-  public nodes: Node[] = [];
+  readonly nodes: Node[] = [];
 }
 
+/**
+ * A block of abstract syntax tree nodes.
+ */
 export class BlockNode implements Node {
   constructor(readonly token: Token, public nodes: Node[] = []) {}
 
-  public async render(context: Context, out: RenderStream): Promise<void> {
+  public async render(
+    context: RenderContext,
+    out: RenderStream
+  ): Promise<void> {
     for (const node of this.nodes) {
       try {
         if (node instanceof LiteralNode) {
@@ -48,7 +75,7 @@ export class BlockNode implements Node {
     }
   }
 
-  public renderSync(context: Context, out: RenderStream): void {
+  public renderSync(context: RenderContext, out: RenderStream): void {
     for (const node of this.nodes) {
       try {
         node.renderSync(context, out);
@@ -69,8 +96,8 @@ export class BlockNode implements Node {
 /**
  * Traverse the syntax tree rooted at `root` in depth-first pre-order.
  *
- * @param root The syntax tree node to start from.
- * @yields Nodes that are decedents of the `root` node.
+ * @param root - The syntax tree node to start from.
+ * @returns A generator producing nodes that are decedents of the `root` node.
  */
 export function* walk(root: Node): Generator<Node> {
   if (root.children) {
@@ -84,9 +111,6 @@ export function* walk(root: Node): Generator<Node> {
 /**
  * Return `true` if the syntax tree rooted at `root` contains
  * output statements (or equivalent nodes). `false` otherwise.
- *
- * @param root
- * @returns
  */
 export function forcedOutput(root: Node): boolean {
   for (const node of walk(root)) {

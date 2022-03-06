@@ -1,12 +1,8 @@
 {
   "root": true,
   "parser": "@typescript-eslint/parser",
-  "plugins": ["@typescript-eslint", "jsdoc"],
-  "extends": [
-    "eslint:recommended",
-    "plugin:@typescript-eslint/recommended",
-    "plugin:jsdoc/recommended"
-  ],
+  "plugins": ["@typescript-eslint", "eslint-plugin-tsdoc"],
+  "extends": ["eslint:recommended", "plugin:@typescript-eslint/recommended"],
   "rules": {
     "@typescript-eslint/no-unused-vars": [
       "warn",
@@ -14,13 +10,8 @@
         "varsIgnorePattern": "_"
       }
     ],
-    "@typescript-eslint/no-inferrable-types": ["off"]
-    // "@typescript-eslint/explicit-member-accessibility": [
-    //   "error",
-    //   {
-    //     "accessibility": "explicit"
-    //   }
-    // ]
+    "@typescript-eslint/no-inferrable-types": ["off"],
+    "tsdoc/syntax": "warn"
   },
   "env": { "node": true }
 }

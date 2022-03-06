@@ -10,7 +10,6 @@ const CommentFormTag = {
   block: true,
   name: "comment",
   parse: function (stream, env) {
-    const parser = env.getParser();
     const token = stream.next();
 
     stream.expect(TOKEN_EXPRESSION);
@@ -22,7 +21,7 @@ const CommentFormTag = {
     return commentFormNode(
       token,
       article,
-      parser.parseBlock(stream, END_FORM_BLOCK)
+      env.parser.parseBlock(stream, END_FORM_BLOCK)
     );
   },
 };
@@ -49,11 +48,11 @@ function commentFormNode(token, article, block) {
           `class="comment-form" method="post" action="">\n`
       );
 
-      context.push({ form: form });
+      context.scope.push({ form: form });
       try {
         await block.render(context, out);
       } finally {
-        context.pop();
+        context.scope.pop();
       }
 
       out.write("\n</form>");
@@ -77,11 +76,11 @@ function commentFormNode(token, article, block) {
           `class="comment-form" method="post" action="">\n`
       );
 
-      context.push({ form: form });
+      context.scope.push({ form: form });
       try {
         block.renderSync(context, out);
       } finally {
-        context.pop();
+        context.scope.pop();
       }
 
       out.write("\n</form>");

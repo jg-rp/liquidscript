@@ -1,37 +1,79 @@
-import { Context, ContextScope } from "./context";
+import { RenderContext, ContextScope } from "./context";
 import { Environment } from "./environment";
 import { TemplateNotFoundError } from "./errors";
 import { Template } from "./template";
 
-export class TemplateSource {
-  readonly matter: ContextScope;
+// TODO: caching loader
 
+// TODO: choice loader
+// TODO: file system loader
+// TODO: web loader?
+
+export class TemplateSource {
   constructor(
+    /**
+     * The template's source code.
+     */
     readonly source: string,
+
+    /**
+     * A name or identifier for the template.
+     */
     readonly name: string,
-    matter?: ContextScope
-  ) {
-    this.matter = matter === undefined ? {} : matter;
-  }
+
+    /**
+     * Additional template globals.
+     */
+    readonly matter?: ContextScope,
+
+    /**
+     * A function that returns `true` if the template is up to date, or
+     * `false` if it needs to be loaded again.
+     */
+    readonly uptoDate?: () => Promise<boolean>,
+
+    /**
+     * A function that returns `true` if the template is up to date, or
+     * `false` if it needs to be loaded again.
+     */
+    readonly uptoDateSync?: () => boolean
+  ) {}
 }
 
 export abstract class Loader {
+  /**
+   * Override `getSource` to implement a custom loader.
+   * @param name - The name or identifier of a template.
+   * @param renderContext - The active render context, if there is one.
+   * @param loaderContext - Additional context. By convention, tags that load
+   * templates should add a `tag` property to the loader context containing
+   * the tag's name.
+   * @throws `TemplateNotFoundError` if the template can not be found.
+   */
   abstract getSource(
     name: string,
-    renderContext?: Context,
+    renderContext?: RenderContext,
     loaderContext?: { [index: string]: unknown }
   ): Promise<TemplateSource>;
 
+  /**
+   * A synchronous version of `getSource`.
+   * @see {@link getSource}
+   */
   abstract getSourceSync(
     name: string,
-    renderContext?: Context,
+    renderContext?: RenderContext,
     loaderContext?: { [index: string]: unknown }
   ): TemplateSource;
 
+  /**
+   * Used internally by `Environment.getTemplate()`. Delegates to `getSource`.
+   * @see {@link getSource}
+   */
   public async load(
     name: string,
     environment: Environment,
-    context?: Context,
+    context?: RenderContext,
     globals?: ContextScope,
     loaderContext?: { [index: string]: unknown }
   ): Promise<Template> {
@@ -39,10 +81,14 @@ export abstract class Loader {
     return environment.fromString(source.source, name, globals);
   }
 
+  /**
+   * A synchronous version of `load`.
+   * @see {@link load}
+   */
   public loadSync(
     name: string,
     environment: Environment,
-    context?: Context,
+    context?: RenderContext,
     globals?: ContextScope,
     loaderContext?: { [index: string]: unknown }
   ): Template {
@@ -51,6 +97,9 @@ export abstract class Loader {
   }
 }
 
+/**
+ * A loader that uses a Map of strings to store template template source Text.
+ */
 export class MapLoader extends Loader {
   private _map: Map<string, string>;
 

@@ -1,5 +1,5 @@
 import { BlockNode, Node } from "../../ast";
-import { Context } from "../../context";
+import { RenderContext } from "../../context";
 import { Environment } from "../../environment";
 import { DefaultOutputStream, RenderStream } from "../../io/output_stream";
 import { Tag } from "../../tag";
@@ -12,11 +12,10 @@ export class IfChangedTag implements Tag {
   readonly block = true;
 
   parse(stream: TokenStream, environment: Environment): Node {
-    const parser = environment.getParser();
     const token = stream.next();
     return new IfChangedNode(
       token,
-      parser.parseBlock(stream, END_IFCHANGED_BLOCK)
+      environment.parser.parseBlock(stream, END_IFCHANGED_BLOCK)
     );
   }
 }
@@ -24,24 +23,31 @@ export class IfChangedTag implements Tag {
 export class IfChangedNode implements Node {
   constructor(readonly token: Token, readonly block: BlockNode) {}
 
-  public async render(context: Context, out: RenderStream): Promise<void> {
+  public async render(
+    context: RenderContext,
+    out: RenderStream
+  ): Promise<void> {
     const buf = new DefaultOutputStream();
     await this.block.render(context, buf);
     const buffered = buf.toString();
+    const ifchanged = context.getRegister("ifchanged");
+    const last = ifchanged.get("last");
 
-    if (context.ifchanged !== buffered) {
-      context.ifchanged = buffered;
+    if (buffered !== last) {
+      ifchanged.set("last", buffered);
       out.write(buffered);
     }
   }
 
-  public renderSync(context: Context, out: RenderStream): void {
+  public renderSync(context: RenderContext, out: RenderStream): void {
     const buf = new DefaultOutputStream();
     this.block.renderSync(context, buf);
     const buffered = buf.toString();
+    const ifchanged = context.getRegister("ifchanged");
+    const last = ifchanged.get("last");
 
-    if (context.ifchanged !== buffered) {
-      context.ifchanged = buffered;
+    if (buffered !== last) {
+      ifchanged.set("last", buffered);
       out.write(buffered);
     }
   }

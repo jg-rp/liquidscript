@@ -70,7 +70,6 @@ function* tokenize(source, startIndex) {
 const PaginateTag = {
   block: true,
   parse: function (stream, env) {
-    const parser = env.getParser();
     const token = stream.next();
 
     stream.expect(TOKEN_EXPRESSION);
@@ -97,7 +96,7 @@ const PaginateTag = {
       token,
       ident,
       pageSize.value,
-      parser.parseBlock(stream, END_PAGINATE_BLOCK)
+      env.parser.parseBlock(stream, END_PAGINATE_BLOCK)
     );
   },
 };
@@ -142,11 +141,11 @@ function paginateNode(token, ident, pageSize, block) {
         }
       }
 
-      context.push({ paginate: pagination });
+      context.scope.push({ paginate: pagination });
       try {
         await block.render(context, out);
       } finally {
-        context.pop();
+        context.scope.pop();
       }
     },
     renderSync: function (context, out) {
@@ -186,11 +185,11 @@ function paginateNode(token, ident, pageSize, block) {
         }
       }
 
-      context.push({ paginate: pagination });
+      context.scope.push({ paginate: pagination });
       try {
         block.renderSync(context, out);
       } finally {
-        context.pop();
+        context.scope.pop();
       }
     },
   };

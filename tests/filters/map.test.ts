@@ -1,5 +1,5 @@
 import { map } from "../../src/builtin/filters/array";
-import { Context } from "../../src/context";
+import { RenderContext } from "../../src/context";
 import { Environment } from "../../src/environment";
 import { FilterArgumentError } from "../../src/errors";
 import { FilterContext } from "../../src/filter";
@@ -7,7 +7,7 @@ import { LaxUndefined } from "../../src/undefined";
 
 describe("map filter", () => {
   const env = new Environment({});
-  const ctx = new Context(env);
+  const ctx = new RenderContext(env);
   const filterContext: FilterContext = { context: ctx, options: {} };
 
   test("array of objects", () => {

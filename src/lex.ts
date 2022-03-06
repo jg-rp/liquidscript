@@ -21,11 +21,11 @@ function escapeRegExp(s: string): string {
   return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-function compileRegExp(
-  tagStart = "{%",
-  tagEnd = "%}",
+export function compileRules(
   statementStart = "{{",
-  statementEnd = "}}"
+  statementEnd = "}}",
+  tagStart = "{%",
+  tagEnd = "%}"
 ): RegExp {
   const ts = escapeRegExp(tagStart);
   const te = escapeRegExp(tagEnd);
@@ -42,8 +42,6 @@ function compileRegExp(
 
   return new RegExp(rules.join("|"), "gs");
 }
-
-const RE_P = compileRegExp();
 
 interface StatementMatch {
   statement: string;
@@ -85,9 +83,9 @@ function isRaw(match: MatchGroups): match is RawMatch {
   return match.raw === undefined ? false : true;
 }
 
-export function* tokenize(source: string): Generator<Token> {
+export function* tokenize(source: string, rules: RegExp): Generator<Token> {
   let leftStrip = false;
-  for (const match of source.matchAll(RE_P)) {
+  for (const match of source.matchAll(rules)) {
     const groups = match.groups as MatchGroups;
 
     if (isStatement(groups)) {

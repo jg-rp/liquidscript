@@ -1,5 +1,5 @@
 import { Node } from "../../ast";
-import { Context } from "../../context";
+import { RenderContext } from "../../context";
 import { RenderStream } from "../../io/output_stream";
 import { Tag } from "../../tag";
 import { Token, TokenStream, TOKEN_EOF, TOKEN_TAG } from "../../token";

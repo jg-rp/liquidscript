@@ -1,5 +1,5 @@
 import { Node } from "../../ast";
-import { Context } from "../../context";
+import { RenderContext } from "../../context";
 import { parseUnchainedIdentifier } from "../../expressions/common";
 import { tokenize } from "../../expressions/filtered/lex";
 import { ExpressionTokenStream } from "../../expressions/tokens";
@@ -26,11 +26,11 @@ export class IncrementTag implements Tag {
 export class IncrementNode implements Node {
   constructor(readonly token: Token, readonly identifier: string) {}
 
-  async render(context: Context, out: RenderStream): Promise<void> {
+  async render(context: RenderContext, out: RenderStream): Promise<void> {
     return this.renderSync(context, out);
   }
 
-  public renderSync(context: Context, out: RenderStream): void {
+  public renderSync(context: RenderContext, out: RenderStream): void {
     let val = context.counters[this.identifier];
     if (val === undefined) val = 0;
     context.counters[this.identifier] = val + 1;

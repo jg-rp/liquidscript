@@ -1,13 +1,14 @@
-import { Context } from "./context";
-import { isLiquidPrimitive, LiquidPrimitive, liquidValueOf } from "./drop";
+import { RenderContext } from "./context";
+import { isLiquidPrimitive, LiquidPrimitive, toLiquidPrimitive } from "./drop";
 import {
+  FilterArgumentError,
+  FilterNotFoundError,
   FilterValueError,
   InternalKeyError,
   InternalTypeError,
-  FilterNotFoundError,
-  FilterArgumentError,
 } from "./errors";
 import { Float, Integer, isInteger, parseNumberT } from "./number";
+import { range, Range } from "./range";
 import {
   isArray,
   isIterable,
@@ -15,14 +16,14 @@ import {
   isNumber,
   isObject,
   isPrimitiveInteger,
+  isPropertyKey,
   isString,
 } from "./types";
-import { range, Range } from "./range";
 import { Undefined } from "./undefined";
 
 export interface Expression {
-  evaluate(context: Context): Promise<unknown>;
-  evaluateSync(context: Context): unknown;
+  evaluate(context: RenderContext): Promise<unknown>;
+  evaluateSync(context: RenderContext): unknown;
   equals(other: unknown): boolean;
   toString(): string;
 }
@@ -106,9 +107,6 @@ export class Blank implements Expression {
 
 export const BLANK = new Blank();
 
-/**
- *
- */
 export class Continue implements Expression {
   async evaluate(): Promise<Continue> {
     return this;
@@ -133,12 +131,12 @@ export abstract class Literal<T> implements Expression {
   constructor(readonly value: T) {}
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public async evaluate(context: Context): Promise<T> {
+  public async evaluate(context: RenderContext): Promise<T> {
     return this.value;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public evaluateSync(context: Context): T {
+  public evaluateSync(context: RenderContext): T {
     return this.value;
   }
 
@@ -161,13 +159,13 @@ export const TRUE = new BooleanLiteral(true);
 export const FALSE = new BooleanLiteral(false);
 
 export class StringLiteral extends Literal<string> {
-  public async evaluate(context: Context): Promise<string> {
-    if (context.autoEscape) return safe(this.value);
+  public async evaluate(context: RenderContext): Promise<string> {
+    if (context.environment.autoEscape) return safe(this.value);
     return this.value;
   }
 
-  public evaluateSync(context: Context): string {
-    if (context.autoEscape) return safe(this.value);
+  public evaluateSync(context: RenderContext): string {
+    if (context.environment.autoEscape) return safe(this.value);
     return this.value;
   }
 
@@ -196,13 +194,10 @@ export class FloatLiteral extends Literal<Float> {
   }
 }
 
-/**
- *
- */
 export class RangeLiteral implements Expression {
   constructor(readonly start: Expression, readonly stop: Expression) {}
 
-  public async evaluate(context: Context): Promise<Range> {
+  public async evaluate(context: RenderContext): Promise<Range> {
     let start = Number(
       this.start instanceof Literal
         ? this.start.evaluateSync(context)
@@ -219,7 +214,7 @@ export class RangeLiteral implements Expression {
     return range(start.valueOf(), stop.valueOf());
   }
 
-  public evaluateSync(context: Context): Range {
+  public evaluateSync(context: RenderContext): Range {
     let start = Number(this.start.evaluateSync(context));
     let stop = Number(this.stop.evaluateSync(context));
     if (isNaN(start.valueOf())) start = 0;
@@ -249,9 +244,6 @@ export class IdentifierPathElement extends Literal<number | string> {
 
 export type IdentifierPath = Array<IdentifierPathElement | Identifier>;
 
-/**
- *
- */
 export class Identifier implements Expression {
   constructor(readonly root: string, readonly path: IdentifierPath) {}
 
@@ -267,7 +259,7 @@ export class Identifier implements Expression {
     return buf.join(".");
   }
 
-  public async evaluate(context: Context): Promise<unknown> {
+  public async evaluate(context: RenderContext): Promise<unknown> {
     const path: Array<string | number | LiquidPrimitive> = [];
     let prop: unknown;
     for (const e of this.path) {
@@ -290,7 +282,7 @@ export class Identifier implements Expression {
     return context.get(this.root, path);
   }
 
-  public evaluateSync(context: Context): unknown {
+  public evaluateSync(context: RenderContext): unknown {
     const path: Array<string | number | LiquidPrimitive> = [];
     let prop: unknown;
     for (const e of this.path) {
@@ -311,9 +303,6 @@ export class Identifier implements Expression {
   }
 }
 
-/**
- *
- */
 export class Filter {
   constructor(
     readonly name: string,
@@ -332,7 +321,7 @@ export class Filter {
     return buf.join("");
   }
 
-  public async evalArgs(context: Context): Promise<unknown[]> {
+  public async evalArgs(context: RenderContext): Promise<unknown[]> {
     return Promise.all(
       this.args.map(async (arg) =>
         arg instanceof Literal
@@ -343,7 +332,7 @@ export class Filter {
   }
 
   public async evalKeywordArgs(
-    context: Context
+    context: RenderContext
   ): Promise<{ [index: string]: unknown }> {
     const kwargs: { [index: string]: unknown } = {};
     for (const [key, value] of this.kwargs.entries()) {
@@ -355,11 +344,13 @@ export class Filter {
     return kwargs;
   }
 
-  public evalArgsSync(context: Context): unknown[] {
+  public evalArgsSync(context: RenderContext): unknown[] {
     return this.args.map((arg) => arg.evaluateSync(context));
   }
 
-  public evalKeywordArgsSync(context: Context): { [index: string]: unknown } {
+  public evalKeywordArgsSync(context: RenderContext): {
+    [index: string]: unknown;
+  } {
     const kwargs: { [index: string]: unknown } = {};
     for (const [key, value] of this.kwargs.entries()) {
       kwargs[key] = value.evaluateSync(context);
@@ -368,9 +359,6 @@ export class Filter {
   }
 }
 
-/**
- *
- */
 export class FilteredExpression implements Expression {
   constructor(
     readonly expression: Expression,
@@ -391,16 +379,17 @@ export class FilteredExpression implements Expression {
     return this.expression.toString();
   }
 
-  public async evaluate(context: Context): Promise<unknown> {
+  public async evaluate(context: RenderContext): Promise<unknown> {
     let result =
       this.expression instanceof Literal
         ? this.expression.evaluateSync(context)
         : await this.expression.evaluate(context);
     for (const filter of this.filters) {
-      const _filter = context.filter(filter.name);
+      const _filter = context.environment.filters[filter.name];
       if (_filter === undefined) {
-        // TODO: Look at strict mode and continue if needed
-        throw new FilterNotFoundError(`unknown filter ${filter.name}`);
+        if (context.environment.strictFilters)
+          throw new FilterNotFoundError(`unknown filter ${filter.name}`);
+        continue;
       }
       try {
         result = _filter.apply(
@@ -418,13 +407,14 @@ export class FilteredExpression implements Expression {
     return result;
   }
 
-  public evaluateSync(context: Context): unknown {
+  public evaluateSync(context: RenderContext): unknown {
     let result = this.expression.evaluateSync(context);
     for (const filter of this.filters) {
-      const _filter = context.filter(filter.name);
+      const _filter = context.environment.filters[filter.name];
       if (_filter === undefined) {
-        // TODO: Look at strict mode and continue if needed
-        throw new FilterNotFoundError(`unknown filter ${filter.name}`);
+        if (context.environment.strictFilters)
+          throw new FilterNotFoundError(`unknown filter ${filter.name}`);
+        continue;
       }
       try {
         result = _filter.apply(
@@ -463,7 +453,7 @@ export class InfixExpression implements Expression {
     return `(${this.left} ${this.operator} ${this.right})`;
   }
 
-  public async evaluate(context: Context): Promise<boolean> {
+  public async evaluate(context: RenderContext): Promise<boolean> {
     return compare(
       this.left instanceof Literal
         ? this.left.evaluateSync(context)
@@ -475,7 +465,7 @@ export class InfixExpression implements Expression {
     );
   }
 
-  public evaluateSync(context: Context): boolean {
+  public evaluateSync(context: RenderContext): boolean {
     return compare(
       this.left.evaluateSync(context),
       this.operator,
@@ -498,11 +488,11 @@ export class BooleanExpression implements Expression {
     return `(${this.expression})`;
   }
 
-  public async evaluate(context: Context): Promise<boolean> {
+  public async evaluate(context: RenderContext): Promise<boolean> {
     return isLiquidTruthy(await this.expression.evaluate(context));
   }
 
-  public evaluateSync(context: Context): boolean {
+  public evaluateSync(context: RenderContext): boolean {
     return isLiquidTruthy(this.expression.evaluateSync(context));
   }
 }
@@ -545,11 +535,6 @@ export class LoopExpression implements Expression {
     return buf.join(" ");
   }
 
-  /**
-   *
-   * @param obj
-   * @returns
-   */
   protected toIter(obj: unknown): [Iterable<unknown>, number] {
     if (isArray(obj)) return [obj.values(), obj.length];
     if (obj instanceof Range) return [obj, obj.length];
@@ -579,7 +564,7 @@ export class LoopExpression implements Expression {
   }
 
   protected limitAndOffset(
-    context: Context,
+    context: RenderContext,
     it: Iterable<unknown>,
     length: number,
     limit: unknown,
@@ -628,7 +613,7 @@ export class LoopExpression implements Expression {
   }
 
   public async evaluate(
-    context: Context
+    context: RenderContext
   ): Promise<[Iterator<unknown>, number]> {
     const [it, length] = this.toIter(await this.iterable.evaluate(context));
     return this.limitAndOffset(
@@ -640,7 +625,7 @@ export class LoopExpression implements Expression {
     );
   }
 
-  public evaluateSync(context: Context): [Iterator<unknown>, number] {
+  public evaluateSync(context: RenderContext): [Iterator<unknown>, number] {
     const [it, length] = this.toIter(this.iterable.evaluateSync(context));
     return this.limitAndOffset(
       context,
@@ -653,9 +638,7 @@ export class LoopExpression implements Expression {
 }
 
 /**
- *
- * @param obj
- * @returns
+ * A type predicate for the `Expression` interface.
  */
 function isExpression(obj: unknown): obj is Expression {
   return (
@@ -663,23 +646,11 @@ function isExpression(obj: unknown): obj is Expression {
   );
 }
 
-/**
- *
- * @param value
- * @returns
- */
 function safe(value: string): string {
   // TODO: implement html safe string
   return value;
 }
 
-/**
- *
- * @param left
- * @param operator
- * @param right
- * @returns
- */
 function compare(left: unknown, operator: string, right: unknown): boolean {
   switch (operator) {
     case "and":
@@ -688,8 +659,8 @@ function compare(left: unknown, operator: string, right: unknown): boolean {
       return isLiquidTruthy(left) || isLiquidTruthy(right);
   }
 
-  if (isLiquidPrimitive(left)) left = left[liquidValueOf]();
-  if (isLiquidPrimitive(right)) right = right[liquidValueOf]();
+  if (isLiquidPrimitive(left)) left = left[toLiquidPrimitive]();
+  if (isLiquidPrimitive(right)) right = right[toLiquidPrimitive]();
 
   if (isNumber(left) && isNumber(right)) {
     const _left = parseNumberT(left);
@@ -713,6 +684,19 @@ function compare(left: unknown, operator: string, right: unknown): boolean {
     );
   }
 
+  if (operator === "contains" && isNumber(right)) {
+    if (isString(left)) return left.indexOf(String(right)) !== -1;
+    if (isArray(left)) {
+      const n = parseNumberT(right);
+      for (const item of left) {
+        if (isNumber(item) && n.eq(item)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
   if (
     right instanceof Empty ||
     right instanceof Blank ||
@@ -731,8 +715,11 @@ function compare(left: unknown, operator: string, right: unknown): boolean {
       return isExpression(left) ? !left.equals(right) : left !== right;
     case "contains":
       if (isString(left)) return left.indexOf(String(right)) !== -1;
-      // XXX: Unwrap numbers?
       if (isArray(left)) return left.indexOf(right) !== -1;
+      if (isObject(left) && isPropertyKey(right)) {
+        return Object.propertyIsEnumerable.call(left, right);
+      }
+    // XXX: array contains Empty, Blank, Nil or Range?
   }
 
   if (left instanceof Undefined || right instanceof Undefined) return false;

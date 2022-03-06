@@ -1,3 +1,6 @@
+/**
+ * A Least Recently Used cache, implemented as an extended Map.
+ */
 export class LRUCache<K, V> extends Map<K, V> {
   readonly maxSize: number;
 

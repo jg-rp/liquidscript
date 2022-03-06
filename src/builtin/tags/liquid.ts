@@ -1,5 +1,5 @@
 import { BlockNode, Node } from "../../ast";
-import { Context } from "../../context";
+import { RenderContext } from "../../context";
 import { Environment } from "../../environment";
 import { LiquidSyntaxError } from "../../errors";
 import { TOKEN_ILLEGAL, TOKEN_SKIP } from "../../expressions/tokens";
@@ -101,12 +101,11 @@ export class LiquidTag implements Tag {
     }
 
     stream.expect(TOKEN_EXPRESSION);
-    const parser = environment.getParser();
     const exprStream = new TemplateTokenStream(
       tokenize(stream.current.value, stream.current.index)
     );
 
-    const block = parser.parseBlock(exprStream, this.endBlock);
+    const block = environment.parser.parseBlock(exprStream, this.endBlock);
     return new LiquidNode(token, block);
   }
 }
@@ -114,11 +113,14 @@ export class LiquidTag implements Tag {
 export class LiquidNode implements Node {
   constructor(readonly token: Token, readonly block: BlockNode) {}
 
-  public async render(context: Context, out: RenderStream): Promise<void> {
+  public async render(
+    context: RenderContext,
+    out: RenderStream
+  ): Promise<void> {
     await this.block.render(context, out);
   }
 
-  public renderSync(context: Context, out: RenderStream): void {
+  public renderSync(context: RenderContext, out: RenderStream): void {
     this.block.renderSync(context, out);
   }
 

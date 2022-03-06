@@ -1,4 +1,9 @@
-import { isLiquidPrimitive, liquidValueOf } from "./drop";
+import {
+  isLiquidPrimitive,
+  isLiquidStringable,
+  toLiquidPrimitive,
+  toLiquidString,
+} from "./drop";
 import { FALSE } from "./expression";
 import { isNumberT, NumberT } from "./number";
 import { Undefined } from "./undefined";
@@ -22,6 +27,10 @@ export function isObject(value: unknown): value is object {
   return (value !== null && _type === "object") || _type === "function"
     ? true
     : false;
+}
+
+export function isFunction(value: unknown): value is CallableFunction {
+  return typeof value === "function";
 }
 
 export function isPropertyKey(value: unknown): value is PropertyKey {
@@ -49,14 +58,15 @@ export function isComparable(
   return isNumber(value) || isString(value);
 }
 
-export function toLiquidString(obj: unknown): string {
+export function liquidStringify(obj: unknown): string {
   if (obj === null) return "";
   if (isUndefined(obj)) return "";
   if (isArray(obj)) return obj.join("");
+  if (isLiquidStringable(obj)) return obj[toLiquidString]();
 
   // TODO: auto escape
-  // TODO: Drop protocol
   const s = String(obj);
+  // XXX: Not good. Leaks things.
   return s === "[object Object]" ? JSON.stringify(obj) : s;
 }
 
@@ -75,7 +85,7 @@ export function isIterable(value: unknown): value is Iterable<unknown> {
  * @returns
  */
 export function isLiquidTruthy(value: unknown): boolean {
-  if (isLiquidPrimitive(value)) value = value[liquidValueOf]();
+  if (isLiquidPrimitive(value)) value = value[toLiquidPrimitive]();
   return value === false ||
     FALSE.equals(value) ||
     value === undefined ||

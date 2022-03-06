@@ -1,4 +1,4 @@
-import { tokenize } from "../src/lex";
+import { compileRules, tokenize as _tokenize } from "../src/lex";
 import {
   Token,
   TOKEN_EXPRESSION,
@@ -10,6 +10,11 @@ import {
 // TODO: Finish tests
 
 describe("tokenize templates", () => {
+  const rules = compileRules();
+  function tokenize(source: string): Generator<Token> {
+    return _tokenize(source, rules);
+  }
+
   test("only literal", () => {
     const tokens = Array.from(tokenize("<HTML>some</HTML>"));
     expect(tokens).toStrictEqual([

@@ -1,5 +1,5 @@
 import { Node } from "../../ast";
-import { Context } from "../../context";
+import { RenderContext } from "../../context";
 import { LiquidSyntaxError } from "../../errors";
 import { Expression } from "../../expression";
 import { parseStringOrIdentifier } from "../../expressions/common";
@@ -52,7 +52,7 @@ export class CycleNode implements Node {
   }
 
   protected cycle(
-    context: Context,
+    context: RenderContext,
     out: RenderStream,
     groupName: unknown,
     args: unknown[]
@@ -64,7 +64,10 @@ export class CycleNode implements Node {
     cycles.set(key, (index + 1) % args.length);
   }
 
-  public async render(context: Context, out: RenderStream): Promise<void> {
+  public async render(
+    context: RenderContext,
+    out: RenderStream
+  ): Promise<void> {
     const groupName = this.group
       ? await this.group.evaluate(context)
       : undefined;
@@ -76,7 +79,7 @@ export class CycleNode implements Node {
     this.cycle(context, out, groupName, args);
   }
 
-  public renderSync(context: Context, out: RenderStream): void {
+  public renderSync(context: RenderContext, out: RenderStream): void {
     const groupName = this.group ? this.group.evaluateSync(context) : undefined;
     const args = this.args.map((arg) => arg.evaluateSync(context));
     this.cycle(context, out, groupName, args);

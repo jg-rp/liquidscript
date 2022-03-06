@@ -1,4 +1,8 @@
-import { FilterArgumentError, FilterValueError } from "../../errors";
+import {
+  FilterArgumentError,
+  FilterValueError,
+  InternalKeyError,
+} from "../../errors";
 import { checkArguments, FilterContext } from "../../filter";
 import {
   isArray,
@@ -9,10 +13,11 @@ import {
   isString,
   isSymbol,
   isUndefined,
-  toLiquidString,
+  liquidStringify,
 } from "../../types";
 import { Undefined } from "../../undefined";
 import { Range } from "../../range";
+import { getItemSync } from "../../context";
 
 // XXX: Multiple cases of unnecessary array copying if input is already an array?
 
@@ -31,8 +36,8 @@ export function join(
   checkArguments(arguments.length, 1);
   if (separator === undefined) separator = " ";
   return Array.from(inputIterable(left))
-    .map(toLiquidString)
-    .join(toLiquidString(separator));
+    .map(liquidStringify)
+    .join(liquidStringify(separator));
 }
 
 /**
@@ -276,19 +281,29 @@ function getItem(obj: unknown, key: unknown): unknown {
     return obj.get(key);
   }
 
-  // TODO: Drop protocol?
-  if (isString(key) || isSymbol(key)) return obj[key as keyof typeof obj];
-  return undefined;
+  try {
+    return getItemSync(obj, key);
+  } catch (error) {
+    if (error instanceof InternalKeyError) {
+      return undefined;
+    }
+    throw error;
+  }
 }
 
 function getItemOrThrow(obj: unknown, key: unknown): unknown {
   if (obj instanceof Map && obj.has(key)) {
     return obj.get(key);
   }
-  if (isObject(obj) && (key as keyof typeof obj) in obj) {
-    return obj[key as keyof typeof obj];
+
+  try {
+    return getItemSync(obj, key);
+  } catch (error) {
+    if (error instanceof InternalKeyError) {
+      throw new FilterArgumentError(`can't read property '${key}' of ${obj}`);
+    }
+    throw error;
   }
-  throw new FilterArgumentError(`can't read property '${key}' of ${obj}`);
 }
 
 /**
@@ -322,7 +337,6 @@ function naturalCompare(a: unknown, b: unknown): -1 | 0 | 1 {
   if (a === undefined && b !== undefined) return 1;
   if (a !== undefined && b === undefined) return -1;
 
-  // XXX: Hack?
   const _a = JSON.stringify(a).toLowerCase();
   const _b = JSON.stringify(b).toLowerCase();
   return _a < _b ? -1 : _a > _b ? 1 : 0;

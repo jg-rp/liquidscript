@@ -1,5 +1,5 @@
 import { BlockNode, Node } from "../../ast";
-import { Context } from "../../context";
+import { RenderContext } from "../../context";
 import { Environment } from "../../environment";
 import { LiquidSyntaxError } from "../../errors";
 import { ASSIGN_IDENTIFIER_PATTERN } from "../../expressions/common";
@@ -18,7 +18,6 @@ export class CaptureTag implements Tag {
   readonly end = TAG_END_CAPTURE;
 
   public parse(stream: TokenStream, environment: Environment): CaptureNode {
-    const parser = environment.getParser();
     const token = stream.next();
     stream.expect(TOKEN_EXPRESSION);
 
@@ -33,7 +32,7 @@ export class CaptureTag implements Tag {
     return new CaptureNode(
       token,
       name,
-      parser.parseBlock(stream, END_CAPTURE_BLOCK)
+      environment.parser.parseBlock(stream, END_CAPTURE_BLOCK)
     );
   }
 }
@@ -46,13 +45,13 @@ export class CaptureNode implements Node {
     readonly block: BlockNode
   ) {}
 
-  public async render(context: Context): Promise<void> {
+  public async render(context: RenderContext): Promise<void> {
     const buf = new DefaultOutputStream();
     await this.block.render(context, buf);
     context.assign(this.name, buf.toString());
   }
 
-  public renderSync(context: Context): void {
+  public renderSync(context: RenderContext): void {
     const buf = new DefaultOutputStream();
     this.block.renderSync(context, buf);
     context.assign(this.name, buf.toString());

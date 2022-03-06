@@ -1,7 +1,9 @@
-import { liquidDispatch, LiquidDispatchable } from "../../drop";
+import { LiquidDispatchableSync, liquidDispatchSync } from "../../drop";
 import { InternalKeyError } from "../../errors";
 
-export class TableRowLoopDrop implements LiquidDispatchable, Iterable<unknown> {
+export class TableRowLoopDrop
+  implements LiquidDispatchableSync, Iterable<unknown>
+{
   private static _keys = new Set([
     "length",
     "index",
@@ -36,7 +38,7 @@ export class TableRowLoopDrop implements LiquidDispatchable, Iterable<unknown> {
     }
   }
 
-  [liquidDispatch](name: string): unknown {
+  [liquidDispatchSync](name: string): unknown {
     if (TableRowLoopDrop._keys.has(name)) return Reflect.get(this, name);
     throw new InternalKeyError(`TableRowLoopDrop[${name}]`);
   }
