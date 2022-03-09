@@ -17,15 +17,16 @@ const END_TAGBLOCK = new Set([TAG_ENDTABLEROW]);
 
 export class TableRowTag implements Tag {
   readonly block = true;
-  readonly name = TAG_TABLEROW; // XXX: Do we need these?
+  readonly name = TAG_TABLEROW;
   readonly end = TAG_ENDTABLEROW;
+  protected nodeClass = TableRowNode;
 
-  parse(stream: TokenStream, environment: Environment): TableRowNode {
+  parse(stream: TokenStream, environment: Environment): Node {
     const token = stream.next();
     stream.expect(TOKEN_EXPRESSION);
     const expr = parse(stream.current.value);
     stream.next();
-    return new TableRowNode(
+    return new this.nodeClass(
       token,
       expr,
       environment.parser.parseBlock(stream, END_TAGBLOCK)

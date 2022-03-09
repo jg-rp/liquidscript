@@ -39,8 +39,9 @@ export class ForTag implements Tag {
   readonly name = TAG_FOR;
   readonly block = true;
   readonly end = TAG_ENDFOR;
+  protected nodeClass = ForNode;
 
-  parse(stream: TokenStream, environment: Environment): ForNode {
+  parse(stream: TokenStream, environment: Environment): Node {
     const token = stream.next();
 
     stream.expect(TOKEN_EXPRESSION);
@@ -59,7 +60,7 @@ export class ForTag implements Tag {
     }
 
     stream.expect(TOKEN_TAG);
-    return new ForNode(token, expr, block, _default);
+    return new this.nodeClass(token, expr, block, _default);
   }
 }
 

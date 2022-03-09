@@ -1,10 +1,36 @@
+import { RenderContext } from "./context";
 import { isObject } from "./types";
 
-export type Drop = LiquidPrimitive &
+export type Drop = Liquidable &
+  LiquidPrimitive &
   LiquidCallable &
   LiquidDispatchable &
   LiquidDispatchableSync &
   LiquidStringable;
+
+/**
+ * A symbol that specifies a function valued property that is called to
+ * convert an object to its corresponding Liquid value.
+ */
+export const toLiquid = Symbol.for("liquid.drop.liquid");
+
+export interface Liquidable {
+  [toLiquid](context: RenderContext): unknown;
+}
+
+/**
+ * A type predicate for the `Liquidable` interface.
+ * @param value - A value that may or may not implement the `Liquidable` interface.
+ * @returns `true` if the argument value implements the `Liquidable`
+ * interface, `false` otherwise.
+ */
+export function isLiquidable(value: unknown): value is Liquidable {
+  return (
+    isObject(value) &&
+    toLiquid in value &&
+    typeof Reflect.get(value, toLiquid) === "function"
+  );
+}
 
 /**
  * A symbol that specifies a function valued property that is called to

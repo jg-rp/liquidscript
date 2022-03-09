@@ -1,6 +1,7 @@
 import { Environment } from "../../src/environment";
 
 // TODO: Finish tests
+// TODO: if null, undefined,
 
 type Case = {
   description: string;

@@ -10,10 +10,11 @@ const END_IFCHANGED_BLOCK = new Set(["endifchanged"]);
 export class IfChangedTag implements Tag {
   readonly name = "ifchanged";
   readonly block = true;
+  protected nodeClass = IfChangedNode;
 
   parse(stream: TokenStream, environment: Environment): Node {
     const token = stream.next();
-    return new IfChangedNode(
+    return new this.nodeClass(
       token,
       environment.parser.parseBlock(stream, END_IFCHANGED_BLOCK)
     );

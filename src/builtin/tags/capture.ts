@@ -10,14 +10,15 @@ import { Token, TokenStream, TOKEN_EOF, TOKEN_EXPRESSION } from "../../token";
 const TAG_CAPTURE = "capture";
 const TAG_END_CAPTURE = "endcapture";
 const END_CAPTURE_BLOCK = new Set([TAG_END_CAPTURE, TOKEN_EOF]);
-const RE_CAPTURE = new RegExp("^\\w[a-zA-Z0-9_\\-]*$"); // TODO: confirm
+const RE_CAPTURE = new RegExp("^\\w[a-zA-Z0-9_\\-]*$");
 
 export class CaptureTag implements Tag {
   readonly block = true;
   readonly name = TAG_CAPTURE;
   readonly end = TAG_END_CAPTURE;
+  protected nodeClass = CaptureNode;
 
-  public parse(stream: TokenStream, environment: Environment): CaptureNode {
+  public parse(stream: TokenStream, environment: Environment): Node {
     const token = stream.next();
     stream.expect(TOKEN_EXPRESSION);
 
@@ -29,7 +30,7 @@ export class CaptureTag implements Tag {
     }
 
     const name = stream.next().value;
-    return new CaptureNode(
+    return new this.nodeClass(
       token,
       name,
       environment.parser.parseBlock(stream, END_CAPTURE_BLOCK)

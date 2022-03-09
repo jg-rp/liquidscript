@@ -10,9 +10,10 @@ import { liquidStringify } from "../../types";
 export class OutputStatement implements Tag {
   readonly block = false;
   readonly name = "statement";
+  protected nodeClass = OutputStatementNode;
 
   parse(stream: TokenStream): Node {
-    return new OutputStatementNode(
+    return new this.nodeClass(
       stream.current,
       parse(stream.current.value, stream.current.index)
     );
@@ -27,11 +28,19 @@ export class OutputStatementNode implements Node {
     context: RenderContext,
     out: RenderStream
   ): Promise<void> {
-    out.write(liquidStringify(await this.expression.evaluate(context)));
+    // TODO: toHTML drop
+    if (context.environment.autoEscape)
+      out.write(
+        escape(liquidStringify(await this.expression.evaluate(context)))
+      );
+    else out.write(liquidStringify(await this.expression.evaluate(context)));
   }
 
   public renderSync(context: RenderContext, out: RenderStream): void {
-    out.write(liquidStringify(this.expression.evaluateSync(context)));
+    // TODO: toHTML drop
+    if (context.environment.autoEscape)
+      out.write(escape(liquidStringify(this.expression.evaluateSync(context))));
+    else out.write(liquidStringify(this.expression.evaluateSync(context)));
   }
 
   children(): Node[] {
@@ -41,4 +50,13 @@ export class OutputStatementNode implements Node {
   toString(): string {
     return "`" + this.expression.toString() + "`";
   }
+}
+
+function escape(s: string): string {
+  return s
+    .replace("&", "&amp;")
+    .replace(">", "&gt;")
+    .replace("<", "&lt;")
+    .replace("'", "&#39;")
+    .replace('"', "&#34;");
 }

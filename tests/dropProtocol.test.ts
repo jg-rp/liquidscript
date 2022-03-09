@@ -3,6 +3,7 @@ import {
   isLiquidCallable,
   liquidDispatch,
   liquidDispatchSync,
+  toLiquid,
   toLiquidPrimitive,
   toLiquidString,
 } from "../src/drop";
@@ -19,6 +20,10 @@ class MockDrop extends MockSuper implements Drop {
   private a: string = "hello";
   private b: string = "goodbye";
   #c: string = "secret";
+
+  [toLiquid](): MockDrop {
+    return this;
+  }
 
   [toLiquidPrimitive](): unknown {
     // This drop could be used as an array index.

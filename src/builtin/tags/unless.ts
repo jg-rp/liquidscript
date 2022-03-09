@@ -31,13 +31,14 @@ export class UnlessTag implements Tag {
   readonly block = true;
   readonly name = TAG_UNLESS;
   readonly end = TAG_ENDUNLESS;
+  protected nodeClass = UnlessNode;
 
   protected parseExpression(stream: TokenStream): Expression {
     stream.expect(TOKEN_EXPRESSION);
     return parse(stream.current.value);
   }
 
-  parse(stream: TokenStream, environment: Environment): UnlessNode {
+  parse(stream: TokenStream, environment: Environment): Node {
     const parser = environment.parser;
     const token = stream.next();
     const condition = this.parseExpression(stream);
@@ -65,7 +66,7 @@ export class UnlessTag implements Tag {
       stream.current.value === TAG_ELSE
     ) {
       stream.next();
-      return new UnlessNode(
+      return new this.nodeClass(
         token,
         condition,
         consequence,
@@ -74,7 +75,7 @@ export class UnlessTag implements Tag {
       );
     }
 
-    return new UnlessNode(
+    return new this.nodeClass(
       token,
       condition,
       consequence,

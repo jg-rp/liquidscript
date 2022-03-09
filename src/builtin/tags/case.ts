@@ -30,6 +30,7 @@ export class CaseTag implements Tag {
   readonly block = true;
   readonly name = TAG_CASE;
   readonly end = TAG_ENDCASE;
+  protected nodeClass = CaseNode;
 
   protected parseExpression(
     _when: string,
@@ -40,7 +41,7 @@ export class CaseTag implements Tag {
     return parse(`${_when} == ${obj}`);
   }
 
-  public parse(stream: TokenStream, environment: Environment): CaseNode {
+  public parse(stream: TokenStream, environment: Environment): Node {
     const parser = environment.parser;
     const token = stream.next();
     stream.expect(TOKEN_EXPRESSION);
@@ -77,13 +78,13 @@ export class CaseTag implements Tag {
       stream.current.value === TAG_ELSE
     ) {
       stream.next();
-      return new CaseNode(
+      return new this.nodeClass(
         token,
         whens,
         parser.parseBlock(stream, END_CASE_BLOCK)
       );
     }
-    return new CaseNode(token, whens);
+    return new this.nodeClass(token, whens);
   }
 }
 

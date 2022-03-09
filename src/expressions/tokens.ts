@@ -1,5 +1,3 @@
-// TODO: comments
-
 import { LiquidSyntaxError, PushedTooFarError } from "../errors";
 import { Token, TokenStream } from "../token";
 
@@ -127,7 +125,7 @@ export class ExpressionTokenStream implements TokenStream {
     // TODO: reverse operators
     if (this.current.kind !== kind)
       throw new LiquidSyntaxError(
-        `expected ${String(kind)}, found ${String(this.current.kind)}`,
+        `expected ${kind}, found ${this.current.kind}`,
         this.current
       );
   }
@@ -136,7 +134,7 @@ export class ExpressionTokenStream implements TokenStream {
     // TODO: reverse operators
     if (this.peek.kind !== kind)
       throw new LiquidSyntaxError(
-        `expected ${String(kind)}, found ${String(this.peek.kind)}`,
+        `expected ${kind}, found ${this.peek.kind}`,
         this.peek
       );
   }

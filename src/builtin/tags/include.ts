@@ -23,8 +23,6 @@ import { Tag } from "../../tag";
 import { Token, TokenStream, TOKEN_EOF, TOKEN_EXPRESSION } from "../../token";
 import { isLiquidArrayLike } from "../../types";
 
-// TODO: set `nodeClass` on all built-in tags for easier sub classing.
-
 export class IncludeTag implements Tag {
   readonly block = false;
   readonly name = "include";

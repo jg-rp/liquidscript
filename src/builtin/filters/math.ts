@@ -2,7 +2,7 @@ import { FilterArgumentError } from "../../errors";
 import { checkArguments, FilterContext } from "../../filter";
 import { isN, isNumberT, NumberT, parseNumberT, ZERO } from "../../number";
 
-// TODO: test NaN and Inf and undefined and null
+// TODO: doc strings
 
 /**
  *

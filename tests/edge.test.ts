@@ -42,4 +42,11 @@ describe("some edge cases", () => {
     const result = template.renderSync({ obj: { x: 1 } });
     expect(result).toBe("yes");
   });
+
+  test("assign a range", () => {
+    const template = env.fromString(
+      "{% assign x = (1..3) %}{{ x | join: '#' }}"
+    );
+    expect(template.renderSync()).toBe("1#2#3");
+  });
 });

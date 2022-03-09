@@ -29,7 +29,7 @@ class ChainObject {
 }
 
 const chainObjectHandler = {
-  get: function (target: ChainObject, prop: string | symbol) {
+  get: function (target: ChainObject, prop: string | symbol): unknown {
     if (prop === "push" || prop === "pop" || prop === ChainObjects) {
       return Reflect.get(target, prop);
     }

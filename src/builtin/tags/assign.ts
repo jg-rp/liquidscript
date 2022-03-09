@@ -13,8 +13,9 @@ const RE_ASSIGN = new RegExp(`^(${ASSIGN_IDENTIFIER_PATTERN})\\s*=\\s*(.+)$`);
 export class AssignTag implements Tag {
   readonly block = false;
   readonly name = TAG_ASSIGN;
+  protected nodeClass = AssignNode;
 
-  public parse(stream: TokenStream): AssignNode {
+  public parse(stream: TokenStream): Node {
     const token = stream.next();
     stream.expect(TOKEN_EXPRESSION);
 
@@ -26,7 +27,7 @@ export class AssignTag implements Tag {
       );
 
     const [, name, expr] = match;
-    return new AssignNode(token, name, parse(expr));
+    return new this.nodeClass(token, name, parse(expr));
   }
 }
 

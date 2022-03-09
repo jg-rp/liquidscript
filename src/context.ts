@@ -2,6 +2,7 @@ import { ForLoopDrop } from "./builtin/drops/forloop";
 import { chainObjects, Missing, ObjectChain } from "./chainObject";
 import {
   hasLiquidCallable,
+  isLiquidable,
   isLiquidCallable,
   isLiquidDispatchable,
   isLiquidDispatchableSync,
@@ -9,6 +10,7 @@ import {
   liquidDispatch,
   liquidDispatchSync,
   LiquidPrimitive,
+  toLiquid,
   toLiquidPrimitive,
 } from "./drop";
 import { Environment } from "./environment";
@@ -143,7 +145,7 @@ export class RenderContext {
   public resolve(name: string): unknown {
     const value = this.scope[name];
     if (value === Missing) return this.environment.undefinedFactory(name);
-    return value;
+    return isLiquidable(value) ? value[toLiquid](this) : value;
   }
 
   /**
@@ -168,6 +170,7 @@ export class RenderContext {
     for (const item of path) {
       try {
         obj = await getItem(obj, item);
+        if (isLiquidable(obj)) obj = obj[toLiquid](this);
       } catch (error) {
         if (error instanceof InternalKeyError) {
           if (missing !== Missing) return missing;
@@ -195,6 +198,7 @@ export class RenderContext {
     for (const item of path) {
       try {
         obj = getItemSync(obj, item);
+        if (isLiquidable(obj)) obj = obj[toLiquid](this);
       } catch (error) {
         if (error instanceof InternalKeyError) {
           if (missing !== Missing) return missing;
@@ -473,3 +477,7 @@ export const BuiltIn = {
   now: () => new Date(),
   today: () => new Date(),
 };
+
+function _toLiquid(value: unknown, context: RenderContext): unknown {
+  return isLiquidable(value) ? value[toLiquid](context) : value;
+}

@@ -8,6 +8,7 @@ import { NIL } from "../../expression";
 export class EchoTag implements Tag {
   readonly block = false;
   readonly name = "echo";
+  protected nodeClass = EchoNode;
 
   parse(stream: TokenStream): Node {
     const token = stream.next();
@@ -16,7 +17,7 @@ export class EchoTag implements Tag {
     if (stream.current.kind === TOKEN_EOF) return new EchoNode(token, NIL);
 
     stream.expect(TOKEN_EXPRESSION);
-    return new EchoNode(
+    return new this.nodeClass(
       token,
       parse(stream.current.value, stream.current.index)
     );

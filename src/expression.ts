@@ -159,13 +159,11 @@ export const TRUE = new BooleanLiteral(true);
 export const FALSE = new BooleanLiteral(false);
 
 export class StringLiteral extends Literal<string> {
-  public async evaluate(context: RenderContext): Promise<string> {
-    if (context.environment.autoEscape) return safe(this.value);
+  public async evaluate(): Promise<string> {
     return this.value;
   }
 
-  public evaluateSync(context: RenderContext): string {
-    if (context.environment.autoEscape) return safe(this.value);
+  public evaluateSync(): string {
     return this.value;
   }
 
@@ -644,11 +642,6 @@ function isExpression(obj: unknown): obj is Expression {
   return (
     !!obj && typeof obj === "object" && "equals" in obj && "evaluate" in obj
   );
-}
-
-function safe(value: string): string {
-  // TODO: implement html safe string
-  return value;
 }
 
 function compare(left: unknown, operator: string, right: unknown): boolean {

@@ -10,11 +10,12 @@ import { Token, TokenStream, TOKEN_EXPRESSION } from "../../token";
 export class DecrementTag implements Tag {
   readonly block = false;
   readonly name = "decrement";
+  protected nodeClass = DecrementNode;
 
-  public parse(stream: TokenStream): DecrementNode {
+  public parse(stream: TokenStream): Node {
     const token = stream.next();
     stream.expect(TOKEN_EXPRESSION);
-    return new DecrementNode(
+    return new this.nodeClass(
       token,
       parseUnchainedIdentifier(
         new ExpressionTokenStream(tokenize(stream.current.value))

@@ -1,6 +1,5 @@
 /**
- *
- * @param stop
+ * Construct a new `Range` object, a lazy sequence of integer.
  */
 export function range(stop: number): Range;
 export function range(start: number, stop: number): Range;
@@ -27,8 +26,7 @@ export class Range implements Iterable<number> {
   }
 
   public *[Symbol.iterator](): Iterator<number> {
-    // TODO: Store the first X Integer objects as constants?
-    // or maintain an Integer and Float object pool?
+    // Ranges are inclusive of stop.
     for (let i = this.start; i <= this.stop; i++) yield i;
   }
 

@@ -7,9 +7,10 @@ import { Token, TokenStream, TOKEN_LITERAL } from "../../token";
 export class TemplateLiteral implements Tag {
   readonly block = false;
   readonly name = TOKEN_LITERAL;
+  protected nodeClass = LiteralNode;
 
   parse(stream: TokenStream): Node {
-    return new LiteralNode(stream.current);
+    return new this.nodeClass(stream.current);
   }
 }
 

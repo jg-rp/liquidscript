@@ -49,4 +49,24 @@ describe("abs filter", () => {
     const result = abs.apply(filterContext, ["foo"]);
     expect(result.valueOf()).toBe(0);
   });
+  test("not a number", () => {
+    const result = abs.apply(filterContext, [NaN]);
+    expect(result.valueOf()).toBe(0);
+  });
+  test("infinity", () => {
+    const result = abs.apply(filterContext, [Infinity]);
+    expect(result.valueOf()).toBe(0);
+  });
+  test("negative infinity", () => {
+    const result = abs.apply(filterContext, [-Infinity]);
+    expect(result.valueOf()).toBe(0);
+  });
+  test("undefined", () => {
+    const result = abs.apply(filterContext, [undefined]);
+    expect(result.valueOf()).toBe(0);
+  });
+  test("null", () => {
+    const result = abs.apply(filterContext, [null]);
+    expect(result.valueOf()).toBe(0);
+  });
 });

@@ -91,8 +91,9 @@ export class LiquidTag implements Tag {
   readonly block = false;
   readonly name = "liquid";
   private endBlock = new Set<string>();
+  protected nodeClass = LiquidNode;
 
-  parse(stream: TokenStream, environment: Environment): LiquidNode {
+  parse(stream: TokenStream, environment: Environment): Node {
     const token = stream.next();
 
     if (stream.current.kind === TOKEN_EOF) {
@@ -106,7 +107,7 @@ export class LiquidTag implements Tag {
     );
 
     const block = environment.parser.parseBlock(exprStream, this.endBlock);
-    return new LiquidNode(token, block);
+    return new this.nodeClass(token, block);
   }
 }
 

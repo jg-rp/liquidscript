@@ -1,9 +1,11 @@
+import { getItemSync } from "../../context";
 import {
   FilterArgumentError,
   FilterValueError,
   InternalKeyError,
 } from "../../errors";
 import { checkArguments, FilterContext } from "../../filter";
+import { Range } from "../../range";
 import {
   isArray,
   isComparable,
@@ -11,22 +13,26 @@ import {
   isLiquidTruthy,
   isObject,
   isString,
-  isSymbol,
   isUndefined,
   liquidStringify,
 } from "../../types";
 import { Undefined } from "../../undefined";
-import { Range } from "../../range";
-import { getItemSync } from "../../context";
-
-// XXX: Multiple cases of unnecessary array copying if input is already an array?
 
 /**
+ * Concatenate items in an array-like object into a single string, separated by
+ * a separator string.
  *
- * @param this
- * @param left
- * @param separator
- * @returns
+ * If the input value is not array-like, it will be coerced to one. If input
+ * array items are not strings, they will be converted to strings before joining.
+ *
+ * @param this - An object containing a reference to the active render context
+ * and any keyword/named arguments.
+ * @param left - Any value. If it's not iterable, a new array will be used with
+ * the value as its first and only item.
+ * @param separator - A string to be used to separate input items in the output
+ * string. Defaults to a single space.
+ * @returns Items in the input array, concatenated together and separated by
+ * the given separator.
  */
 export function join(
   this: FilterContext,
@@ -35,24 +41,24 @@ export function join(
 ): string {
   checkArguments(arguments.length, 1);
   if (separator === undefined) separator = " ";
-  return Array.from(inputIterable(left))
-    .map(liquidStringify)
-    .join(liquidStringify(separator));
+  return inputArray(left).map(liquidStringify).join(liquidStringify(separator));
 }
 
 /**
- *
- * @param this
- * @param left
- * @returns
+ * Return the first item of the input sequence. The input could be array-like
+ * or a mapping, but not a string.
+ * @param this - An object containing a reference to the active render context
+ * and any keyword/named arguments.
+ * @param left - Any value.
+ * @returns The first item in the input iterable, or `null` if the input value
+ * is not iterable, or `undefined` if the iterable is empty.
  */
 export function first(this: FilterContext, left: unknown): unknown {
   checkArguments(arguments.length, 0);
   // First of a string is not supported.
   if (isString(left)) return null;
   // Iterable objects are OK.
-  if (isObject(left) && isIterable(left))
-    return left[Symbol.iterator]().next().value;
+  if (isIterable(left)) return left[Symbol.iterator]().next().value;
   if (isObject(left)) {
     return Object.entries(left)[Symbol.iterator]().next().value;
   }
@@ -60,10 +66,13 @@ export function first(this: FilterContext, left: unknown): unknown {
 }
 
 /**
- *
- * @param this
- * @param left
- * @returns
+ * Return the last item of the input sequence. The input could be array-like
+ * or a mapping, but not a string.
+ * @param this - An object containing a reference to the active render context
+ * and any keyword/named arguments.
+ * @param left - Any value.
+ * @returns The last item in the input iterable, or `null` if the input value
+ * is not iterable.
  */
 export function last(this: FilterContext, left: unknown): unknown {
   checkArguments(arguments.length, 0);
@@ -73,10 +82,15 @@ export function last(this: FilterContext, left: unknown): unknown {
 }
 
 /**
- *
- * @param this
- * @param left
- * @param prop
+ * Remove `null` and `undefined` values from an array-like object. If given, the
+ * argument should be the name of a property that exists on each object in the
+ * array-like sequence.
+ * @param this - An object containing a reference to the active render context
+ * and any keyword/named arguments.
+ * @param left - Any value.
+ * @param prop - The name of a property to check for `null` or `undefined`
+ * values. Each object in the input iterable should have this property.
+ * @returns - A new array with `null` and `undefined` values removed.
  */
 export function compact(
   this: FilterContext,
@@ -85,11 +99,9 @@ export function compact(
 ): unknown[] {
   checkArguments(arguments.length, 1);
   if (prop === undefined)
-    return Array.from(inputIterable(left)).filter(
-      (v) => v !== undefined && v !== null
-    );
+    return inputArray(left).filter((v) => v !== undefined && v !== null);
 
-  return Array.from(inputIterable(left)).filter((v) => {
+  return inputArray(left).filter((v) => {
     const _v = getItemOrThrow(v, prop);
     return _v !== undefined && _v !== null;
   });
@@ -97,8 +109,9 @@ export function compact(
 
 /**
  *
- * @param this
- * @param left
+ * @param this - An object containing a reference to the active render context
+ * and any keyword/named arguments.
+ * @param left -
  * @param arg
  * @returns
  */
@@ -113,13 +126,14 @@ export function concat(
     throw new FilterArgumentError(`expected an array, found ${typeof arg}`);
 
   if (left instanceof Undefined) return arg;
-  return Array.from(inputIterable(left)).concat(arg);
+  return inputArray(left).concat(arg);
 }
 
 /**
  *
- * @param this
- * @param left
+ * @param this - An object containing a reference to the active render context
+ * and any keyword/named arguments.
+ * @param left -
  * @param key
  * @returns
  */
@@ -137,19 +151,21 @@ export function map(
 
 /**
  *
- * @param this
- * @param left
+ * @param this - An object containing a reference to the active render context
+ * and any keyword/named arguments.
+ * @param left -
  * @returns
  */
 export function reverse(this: FilterContext, left: unknown): unknown[] {
   checkArguments(arguments.length, 0);
-  return Array.from(inputIterable(left)).reverse();
+  return Array.from(inputArray(left)).reverse();
 }
 
 /**
  *
- * @param this
- * @param left
+ * @param this - An object containing a reference to the active render context
+ * and any keyword/named arguments.
+ * @param left -
  * @param key
  * @returns
  */
@@ -160,18 +176,19 @@ export function sort(
 ): unknown[] {
   checkArguments(arguments.length, 1);
   if (isUndefined(key)) {
-    return Array.from(inputIterable(left)).sort(compare);
+    return Array.from(inputArray(left)).sort(compare);
   }
 
-  return Array.from(inputIterable(left)).sort((a, b) =>
+  return Array.from(inputArray(left)).sort((a, b) =>
     compare(getItem(a, key), getItem(b, key))
   );
 }
 
 /**
  *
- * @param this
- * @param left
+ * @param this - An object containing a reference to the active render context
+ * and any keyword/named arguments.
+ * @param left -
  * @param key
  * @returns
  */
@@ -182,18 +199,19 @@ export function sortNatural(
 ): unknown[] {
   checkArguments(arguments.length, 1);
   if (isUndefined(key)) {
-    return Array.from(inputIterable(left)).sort(naturalCompare);
+    return Array.from(inputArray(left)).sort(naturalCompare);
   }
 
-  return Array.from(inputIterable(left)).sort((a, b) =>
+  return Array.from(inputArray(left)).sort((a, b) =>
     naturalCompare(getItem(a, key), getItem(b, key))
   );
 }
 
 /**
  *
- * @param this
- * @param left
+ * @param this - An object containing a reference to the active render context
+ * and any keyword/named arguments.
+ * @param left -
  * @param prop
  * @returns
  */
@@ -207,14 +225,14 @@ export function uniq(
   let key: unknown;
 
   if (prop === undefined) {
-    for (const obj of inputIterable(left)) {
+    for (const obj of inputArray(left)) {
       key = JSON.stringify(obj);
       if (!map.has(key)) {
         map.set(key, obj);
       }
     }
   } else {
-    for (const obj of inputIterable(left)) {
+    for (const obj of inputArray(left)) {
       key = JSON.stringify(getItem(obj, prop));
       if (!map.has(key)) {
         map.set(key, obj);
@@ -227,8 +245,9 @@ export function uniq(
 
 /**
  *
- * @param this
- * @param left
+ * @param this - An object containing a reference to the active render context
+ * and any keyword/named arguments.
+ * @param left -
  * @param prop
  * @param value
  * @returns
@@ -241,13 +260,9 @@ export function where(
 ): unknown[] {
   checkArguments(arguments.length, 2, 1);
   if (value === undefined) {
-    return Array.from(inputIterable(left)).filter((v) =>
-      isLiquidTruthy(getItem(v, prop))
-    );
+    return inputArray(left).filter((v) => isLiquidTruthy(getItem(v, prop)));
   }
-  return Array.from(inputIterable(left)).filter(
-    (v) => getItem(v, prop) === value
-  );
+  return inputArray(left).filter((v) => getItem(v, prop) === value);
 }
 
 /**
@@ -255,13 +270,13 @@ export function where(
  * @param value
  * @returns
  */
-function inputIterable(value: unknown): Iterable<unknown> {
+function inputArray(value: unknown): unknown[] {
   if (isArray(value)) {
     return value.flat(5);
   }
   // XXX: Not flattening iterables.
   if (isIterable(value)) {
-    return value;
+    return Array.from(value);
   }
   return [value];
 }
@@ -273,7 +288,6 @@ function inputIterable(value: unknown): Iterable<unknown> {
  * @returns
  */
 function getItem(obj: unknown, key: unknown): unknown {
-  // XXX: nill, undefined or Undefined?
   if (!isObject(obj))
     throw new FilterArgumentError(`can't read property ${obj}[${key}]`);
 
@@ -306,12 +320,6 @@ function getItemOrThrow(obj: unknown, key: unknown): unknown {
   }
 }
 
-/**
- *
- * @param a
- * @param b
- * @returns
- */
 function compare(a: unknown, b: unknown): -1 | 0 | 1 {
   if (a === undefined && b === undefined) return 0;
   if (a === undefined && b !== undefined) return 1;
@@ -326,12 +334,6 @@ function compare(a: unknown, b: unknown): -1 | 0 | 1 {
   throw new FilterValueError(`comparison of '${a}' and '${b}' failed`);
 }
 
-/**
- *
- * @param a
- * @param b
- * @returns
- */
 function naturalCompare(a: unknown, b: unknown): -1 | 0 | 1 {
   if (a === undefined && b === undefined) return 0;
   if (a === undefined && b !== undefined) return 1;

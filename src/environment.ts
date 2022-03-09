@@ -17,7 +17,7 @@ const implicitEnvironmentCache = new LRUCache<string, Environment>(10);
 export type EnvironmentOptions = {
   /**
    * When `true`, render context variables will be HTML escaped before output.
-   * @defaultValue `true`
+   * @defaultValue `false`
    */
   autoEscape?: boolean;
 
@@ -100,6 +100,7 @@ export class Environment {
   public strictFilters: boolean;
   readonly tagStartString: string;
   readonly tagEndString: string;
+  protected templateClass: typeof Template = Template;
   readonly undefinedFactory: (name: string) => Undefined;
 
   /**
@@ -127,7 +128,7 @@ export class Environment {
     tagEndString,
     undefinedFactory,
   }: EnvironmentOptions = {}) {
-    this.autoEscape = autoEscape ?? true;
+    this.autoEscape = autoEscape ?? false;
     this.globals = globals ?? {};
     this.loader = loader ?? new MapLoader();
     this.maxContextDepth = maxContextDepth ?? 30;
@@ -213,7 +214,7 @@ export class Environment {
     globals?: ContextScope,
     matter?: ContextScope
   ): Template {
-    return new Template(
+    return new this.templateClass(
       this,
       this.parse(source),
       name || "",

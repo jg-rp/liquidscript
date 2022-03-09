@@ -3,7 +3,6 @@ import { checkArguments, FilterContext } from "../../filter";
 import { isUndefined, liquidStringify } from "../../types";
 import { escape as escapeHTML, unescape } from "../../html";
 
-// TODO: Implement Markup string wrapper
 // TODO: tests
 
 /**
@@ -79,7 +78,9 @@ export function downcase(this: FilterContext, left: unknown): string {
  */
 export function escape(this: FilterContext, left: unknown): string {
   checkArguments(arguments.length, 0);
-  return escapeHTML(liquidStringify(left));
+  if (!this.context.environment.autoEscape)
+    return escapeHTML(liquidStringify(left));
+  return liquidStringify(left);
 }
 
 /**
@@ -90,7 +91,9 @@ export function escape(this: FilterContext, left: unknown): string {
  */
 export function escapeOnce(this: FilterContext, left: unknown): string {
   checkArguments(arguments.length, 0);
-  return escapeHTML(unescape(liquidStringify(left)));
+  if (!this.context.environment.autoEscape)
+    return escapeHTML(unescape(liquidStringify(left)));
+  return unescape(liquidStringify(left));
 }
 
 /**

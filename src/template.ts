@@ -25,6 +25,7 @@ export class Template {
   readonly matter: ContextScope;
   readonly isUpToDate: () => Promise<boolean>;
   readonly isUpToDateSync: () => boolean;
+  protected renderContextClass = RenderContext;
 
   /**
    * Parse a Liquid template, automatically creating an environment to
@@ -86,7 +87,7 @@ export class Template {
    * @returns The rendered template.
    */
   public async render(globals: ContextScope = {}): Promise<string> {
-    const context = new RenderContext(
+    const context = new this.renderContextClass(
       this.environment,
       this.makeGlobals(globals),
       { templateName: this.name }
@@ -101,7 +102,7 @@ export class Template {
    * @see {@link render}
    */
   public renderSync(globals: ContextScope = {}): string {
-    const context = new RenderContext(
+    const context = new this.renderContextClass(
       this.environment,
       this.makeGlobals(globals),
       { templateName: this.name }

@@ -157,9 +157,8 @@ export function parseStringOrIdentifier(
       expression = parseStringLiteral(stream);
       break;
     default:
-      // TODO: reverse operator lookup
       throw new LiquidSyntaxError(
-        `expected identifier or string, found ${String(stream.current.kind)}`,
+        `expected identifier or string, found '${String(stream.current.kind)}'`,
         stream.current
       );
   }

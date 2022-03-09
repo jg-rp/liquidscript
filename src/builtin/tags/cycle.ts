@@ -18,8 +18,9 @@ export const Cycles = Symbol.for("liquid.tags.cycles");
 
 export class CycleTag implements Tag {
   readonly block = false;
+  protected nodeClass = CycleNode;
 
-  public parse(stream: TokenStream): CycleNode {
+  public parse(stream: TokenStream): Node {
     const token = stream.next();
     stream.expect(TOKEN_EXPRESSION);
 
@@ -32,7 +33,7 @@ export class CycleTag implements Tag {
         new ExpressionTokenStream(parts[0].values())
       );
 
-    return new CycleNode(
+    return new this.nodeClass(
       token,
       Array.from(
         parseArgs(new ExpressionTokenStream(parts[parts.length - 1].values()))
@@ -47,9 +48,7 @@ export class CycleNode implements Node {
     readonly token: Token,
     readonly args: Expression[],
     readonly group?: Expression
-  ) {
-    // TODO: pre evaluate constant expressions.
-  }
+  ) {}
 
   protected cycle(
     context: RenderContext,

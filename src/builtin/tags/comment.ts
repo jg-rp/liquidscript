@@ -1,6 +1,4 @@
 import { Node } from "../../ast";
-import { RenderContext } from "../../context";
-import { RenderStream } from "../../io/output_stream";
 import { Tag } from "../../tag";
 import { Token, TokenStream, TOKEN_EOF, TOKEN_TAG } from "../../token";
 
@@ -8,9 +6,10 @@ export class CommentTag implements Tag {
   readonly block = true;
   readonly name = "comment";
   readonly end = "endcomment";
+  protected nodeClass = CommentNode;
 
-  public parse(stream: TokenStream): CommentNode {
-    const node = new CommentNode(stream.next());
+  public parse(stream: TokenStream): Node {
+    const node = new this.nodeClass(stream.next());
     while (
       stream.current.kind !== TOKEN_EOF &&
       !(

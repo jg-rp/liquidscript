@@ -31,13 +31,14 @@ export class IfTag implements Tag {
   readonly block = true;
   readonly name = TAG_IF;
   readonly end = TAG_ENDIF;
+  protected nodeClass = IfNode;
 
   protected parseExpression(stream: TokenStream): BooleanExpression {
     stream.expect(TOKEN_EXPRESSION);
     return parse(stream.current.value);
   }
 
-  parse(stream: TokenStream, environment: Environment): IfNode {
+  parse(stream: TokenStream, environment: Environment): Node {
     const parser = environment.parser;
     const token = stream.next();
     const condition = this.parseExpression(stream);
@@ -65,7 +66,7 @@ export class IfTag implements Tag {
       stream.current.value === TAG_ELSE
     ) {
       stream.next();
-      return new IfNode(
+      return new this.nodeClass(
         token,
         condition,
         consequence,
@@ -74,7 +75,12 @@ export class IfTag implements Tag {
       );
     }
 
-    return new IfNode(token, condition, consequence, conditionalAlternatives);
+    return new this.nodeClass(
+      token,
+      condition,
+      consequence,
+      conditionalAlternatives
+    );
   }
 }
 
