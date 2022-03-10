@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
 const { performance, PerformanceObserver } = require("perf_hooks");
 
 const { loadData } = require("./data");

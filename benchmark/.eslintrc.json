@@ -1,0 +1,6 @@
+{
+  "root": true,
+  "extends": ["standard", "prettier"],
+  "rules": {},
+  "env": { "node": true }
+}

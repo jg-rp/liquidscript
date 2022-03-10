@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "forceConsistentCasingInFileNames": true,
-    "outDir": "lib",
+    "outDir": "dist",
     "allowJs": false,
     "allowSyntheticDefaultImports": true,
     "declaration": true,
@@ -11,14 +11,15 @@
     "extendedDiagnostics": false,
     "listEmittedFiles": false,
     "module": "commonjs",
-    "removeComments": true,
+    "removeComments": false,
     "sourceMap": true,
     "strict": true,
     "target": "es6",
     "noImplicitAny": true,
     "types": ["jest", "node"],
     "incremental": true,
-    "importHelpers": true
+    "importHelpers": true,
+    "isolatedModules": true
   },
   "include": ["src"],
   "exclude": [
@@ -26,6 +27,8 @@
     "**/*.spec.ts",
     "**/*.test.ts",
     "__mocks__",
-    "lib"
+    "lib",
+    "dist",
+    "benchmark"
   ]
 }
