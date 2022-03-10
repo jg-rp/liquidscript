@@ -1,0 +1,10 @@
+{
+  "root": true,
+  "extends": ["standard", "prettier"],
+  "rules": {},
+  "env": { "browser": true, "es2021": true, "mocha": true },
+  "globals": {
+    "chai": "readonly",
+    "liquidscript": "readonly"
+  }
+}

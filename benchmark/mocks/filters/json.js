@@ -1,5 +1,4 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
-const { errors } = require("../../../");
+const { FilterArgumentError } = require("../../../");
 const { object } = require("../../../");
 
 /**
@@ -10,9 +9,7 @@ const { object } = require("../../../");
  */
 function json(left) {
   if (!object.isObject(left))
-    throw new errors.FilterArgumentError(
-      `expected an object, found ${typeof left}`
-    );
+    throw new FilterArgumentError(`expected an object, found ${typeof left}`);
   return JSON.stringify(left);
 }
 

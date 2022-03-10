@@ -1,5 +1,4 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
-const { errors } = require("../../../");
+const { FilterArgumentError } = require("../../../");
 
 function assetUrl(left) {
   return `/files/1/[shop_id]/[shop_id]/assets/${left}`;
@@ -26,7 +25,7 @@ function linkTo(left, url, title = "") {
 }
 
 function within(left, collection) {
-  return `/collections/${collection["handle"]}/${left}`;
+  return `/collections/${collection.handle}/${left}`;
 }
 
 function imgTag(left, alt = "") {
@@ -67,32 +66,30 @@ function productImgUrl(left, style = "small") {
   if (style === "original") return `/files/shops/random_number/${left}`;
   if (IMAGE_STYLES.has(style))
     return `/files/shops/random_number/products/${style}`;
-  throw new errors.FilterArgumentError(
-    `invalid product image style '${style}'`
-  );
+  throw new FilterArgumentError(`invalid product image style '${style}'`);
 }
 
 function defaultPagination(obj) {
   const html = [];
 
-  if (obj["previous"]) {
-    const link = _linkTo(obj["previous"]["title"], obj["previous"]["url"]);
+  if (obj.previous) {
+    const link = _linkTo(obj.previous.title, obj.previous.url);
     html.push(`<span class="prev">${link}</span>`);
   }
 
-  for (const part of obj["parts"]) {
-    if (part["is_link"]) {
-      const link = _linkTo(part["title"], part["url"]);
+  for (const part of obj.parts) {
+    if (part.is_link) {
+      const link = _linkTo(part.title, part.url);
       html.push(`<span class="page">${link}</span>`);
-    } else if (part["title"] === obj["current_page"]) {
+    } else if (part.title === obj.current_page) {
       html.push(`<span class="page current">${part.title}</span>`);
     } else {
       html.push(`<span class="deco">${part.title}</span>`);
     }
   }
 
-  if (obj["next"]) {
-    const link = _linkTo(obj["next"]["title"], obj["next"]["url"]);
+  if (obj.next) {
+    const link = _linkTo(obj.next.title, obj.next.url);
     html.push(`<span class="next">${link}</span>`);
   }
 

@@ -1,9 +1,4 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
-const {
-  Loader,
-  TemplateSource,
-  TemplateNotFoundError,
-} = require("../../lib/loader");
+const { Loader, TemplateSource, errors } = require("../../");
 
 class MockMapLoader extends Loader {
   constructor(map, ms) {
@@ -27,7 +22,7 @@ class MockMapLoader extends Loader {
   }
 
   _getSource(name) {
-    if (!this._map.has(name)) throw new TemplateNotFoundError(name);
+    if (!this._map.has(name)) throw new errors.TemplateNotFoundError(name);
     return new TemplateSource(this._map.get(name), name);
   }
 }

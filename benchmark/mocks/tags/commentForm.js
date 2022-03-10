@@ -1,8 +1,4 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
-const { TOKEN_EXPRESSION } = require("../../../lib/token");
-const { ExpressionTokenStream } = require("../../../lib/expressions/tokens");
-const { parseIdentifier } = require("../../../lib/expressions/common");
-const { tokenize } = require("../../../lib/expressions/filtered/lex");
+const { expressions, tokens } = require("../../../");
 
 const END_FORM_BLOCK = new Set(["endform"]);
 
@@ -12,9 +8,11 @@ const CommentFormTag = {
   parse: function (stream, env) {
     const token = stream.next();
 
-    stream.expect(TOKEN_EXPRESSION);
-    const article = parseIdentifier(
-      new ExpressionTokenStream(tokenize(stream.current.value))
+    stream.expect(tokens.TOKEN_EXPRESSION);
+    const article = expressions.parseIdentifier(
+      new expressions.ExpressionTokenStream(
+        expressions.tokenizeFilteredExpression(stream.current.value)
+      )
     );
 
     stream.next();

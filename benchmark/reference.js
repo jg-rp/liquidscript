@@ -4,8 +4,7 @@ const { loadData } = require("./data");
 const { loadThemes, includifyThemes } = require("./themes");
 const { registerMocks } = require("./register");
 const { MockMapLoader } = require("./mocks/loader");
-const { Environment } = require("..");
-const { LaxUndefined } = require("../lib/undefined");
+const { Environment, LaxUndefined } = require("..");
 
 // For reasons that I don't yet understand, use of `setTimeout`
 // (wrapped in a promise) causes the performance observer callback
@@ -30,9 +29,9 @@ const measures = {
 // Increase the number of loops per iteration for faster ops.
 const parseWeight = 10;
 const renderSyncWeight = 20;
-const renderWeight = 1.8;
+const renderWeight = 10;
 // Reduce the number of loops per iteration for slower ops.
-const renderSimulatedIOWeight = 0.6;
+const renderSimulatedIOWeight = 1;
 const renderSimulatedIOSyncSWeight = 0.04;
 
 const iterationWeightMap = {

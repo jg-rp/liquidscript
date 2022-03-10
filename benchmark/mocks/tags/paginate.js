@@ -1,63 +1,49 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
-const { TOKEN_EXPRESSION } = require("../../../lib/token");
-const {
-  TOKEN_BY,
-  TOKEN_DOT,
-  TOKEN_INTEGER,
-  TOKEN_ILLEGAL,
-  TOKEN_SKIP,
-} = require("../../../lib/expressions/tokens");
-const { Token } = require("../../../lib/token");
-const {
-  ExpressionTokenStream,
-  TOKEN_IDENT,
-  TOKEN_EOF,
-} = require("../../../lib/expressions/tokens");
-const { RE } = require("../../../lib/expressions/filtered/lex");
-const { LiquidSyntaxError } = require("../../../lib/errors");
-const {
-  parseIdentifier,
-  parseIntegerLiteral,
-} = require("../../../lib/expressions/common");
-const { isUndefined } = require("../../../lib/types");
+const { tokens, expressions, object, LiquidSyntaxError } = require("../../../");
 
 const END_PAGINATE_BLOCK = new Set(["endpaginate"]);
 
 function* tokenize(source, startIndex) {
-  for (const match of source.matchAll(RE)) {
+  for (const match of source.matchAll(expressions.RE_FILTERED_EXPRESSION)) {
     const groups = match.groups;
-    if (groups[TOKEN_IDENT] !== undefined) {
-      if (groups[TOKEN_IDENT] === TOKEN_BY) {
-        yield new Token(match[0], match[0], match.index + startIndex, source);
+    if (groups[expressions.tokens.TOKEN_IDENT] !== undefined) {
+      if (
+        groups[expressions.tokens.TOKEN_IDENT] === expressions.tokens.TOKEN_BY
+      ) {
+        yield new tokens.Token(
+          match[0],
+          match[0],
+          match.index + startIndex,
+          source
+        );
       } else {
-        yield new Token(
-          TOKEN_IDENT,
-          groups[TOKEN_IDENT],
+        yield new tokens.Token(
+          expressions.tokens.TOKEN_IDENT,
+          groups[expressions.tokens.TOKEN_IDENT],
           match.index + startIndex,
           source
         );
       }
-    } else if (groups[TOKEN_DOT] !== undefined) {
-      yield new Token(
-        TOKEN_DOT,
-        groups[TOKEN_DOT],
+    } else if (groups[expressions.tokens.TOKEN_DOT] !== undefined) {
+      yield new tokens.Token(
+        expressions.tokens.TOKEN_DOT,
+        groups[expressions.tokens.TOKEN_DOT],
         match.index + startIndex,
         source
       );
-    } else if (groups[TOKEN_INTEGER] !== undefined) {
-      yield new Token(
-        TOKEN_INTEGER,
-        groups[TOKEN_INTEGER],
+    } else if (groups[expressions.tokens.TOKEN_INTEGER] !== undefined) {
+      yield new tokens.Token(
+        expressions.tokens.TOKEN_INTEGER,
+        groups[expressions.tokens.TOKEN_INTEGER],
         match.index + startIndex,
         source
       );
-    } else if (groups[TOKEN_SKIP] !== undefined) {
+    } else if (groups[expressions.tokens.TOKEN_SKIP] !== undefined) {
       continue;
     } else {
       throw new LiquidSyntaxError(
         `unexpected token '${JSON.stringify(groups)}'`,
-        new Token(
-          TOKEN_ILLEGAL,
+        new tokens.Token(
+          expressions.tokens.TOKEN_ILLEGAL,
           groups.TOKEN_ILLEGAL,
           match.index + startIndex,
           source
@@ -72,24 +58,24 @@ const PaginateTag = {
   parse: function (stream, env) {
     const token = stream.next();
 
-    stream.expect(TOKEN_EXPRESSION);
-    const exprStream = new ExpressionTokenStream(
+    stream.expect(tokens.TOKEN_EXPRESSION);
+    const exprStream = new expressions.ExpressionTokenStream(
       tokenize(stream.current.value)
     );
 
-    exprStream.expect(TOKEN_IDENT);
-    const ident = parseIdentifier(exprStream);
+    exprStream.expect(expressions.tokens.TOKEN_IDENT);
+    const ident = expressions.parseIdentifier(exprStream);
     exprStream.next();
 
     // Eat TOKEN_BY
-    exprStream.expect(TOKEN_BY);
+    exprStream.expect(expressions.tokens.TOKEN_BY);
     exprStream.next();
 
     // Read page size
-    exprStream.expect(TOKEN_INTEGER);
-    const pageSize = parseIntegerLiteral(exprStream);
+    exprStream.expect(expressions.tokens.TOKEN_INTEGER);
+    const pageSize = expressions.parseIntegerLiteral(exprStream);
     exprStream.next();
-    exprStream.expect(TOKEN_EOF);
+    exprStream.expect(expressions.tokens.TOKEN_EOF);
 
     stream.next();
     return paginateNode(
@@ -110,7 +96,7 @@ function paginateNode(token, ident, pageSize, block) {
       const pageCount = Math.ceil(collectionSize / pageSize);
 
       const contextPage = await context.get("current_page");
-      const currentPage = isUndefined(contextPage) ? 1 : contextPage;
+      const currentPage = object.isUndefined(contextPage) ? 1 : contextPage;
 
       const pagination = {
         page_size: pageSize,
@@ -154,7 +140,7 @@ function paginateNode(token, ident, pageSize, block) {
       const pageCount = Math.ceil(collectionSize / pageSize);
 
       const contextPage = context.getSync("current_page");
-      const currentPage = isUndefined(contextPage) ? 1 : contextPage;
+      const currentPage = object.isUndefined(contextPage) ? 1 : contextPage;
 
       const pagination = {
         page_size: pageSize,
