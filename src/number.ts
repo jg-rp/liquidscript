@@ -1,5 +1,4 @@
 import Decimal from "decimal.js";
-import { isPrimitiveNumber, isString } from "./types";
 
 Decimal.set({ precision: 16 });
 
@@ -163,6 +162,14 @@ export function isInteger(val: unknown): val is Integer {
  */
 export function isFloat(val: unknown): val is Float {
   return val instanceof Float;
+}
+
+function isPrimitiveNumber(value: unknown): value is number {
+  return typeof value === "number";
+}
+
+function isString(value: unknown): value is string {
+  return typeof value === "string";
 }
 
 export const ZERO = new Integer(0);

@@ -12,7 +12,6 @@ import { range, Range } from "./range";
 import {
   isArray,
   isIterable,
-  isLiquidTruthy,
   isNumber,
   isObject,
   isPrimitiveInteger,
@@ -720,4 +719,19 @@ function compare(left: unknown, operator: string, right: unknown): boolean {
   throw new InternalTypeError(
     `invalid comparison operator '${left} ${operator} ${right}'`
   );
+}
+/**
+ * Check a value for Liquid truthiness.
+ * @param value - Any value
+ * @returns `true` if the value is Liquid truthy, `false` otherwise.
+ */
+export function isLiquidTruthy(value: unknown): boolean {
+  if (isLiquidPrimitive(value)) value = value[toLiquidPrimitive]();
+  return value === false ||
+    FALSE.equals(value) ||
+    value === undefined ||
+    value === null ||
+    value instanceof Undefined
+    ? false
+    : true;
 }

@@ -3,12 +3,10 @@ const { tokens, expressions, object, LiquidSyntaxError } = require("../../../");
 const END_PAGINATE_BLOCK = new Set(["endpaginate"]);
 
 function* tokenize(source, startIndex) {
-  for (const match of source.matchAll(expressions.RE_FILTERED_EXPRESSION)) {
+  for (const match of source.matchAll(expressions.filtered.RE)) {
     const groups = match.groups;
-    if (groups[expressions.tokens.TOKEN_IDENT] !== undefined) {
-      if (
-        groups[expressions.tokens.TOKEN_IDENT] === expressions.tokens.TOKEN_BY
-      ) {
+    if (groups[expressions.TOKEN_IDENT] !== undefined) {
+      if (groups[expressions.TOKEN_IDENT] === expressions.TOKEN_BY) {
         yield new tokens.Token(
           match[0],
           match[0],
@@ -17,33 +15,33 @@ function* tokenize(source, startIndex) {
         );
       } else {
         yield new tokens.Token(
-          expressions.tokens.TOKEN_IDENT,
-          groups[expressions.tokens.TOKEN_IDENT],
+          expressions.TOKEN_IDENT,
+          groups[expressions.TOKEN_IDENT],
           match.index + startIndex,
           source
         );
       }
-    } else if (groups[expressions.tokens.TOKEN_DOT] !== undefined) {
+    } else if (groups[expressions.TOKEN_DOT] !== undefined) {
       yield new tokens.Token(
-        expressions.tokens.TOKEN_DOT,
-        groups[expressions.tokens.TOKEN_DOT],
+        expressions.TOKEN_DOT,
+        groups[expressions.TOKEN_DOT],
         match.index + startIndex,
         source
       );
-    } else if (groups[expressions.tokens.TOKEN_INTEGER] !== undefined) {
+    } else if (groups[expressions.TOKEN_INTEGER] !== undefined) {
       yield new tokens.Token(
-        expressions.tokens.TOKEN_INTEGER,
-        groups[expressions.tokens.TOKEN_INTEGER],
+        expressions.TOKEN_INTEGER,
+        groups[expressions.TOKEN_INTEGER],
         match.index + startIndex,
         source
       );
-    } else if (groups[expressions.tokens.TOKEN_SKIP] !== undefined) {
+    } else if (groups[expressions.TOKEN_SKIP] !== undefined) {
       continue;
     } else {
       throw new LiquidSyntaxError(
         `unexpected token '${JSON.stringify(groups)}'`,
         new tokens.Token(
-          expressions.tokens.TOKEN_ILLEGAL,
+          expressions.TOKEN_ILLEGAL,
           groups.TOKEN_ILLEGAL,
           match.index + startIndex,
           source
@@ -63,19 +61,19 @@ const PaginateTag = {
       tokenize(stream.current.value)
     );
 
-    exprStream.expect(expressions.tokens.TOKEN_IDENT);
+    exprStream.expect(expressions.TOKEN_IDENT);
     const ident = expressions.parseIdentifier(exprStream);
     exprStream.next();
 
     // Eat TOKEN_BY
-    exprStream.expect(expressions.tokens.TOKEN_BY);
+    exprStream.expect(expressions.TOKEN_BY);
     exprStream.next();
 
     // Read page size
-    exprStream.expect(expressions.tokens.TOKEN_INTEGER);
+    exprStream.expect(expressions.TOKEN_INTEGER);
     const pageSize = expressions.parseIntegerLiteral(exprStream);
     exprStream.next();
-    exprStream.expect(expressions.tokens.TOKEN_EOF);
+    exprStream.expect(expressions.TOKEN_EOF);
 
     stream.next();
     return paginateNode(

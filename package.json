@@ -6,13 +6,14 @@
   "scripts": {
     "build:types": "tsc --emitDeclarationOnly",
     "build:js": "rollup -c",
-    "build": "npm run build:types && npm run build:js",
+    "build:bundle": "rollup -c rollup.bundle.config.js",
+    "build": "npm run build:types && npm run build:js && npm run build:bundle",
     "format": "prettier --write ./src/**/*.ts",
     "format:check": "prettier --list-different ./src/**/*.ts",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "test": "jest",
     "coverage": "jest --collectCoverage",
-    "clean": "rm -rf ./lib ./dist ./benchmark/*0x ./benchmark/*log ./coverage",
+    "clean": "rm -rf ./lib ./dist ./coverage",
     "benchmark": "npm run build && cd benchmark && node reference.js",
     "type-check": "tsc --noEmit",
     "type-check:watch": "npm run type-check -- --watch"

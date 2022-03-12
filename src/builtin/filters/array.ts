@@ -4,13 +4,13 @@ import {
   FilterValueError,
   InternalKeyError,
 } from "../../errors";
+import { isLiquidTruthy } from "../../expression";
 import { checkArguments, FilterContext } from "../../filter";
 import { Range } from "../../range";
 import {
   isArray,
   isComparable,
   isIterable,
-  isLiquidTruthy,
   isObject,
   isString,
   isUndefined,

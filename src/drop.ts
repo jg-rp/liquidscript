@@ -1,5 +1,4 @@
 import { RenderContext } from "./context";
-import { isObject } from "./types";
 
 export type Drop = Liquidable &
   LiquidPrimitive &
@@ -157,4 +156,11 @@ export function isLiquidDispatchableSync(
   value: unknown
 ): value is LiquidDispatchableSync {
   return isObject(value) && liquidDispatchSync in value;
+}
+
+function isObject(value: unknown): value is object {
+  const _type = typeof value;
+  return (value !== null && _type === "object") || _type === "function"
+    ? true
+    : false;
 }

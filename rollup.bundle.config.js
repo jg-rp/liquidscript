@@ -7,18 +7,14 @@ import pkg from "./package.json";
 const extensions = [".js", ".jsx", ".ts", ".tsx"];
 const name = "liquidscript";
 
-// TODO: include version number in bundles
-
 export default {
   input: "./src/liquidscript.ts",
-  external: ["decimal.js", "he", "luxon"],
+  external: [],
   plugins: [
     // Allows node_modules resolution
     resolve({ extensions }),
-
     // Allow bundling cjs modules. Rollup doesn't understand cjs
     commonjs(),
-
     // Compile TypeScript/JavaScript files
     babel({
       extensions,
@@ -26,29 +22,20 @@ export default {
       include: ["src/**/*"],
     }),
   ],
-
   output: [
     {
-      file: pkg.main,
-      format: "cjs",
-    },
-    {
-      file: pkg.module,
-      format: "es",
-    },
-    {
-      file: pkg.browser,
+      file: pkg["browser-bundle"],
       format: "iife",
       name,
-      globals: { "decimal.js": "Decimal", he: "he", luxon: "luxon" },
+      globals: {},
     },
     {
-      file: pkg["browser-min"],
+      file: pkg["browser-bundle-min"],
       format: "iife",
       name,
       plugins: [uglify()],
       sourcemap: true,
-      globals: { "decimal.js": "Decimal", he: "he", luxon: "luxon" },
+      globals: {},
     },
   ],
 };

@@ -1,10 +1,4 @@
-import {
-  isLiquidPrimitive,
-  isLiquidStringable,
-  toLiquidPrimitive,
-  toLiquidString,
-} from "./drop";
-import { FALSE } from "./expression";
+import { isLiquidStringable, toLiquidString } from "./drop";
 import { isNumberT, NumberT } from "./number";
 import { Undefined } from "./undefined";
 
@@ -126,22 +120,6 @@ export function liquidStringify(value: unknown): string {
  */
 export function isIterable(value: unknown): value is Iterable<unknown> {
   return isObject(value) ? Symbol.iterator in value : false;
-}
-
-/**
- * Check a value for Liquid truthiness.
- * @param value - Any value
- * @returns `true` if the value is Liquid truthy, `false` otherwise.
- */
-export function isLiquidTruthy(value: unknown): boolean {
-  if (isLiquidPrimitive(value)) value = value[toLiquidPrimitive]();
-  return value === false ||
-    FALSE.equals(value) ||
-    value === undefined ||
-    value === null ||
-    value instanceof Undefined
-    ? false
-    : true;
 }
 
 /**

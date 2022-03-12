@@ -11,7 +11,7 @@ const CommentFormTag = {
     stream.expect(tokens.TOKEN_EXPRESSION);
     const article = expressions.parseIdentifier(
       new expressions.ExpressionTokenStream(
-        expressions.tokenizeFilteredExpression(stream.current.value)
+        expressions.filtered.tokenize(stream.current.value)
       )
     );
 
