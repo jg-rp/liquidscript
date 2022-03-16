@@ -1,5 +1,5 @@
 {
-  "version": "0.8.0",
+  "version": "0.7.0",
   "test_groups": [
     {
       "name": "liquid.golden.abs_filter",
@@ -467,6 +467,214 @@
           "context": {},
           "partials": {},
           "error": false,
+          "strict": false
+        }
+      ]
+    },
+    {
+      "name": "liquid.golden.base64_decode_filter",
+      "tests": [
+        {
+          "name": "from string",
+          "template": "{{ \"XyMvLg==\" | base64_decode }}",
+          "want": "_#/.",
+          "context": {},
+          "partials": {},
+          "error": false,
+          "strict": false
+        },
+        {
+          "name": "from string with URL unsafe",
+          "template": "{{ a | base64_decode }}",
+          "want": "abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ 1234567890 !@#$%^&*()-=_+/?.:;[]{}\\|",
+          "context": {
+            "a": "YWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXogQUJDREVGR0hJSktMTU5PUFFSU1RVVldYWVogMTIzNDU2Nzg5MCAhQCMkJV4mKigpLT1fKy8/Ljo7W117fVx8"
+          },
+          "partials": {},
+          "error": false,
+          "strict": false
+        },
+        {
+          "name": "not a string",
+          "template": "{{ 5 | base64_decode }}",
+          "want": "",
+          "context": {},
+          "partials": {},
+          "error": true,
+          "strict": false
+        },
+        {
+          "name": "undefined left value",
+          "template": "{{ nosuchthing | base64_decode }}",
+          "want": "",
+          "context": {},
+          "partials": {},
+          "error": false,
+          "strict": false
+        },
+        {
+          "name": "unexpected argument",
+          "template": "{{ \"hello\" | base64_decode: 5 }}",
+          "want": "",
+          "context": {},
+          "partials": {},
+          "error": true,
+          "strict": false
+        }
+      ]
+    },
+    {
+      "name": "liquid.golden.base64_encode_filter",
+      "tests": [
+        {
+          "name": "from string",
+          "template": "{{ \"_#/.\" | base64_encode }}",
+          "want": "XyMvLg==",
+          "context": {},
+          "partials": {},
+          "error": false,
+          "strict": false
+        },
+        {
+          "name": "from string with URL unsafe",
+          "template": "{{ a | base64_encode }}",
+          "want": "YWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXogQUJDREVGR0hJSktMTU5PUFFSU1RVVldYWVogMTIzNDU2Nzg5MCAhQCMkJV4mKigpLT1fKy8/Ljo7W117fVx8",
+          "context": {
+            "a": "abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ 1234567890 !@#$%^&*()-=_+/?.:;[]{}\\|"
+          },
+          "partials": {},
+          "error": false,
+          "strict": false
+        },
+        {
+          "name": "not a string",
+          "template": "{{ 5 | base64_encode }}",
+          "want": "NQ==",
+          "context": {},
+          "partials": {},
+          "error": false,
+          "strict": false
+        },
+        {
+          "name": "undefined left value",
+          "template": "{{ nosuchthing | base64_encode }}",
+          "want": "",
+          "context": {},
+          "partials": {},
+          "error": false,
+          "strict": false
+        },
+        {
+          "name": "unexpected argument",
+          "template": "{{ \"hello\" | base64_encode: 5 }}",
+          "want": "",
+          "context": {},
+          "partials": {},
+          "error": true,
+          "strict": false
+        }
+      ]
+    },
+    {
+      "name": "liquid.golden.base64_url_safe_decode_filter",
+      "tests": [
+        {
+          "name": "from string",
+          "template": "{{ \"XyMvLg==\" | base64_url_safe_decode }}",
+          "want": "_#/.",
+          "context": {},
+          "partials": {},
+          "error": false,
+          "strict": false
+        },
+        {
+          "name": "from string with URL unsafe",
+          "template": "{{ a | base64_url_safe_decode }}",
+          "want": "abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ 1234567890 !@#$%^&*()-=_+/?.:;[]{}\\|",
+          "context": {
+            "a": "YWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXogQUJDREVGR0hJSktMTU5PUFFSU1RVVldYWVogMTIzNDU2Nzg5MCAhQCMkJV4mKigpLT1fKy8_Ljo7W117fVx8"
+          },
+          "partials": {},
+          "error": false,
+          "strict": false
+        },
+        {
+          "name": "not a string",
+          "template": "{{ 5 | base64_url_safe_decode }}",
+          "want": "",
+          "context": {},
+          "partials": {},
+          "error": true,
+          "strict": false
+        },
+        {
+          "name": "undefined left value",
+          "template": "{{ nosuchthing | base64_url_safe_decode }}",
+          "want": "",
+          "context": {},
+          "partials": {},
+          "error": false,
+          "strict": false
+        },
+        {
+          "name": "unexpected argument",
+          "template": "{{ \"hello\" | base64_url_safe_decode: 5 }}",
+          "want": "",
+          "context": {},
+          "partials": {},
+          "error": true,
+          "strict": false
+        }
+      ]
+    },
+    {
+      "name": "liquid.golden.base64_url_safe_encode_filter",
+      "tests": [
+        {
+          "name": "from string",
+          "template": "{{ \"_#/.\" | base64_url_safe_encode }}",
+          "want": "XyMvLg==",
+          "context": {},
+          "partials": {},
+          "error": false,
+          "strict": false
+        },
+        {
+          "name": "from string with URL unsafe",
+          "template": "{{ a | base64_url_safe_encode }}",
+          "want": "YWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXogQUJDREVGR0hJSktMTU5PUFFSU1RVVldYWVogMTIzNDU2Nzg5MCAhQCMkJV4mKigpLT1fKy8_Ljo7W117fVx8",
+          "context": {
+            "a": "abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ 1234567890 !@#$%^&*()-=_+/?.:;[]{}\\|"
+          },
+          "partials": {},
+          "error": false,
+          "strict": false
+        },
+        {
+          "name": "not a string",
+          "template": "{{ 5 | base64_url_safe_encode }}",
+          "want": "NQ==",
+          "context": {},
+          "partials": {},
+          "error": false,
+          "strict": false
+        },
+        {
+          "name": "undefined left value",
+          "template": "{{ nosuchthing | base64_url_safe_encode }}",
+          "want": "",
+          "context": {},
+          "partials": {},
+          "error": false,
+          "strict": false
+        },
+        {
+          "name": "unexpected argument",
+          "template": "{{ \"hello\" | base64_url_safe_encode: 5 }}",
+          "want": "",
+          "context": {},
+          "partials": {},
+          "error": true,
           "strict": false
         }
       ]
@@ -4732,6 +4940,74 @@
       ]
     },
     {
+      "name": "liquid.golden.remove_last_filter",
+      "tests": [
+        {
+          "name": "argument not a string",
+          "template": "{{ \"hello\" | remove_last: 5 }}",
+          "want": "hello",
+          "context": {},
+          "partials": {},
+          "error": false,
+          "strict": false
+        },
+        {
+          "name": "missing argument",
+          "template": "{{ \"hello\" | remove_last }}",
+          "want": "",
+          "context": {},
+          "partials": {},
+          "error": true,
+          "strict": false
+        },
+        {
+          "name": "not a string",
+          "template": "{{ 5 | remove_last: 'rain' }}",
+          "want": "5",
+          "context": {},
+          "partials": {},
+          "error": false,
+          "strict": false
+        },
+        {
+          "name": "remove substrings",
+          "template": "{{ \"I strained to see the train through the rain\" | remove_last: \"rain\" }}",
+          "want": "I strained to see the train through the ",
+          "context": {},
+          "partials": {},
+          "error": false,
+          "strict": false
+        },
+        {
+          "name": "too many arguments",
+          "template": "{{ \"hello\" | remove_last: \"how\", \"are\", \"you\" }}",
+          "want": "",
+          "context": {},
+          "partials": {},
+          "error": true,
+          "strict": false
+        },
+        {
+          "name": "undefined argument",
+          "template": "{{ \"hello\" | remove_last: nosuchthing }}",
+          "want": "hello",
+          "context": {},
+          "partials": {},
+          "error": false,
+          "strict": false
+        },
+        {
+          "name": "undefined left value",
+          "template": "{{ nosuchthing | remove_last: \"rain\" }}",
+          "want": "",
+          "context": {},
+          "partials": {},
+          "error": false,
+          "strict": false
+        }
+      ]
+    },
+    {
       "name": "liquid.golden.render_tag",
       "tests": [
         {
@@ -5000,6 +5276,17 @@
           "strict": false
         },
         {
+          "name": "left value is an object",
+          "template": "{{ a | replace: '{', '!' }}",
+          "want": "!}",
+          "context": {
+            "a": {}
+          },
+          "partials": {},
+          "error": false,
+          "strict": false
+        },
+        {
           "name": "missing argument",
           "template": "{{ \"hello\" | replace: \"ll\" }}",
           "want": "heo",
@@ -5152,6 +5439,92 @@
           "name": "undefined second argument",
           "template": "{{ \"Take my protein pills and put my helmet on\" | replace_first: \"my\", nosuchthing }}",
           "want": "Take  protein pills and put my helmet on",
+          "context": {},
+          "partials": {},
+          "error": false,
+          "strict": false
+        }
+      ]
+    },
+    {
+      "name": "liquid.golden.replace_last_filter",
+      "tests": [
+        {
+          "name": "argument not a string",
+          "template": "{{ \"hello5\" | replace_last: 5, \"your\" }}",
+          "want": "helloyour",
+          "context": {},
+          "partials": {},
+          "error": false,
+          "strict": false
+        },
+        {
+          "name": "missing argument",
+          "template": "{{ \"hello\" | replace_last: \"ll\" }}",
+          "want": "",
+          "context": {},
+          "partials": {},
+          "error": true,
+          "strict": false
+        },
+        {
+          "name": "missing arguments",
+          "template": "{{ \"hello\" | replace_last }}",
+          "want": "",
+          "context": {},
+          "partials": {},
+          "error": true,
+          "strict": false
+        },
+        {
+          "name": "not a string",
+          "template": "{{ 5 | replace_last: 'rain', 'foo' }}",
+          "want": "5",
+          "context": {},
+          "partials": {},
+          "error": false,
+          "strict": false
+        },
+        {
+          "name": "replace substrings",
+          "template": "{{ \"Take my protein pills and put my helmet on\" | replace_last: \"my\", \"your\" }}",
+          "want": "Take my protein pills and put your helmet on",
+          "context": {},
+          "partials": {},
+          "error": false,
+          "strict": false
+        },
+        {
+          "name": "too many arguments",
+          "template": "{{ \"hello\" | replace_last: \"how\", \"are\", \"you\" }}",
+          "want": "",
+          "context": {},
+          "partials": {},
+          "error": true,
+          "strict": false
+        },
+        {
+          "name": "undefined first argument",
+          "template": "{{ \"Take my protein\" | replace_last: nosuchthing, \"#\" }}",
+          "want": "Take my protein#",
+          "context": {},
+          "partials": {},
+          "error": false,
+          "strict": false
+        },
+        {
+          "name": "undefined left value",
+          "template": "{{ nosuchthing | replace_last: \"my\", \"your\" }}",
+          "want": "",
+          "context": {},
+          "partials": {},
+          "error": false,
+          "strict": false
+        },
+        {
+          "name": "undefined second argument",
+          "template": "{{ \"Take my protein pills and put my helmet on\" | replace_last: \"my\", nosuchthing }}",
+          "want": "Take my protein pills and put  helmet on",
           "context": {},
           "partials": {},
           "error": false,
@@ -5965,6 +6338,34 @@
           "strict": false
         },
         {
+          "name": "first of an object with a first property",
+          "template": "{{ obj.first }}",
+          "want": "99",
+          "context": {
+            "obj": {
+              "a": 1,
+              "first": 99
+            }
+          },
+          "partials": {},
+          "error": false,
+          "strict": false
+        },
+        {
+          "name": "last of a object",
+          "template": "{{ obj.last }}",
+          "want": "",
+          "context": {
+            "obj": {
+              "a": 1,
+              "b": 2
+            }
+          },
+          "partials": {},
+          "error": false,
+          "strict": false
+        },
+        {
           "name": "last of a string",
           "template": "{{ s.last }}",
           "want": "",
@@ -5981,6 +6382,21 @@
           "want": "1",
           "context": {
             "a": [3, 2, 1]
+          },
+          "partials": {},
+          "error": false,
+          "strict": false
+        },
+        {
+          "name": "last of an object with a last property",
+          "template": "{{ obj.last }}",
+          "want": "99",
+          "context": {
+            "obj": {
+              "a": 1,
+              "last": 99,
+              "b": 42
+            }
           },
           "partials": {},
           "error": false,
@@ -6009,17 +6425,6 @@
           "strict": false
         },
         {
-          "name": "size of an integer",
-          "template": "{{ i.size }}",
-          "want": "8",
-          "context": {
-            "i": 99
-          },
-          "partials": {},
-          "error": false,
-          "strict": false
-        },
-        {
           "name": "size of an object with a size property",
           "template": "{{ obj.size }}",
           "want": "99",
@@ -6028,6 +6433,15 @@
               "size": 99
             }
           },
+          "partials": {},
+          "error": false,
+          "strict": false
+        },
+        {
+          "name": "size of undefined",
+          "template": "{{ nosuchthing.last }}",
+          "want": "",
+          "context": {},
           "partials": {},
           "error": false,
           "strict": false
@@ -6793,6 +7207,10 @@
               {
                 "heading": "bar",
                 "name": "c"
+              },
+              {
+                "heading": "baz",
+                "name": "d"
               }
             ]
           },

@@ -178,6 +178,24 @@ export class Template {
   }
 
   /**
+   * Copy this template with new globals.
+   * @param globals - An optional object who's properties will be added
+   * to the render context every time this template is rendered.
+   * @returns A this template with new globals.
+   */
+  public withGlobals(globals?: ContextScope) {
+    return new Template(
+      this.environment,
+      this.tree,
+      this.name,
+      globals,
+      this.matter,
+      this.isUpToDate,
+      this.isUpToDateSync
+    );
+  }
+
+  /**
    * Override this to change global template scope priorities.
    */
   protected makeGlobals(templateGlobals: ContextScope): ContextScope {

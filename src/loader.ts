@@ -3,12 +3,6 @@ import { Environment } from "./environment";
 import { TemplateNotFoundError } from "./errors";
 import { Template } from "./template";
 
-// TODO: caching loader
-
-// TODO: choice loader
-// TODO: file system loader
-// TODO: web loader?
-
 export class TemplateSource {
   constructor(
     /**
@@ -40,6 +34,9 @@ export class TemplateSource {
   ) {}
 }
 
+/**
+ * The base class for all template loaders.
+ */
 export abstract class Loader {
   /**
    * Override `getSource` to implement a custom loader.
@@ -48,6 +45,7 @@ export abstract class Loader {
    * @param loaderContext - Additional context. By convention, tags that load
    * templates should add a `tag` property to the loader context containing
    * the tag's name.
+   * @returns
    * @throws `TemplateNotFoundError` if the template can not be found.
    */
   abstract getSource(
@@ -68,7 +66,7 @@ export abstract class Loader {
 
   /**
    * Used internally by `Environment.getTemplate()`. Delegates to `getSource`.
-   * @see {@link getSource}
+   * @see {@link getSource}. Override `load` to implement a caching loader.
    */
   public async load(
     name: string,
@@ -139,3 +137,5 @@ export class ObjectLoader extends Loader {
     throw new TemplateNotFoundError(name);
   }
 }
+
+// TODO: Move map and object loaders to builtin/loaders

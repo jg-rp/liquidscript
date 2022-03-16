@@ -19,3 +19,6 @@ export * as object from "./types";
 export * as expressions from "./expressions";
 
 // TODO: test exports
+// TODO: test built-in registration
+// TODO: Add liquid licence for benchmark
+// TODO: web loader

@@ -1,5 +1,7 @@
 import he from "he";
 
+// TODO: remove he dependency
+
 /**
  *
  * @param s

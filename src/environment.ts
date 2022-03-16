@@ -163,7 +163,7 @@ export class Environment {
   }
 
   /**
-   * Load a template from the configured template loader.
+   * Load a template using the configured template loader.
    * @param name - The name or identifier of the template to load.
    * @param globals - An optional object who's properties will be added
    * to the render context every time the resulting template is rendered.
@@ -212,14 +212,18 @@ export class Environment {
     source: string,
     name?: string,
     globals?: ContextScope,
-    matter?: ContextScope
+    matter?: ContextScope,
+    upToDate?: () => Promise<boolean>,
+    upToDateSync?: () => boolean
   ): Template {
     return new this.templateClass(
       this,
       this.parse(source),
       name || "",
       this.makeGlobals(globals),
-      matter
+      matter,
+      upToDate,
+      upToDateSync
     );
   }
 

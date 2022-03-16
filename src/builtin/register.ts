@@ -28,10 +28,6 @@ import {
 import { date, default_, size, slice } from "./filters/misc";
 import {
   append,
-  base64Decode,
-  base64Encode,
-  base64UrlSafeDecode,
-  base64UrlSafeEncode,
   capitalize,
   downcase,
   escape,
@@ -41,8 +37,10 @@ import {
   prepend,
   remove,
   removeFirst,
+  removeLast,
   replace,
   replaceFirst,
+  replaceLast,
   rstrip,
   split,
   strip,
@@ -54,6 +52,13 @@ import {
   urlDecode,
   urlEncode,
 } from "./filters/string";
+
+import {
+  base64Decode,
+  base64Encode,
+  base64UrlSafeDecode,
+  base64UrlSafeEncode,
+} from "./filters";
 
 import { AssignTag } from "./tags/assign";
 import { CaptureTag } from "./tags/capture";
@@ -123,8 +128,10 @@ export function registerBuiltin(env: Environment): void {
   env.filters["prepend"] = prepend;
   env.filters["remove"] = remove;
   env.filters["remove_first"] = removeFirst;
+  env.filters["remove_last"] = removeLast;
   env.filters["replace"] = replace;
   env.filters["replace_first"] = replaceFirst;
+  env.filters["replace_last"] = replaceLast;
   env.filters["slice"] = slice;
   env.filters["split"] = split;
   env.filters["upcase"] = upcase;
