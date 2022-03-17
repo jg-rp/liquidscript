@@ -70,7 +70,6 @@
   },
   "dependencies": {
     "decimal.js": "^10.3.1",
-    "he": "^1.2.0",
     "luxon": "^2.3.0"
   },
   "packageManager": "yarn@3.2.0"

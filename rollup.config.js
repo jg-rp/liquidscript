@@ -12,7 +12,7 @@ const name = "liquidscript";
 
 const nodeBundles = {
   input: "./src/liquidscript.ts",
-  external: ["decimal.js", "he", "luxon"],
+  external: ["decimal.js", "luxon"],
   plugins: [
     // Allows node_modules resolution
     resolve({ extensions }),
@@ -42,7 +42,7 @@ const nodeBundles = {
 
 const browserBundles = {
   input: "./src/liquidscript.ts",
-  external: ["decimal.js", "he", "luxon"],
+  external: ["decimal.js", "luxon"],
   plugins: [
     replace({
       include: "./src/builtin/filters/index.ts",
@@ -68,7 +68,7 @@ const browserBundles = {
       file: pkg.browser,
       format: "iife",
       name,
-      globals: { "decimal.js": "Decimal", he: "he", luxon: "luxon" },
+      globals: { "decimal.js": "Decimal", luxon: "luxon" },
     },
     {
       file: pkg["browser-min"],
@@ -76,7 +76,7 @@ const browserBundles = {
       name,
       plugins: [uglify()],
       sourcemap: true,
-      globals: { "decimal.js": "Decimal", he: "he", luxon: "luxon" },
+      globals: { "decimal.js": "Decimal", luxon: "luxon" },
     },
   ],
 };
