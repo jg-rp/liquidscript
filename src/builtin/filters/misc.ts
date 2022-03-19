@@ -1,6 +1,10 @@
 import { DateTime } from "luxon";
 import { DefaultMap } from "../../collections";
-import { isLiquidPrimitive, toLiquidPrimitive } from "../../drop";
+import {
+  isLiquidPrimitive,
+  toLiquidPrimitive,
+  toLiquidString,
+} from "../../drop";
 import { FilterArgumentError } from "../../errors";
 import { EMPTY, isLiquidTruthy } from "../../expression";
 import { checkArguments, FilterContext } from "../../filter";
@@ -11,6 +15,7 @@ import {
   isUndefined,
   liquidStringify,
 } from "../../types";
+import { Markup } from "../drops/markup";
 
 /**
  *
@@ -147,7 +152,7 @@ export function slice(
   left: unknown,
   offset: unknown,
   length?: unknown
-): string | unknown[] {
+): string | unknown[] | Markup {
   checkArguments(arguments.length, 2, 1);
   const _offset = Number(offset);
   if (isUndefined(offset) || !Number.isInteger(_offset))

@@ -3,9 +3,10 @@ import { RenderContext } from "../../context";
 import { Environment } from "../../environment";
 import { LiquidSyntaxError } from "../../errors";
 import { ASSIGN_IDENTIFIER_PATTERN } from "../../expressions/common";
-import { DefaultOutputStream } from "../../io/output_stream";
+import { DefaultOutputStream, RenderStream } from "../../io/output_stream";
 import { Tag } from "../../tag";
 import { Token, TokenStream, TOKEN_EOF, TOKEN_EXPRESSION } from "../../token";
+import { Markup } from "../drops/markup";
 
 const TAG_CAPTURE = "capture";
 const TAG_END_CAPTURE = "endcapture";
@@ -46,16 +47,22 @@ export class CaptureNode implements Node {
     readonly block: BlockNode
   ) {}
 
+  protected assign(context: RenderContext, buffer: RenderStream): void {
+    if (context.environment.autoEscape)
+      context.assign(this.name, new Markup(buffer.toString()));
+    else context.assign(this.name, buffer.toString());
+  }
+
   public async render(context: RenderContext): Promise<void> {
     const buf = new DefaultOutputStream();
     await this.block.render(context, buf);
-    context.assign(this.name, buf.toString());
+    this.assign(context, buf);
   }
 
   public renderSync(context: RenderContext): void {
     const buf = new DefaultOutputStream();
     this.block.renderSync(context, buf);
-    context.assign(this.name, buf.toString());
+    this.assign(context, buf);
   }
 
   children(): Node[] {

@@ -30,6 +30,7 @@ export class Template {
   /**
    * Parse a Liquid template, automatically creating an environment to
    * bind it to.
+   *
    * @param source - The Liquid template source code.
    * @param options - Options to set on the implicit environment.
    * @returns A new template, bound to an implicit environment.
@@ -48,9 +49,24 @@ export class Template {
   }
 
   /**
+   * Parse a Liquid template, automatically creating an environment to
+   * bind it to.
+   *
+   * Alias of {@link fromString}
+   *
+   * @param source - The Liquid template source code.
+   * @param options - Options to set on the implicit environment.
+   * @returns A new template, bound to an implicit environment.
+   */
+  static from(source: string, options: EnvironmentOptions = {}): Template {
+    return Template.fromString(source, options);
+  }
+
+  /**
    * Template constructor.Rather than constructing a template directly, you
    * should use `Template.fromString()`, `Environment.fromString()` or
    * `Environment.getTemplate()`.
+   *
    * @param environment - The environment this template is bound to.
    * @param tree - The root of the abstract syntax tree representing this
    * template.

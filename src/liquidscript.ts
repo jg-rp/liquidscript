@@ -1,5 +1,9 @@
 export { RenderContext } from "./context";
-export type { RenderContextOptions } from "./context";
+export type {
+  RenderContextOptions,
+  ContextPath,
+  ContextScope,
+} from "./context";
 export { Environment } from "./environment";
 export type { EnvironmentOptions } from "./environment";
 export { Loader, MapLoader, ObjectLoader, TemplateSource } from "./loader";
@@ -18,7 +22,7 @@ export * from "./errors";
 export * as object from "./types";
 export * as expressions from "./expressions";
 
-// TODO: test exports
-// TODO: test built-in registration
 // TODO: Add liquid licence for benchmark
 // TODO: web loader
+// TODO: test auto escape
+// TODO: alias Template.fromString as Template.from

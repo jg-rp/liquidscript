@@ -22,7 +22,7 @@ const escapeMap: { [index: string]: string } = {
   "`": "&#96;",
 };
 
-const reUnescape = /&(#34|amp|#39|lt|gt|#96);/g;
+const reUnescape = /&(#34|amp|#39|lt|gt|#96);/gi;
 const unescapeMap: { [index: string]: string } = {
   "&#34;": '"',
   "&amp;": "&",

@@ -1,4 +1,5 @@
 import { getItemSync } from "../../context";
+import { toLiquidString } from "../../drop";
 import {
   FilterArgumentError,
   FilterValueError,
@@ -17,6 +18,7 @@ import {
   liquidStringify,
 } from "../../types";
 import { Undefined } from "../../undefined";
+import { Markup } from "../drops/markup";
 
 /**
  * Concatenate items in an array-like object into a single string, separated by
@@ -38,8 +40,16 @@ export function join(
   this: FilterContext,
   left: unknown,
   separator?: unknown
-): string {
+): string | Markup {
   checkArguments(arguments.length, 1);
+  if (this.context.environment.autoEscape) {
+    const _separator = separator === undefined ? new Markup(" ") : separator;
+    if (_separator instanceof Markup)
+      return new Markup(
+        inputArray(left).map(Markup.escape).join(_separator[toLiquidString]())
+      );
+  }
+
   if (separator === undefined) separator = " ";
   return inputArray(left).map(liquidStringify).join(liquidStringify(separator));
 }
@@ -121,7 +131,6 @@ export function concat(
   arg: unknown
 ): unknown[] {
   checkArguments(arguments.length, 1, 1);
-  // XXX: Support concat-ing iterables?
   if (!isArray(arg))
     throw new FilterArgumentError(`expected an array, found ${typeof arg}`);
 
@@ -274,7 +283,7 @@ function inputArray(value: unknown): unknown[] {
   if (isArray(value)) {
     return value.flat(5);
   }
-  // XXX: Not flattening iterables.
+  // Not flattening iterables.
   if (isIterable(value)) {
     return Array.from(value);
   }

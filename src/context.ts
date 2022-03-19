@@ -445,7 +445,7 @@ function getSize(obj: unknown): number {
   throw new InternalKeyError(`${obj}[size]`);
 }
 
-// TODO: First/Last of Map and/or Set?
+// TODO: First/Last of Map?
 
 function getFirst(obj: unknown): unknown {
   // First of a string is not supported.

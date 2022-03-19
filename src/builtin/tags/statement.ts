@@ -1,11 +1,13 @@
 import { Node } from "../../ast";
 import { RenderContext } from "../../context";
+import { escape } from "../../html";
 import { RenderStream } from "../../io/output_stream";
 import { Tag } from "../../tag";
 import { Token, TokenStream } from "../../token";
 import { parse } from "../../expressions/filtered/parse";
 import { Expression } from "../../expression";
 import { liquidStringify } from "../../types";
+import { isLiquidHTMLable, toLiquidHtml } from "../../drop";
 
 export class OutputStatement implements Tag {
   readonly block = false;
@@ -28,19 +30,24 @@ export class OutputStatementNode implements Node {
     context: RenderContext,
     out: RenderStream
   ): Promise<void> {
-    // TODO: toHTML drop
-    if (context.environment.autoEscape)
-      out.write(
-        escape(liquidStringify(await this.expression.evaluate(context)))
-      );
-    else out.write(liquidStringify(await this.expression.evaluate(context)));
+    const result = await this.expression.evaluate(context);
+    if (context.environment.autoEscape) {
+      if (isLiquidHTMLable(result)) out.write(result[toLiquidHtml]());
+      else out.write(escape(liquidStringify(result)));
+    } else out.write(liquidStringify(result));
   }
 
   public renderSync(context: RenderContext, out: RenderStream): void {
-    // TODO: toHTML drop
-    if (context.environment.autoEscape)
-      out.write(escape(liquidStringify(this.expression.evaluateSync(context))));
-    else out.write(liquidStringify(this.expression.evaluateSync(context)));
+    const result = this.expression.evaluateSync(context);
+    if (context.environment.autoEscape) {
+      if (isLiquidHTMLable(result)) {
+        out.write(result[toLiquidHtml]());
+      } else {
+        out.write(escape(liquidStringify(result)));
+      }
+    } else {
+      out.write(liquidStringify(result));
+    }
   }
 
   children(): Node[] {
@@ -50,13 +57,4 @@ export class OutputStatementNode implements Node {
   toString(): string {
     return "`" + this.expression.toString() + "`";
   }
-}
-
-function escape(s: string): string {
-  return s
-    .replace("&", "&amp;")
-    .replace(">", "&gt;")
-    .replace("<", "&lt;")
-    .replace("'", "&#39;")
-    .replace('"', "&#34;");
 }

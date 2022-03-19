@@ -1,3 +1,4 @@
+import { Markup } from "./builtin/drops/markup";
 import { RenderContext } from "./context";
 import { isLiquidPrimitive, LiquidPrimitive, toLiquidPrimitive } from "./drop";
 import {
@@ -157,13 +158,17 @@ export class BooleanLiteral extends Literal<boolean> {
 export const TRUE = new BooleanLiteral(true);
 export const FALSE = new BooleanLiteral(false);
 
-export class StringLiteral extends Literal<string> {
-  public async evaluate(): Promise<string> {
-    return this.value;
+export class StringLiteral extends Literal<string | Markup> {
+  public async evaluate(context: RenderContext): Promise<string | Markup> {
+    return context.environment.autoEscape
+      ? Markup.from(this.value)
+      : this.value;
   }
 
-  public evaluateSync(): string {
-    return this.value;
+  public evaluateSync(context: RenderContext): string | Markup {
+    return context.environment.autoEscape
+      ? Markup.from(this.value)
+      : this.value;
   }
 
   public equals(other: unknown): boolean {
