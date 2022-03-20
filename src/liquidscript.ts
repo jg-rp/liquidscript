@@ -23,7 +23,3 @@ export * from "./tag";
 export * from "./errors";
 export * as object from "./types";
 export * as expressions from "./expressions";
-
-// TODO: Add liquid licence for benchmark
-// TODO: web loader
-// TODO: separate file names with underscore
