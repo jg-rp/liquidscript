@@ -48,7 +48,7 @@ const browserBundles = {
       delimiters: ["", ""],
       include: "./src/builtin/filters/index.ts",
       preventAssignment: true,
-      "./nodeBase64": "./browserBase64",
+      "./node_base64": "./browser_base64",
     }),
     replace({
       delimiters: ["", ""],
@@ -96,7 +96,7 @@ const browserBundlesWithDependencies = {
       delimiters: ["", ""],
       include: "./src/builtin/filters/index.ts",
       preventAssignment: true,
-      "./nodeBase64": "./browserBase64",
+      "./node_base64": "./browser_base64",
     }),
     replace({
       delimiters: ["", ""],

@@ -24,7 +24,7 @@ const {
   linkToRemoveTag,
 } = require("./mocks/filters/tag");
 const { weight, weightWithUnit } = require("./mocks/filters/weight");
-const { CommentFormTag } = require("./mocks/tags/commentForm");
+const { CommentFormTag } = require("./mocks/tags/comment_form");
 const { PaginateTag } = require("./mocks/tags/paginate");
 
 function registerMocks(env) {

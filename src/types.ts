@@ -131,7 +131,7 @@ export function isUndefined(value: unknown): value is Undefined {
   return value === undefined || value instanceof Undefined;
 }
 
-export type LiquidArrayLike = Array<unknown>; // XXX: others?
+export type LiquidArrayLike = Array<unknown>; // XXX: iterables?
 
 /**
  * A type predicate for objects that a considered array-like in Liquid.

@@ -1,6 +1,6 @@
 import { Root } from "./ast";
 import { registerBuiltin } from "./builtin/register";
-import { chainObjects } from "./chainObject";
+import { chainObjects } from "./chain_object";
 import { LRUCache } from "./cache";
 import { ContextScope, RenderContext } from "./context";
 import { Filter } from "./filter";

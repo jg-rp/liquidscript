@@ -1,7 +1,7 @@
 import { ReadOnlyObjectChainError } from "./errors";
 
 export const Missing = Symbol.for("liquid.context.missing");
-const ChainObjects = Symbol.for("liquid.context.chainObjects");
+const ChainObjects = Symbol.for("liquid.context.chain_objects");
 
 export type ObjectChain = {
   [index: string]: unknown;

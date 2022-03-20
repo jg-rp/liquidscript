@@ -1,5 +1,5 @@
 import { ForLoopDrop } from "./builtin/drops/forloop";
-import { chainObjects, Missing, ObjectChain } from "./chainObject";
+import { chainObjects, Missing, ObjectChain } from "./chain_object";
 import {
   hasLiquidCallable,
   isLiquidable,

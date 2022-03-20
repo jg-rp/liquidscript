@@ -1,4 +1,4 @@
-import { chainObjects, Missing } from "../src/chainObject";
+import { chainObjects, Missing } from "../src/chain_object";
 
 describe("read only chain map", () => {
   test("empty chain", () => {

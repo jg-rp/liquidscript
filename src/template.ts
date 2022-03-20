@@ -1,6 +1,6 @@
 import { Node, Root } from "./ast";
 import { LiteralNode } from "./builtin/tags/literal";
-import { chainObjects } from "./chainObject";
+import { chainObjects } from "./chain_object";
 import { ContextScope, RenderContext } from "./context";
 import { Environment, EnvironmentOptions } from "./environment";
 import {
