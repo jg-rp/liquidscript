@@ -1,5 +1,5 @@
 import { Environment } from "../../src/environment";
-import { MapLoader } from "../../src/loader";
+import { MapLoader } from "../../src/builtin/loaders";
 import { LaxUndefined } from "../../src/undefined";
 
 type Case = {

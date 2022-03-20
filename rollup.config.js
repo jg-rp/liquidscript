@@ -12,7 +12,7 @@ const name = "liquidscript";
 
 const nodeBundles = {
   input: "./src/liquidscript.ts",
-  external: ["decimal.js", "luxon"],
+  external: ["decimal.js", "luxon", "fs/promises"],
   plugins: [
     // Allows node_modules resolution
     resolve({ extensions }),
@@ -45,9 +45,16 @@ const browserBundles = {
   external: ["decimal.js", "luxon"],
   plugins: [
     replace({
+      delimiters: ["", ""],
       include: "./src/builtin/filters/index.ts",
       preventAssignment: true,
       "./nodeBase64": "./browserBase64",
+    }),
+    replace({
+      delimiters: ["", ""],
+      include: "./src/builtin/loaders/index.ts",
+      preventAssignment: true,
+      'export * from "./file_system";': "",
     }),
     // Allows node_modules resolution
     resolve({ extensions }),
@@ -90,6 +97,12 @@ const browserBundlesWithDependencies = {
       include: "./src/builtin/filters/index.ts",
       preventAssignment: true,
       "./nodeBase64": "./browserBase64",
+    }),
+    replace({
+      delimiters: ["", ""],
+      include: "./src/builtin/loaders/index.ts",
+      preventAssignment: true,
+      'export * from "./file_system";': "",
     }),
     // Allows node_modules resolution
     resolve({ extensions }),

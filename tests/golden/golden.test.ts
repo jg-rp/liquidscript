@@ -2,7 +2,7 @@ import fs from "node:fs";
 
 import { Environment } from "../../src/environment";
 import { LiquidError } from "../../src/errors";
-import { MapLoader } from "../../src/loader";
+import { MapLoader } from "../../src/builtin/loaders";
 import { LaxUndefined } from "../../src/undefined";
 
 type Case = {

@@ -1,8 +1,10 @@
 import { RenderContext, ContextScope } from "./context";
 import { Environment } from "./environment";
-import { TemplateNotFoundError } from "./errors";
 import { Template } from "./template";
 
+/**
+ * Represents a Liquid template's source code and additional meta data.
+ */
 export class TemplateSource {
   constructor(
     /**
@@ -45,8 +47,10 @@ export abstract class Loader {
    * @param loaderContext - Additional context. By convention, tags that load
    * templates should add a `tag` property to the loader context containing
    * the tag's name.
-   * @returns
-   * @throws `TemplateNotFoundError` if the template can not be found.
+   * @returns The source, with any meta data, for the template identified by
+   * the given name
+   * @throws {@link TemplateNotFoundError}
+   * Thrown if the template can not be found.
    */
   abstract getSource(
     name: string,
@@ -94,48 +98,3 @@ export abstract class Loader {
     return environment.fromString(source.source, name, globals);
   }
 }
-
-/**
- * A loader that uses a Map of strings to store template template source Text.
- */
-export class MapLoader extends Loader {
-  private _map: Map<string, string>;
-
-  constructor(private map?: Map<string, string>) {
-    super();
-    this._map = map === undefined ? new Map<string, string>() : map;
-  }
-
-  public async getSource(name: string): Promise<TemplateSource> {
-    return this.getSourceSync(name);
-  }
-
-  public getSourceSync(name: string): TemplateSource {
-    const source = this._map.get(name);
-    if (source !== undefined) return new TemplateSource(source, name);
-    throw new TemplateNotFoundError(name);
-  }
-}
-/**
- * A loader that uses an Object of strings to store template template source Text.
- */
-export class ObjectLoader extends Loader {
-  private _obj: { [index: string]: string };
-
-  constructor(private obj?: { [index: string]: string }) {
-    super();
-    this._obj = obj === undefined ? {} : obj;
-  }
-
-  public async getSource(name: string): Promise<TemplateSource> {
-    return this.getSourceSync(name);
-  }
-
-  public getSourceSync(name: string): TemplateSource {
-    const source = this._obj[name];
-    if (source !== undefined) return new TemplateSource(source, name);
-    throw new TemplateNotFoundError(name);
-  }
-}
-
-// TODO: Move map and object loaders to builtin/loaders

@@ -76,8 +76,9 @@ export function first(this: FilterContext, left: unknown): unknown {
 }
 
 /**
- * Return the last item of the input sequence. The input could be array-like
- * or a mapping, but not a string.
+ * Return the last item of the input sequence. The input could be array-like,
+ * but not a string.
+ *
  * @param this - An object containing a reference to the active render context
  * and any keyword/named arguments.
  * @param left - Any value.
@@ -88,6 +89,11 @@ export function last(this: FilterContext, left: unknown): unknown {
   checkArguments(arguments.length, 0);
   if (isArray(left)) return left[left.length - 1];
   if (left instanceof Range) return left.stop;
+  // XXX: hack to force StrictUndefined to throw an error. This happens
+  // naturally with other filters.
+  if (isIterable(left)) {
+    left[Symbol.iterator]();
+  }
   return null;
 }
 

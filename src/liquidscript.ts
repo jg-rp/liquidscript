@@ -6,7 +6,9 @@ export type {
 } from "./context";
 export { Environment } from "./environment";
 export type { EnvironmentOptions } from "./environment";
-export { Loader, MapLoader, ObjectLoader, TemplateSource } from "./loader";
+export { Loader, TemplateSource } from "./loader";
+export { BufferedRenderStream } from "./io/output_stream";
+export type { RenderStream } from "./io/output_stream";
 export { Template } from "./template";
 export { Undefined, LaxUndefined, StrictUndefined } from "./undefined";
 export * from "./builtin";
@@ -24,5 +26,4 @@ export * as expressions from "./expressions";
 
 // TODO: Add liquid licence for benchmark
 // TODO: web loader
-// TODO: test auto escape
-// TODO: alias Template.fromString as Template.from
+// TODO: separate file names with underscore

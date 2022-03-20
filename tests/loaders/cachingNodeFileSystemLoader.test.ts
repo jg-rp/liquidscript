@@ -1,5 +1,5 @@
 import { Environment } from "../../src/environment";
-import { CachingNodeFileSystemLoader } from "../../src/builtin/loaders/fileSystem";
+import { CachingNodeFileSystemLoader } from "../../src/builtin/loaders/file_system";
 import { Template } from "../../src/template";
 import { TemplateNotFoundError } from "../../src/errors";
 import { mkdtempSync, rmSync, statSync, utimesSync, writeFileSync } from "fs";

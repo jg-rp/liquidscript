@@ -705,8 +705,10 @@ function compare(left: unknown, operator: string, right: unknown): boolean {
   if (left instanceof Range) return left.equals(right);
 
   switch (operator) {
-    case "==":
+    case "==": {
+      if (left instanceof Undefined && right instanceof Undefined) return true;
       return isExpression(left) ? left.equals(right) : left === right;
+    }
     case "!=":
     case "<>":
       return isExpression(left) ? !left.equals(right) : left !== right;

@@ -1,6 +1,6 @@
 import { isLiquidStringable, toLiquidString } from "./drop";
 import { isNumberT, NumberT } from "./number";
-import { Undefined } from "./undefined";
+import { LaxUndefined, Undefined } from "./undefined";
 
 /**
  * A type predicate for the primitive string.
@@ -103,8 +103,8 @@ export function isComparable(
  * @returns A Liquid string representation of the value.
  */
 export function liquidStringify(value: unknown): string {
-  if (value === null) return "";
-  if (isUndefined(value)) return "";
+  if (value === null || value === undefined) return "";
+  if (value instanceof Undefined) return value.toString();
   if (isArray(value)) return value.join("");
   if (isLiquidStringable(value)) return value[toLiquidString]();
 

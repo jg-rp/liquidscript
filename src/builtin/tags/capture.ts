@@ -3,7 +3,7 @@ import { RenderContext } from "../../context";
 import { Environment } from "../../environment";
 import { LiquidSyntaxError } from "../../errors";
 import { ASSIGN_IDENTIFIER_PATTERN } from "../../expressions/common";
-import { DefaultOutputStream, RenderStream } from "../../io/output_stream";
+import { BufferedRenderStream, RenderStream } from "../../io/output_stream";
 import { Tag } from "../../tag";
 import { Token, TokenStream, TOKEN_EOF, TOKEN_EXPRESSION } from "../../token";
 import { Markup } from "../drops/markup";
@@ -54,13 +54,13 @@ export class CaptureNode implements Node {
   }
 
   public async render(context: RenderContext): Promise<void> {
-    const buf = new DefaultOutputStream();
+    const buf = new BufferedRenderStream();
     await this.block.render(context, buf);
     this.assign(context, buf);
   }
 
   public renderSync(context: RenderContext): void {
-    const buf = new DefaultOutputStream();
+    const buf = new BufferedRenderStream();
     this.block.renderSync(context, buf);
     this.assign(context, buf);
   }

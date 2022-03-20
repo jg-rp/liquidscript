@@ -9,7 +9,7 @@ import {
   LiquidInterrupt,
   LiquidSyntaxError,
 } from "./errors";
-import { DefaultOutputStream, RenderStream } from "./io/output_stream";
+import { BufferedRenderStream, RenderStream } from "./io/output_stream";
 
 /**
  * A Liquid template that has been parsed and is bound to an environment,
@@ -47,6 +47,8 @@ export class Template {
       globals
     );
   }
+
+  // TODO: static fromStream
 
   /**
    * Parse a Liquid template, automatically creating an environment to
@@ -108,7 +110,7 @@ export class Template {
       this.makeGlobals(globals),
       { templateName: this.name }
     );
-    const outputStream = new DefaultOutputStream();
+    const outputStream = new BufferedRenderStream();
     await this.renderWithContext(context, outputStream);
     return outputStream.toString();
   }
@@ -123,10 +125,12 @@ export class Template {
       this.makeGlobals(globals),
       { templateName: this.name }
     );
-    const outputStream = new DefaultOutputStream();
+    const outputStream = new BufferedRenderStream();
     this.renderWithContextSync(context, outputStream);
     return outputStream.toString();
   }
+
+  // TODO: createReadStream
 
   protected handleError(
     error: unknown,

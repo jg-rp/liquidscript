@@ -1,15 +1,40 @@
+import { toLiquidPrimitive } from "./drop";
 import { InternalUndefinedError } from "./errors";
 
+/**
+ * The base class for objects wrapping undefined variables found in
+ * Liquid templates.
+ */
 export abstract class Undefined {
+  /**
+   * Create a new `Undefined` object.
+   *
+   * @param name - The name of the undefined variable.
+   * @param object - The target object which does not have a property
+   * with the given name.
+   * @param hint - Optionally override the default "undefined" message.
+   */
   constructor(
     readonly name: string,
     readonly object?: unknown,
     readonly hint?: string
   ) {}
+
+  public toString(): string {
+    return `Undefined(${this.name})`;
+  }
 }
 
+/**
+ * An {@link Undefined} type that throws an error whenever it appears
+ * in a Liquid expression.
+ */
 export class StrictUndefined extends Undefined {
-  public toString() {
+  static from(name: string): StrictUndefined {
+    return new StrictUndefined(name);
+  }
+
+  public toString(): string {
     throw new InternalUndefinedError(this.name);
   }
 
@@ -21,12 +46,32 @@ export class StrictUndefined extends Undefined {
     throw new InternalUndefinedError(this.name);
   }
 
-  static [Symbol.hasInstance]() {
+  public [toLiquidPrimitive]() {
+    throw new InternalUndefinedError(this.name);
+  }
+
+  get first() {
+    throw new InternalUndefinedError(this.name);
+  }
+
+  get last() {
+    throw new InternalUndefinedError(this.name);
+  }
+
+  get size() {
     throw new InternalUndefinedError(this.name);
   }
 }
 
+/**
+ * An {@link Undefined} type that evaluates to an empty string or `0`,
+ * and can be indexed and iterated over without error.
+ */
 export class LaxUndefined extends Undefined {
+  static from(name: string): LaxUndefined {
+    return new LaxUndefined(name);
+  }
+
   public toString() {
     return "";
   }
@@ -48,21 +93,16 @@ export class LaxUndefined extends Undefined {
     }
     return null;
   }
-}
 
-export class LoggingUndefined extends Undefined {
-  public toString() {
-    console.log(`${this.name} is undefined`);
-    return "";
+  get first() {
+    return this;
   }
 
-  public valueOf() {
-    console.log(`${this.name} is undefined`);
-    return "";
+  get last() {
+    return this;
   }
 
-  public [Symbol.iterator](): Iterator<unknown> {
-    console.log(`${this.name} is undefined`);
-    return [].values();
+  get size() {
+    return this;
   }
 }

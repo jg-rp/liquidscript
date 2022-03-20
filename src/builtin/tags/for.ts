@@ -4,7 +4,7 @@ import { Environment } from "../../environment";
 import { BreakIteration, ContinueIteration } from "../../errors";
 import { LoopExpression } from "../../expression";
 import { parse } from "../../expressions/loop/parse";
-import { DefaultOutputStream, RenderStream } from "../../io/output_stream";
+import { BufferedRenderStream, RenderStream } from "../../io/output_stream";
 import { Tag } from "../../tag";
 import { Token, TOKEN_EXPRESSION, TOKEN_TAG, TokenStream } from "../../token";
 import { ForLoopDrop } from "../drops/forloop";
@@ -122,7 +122,7 @@ export class ForNode implements Node {
     const [it, length] = await this.expression.evaluate(context);
     // This intermediate buffer is used to detect and possibly
     // suppress blocks that, when rendered, contain only whitespace
-    const buf = new DefaultOutputStream();
+    const buf = new BufferedRenderStream();
 
     if (length > 0) {
       const name = this.expression.name;
@@ -168,7 +168,7 @@ export class ForNode implements Node {
 
   public renderSync(context: RenderContext, out: RenderStream): void {
     const [it, length] = this.expression.evaluateSync(context);
-    const buf = new DefaultOutputStream();
+    const buf = new BufferedRenderStream();
 
     if (length > 0) {
       const name = this.expression.name;

@@ -5,12 +5,13 @@ import { LRUCache } from "./cache";
 import { ContextScope, RenderContext } from "./context";
 import { Filter } from "./filter";
 import { compileRules, tokenize } from "./lex";
-import { Loader, MapLoader } from "./loader";
+import { Loader } from "./loader";
+import { MapLoader } from "./builtin/loaders";
 import { Parser, TemplateParser } from "./parse";
 import { Tag } from "./tag";
 import { Template } from "./template";
 import { TemplateTokenStream } from "./token";
-import { StrictUndefined, Undefined } from "./undefined";
+import { LaxUndefined, Undefined } from "./undefined";
 
 const implicitEnvironmentCache = new LRUCache<string, Environment>(10);
 
@@ -137,8 +138,7 @@ export class Environment {
     this.strictFilters = strictFilters ?? true;
     this.tagStartString = tagStartString ?? "{%";
     this.tagEndString = tagEndString ?? "%}";
-    this.undefinedFactory =
-      undefinedFactory ?? ((name: string) => new StrictUndefined(name));
+    this.undefinedFactory = undefinedFactory ?? LaxUndefined.from;
 
     this.#tokenRules = compileRules(
       this.statementStartString,
