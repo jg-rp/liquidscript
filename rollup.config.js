@@ -1,3 +1,4 @@
+import { readFileSync } from "fs";
 import commonjs from "@rollup/plugin-commonjs";
 import resolve from "@rollup/plugin-node-resolve";
 import babel from "@rollup/plugin-babel";
@@ -7,19 +8,30 @@ import pkg from "./package.json";
 
 const extensions = [".js", ".jsx", ".ts", ".tsx"];
 const name = "liquidscript";
+const licence = readFileSync("./LICENCE", { encoding: "utf8" });
+// TODO: Include URL in banner.
+const banner = `/*
+ * liquidscript version ${pkg.version}
+ *
+ * ${licence.split("\n").join("\n * ")}
+ */`;
 
-// TODO: include version number in bundles
+const replaceVersionNumber = {
+  delimiters: ["", ""],
+  include: "./src/liquidscript.ts",
+  preventAssignment: true,
+  __VERSION__: pkg.version,
+};
 
 const nodeBundles = {
   input: "./src/liquidscript.ts",
   external: ["decimal.js", "luxon", "fs/promises"],
   plugins: [
+    replace(replaceVersionNumber),
     // Allows node_modules resolution
     resolve({ extensions }),
-
     // Allow bundling cjs modules. Rollup doesn't understand cjs
     commonjs(),
-
     // Compile TypeScript/JavaScript files
     babel({
       extensions,
@@ -32,10 +44,12 @@ const nodeBundles = {
     {
       file: pkg.main,
       format: "cjs",
+      banner,
     },
     {
       file: pkg.module,
       format: "es",
+      banner,
     },
   ],
 };
@@ -44,6 +58,7 @@ const browserBundles = {
   input: "./src/liquidscript.ts",
   external: ["decimal.js", "luxon"],
   plugins: [
+    replace(replaceVersionNumber),
     replace({
       delimiters: ["", ""],
       include: "./src/builtin/filters/index.ts",
@@ -76,6 +91,7 @@ const browserBundles = {
       format: "iife",
       name,
       globals: { "decimal.js": "Decimal", luxon: "luxon" },
+      banner,
     },
     {
       file: pkg["browser-min"],
@@ -84,6 +100,7 @@ const browserBundles = {
       plugins: [uglify()],
       sourcemap: true,
       globals: { "decimal.js": "Decimal", luxon: "luxon" },
+      banner,
     },
   ],
 };
@@ -92,6 +109,7 @@ const browserBundlesWithDependencies = {
   input: "./src/liquidscript.ts",
   external: [],
   plugins: [
+    replace(replaceVersionNumber),
     replace({
       delimiters: ["", ""],
       include: "./src/builtin/filters/index.ts",
@@ -121,6 +139,7 @@ const browserBundlesWithDependencies = {
       format: "iife",
       name,
       globals: {},
+      banner,
     },
     {
       file: pkg["browser-bundle-min"],
@@ -129,6 +148,7 @@ const browserBundlesWithDependencies = {
       plugins: [uglify()],
       sourcemap: true,
       globals: {},
+      banner,
     },
   ],
 };
