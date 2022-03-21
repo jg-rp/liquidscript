@@ -25,8 +25,7 @@ const replaceVersionNumber = {
 
 const nodeBundles = {
   input: "./src/liquidscript.ts",
-  // external: ["decimal.js", "luxon", "fs/promises"],
-  external: ["fs/promises"],
+  external: ["decimal.js", "luxon", "fs/promises"],
   plugins: [
     replace(replaceVersionNumber),
     // Allows node_modules resolution

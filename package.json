@@ -1,6 +1,6 @@
 {
   "name": "liquidscript",
-  "version": "0.1.0-alpha.2",
+  "version": "0.1.0-alpha.3",
   "author": "James",
   "license": "MIT",
   "homepage": "https://github.com/jg-rp/liquidscript",
@@ -23,7 +23,8 @@
     "clean": "rm -rf ./lib ./dist ./coverage",
     "benchmark": "npm run build && cd benchmark && node reference.js",
     "type-check": "tsc --noEmit",
-    "type-check:watch": "npm run type-check -- --watch"
+    "type-check:watch": "npm run type-check -- --watch",
+    "prepublish": "yarn build"
   },
   "browserslist": [
     "defaults",
