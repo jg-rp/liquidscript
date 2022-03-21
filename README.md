@@ -2,9 +2,11 @@
 
 A JavaScript and TypeScript engine for the Liquid template language.
 
+[![npm version](https://img.shields.io/npm/v/liquidscript?style=flat-square)](https://www.npmjs.com/package/liquidscript)
+
 ## Why?
 
-At the the time of writing, excellent JavaScript implementations of Liquid already exist. To meet some rather specific requirements, LiquidScript has been developed with the following goals.
+Some excellent JavaScript implementations of Liquid already exist. To meet some rather specific requirements, LiquidScript has been developed with the following goals.
 
 ### Project Goals
 
