@@ -1,6 +1,6 @@
 import { isLiquidStringable, toLiquidString } from "./drop";
 import { isNumberT, NumberT } from "./number";
-import { LaxUndefined, Undefined } from "./undefined";
+import { Undefined } from "./undefined";
 
 /**
  * A type predicate for the primitive string.
@@ -26,9 +26,7 @@ export function isSymbol(value: unknown): value is symbol {
  * @returns `true` if the value is an array.
  */
 export function isArray(value: unknown): value is Array<unknown> {
-  return Object.prototype.toString.call(value) === "[object Array]"
-    ? true
-    : false;
+  return Array.isArray(value);
 }
 
 /**
@@ -105,12 +103,11 @@ export function isComparable(
 export function liquidStringify(value: unknown): string {
   if (value === null || value === undefined) return "";
   if (value instanceof Undefined) return value.toString();
-  if (isArray(value)) return value.join("");
   if (isLiquidStringable(value)) return value[toLiquidString]();
-
+  if (isArray(value)) return value.join("");
   const s = String(value);
-  // XXX: Not good. Leaks things.
-  return s === "[object Object]" ? JSON.stringify(value) : s;
+  // XXX: Not good.
+  return s === "[object Object]" ? "{}" : s;
 }
 
 /**

@@ -7976,9 +7976,7 @@ const data = {
 };
 const expect = chai.expect;
 
-// TODO Async
-
-describe("Golden Liquid", () => {
+describe("Golden Liquid Sync", () => {
   for (const group of data.test_groups) {
     describe(group.name, () => {
       for (const test of group.tests) {
