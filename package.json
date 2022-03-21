@@ -1,8 +1,16 @@
 {
   "name": "liquidscript",
-  "version": "0.1.0-alpha.1",
+  "version": "0.1.0-alpha.2",
   "author": "James",
   "license": "MIT",
+  "homepage": "https://github.com/jg-rp/liquidscript",
+  "bugs": {
+    "url": "https://github.com/jg-rp/liquidscript/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jg-rp/liquidscript.git"
+  },
   "scripts": {
     "build:types": "tsc --emitDeclarationOnly",
     "build:js": "rollup -c",
