@@ -38,6 +38,7 @@
   "browser-min": "dist/liquidscript.iife.min.js",
   "browser-bundle": "dist/liquidscript.iife.bundle.js",
   "browser-bundle-min": "dist/liquidscript.iife.bundle.min.js",
+  "jsdelivr": "dist/liquidscript.iife.bundle.min.js",
   "types": "dist/liquidscript.d.ts",
   "files": [
     "dist/**/*"
