@@ -29,7 +29,8 @@
   "browserslist": [
     "defaults",
     "not IE 11",
-    "maintained node versions"
+    "maintained node versions",
+    "not node 12"
   ],
   "main": "dist/liquidscript.cjs.js",
   "module": "dist/liquidscript.esm.js",
