@@ -15,6 +15,8 @@ import { LaxUndefined, Undefined } from "./undefined";
 
 const implicitEnvironmentCache = new LRUCache<string, Environment>(10);
 
+// TODO: document options type
+
 export type EnvironmentOptions = {
   /**
    * When `true`, render context variables will be HTML escaped before output.

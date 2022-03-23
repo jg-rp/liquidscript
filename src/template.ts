@@ -27,6 +27,8 @@ export class Template {
   readonly isUpToDateSync: () => boolean;
   protected renderContextClass = RenderContext;
 
+  // TODO: Drop `loader` from env options
+
   /**
    * Parse a Liquid template, automatically creating an environment to
    * bind it to.
