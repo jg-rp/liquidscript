@@ -27,6 +27,8 @@ template.render({ you: "Liquid" }).then(console.log); // Hello, Liquid!
 ## Table of Contents
 
 - [Getting Started](#getting-started)
+- [Project Status](#project-status)
+- [Dependencies](#dependencies)
 - [Why?](#why)
 - [Benchmark](#benchmark)
 
@@ -141,6 +143,21 @@ const template = env.fromString("Hello, {{ you }}!");
 
 Notice that `Environment` accepts a `loader` option, whereas `Template.fromString()` does not.
 
+## Project Status
+
+LiquidScript is currently available as an alpha release. This means that:
+
+- There's at least a couple of missing features. Namely filter and tag version pinning and a template loader for web browsers.
+- Documentation is either missing or incomplete for some features.
+- There's potential for the API to change in a backwards incompatible way. For example, syntax tree walking will almost certainly change to include expression objects as well as tree nodes.
+- Test coverage is currently at 83%, although in-browser testing has been limited to recent versions of Chrome and Firefox thus far.
+
+## Dependencies
+
+LiquidScript currently depends on [Decimal.js](https://mikemcl.github.io/decimal.js/) for decimal arithmetic, and [luxon](https://github.com/moment/luxon/) for timezone aware date/times and some limited parsing of date and time strings.
+
+Both of these dependencies are considered an implementation detail and might be replace with lighter-weight alternatives later.
+
 ## Why?
 
 Some excellent JavaScript implementations of Liquid already exist. To meet some rather specific requirements, LiquidScript has been developed with the following goals.
@@ -151,7 +168,7 @@ Some excellent JavaScript implementations of Liquid already exist. To meet some 
 
   - Floats with a single trailing zero must retain that zero upon output.
   - Built-in math filters must handle integers and floats appropriately. For example, the `divided_by` filter should perform integer division if both arguments are integers, and regular division otherwise.
-  - Built-in math filters must do decimal arithmetic. See [Decimal.js dependency](#Decimal.js).
+  - Built-in math filters must do decimal arithmetic. See [Decimal.js dependency](#dependencies).
   - Built-in filters must reject excess or otherwise invalid arguments with an error.
   -
 
