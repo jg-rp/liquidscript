@@ -76,7 +76,7 @@ Or using a [CDN](https://www.jsdelivr.com/package/npm/liquidscript).
 ></script>
 ```
 
-## Render
+### Render
 
 Render a template string by creating a `Template` and calling its `render()` or `renderSync()` methods.
 
@@ -108,7 +108,7 @@ console.log(template.renderSync(data));
 // Hello, Sally
 ```
 
-## Configure
+### Configure
 
 You can pass configuration options as the second argument to `Template.fromString()`. This example enables automatic HTML escaping and will raise an error at render time if a template attempts to use an undefined variable.
 
@@ -165,7 +165,7 @@ Some excellent JavaScript implementations of Liquid already exist. To meet some 
 
 - Offer HTML and XML auto-escaping, with facilities to mark text as "safe". See [Auto Escape](#auto-escape).
 
-- Drops (arbitrary objects added to a render context) must not expose properties or methods unless explicitly whitelisted. See [drop protocol](#drop-protocol).
+- Drops (arbitrary objects added to a render context) must not expose their methods unless explicitly whitelisted. See [drop protocol](#drop-protocol).
 
 ## Benchmark
 

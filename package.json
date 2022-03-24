@@ -21,7 +21,7 @@
     "test": "jest",
     "coverage": "jest --collectCoverage",
     "clean": "rm -rf ./lib ./dist ./coverage",
-    "benchmark": "npm run build && cd benchmark && node reference.js",
+    "benchmark": "yarn run build && cd benchmark && yarn node reference.js",
     "type-check": "tsc --noEmit",
     "type-check:watch": "npm run type-check -- --watch",
     "prepublish": "yarn build"

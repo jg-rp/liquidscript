@@ -50,7 +50,7 @@ function loadThemes(themesRoot) {
   return themePaths.map(loadThemeTemplates);
 }
 
-function includifyThemes(themes) {
+function includeThemes(themes) {
   const _themes = [];
   for (const theme of themes) {
     const layouts = [];
@@ -74,4 +74,4 @@ function includifyThemes(themes) {
   return _themes;
 }
 
-module.exports = { loadThemes, includifyThemes };
+module.exports = { loadThemes, includeThemes };

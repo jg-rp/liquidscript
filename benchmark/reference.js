@@ -1,7 +1,7 @@
 const { performance, PerformanceObserver } = require("perf_hooks");
 
 const { loadData } = require("./data");
-const { loadThemes, includifyThemes } = require("./themes");
+const { loadThemes, includeThemes } = require("./themes");
 const { registerMocks } = require("./register");
 const { MockMapLoader } = require("./mocks/loader");
 const { Environment, LaxUndefined } = require("..");
@@ -20,26 +20,25 @@ const { Environment, LaxUndefined } = require("..");
 
 const measures = {
   parse: [],
-  "render (async, not concurrent)": [],
-  "render (sync)": [],
-  "render (concurrent, with IO)": [],
-  "render (sync, with IO)": [],
+  renderSync: [],
+  "parse & renderSync": [],
+  render: [],
+  "render + parse with IO": [],
 };
 
-// Increase the number of loops per iteration for faster ops.
-const parseWeight = 10;
+// Weight the number of loops per iteration for faster/slower ops.
+const parseWeight = 6;
+const parseAndRenderWeight = 5;
 const renderSyncWeight = 20;
 const renderWeight = 10;
-// Reduce the number of loops per iteration for slower ops.
 const renderSimulatedIOWeight = 1;
-const renderSimulatedIOSyncSWeight = 0.04;
 
 const iterationWeightMap = {
   parse: parseWeight,
-  "render (async, not concurrent)": renderWeight,
-  "render (sync)": renderSyncWeight,
-  "render (concurrent, with IO)": renderSimulatedIOWeight,
-  "render (sync, with IO)": renderSimulatedIOSyncSWeight,
+  "parse & renderSync": parseAndRenderWeight,
+  render: renderWeight,
+  renderSync: renderSyncWeight,
+  "render + parse with IO": renderSimulatedIOWeight,
 };
 
 const obs = new PerformanceObserver((list) => {
@@ -50,41 +49,30 @@ const obs = new PerformanceObserver((list) => {
 obs.observe({ entryTypes: ["measure"], buffer: true });
 
 const themeSources = loadThemes("./fixtures/");
-const includeThemeSources = includifyThemes(themeSources);
+const includedThemes = includeThemes(themeSources);
 
 // Time to sleep in milliseconds for simulated IO.
-const timeToSleep = 80;
+const timeToSleep = 50;
 
-/**
- * Create a new Liquid `Environment` configured for benchmarking.
- *
- * @returns {Environment} A Liquid `Environment`configured with a
- *  mock template loader and the benchmark fixture data.
- */
-function environmentFactory() {
-  // A mock template loader
-  const m = new Map();
-  const mockLoader = new MockMapLoader(m, timeToSleep);
-
-  for (const theme of includeThemeSources) {
-    for (const template of theme.templates) {
-      m.set(template.path, template.source);
-    }
+// Populate mock loader with mock files from themes that have been
+// converted to use `include` tags.
+const mockFiles = new Map();
+const mockLoader = new MockMapLoader(mockFiles, timeToSleep);
+for (const theme of includedThemes) {
+  for (const template of theme.templates) {
+    mockFiles.set(template.path, template.source);
   }
-
-  const environment = new Environment({
-    globals: loadData(),
-    loader: mockLoader,
-    undefinedFactory: (n) => new LaxUndefined(n),
-  });
-
-  registerMocks(environment);
-  environment.globals.page_title = "Page Title";
-
-  return environment;
 }
 
-const environment = environmentFactory();
+// Configure a LiquidScript environment.
+const environment = new Environment({
+  globals: loadData(),
+  loader: mockLoader,
+  undefinedFactory: LaxUndefined.from,
+});
+
+registerMocks(environment);
+environment.globals.page_title = "Page Title";
 
 /**
  * Parse one theme. Each theme contains the source for one layout
@@ -115,24 +103,10 @@ function parseTheme(theme) {
   };
 }
 
-/**
- * Parse an array of themes using `ParseTheme`.
- *
- * @param {Array} themes An array of theme objects.
- * @returns {Array} An array of objects containing a layout
- *  `Template` and an array of content `Template` objects.
- */
 function parseThemes(themes) {
   return themes.map(parseTheme);
 }
 
-/**
- * Parse themes that use `{% include %}`.
- *
- * @param {Object} themes An array of theme objects that have been
- * transformed to use `{% include %}`
- * @returns {Array} An array of Liquid `Template` objects.
- */
 function parseIncludeThemes(themes) {
   const templates = [];
   for (const theme of themes) {
@@ -147,182 +121,98 @@ function parseIncludeThemes(themes) {
   return templates;
 }
 
-/**
- * Render a theme synchronously. The theme's content template is
- * rendered first, then used as a variable to render the theme's
- * layout template.
- *
- * @param {Object} theme A theme object.
- */
-function renderThemeSync(theme) {
-  for (const template of theme.templates) {
-    const content = template.renderSync();
-    theme.layout.renderSync({ content_for_layout: content });
-  }
-}
-
-/**
- * Render a single theme. The theme's layout will be rendered once
- * for each "content" template in the theme, with `content_for_layout`
- * set to the result of rendering the content template.
- *
- * @param {Object} theme A theme object containing the theme's layout
- *  as a `Template` and an array of content `Template`s.
- */
-async function renderTheme(theme) {
-  for (const template of theme.templates) {
-    const content = await template.render();
-    await theme.layout.render({ content_for_layout: content });
-  }
-}
-
-/**
- * Render an array of themes synchronously.
- *
- * @param {Array} themes An array of parsed themes.
- */
-function renderThemesSync(themes) {
-  for (const theme of themes) {
-    renderThemeSync(theme);
-  }
-}
-
-/**
- * Render an array of themes.
- *
- * @param {Array} themes An array of parsed themes.
- */
-async function renderThemes(themes) {
-  // Note: Deliberately not gathering results with Promise.all().
-  for (const theme of themes) {
-    await renderTheme(theme);
-  }
-}
-
-/**
- * Render templates concurrently, with simulated IO.
- *
- * @param {Array} templates Parsed "layout" templates, each with
- *  exactly one "include" tag.
- * @returns {Array} Rendered templates.
- */
-async function renderConcurrentThemes(templates) {
-  return Promise.all(
-    templates.map((t) => {
-      return t.render();
-    })
-  );
-}
-
-/**
- * Render templates synchronously with simulated IO.
- *
- * @param {Array} templates An array of parsed templates, each of
- * which includes exactly one other template.
- * @returns {Array} Rendered templates.
- */
-function renderIncludeThemesSync(templates) {
-  return templates.map((t) => {
-    return t.renderSync();
-  });
-}
-
-/**
- * Call `parseThemes()` with the global theme sources `n` times
- * with a performance mark before and after the loop.
- *
- * @param {number} n The number of times to parse all themes.
- */
 function parse(n = 100) {
   performance.mark("parse-start");
   for (let i = 0; i < n; i++) {
-    parseThemes(themeSources);
+    for (const theme of themeSources) {
+      for (const template of theme.templates) {
+        environment.fromString(theme.layout.source, theme.layout.path, {
+          template: theme.layout.name,
+        });
+        environment.fromString(template.source, template.path, {
+          template: template.name,
+        });
+      }
+    }
   }
   performance.mark("parse-end");
   performance.measure("parse", "parse-start", "parse-end");
 }
 
-/**
- * Call `renderThemes()` using the global theme sources, `n` times
- * with a performance mark before and after the loop.
- *
- * Note that this times the async render path. It does not render
- * templates concurrently. To put that another way, every call to
- * `render` is awaited. We don't gather templates rendering using
- * `Promise.all()`.
- *
- * @param {number} n The number of iterations. Each theme will be
- *  rendered once per iteration.
- */
+function parseAndRenderSync(n = 100) {
+  performance.mark("parse-render-start");
+  for (let i = 0; i < n; i++) {
+    for (const theme of themeSources) {
+      for (const template of theme.templates) {
+        const content = environment
+          .fromString(template.source, template.path, {
+            template: template.name,
+          })
+          .renderSync();
+
+        environment
+          .fromString(theme.layout.source, theme.layout.path, {
+            template: template.name,
+          })
+          .renderSync({ content_for_layout: content });
+      }
+    }
+  }
+  performance.mark("parse-render-end");
+  performance.measure(
+    "parse & renderSync",
+    "parse-render-start",
+    "parse-render-end"
+  );
+}
+
 async function render(n = 100) {
   const themes = parseThemes(themeSources);
   performance.mark("render-async-start");
   for (let i = 0; i < n; i++) {
-    await renderThemes(themes);
+    for (const theme of themes) {
+      for (const template of theme.templates) {
+        const content = await template.render();
+        await theme.layout.render({
+          template: template.name,
+          content_for_layout: content,
+        });
+      }
+    }
   }
   performance.mark("render-async-end");
-  performance.measure(
-    "render (async, not concurrent)",
-    "render-async-start",
-    "render-async-end"
-  );
+  performance.measure("render", "render-async-start", "render-async-end");
 }
 
-/**
- * Repeatedly call `renderThemesSync` using the global theme sources.
- *
- * @param {number} n The number of iterations. Each theme will be
- *  rendered once per iteration.
- */
 function renderSync(n = 100) {
   const themes = parseThemes(themeSources);
   performance.mark("render-sync-start");
   for (let i = 0; i < n; i++) {
-    renderThemesSync(themes);
+    for (const theme of themes) {
+      for (const template of theme.templates) {
+        const content = template.renderSync();
+        theme.layout.renderSync({
+          template: template.name,
+          content_for_layout: content,
+        });
+      }
+    }
   }
   performance.mark("render-sync-end");
-  performance.measure("render (sync)", "render-sync-start", "render-sync-end");
+  performance.measure("renderSync", "render-sync-start", "render-sync-end");
 }
 
-/**
- * Repeatedly call `renderConcurrentThemes` using the global theme
- * sources.
- *
- * @param {number} n The number of iterations. Each template will
- * be rendered once per iteration.
- */
-async function renderConcurrent(n = 100) {
-  const templates = parseIncludeThemes(includeThemeSources);
+async function renderConcurrentWithIO(n = 100) {
+  const templates = parseIncludeThemes(includedThemes);
   performance.mark("render-include-start");
-  for (let j = 0; j < n; j++) {
-    await renderConcurrentThemes(templates);
+  for (let i = 0; i < n; i++) {
+    await Promise.all(templates.map((t) => t.render()));
   }
   performance.mark("render-include-end");
   performance.measure(
-    "render (concurrent, with IO)",
+    "render + parse with IO",
     "render-include-start",
     "render-include-end"
-  );
-}
-
-/**
- * Repeatedly call `renderIncludeThemesSync()` using the global
- * theme sources.
- *
- * @param {number} n The number of iterations. Each template will
- * be rendered once per iteration.
- */
-function renderIncludeSync(n = 100) {
-  const templates = parseIncludeThemes(includeThemeSources);
-  performance.mark("render-include-sync-start");
-  for (let j = 0; j < n; j++) {
-    renderIncludeThemesSync(templates);
-  }
-  performance.mark("render-include-sync-end");
-  performance.measure(
-    "render (sync, with IO)",
-    "render-include-sync-start",
-    "render-include-sync-end"
   );
 }
 
@@ -336,21 +226,22 @@ function renderIncludeSync(n = 100) {
  * benchmark fixture.
  */
 function report(number, nTemplates) {
-  console.log("\n");
   for (const [name, durations] of Object.entries(measures)) {
     const best = Math.min(...durations) / 1000;
+    // const ranFor = durations.reduce((a, b) => a + b, 0) / 1000;
     const nIterations = number * iterationWeightMap[name];
     // Each layout template is rendered once for every associated
-    // content template, either as `content_for_layout` or as an
-    // included with the `include` tag. Hence the `* 2`.
-    const nOps = nIterations * nTemplates;
-    const opsPerSecond = nOps / best;
-    const iterationsPerSecond = 1 / (best / nIterations);
+    // content template, either as `content_for_layout` or included
+    // with the `include` tag. Hence the `* 2`.
+
+    // const nOps = nIterations * nTemplates;
+    // const opsPerSecond = (nOps * 2) / best;
+    const iterationsPerSecond = (1 / (best / nIterations)).toFixed(2);
 
     console.log(
-      `${name.padStart(30, " ")}: ${best.toFixed(2)}s ` +
-        `(${opsPerSecond.toFixed(2)} ops/s, ` +
-        `${iterationsPerSecond.toFixed(2)} i/s)`
+      `${name.padStart(22, " ")}:\t` +
+        `${String(iterationsPerSecond).padEnd(7)} i/s - ` +
+        `${String(nIterations).padEnd(4)} in ${best.toFixed(2)}s `
     );
   }
   obs.disconnect();
@@ -367,54 +258,36 @@ async function main(number = 100, repeat = 5) {
     .map((t) => t.templates.length)
     .reduce((a, b) => a + b, 0);
 
-  console.log(`templates:         ${nContentTemplates * 2}`);
-  console.log(`rounds per op:     ${repeat}`);
-  console.log(`simulated IO time: ${timeToSleep}ms\n`);
+  console.log(`templates per iteration: ${nContentTemplates * 2}`);
+  console.log(`rounds (best of):        ${repeat}`);
+  console.log(`simulated IO time:       ${timeToSleep}ms\n`);
 
-  console.log(
-    `parsing ${number * parseWeight * nContentTemplates * 2} templates...`
-  );
+  console.log(`parse ...`);
   for (let i = 0; i < repeat; i++) {
     parse(number * parseWeight);
   }
 
-  console.log(
-    `rendering (sync) ${
-      number * renderSyncWeight * nContentTemplates * 2
-    } templates...`
-  );
+  console.log(`renderSync ...`);
   for (let i = 0; i < repeat; i++) {
     renderSync(number * renderSyncWeight);
   }
 
-  console.log(
-    `rendering (async not concurrent) ${
-      number * renderWeight * nContentTemplates * 2
-    } templates...`
-  );
+  console.log(`parse & renderSync ...`);
+  for (let i = 0; i < repeat; i++) {
+    parseAndRenderSync(number * parseAndRenderWeight);
+  }
+
+  console.log(`render ...`);
   for (let i = 0; i < repeat; i++) {
     await render(number * renderWeight);
   }
 
-  console.log(
-    `rendering (concurrent, with IO) ${
-      number * renderSimulatedIOWeight * nContentTemplates * 2
-    } templates...`
-  );
+  console.log(`render + parse with IO ...`);
   for (let i = 0; i < repeat; i++) {
-    await renderConcurrent(number * renderSimulatedIOWeight);
-  }
-
-  console.log(
-    `rendering (sync, with IO) ${
-      number * renderSimulatedIOSyncSWeight * nContentTemplates * 2
-    } templates...`
-  );
-  for (let i = 0; i < repeat; i++) {
-    renderIncludeSync(number * renderSimulatedIOSyncSWeight);
+    await renderConcurrentWithIO(number * renderSimulatedIOWeight);
   }
 
   setTimeout(() => report(number, nContentTemplates), 0);
 }
 
-main(100, 3);
+main(50, 3);
