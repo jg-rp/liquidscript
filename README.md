@@ -169,4 +169,26 @@ Some excellent JavaScript implementations of Liquid already exist. To meet some 
 
 ## Benchmark
 
-TODO:
+You can run the benchmark using `yarn benchmark` from the root of the source tree. On my development machine we get the following results.
+
+```plain
+templates per iteration: 60
+rounds (best of):        3
+simulated IO time:       50ms
+
+parse ...
+renderSync ...
+parse & renderSync ...
+render ...
+render + parse with IO ...
+
+                 parse:	63.15   i/s - 300  in 4.75s
+            renderSync:	213.65  i/s - 1000 in 4.68s
+    parse & renderSync:	44.36   i/s - 250  in 5.64s
+                render:	109.45  i/s - 500  in 4.57s
+render + parse with IO:	14.91   i/s - 50   in 3.35s
+```
+
+The benchmark workload has been carefully matched to that of the [reference implementation](https://github.com/Shopify/liquid/tree/master/performance), although it's not clear what, if any, overhead their benchmark includes.
+
+When the same benchmark is run using [LiquidJS](https://github.com/harttle/liquidjs), it shows that, for parsing templates, LiquidJS is faster than LiquidScript, but LiquidScript is faster at rendering templates.
