@@ -158,6 +158,19 @@ LiquidScript currently depends on [Decimal.js](https://mikemcl.github.io/decimal
 
 Both of these dependencies are considered an implementation detail and might be replace with lighter-weight alternatives later.
 
+## Supported Browsers and Environments
+
+LiquidScript is written in TypeScript, compiled to JavaScript using [Babel](https://babeljs.io/) and bundled using [Rollup](https://rollupjs.org/guide/en/). The following included bundles target `defaults, not IE 11, maintained node versions, not node 12`. See [Browserslist](https://github.com/browserslist/browserslist#browserslist-).
+
+| Bundle                            | Description                                                                                        |
+| --------------------------------- | -------------------------------------------------------------------------------------------------- |
+| `liquidscript.cjs.js`             | A CommonJS formatted bundle                                                                        |
+| `liquidscript.esm.js`             | An ECMAScript module formatted bundle                                                              |
+| `liquidscript.iife.bundle.js`     | A bundle formatted as an Immediately Invoked Function Expression, including dependencies.          |
+| `liquidscript.iife.bundle.min.js` | A minified bundle formatted as an Immediately Invoked Function Expression, including dependencies. |
+| `liquidscript.iife.js`            | A bundle formatted as an Immediately Invoked Function Expression, excluding dependencies.          |
+| `liquidscript.iife.min.js`        | A minified bundle formatted as an Immediately Invoked Function Expression, excluding dependencies. |
+
 ## Why?
 
 Some excellent JavaScript implementations of Liquid already exist. To meet some rather specific requirements, LiquidScript has been developed with the following goals.

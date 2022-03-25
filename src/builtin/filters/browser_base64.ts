@@ -4,8 +4,6 @@ import { liquidStringify } from "../../types";
 
 export function base64Encode(this: FilterContext, left: unknown): string {
   checkArguments(arguments.length, 0);
-  // XXX: I was expecting to need `toBinary` on the input string.
-  // TODO: test with browsers other than Chrome.
   return window.btoa(liquidStringify(left));
 }
 

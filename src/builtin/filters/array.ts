@@ -89,7 +89,7 @@ export function last(this: FilterContext, left: unknown): unknown {
   checkArguments(arguments.length, 0);
   if (isArray(left)) return left[left.length - 1];
   if (left instanceof Range) return left.stop;
-  // XXX: hack to force StrictUndefined to throw an error. This happens
+  // Hack to force StrictUndefined to throw an error. This happens
   // naturally with other filters.
   if (isIterable(left)) {
     left[Symbol.iterator]();

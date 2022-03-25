@@ -9,10 +9,10 @@ import pkg from "./package.json";
 const extensions = [".js", ".jsx", ".ts", ".tsx"];
 const name = "liquidscript";
 const licence = readFileSync("./LICENCE", { encoding: "utf8" });
-// TODO: Include URL in banner.
 const banner = `/*
  * liquidscript version ${pkg.version}
- *
+ * https://github.com/jg-rp/liquidscript
+ * 
  * ${licence.split("\n").join("\n * ")}
  */`;
 
