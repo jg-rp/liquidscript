@@ -100,7 +100,7 @@ export class UnlessNode implements Node {
     context: RenderContext,
     out: RenderStream
   ): Promise<void> {
-    const buf = new BufferedRenderStream();
+    const buf = this.forceOutput ? out : new BufferedRenderStream();
     let rendered = false;
 
     if (!(await this.condition.evaluate(context))) {
@@ -120,12 +120,14 @@ export class UnlessNode implements Node {
       await this.alternative.render(context, buf);
     }
 
-    const buffered = buf.toString();
-    if (this.forceOutput || /\S/.test(buffered)) out.write(buffered);
+    if (!this.forceOutput) {
+      const buffered = buf.toString();
+      if (/\S/.test(buffered)) out.write(buffered);
+    }
   }
 
   public renderSync(context: RenderContext, out: RenderStream): void {
-    const buf = new BufferedRenderStream();
+    const buf = this.forceOutput ? out : new BufferedRenderStream();
     let rendered = false;
 
     if (!this.condition.evaluateSync(context)) {
@@ -145,8 +147,10 @@ export class UnlessNode implements Node {
       this.alternative.renderSync(context, buf);
     }
 
-    const buffered = buf.toString();
-    if (this.forceOutput || /\S/.test(buffered)) out.write(buffered);
+    if (!this.forceOutput) {
+      const buffered = buf.toString();
+      if (/\S/.test(buffered)) out.write(buffered);
+    }
   }
 
   children(): Node[] {

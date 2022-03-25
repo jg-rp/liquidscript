@@ -101,9 +101,9 @@ export class IfNode implements Node {
     out: RenderStream
   ): Promise<void> {
     // This intermediate buffer is used to detect and possibly
-    // suppress blocks that, when rendered, contain only whitespace
-    // TODO: Don't buffer the output stream if this.forceOutput is true.
-    const buf = new BufferedRenderStream();
+    // suppress blocks that, when rendered, contain only whitespace.
+    // Don't buffer the output stream if this.forceOutput is true.
+    const buf = this.forceOutput ? out : new BufferedRenderStream();
     let rendered = false;
 
     if (await this.condition.evaluate(context)) {
@@ -123,12 +123,14 @@ export class IfNode implements Node {
       await this.alternative.render(context, buf);
     }
 
-    const buffered = buf.toString();
-    if (this.forceOutput || /\S/.test(buffered)) out.write(buffered);
+    if (!this.forceOutput) {
+      const buffered = buf.toString();
+      if (/\S/.test(buffered)) out.write(buffered);
+    }
   }
 
   public renderSync(context: RenderContext, out: RenderStream): void {
-    const buf = new BufferedRenderStream();
+    const buf = this.forceOutput ? out : new BufferedRenderStream();
     let rendered = false;
 
     if (this.condition.evaluateSync(context)) {
@@ -148,8 +150,10 @@ export class IfNode implements Node {
       this.alternative.renderSync(context, buf);
     }
 
-    const buffered = buf.toString();
-    if (this.forceOutput || /\S/.test(buffered)) out.write(buffered);
+    if (!this.forceOutput) {
+      const buffered = buf.toString();
+      if (/\S/.test(buffered)) out.write(buffered);
+    }
   }
 
   children(): Node[] {

@@ -122,7 +122,8 @@ export class ForNode implements Node {
     const [it, length] = await this.expression.evaluate(context);
     // This intermediate buffer is used to detect and possibly
     // suppress blocks that, when rendered, contain only whitespace
-    const buf = new BufferedRenderStream();
+    // Don't buffer the output stream if this.forceOutput is true.
+    const buf = this.forceOutput ? out : new BufferedRenderStream();
 
     if (length > 0) {
       const name = this.expression.name;
@@ -162,13 +163,15 @@ export class ForNode implements Node {
       await this.default_.render(context, buf);
     }
 
-    const buffered = buf.toString();
-    if (this.forceOutput || /\S/.test(buffered)) out.write(buffered);
+    if (!this.forceOutput) {
+      const buffered = buf.toString();
+      if (/\S/.test(buffered)) out.write(buffered);
+    }
   }
 
   public renderSync(context: RenderContext, out: RenderStream): void {
     const [it, length] = this.expression.evaluateSync(context);
-    const buf = new BufferedRenderStream();
+    const buf = this.forceOutput ? out : new BufferedRenderStream();
 
     if (length > 0) {
       const name = this.expression.name;
@@ -208,8 +211,10 @@ export class ForNode implements Node {
       this.default_.renderSync(context, buf);
     }
 
-    const buffered = buf.toString();
-    if (this.forceOutput || /\S/.test(buffered)) out.write(buffered);
+    if (!this.forceOutput) {
+      const buffered = buf.toString();
+      if (/\S/.test(buffered)) out.write(buffered);
+    }
   }
 
   children(): Node[] {

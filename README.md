@@ -112,7 +112,7 @@ console.log(template.renderSync(data));
 
 ### Configure
 
-You can pass configuration options as the second argument to `Template.fromString()`. This example enables automatic HTML escaping and will raise an error at render time if a template attempts to use an undefined variable.
+You can pass configuration options as the second argument to `Template.fromString()`. This example enables automatic HTML escaping and will throw an error at render time if a template attempts to use an undefined variable.
 
 ```javascript
 import { Template, StrictUndefined } from "liquidscript";
