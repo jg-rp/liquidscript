@@ -57,6 +57,7 @@ export class NodeFileSystemLoader extends Loader {
   readonly searchPath: string[];
 
   /**
+   * The `NodeFileSystemLoader` constructor. Create a new `NodeFileSystemLoader`.
    *
    * @param searchPath - A path, or array of paths, to search for templates.
    * @param options - Loader options.
@@ -154,9 +155,10 @@ export class CachingNodeFileSystemLoader extends Loader {
   #cache: LRUCache<string, Template>;
 
   /**
+   * The `CachingNodeFileSystemLoader` constructor.
    *
-   * @param searchPath
-   * @param options
+   * @param searchPath - A path, or array of paths, to search for templates.
+   * @param options - Loader options.
    */
   constructor(
     searchPath: string | string[],

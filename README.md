@@ -72,8 +72,8 @@ Or using a [CDN](https://www.jsdelivr.com/package/npm/liquidscript).
 
 ```html
 <script
-  src="https://cdn.jsdelivr.net/npm/liquidscript@0.1.0-alpha.3/dist/liquidscript.iife.bundle.min.js"
-  integrity="sha256-Jv1hBPdz8vgkio1Mxiwda3WrvSPbcuB5S099ItCEYy0="
+  src="https://cdn.jsdelivr.net/npm/liquidscript@0.2.0-alpha.1/dist/liquidscript.iife.bundle.min.js"
+  integrity="sha256-TaQsba5z1EkaP45OUgojVA4o1/XtPjPD0oLBLLFHWCU="
   crossorigin="anonymous"
 ></script>
 ```
@@ -147,8 +147,7 @@ Notice that `Environment` accepts a `loader` option, whereas `Template.fromStrin
 
 LiquidScript is currently available as an alpha release. This means that:
 
-- There's at least a couple of missing features. Namely filter and tag version pinning and a template loader for web browsers.
-- Documentation is either missing or incomplete for some features.
+- Documentation is either missing or incomplete.
 - There's potential for the API to change in a backwards incompatible way. For example, syntax tree walking will almost certainly change to include expression objects as well as tree nodes.
 - Test coverage is currently at 83%, although in-browser testing has been limited to recent versions of Chrome and Firefox thus far.
 
@@ -222,3 +221,5 @@ render + parse with IO:	14.91   i/s - 50   in 3.35s
 The benchmark workload has been carefully matched to that of the [reference implementation](https://github.com/Shopify/liquid/tree/master/performance), although it's not clear what, if any, overhead their benchmark includes.
 
 When the same benchmark is run using [LiquidJS](https://github.com/harttle/liquidjs), it shows that, for parsing templates, LiquidJS is faster than LiquidScript, but LiquidScript is faster at rendering templates.
+
+Compared to [Python Liquid](https://github.com/jg-rp/liquid#benchmark), which includes a comparable benchmark, LiquidScript is as much as two or three times faster for synchronous operations. Python Liquid's benchmark does not currently include figures for asynchronously rendering templates.

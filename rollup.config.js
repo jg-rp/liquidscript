@@ -69,7 +69,9 @@ const browserBundles = {
       delimiters: ["", ""],
       include: "./src/builtin/loaders/index.ts",
       preventAssignment: true,
-      'export * from "./file_system";': "",
+      'export * from "./file_system_loader";':
+        'export * from "./fetch_loader";\n' +
+        'export * from "./xml_http_request_loader";',
     }),
     // Allows node_modules resolution
     resolve({ extensions }),
@@ -120,7 +122,9 @@ const browserBundlesWithDependencies = {
       delimiters: ["", ""],
       include: "./src/builtin/loaders/index.ts",
       preventAssignment: true,
-      'export * from "./file_system";': "",
+      'export * from "./file_system_loader";':
+        'export * from "./fetch_loader";\n' +
+        'export * from "./xml_http_request_loader";',
     }),
     // Allows node_modules resolution
     resolve({ extensions }),

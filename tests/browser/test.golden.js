@@ -7974,29 +7974,28 @@ const data = {
     },
   ],
 };
-const expect = chai.expect;
 
-describe("Golden Liquid Sync", () => {
+suite("Golden Liquid Sync", () => {
   for (const group of data.test_groups) {
-    describe(group.name, () => {
-      for (const test of group.tests) {
-        it(test.name, () => {
-          const loader = new liquidscript.ObjectLoader(test.partials);
+    suite(group.name, () => {
+      for (const t of group.tests) {
+        test(t.name, () => {
+          const loader = new liquidscript.ObjectLoader(t.partials);
           const env = new liquidscript.Environment({
-            globals: test.context,
+            globals: t.context,
             loader: loader,
             undefinedFactory: function (name) {
               return new liquidscript.LaxUndefined(name);
             },
           });
-          if (test.error) {
+          if (t.error) {
             expect(function () {
-              const template = env.fromString(test.template);
+              const template = env.fromString(t.template);
               template.renderSync();
             }).to.throw(Error);
           } else {
-            const template = env.fromString(test.template);
-            expect(template.renderSync()).to.equal(test.want);
+            const template = env.fromString(t.template);
+            expect(template.renderSync()).to.equal(t.want);
           }
         });
       }

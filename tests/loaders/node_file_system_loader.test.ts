@@ -1,5 +1,5 @@
 import { Environment } from "../../src/environment";
-import { NodeFileSystemLoader } from "../../src/builtin/loaders/file_system";
+import { NodeFileSystemLoader } from "../../src/builtin/loaders/file_system_loader";
 import { Template } from "../../src/template";
 import { TemplateNotFoundError } from "../../src/errors";
 

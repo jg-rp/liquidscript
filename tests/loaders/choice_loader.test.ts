@@ -1,6 +1,6 @@
 import { MapLoader } from "../../src/builtin/loaders";
-import { NodeFileSystemLoader } from "../../src/builtin/loaders/file_system";
-import { ChoiceLoader } from "../../src/builtin/loaders/choice";
+import { NodeFileSystemLoader } from "../../src/builtin/loaders/file_system_loader";
+import { ChoiceLoader } from "../../src/builtin/loaders/choice_loader";
 import { Environment } from "../../src/environment";
 
 describe("choice template loader", () => {

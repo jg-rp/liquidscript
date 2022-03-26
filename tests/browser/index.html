@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>Mocha Tests</title>
+    <title>LiquidScript Tests</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="https://unpkg.com/mocha/mocha.css" />
   </head>
@@ -14,9 +14,11 @@
     <script src="../../dist/liquidscript.iife.bundle.min.js"></script>
 
     <script class="mocha-init">
-      mocha.setup("bdd");
+      const expect = chai.expect;
+      mocha.setup("tdd");
       mocha.checkLeaks();
     </script>
+    <script src="test.loader.js"></script>
     <script src="test.golden.js"></script>
     <script class="mocha-exec">
       mocha.run();

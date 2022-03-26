@@ -1,6 +1,4 @@
-export * from "./choice";
-export * from "./file_system";
+export * from "./choice_loader";
+export * from "./file_system_loader";
 export * from "./map_loader";
 export * from "./object_loader";
-
-// TODO: web loader
