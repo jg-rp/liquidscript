@@ -202,7 +202,7 @@ export function makeParseRange(
     // Parse start
     if (!RANGE_OBJ_TOKENS.has(stream.current.kind))
       throw new LiquidSyntaxError(
-        `unexpected ${stream.current.value} in range expression`,
+        `unexpected '${stream.current.value}' in range expression`,
         stream.current
       );
 
@@ -216,7 +216,7 @@ export function makeParseRange(
     // Parse start
     if (!RANGE_OBJ_TOKENS.has(stream.current.kind))
       throw new LiquidSyntaxError(
-        `unexpected ${stream.current.value} in range expression`,
+        `unexpected '${stream.current.value}' in range expression`,
         stream.current
       );
 

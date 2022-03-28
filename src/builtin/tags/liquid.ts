@@ -15,7 +15,10 @@ import {
 } from "../../token";
 
 const RULES = [
-  ["LIQUID_EXPR", "[ \\t]*(?<name>\\w+)[ \\t]*(?<expr>.*?)[ \\t\\r]*?(\\n+|$)"],
+  [
+    "LIQUID_EXPR",
+    "[ \\t]*(?<preamble>(?<name>\\w+)[ \\t]*)(?<expr>.*?)[ \\t\\r]*?(\\n+|$)",
+  ],
   [TOKEN_SKIP, "[\\r\\n]+"],
   [TOKEN_ILLEGAL, "."],
 ];
@@ -25,6 +28,7 @@ const RE = new RegExp(RULES.map(([n, p]) => `(?<${n}>${p})`).join("|"), "gs");
 interface LiquidExpressionMatch {
   LIQUID_EXPR: string;
   name: string;
+  preamble: string;
   expr: string;
 }
 
@@ -54,23 +58,27 @@ function isIllegalMatch(match: MatchGroups): match is IllegalMatch {
   return match.TOKEN_ILLEGAL === undefined ? false : true;
 }
 
-function* tokenize(source: string, startIndex: number = 1): Generator<Token> {
-  for (const match of source.matchAll(RE)) {
+function* tokenize(
+  expr: string,
+  startIndex: number = 1,
+  input: string
+): Generator<Token> {
+  for (const match of expr.matchAll(RE)) {
     const groups = match.groups as MatchGroups;
     if (isLiquidExpressionMatch(groups)) {
       yield new Token(
         TOKEN_TAG,
         groups.name,
         <number>match.index + startIndex,
-        source
+        input
       );
 
       if (groups.expr)
         yield new Token(
           TOKEN_EXPRESSION,
           groups.expr,
-          <number>match.index + startIndex,
-          source
+          <number>match.index + startIndex + groups.preamble.length,
+          input
         );
     } else if (isSkipMatch(groups)) {
       continue;
@@ -81,7 +89,7 @@ function* tokenize(source: string, startIndex: number = 1): Generator<Token> {
           TOKEN_ILLEGAL,
           groups.TOKEN_ILLEGAL,
           <number>match.index + startIndex,
-          source
+          input
         )
       );
   }
@@ -90,7 +98,6 @@ function* tokenize(source: string, startIndex: number = 1): Generator<Token> {
 export class LiquidTag implements Tag {
   readonly block = false;
   readonly name = "liquid";
-  private endBlock = new Set<string>();
   protected nodeClass = LiquidNode;
 
   parse(stream: TokenStream, environment: Environment): Node {
@@ -103,10 +110,10 @@ export class LiquidTag implements Tag {
 
     stream.expect(TOKEN_EXPRESSION);
     const exprStream = new TemplateTokenStream(
-      tokenize(stream.current.value, stream.current.index)
+      tokenize(stream.current.value, stream.current.index, stream.current.input)
     );
 
-    const block = environment.parser.parseBlock(exprStream, this.endBlock);
+    const block = environment.parser.parseLiquid(exprStream);
     return new this.nodeClass(token, block);
   }
 }

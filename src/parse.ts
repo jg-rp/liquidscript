@@ -1,6 +1,6 @@
 import { BlockNode, Node, Root } from "./ast";
 import { Environment } from "./environment";
-import { LiquidSyntaxError, NoSuchTagError } from "./errors";
+import { LiquidSyntaxError } from "./errors";
 import {
   Token,
   TokenStream,
@@ -13,7 +13,24 @@ import { Tag } from "./tag";
 
 export interface Parser {
   parse(stream: TokenStream): Root;
+
+  /**
+   * Parse a block of tokens from the given stream until an end
+   * tag is found or the end of the stream is reached.
+   *
+   * @param stream - A template token stream.
+   * @param end - A set of tag names that indicate the end of the
+   * block.
+   */
   parseBlock(stream: TokenStream, end: Set<string>): BlockNode;
+
+  /**
+   * Like {@link parseBlock}, but read until the end of the stream.
+   * Useful for the `liquid` tag.
+   *
+   * @param stream - A template token stream.
+   */
+  parseLiquid(stream: TokenStream): BlockNode;
 }
 
 export class TemplateParser implements Parser {
@@ -36,9 +53,22 @@ export class TemplateParser implements Parser {
   public parseBlock(stream: TokenStream, end: Set<string>): BlockNode {
     const block = new BlockNode(stream.current);
     while (
-      stream.current.kind !== TOKEN_EOF &&
       !(stream.current.kind === TOKEN_TAG && end.has(stream.current.value))
     ) {
+      if (stream.current.kind === TOKEN_EOF)
+        throw new LiquidSyntaxError(
+          `missing end tag, expected ${Array.from(end.values()).join(", ")}`,
+          stream.current
+        );
+      block.nodes.push(this.parseStatement(stream));
+      stream.next();
+    }
+    return block;
+  }
+
+  public parseLiquid(stream: TokenStream): BlockNode {
+    const block = new BlockNode(stream.current);
+    while (stream.current.kind !== TOKEN_EOF) {
       block.nodes.push(this.parseStatement(stream));
       stream.next();
     }
@@ -47,7 +77,8 @@ export class TemplateParser implements Parser {
 
   protected getTag(token: Token): Tag {
     const tag = this.environment.tags[token.value];
-    if (!tag) throw new NoSuchTagError(`unknown tag '${token.value}'`, token);
+    if (!tag)
+      throw new LiquidSyntaxError(`unexpected tag '${token.value}'`, token);
     return tag;
   }
 

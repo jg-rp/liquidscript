@@ -22,9 +22,28 @@ export class LiquidError extends Error {
  * An error thrown when a template syntax error is found.
  */
 export class LiquidSyntaxError extends LiquidError {
-  constructor(public message: string, token: Token) {
+  originalMessage: string;
+  token: Token;
+
+  constructor(public message: string, token: Token, templateName?: string) {
     super(message, token);
     Object.setPrototypeOf(this, LiquidSyntaxError.prototype);
+
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, LiquidSyntaxError);
+    }
+    this.name = "LiquidSyntaxError";
+    this.originalMessage = message;
+    this.message = _message(message, token, templateName);
+    this.token = token;
+  }
+
+  public withTemplateName(templateName?: string): LiquidSyntaxError {
+    return new LiquidSyntaxError(
+      this.originalMessage,
+      this.token,
+      templateName
+    );
   }
 }
 

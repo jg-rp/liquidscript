@@ -93,6 +93,10 @@ export class ExpressionTokenStream implements TokenStream {
     this._peek = this._next();
   }
 
+  expectTag(): void {
+    throw new Error("Method not implemented.");
+  }
+
   public get current(): Token {
     return this._current;
   }
@@ -122,19 +126,21 @@ export class ExpressionTokenStream implements TokenStream {
   }
 
   public expect(kind: string): void {
-    // TODO: reverse operators
     if (this.current.kind !== kind)
       throw new LiquidSyntaxError(
-        `expected ${kind}, found ${this.current.kind}`,
+        `expected '${reverseOperatorLookup(
+          kind
+        )}', found '${reverseOperatorLookup(this.current.kind)}'`,
         this.current
       );
   }
 
   public expectPeek(kind: string): void {
-    // TODO: reverse operators
     if (this.peek.kind !== kind)
       throw new LiquidSyntaxError(
-        `expected ${kind}, found ${this.peek.kind}`,
+        `expected '${reverseOperatorLookup(
+          kind
+        )}', found '${reverseOperatorLookup(this.peek.kind)}'`,
         this.peek
       );
   }
@@ -144,4 +150,14 @@ export class ExpressionTokenStream implements TokenStream {
     if (it.done) return EOF;
     return it.value;
   }
+}
+
+/**
+ * Return the operator that matches the given token kind, or the
+ * input kind if it's not an operator token.
+ */
+export function reverseOperatorLookup(kind: string): string {
+  return REVERSE_OPERATORS.has(kind)
+    ? (REVERSE_OPERATORS.get(kind) as string)
+    : kind;
 }

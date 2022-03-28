@@ -240,11 +240,6 @@ function isIllegalMatch(match: MatchGroups): match is IllegalMatch {
   return match.TOKEN_ILLEGAL === undefined ? false : true;
 }
 
-/**
- *
- * @param source
- * @param startIndex
- */
 export function* tokenize(
   source: string,
   startIndex: number = 0

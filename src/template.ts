@@ -143,7 +143,11 @@ export class Template {
     if (error instanceof LiquidInterrupt) {
       if (!partial || blockScope) {
         this.environment.error(
-          new LiquidSyntaxError(`unexpected ${error}`, node.token)
+          new LiquidSyntaxError(
+            `unexpected '${error.message}'`,
+            node.token,
+            this.name
+          )
         );
       } else {
         throw error;

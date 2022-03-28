@@ -1,4 +1,4 @@
-import { compileRules, tokenize as _tokenize } from "../src/lex";
+import { compileRules, tokenizerFor } from "../src/lex";
 import {
   Token,
   TOKEN_EXPRESSION,
@@ -11,9 +11,7 @@ import {
 
 describe("tokenize templates", () => {
   const rules = compileRules();
-  function tokenize(source: string): Generator<Token> {
-    return _tokenize(source, rules);
-  }
+  const tokenize = tokenizerFor(rules);
 
   test("only literal", () => {
     const tokens = Array.from(tokenize("<HTML>some</HTML>"));
@@ -41,7 +39,7 @@ describe("tokenize templates", () => {
     const tokens = Array.from(tokenize("{% if true %}hello{% endif %}"));
     expect(tokens).toStrictEqual([
       new Token(TOKEN_TAG, "if", 0, "{% if true %}hello{% endif %}"),
-      new Token(TOKEN_EXPRESSION, "true", 0, "{% if true %}hello{% endif %}"),
+      new Token(TOKEN_EXPRESSION, "true", 6, "{% if true %}hello{% endif %}"),
       new Token(TOKEN_LITERAL, "hello", 13, "{% if true %}hello{% endif %}"),
       new Token(TOKEN_TAG, "endif", 18, "{% if true %}hello{% endif %}"),
     ]);
@@ -52,10 +50,10 @@ describe("tokenize templates", () => {
     const tokens = Array.from(tokenize(t));
     expect(tokens).toStrictEqual([
       new Token(TOKEN_TAG, "if", 0, t),
-      new Token(TOKEN_EXPRESSION, "false", 0, t),
+      new Token(TOKEN_EXPRESSION, "false", 6, t),
       new Token(TOKEN_LITERAL, "hello", 14, t),
       new Token(TOKEN_TAG, "elsif", 19, t),
-      new Token(TOKEN_EXPRESSION, "true", 19, t),
+      new Token(TOKEN_EXPRESSION, "true", 28, t),
       new Token(TOKEN_LITERAL, "g'day", 35, t),
       new Token(TOKEN_TAG, "else", 40, t),
       new Token(TOKEN_LITERAL, "goodbye", 50, t),

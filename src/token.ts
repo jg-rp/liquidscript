@@ -31,6 +31,7 @@ export interface TokenStream {
   peek: Token;
   next(): Token;
   expect(kind: string): void;
+  expectTag(name: string): void;
 }
 
 export class TemplateTokenStream implements TokenStream {
@@ -51,11 +52,32 @@ export class TemplateTokenStream implements TokenStream {
   }
 
   public expect(kind: string): void {
-    if (this.current.kind !== kind)
+    if (this.current.kind !== kind) {
+      switch (kind) {
+        case TOKEN_EXPRESSION:
+          throw new LiquidSyntaxError(`missing tag expression`, this.current);
+        default:
+          throw new LiquidSyntaxError(
+            `expected '${kind}', found ${this.current.kind}`,
+            this.current
+          );
+      }
+    }
+  }
+
+  public expectTag(name: string): void {
+    if (this.current.kind !== TOKEN_TAG) {
       throw new LiquidSyntaxError(
-        `expected ${String(kind)}, found ${String(this.current.kind)}`,
+        `expected tag '${name}', found '${this.current.kind}'`,
         this.current
       );
+    }
+    if (this.current.value !== name) {
+      throw new LiquidSyntaxError(
+        `expected '${name}', found '${this.current.value}'`,
+        this.current
+      );
+    }
   }
 
   public next(): Token {

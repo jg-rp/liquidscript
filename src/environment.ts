@@ -4,19 +4,21 @@ import { chainObjects } from "./chain_object";
 import { LRUCache } from "./cache";
 import { ContextScope, RenderContext } from "./context";
 import { Filter } from "./filter";
-import { compileRules, tokenize } from "./lex";
+import { compileRules, tokenizerFor } from "./lex";
 import { Loader } from "./loader";
 import { MapLoader } from "./builtin/loaders";
 import { Parser, TemplateParser } from "./parse";
 import { Tag } from "./tag";
 import { Template } from "./template";
-import { TemplateTokenStream } from "./token";
+import { TemplateTokenStream, Token } from "./token";
 import { LaxUndefined, Undefined } from "./undefined";
+import { LiquidSyntaxError } from "./errors";
 
 const implicitEnvironmentCache = new LRUCache<string, Environment>(10);
 
-// TODO: document options type
-
+/**
+ * Liquid environment options.
+ */
 export type EnvironmentOptions = {
   /**
    * When `true`, render context variables will be HTML escaped before output.
@@ -117,6 +119,7 @@ export class Environment {
   readonly tags: { [keys: string]: Tag } = {};
 
   #tokenRules: RegExp;
+  #tokenize: (source: string) => Generator<Token>;
   #parser: Parser;
 
   constructor({
@@ -143,6 +146,14 @@ export class Environment {
     this.undefinedFactory = undefinedFactory ?? LaxUndefined.from;
 
     this.#tokenRules = compileRules(
+      this.statementStartString,
+      this.statementEndString,
+      this.tagStartString,
+      this.tagEndString
+    );
+
+    this.#tokenize = tokenizerFor(
+      this.#tokenRules,
       this.statementStartString,
       this.statementEndString,
       this.tagStartString,
@@ -220,7 +231,7 @@ export class Environment {
   ): Template {
     return new this.templateClass(
       this,
-      this.parse(source),
+      this.parse(source, name),
       name || "",
       this.makeGlobals(globals),
       matter,
@@ -242,10 +253,15 @@ export class Environment {
     return this.#parser;
   }
 
-  protected parse(source: string): Root {
-    return this.parser.parse(
-      new TemplateTokenStream(tokenize(source, this.#tokenRules))
-    );
+  protected parse(source: string, name?: string): Root {
+    try {
+      return this.parser.parse(new TemplateTokenStream(this.#tokenize(source)));
+    } catch (error) {
+      if (error instanceof LiquidSyntaxError) {
+        throw error.withTemplateName(name);
+      }
+      throw error;
+    }
   }
 
   protected makeGlobals(templateGlobals?: ContextScope): ContextScope {

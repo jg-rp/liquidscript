@@ -1,3 +1,4 @@
+import { LiquidSyntaxError } from "./errors";
 import {
   Token,
   TOKEN_EXPRESSION,
@@ -14,6 +15,7 @@ const enum MatchGroup {
   RSL = "rightStripLiteral",
   TAG = "tagName",
   EXP = "tagExpression",
+  PRE = "tagPreamble",
   LIT = "literal",
 }
 
@@ -35,7 +37,7 @@ export function compileRules(
   const rules = [
     `${ts}\\s*raw\\s*${te}(?<${MatchGroup.RAW}>.*?)${ts}\\s*endraw\\s*${te}`,
     `${ss}-?\\s*(?<${MatchGroup.STA}>.*?)\\s*(?<${MatchGroup.RSS}>-?)${se}`,
-    `${ts}-?\\s*(?<${MatchGroup.TAG}>\\w*)\\s*` +
+    `(?<${MatchGroup.PRE}>${ts}-?\\s*(?<${MatchGroup.TAG}>\\w*)\\s*)` +
       `(?<${MatchGroup.EXP}>.*?)\\s*(?<${MatchGroup.RST}>-?)${te}`,
     `(?<${MatchGroup.LIT}>.+?(?=(?:(?:${ts}|${ss})(?<${MatchGroup.RSL}>-?))|$))`,
   ];
@@ -50,6 +52,7 @@ interface StatementMatch {
 
 interface TagMatch {
   tagName: string;
+  tagPreamble: string;
   tagExpression: string;
   rightStripTag: string;
 }
@@ -83,65 +86,68 @@ function isRaw(match: MatchGroups): match is RawMatch {
   return match.raw === undefined ? false : true;
 }
 
-export function* tokenize(source: string, rules: RegExp): Generator<Token> {
-  let leftStrip = false;
-  for (const match of source.matchAll(rules)) {
-    const groups = match.groups as MatchGroups;
+/**
+ * Return a generator function for tokenizing liquid templates.
+ */
+export function tokenizerFor(
+  rules: RegExp,
+  statementStart = "{{",
+  statementEnd = "}}",
+  tagStart = "{%",
+  tagEnd = "%}"
+): (source: string) => Generator<Token> {
+  function* _tokenize(source: string): Generator<Token> {
+    let leftStrip = false;
+    for (const match of source.matchAll(rules)) {
+      const groups = match.groups as MatchGroups;
+      if (isStatement(groups)) {
+        leftStrip = !!groups.rightStripStatement;
+        yield new Token(
+          TOKEN_STATEMENT,
+          groups.statement,
+          <number>match.index,
+          source
+        );
+      } else if (isTag(groups)) {
+        leftStrip = !!groups.rightStripTag;
+        yield new Token(TOKEN_TAG, groups.tagName, <number>match.index, source);
+        if (groups.tagExpression.length)
+          yield new Token(
+            TOKEN_EXPRESSION,
+            groups.tagExpression,
+            <number>match.index + groups.tagPreamble.length,
+            source
+          );
+      } else if (isLiteral(groups)) {
+        let value = groups.literal;
+        // Whitespace control
+        const rightStrip = !!groups.rightStripLiteral;
+        if (leftStrip && rightStrip) value = value.trim();
+        else if (leftStrip) value = value.trimStart();
+        else if (rightStrip) value = value.trimEnd();
+        // Reset for next literal
+        leftStrip = false;
 
-    if (isStatement(groups)) {
-      leftStrip = !!groups.rightStripStatement;
-      yield new Token(
-        TOKEN_STATEMENT,
-        groups.statement,
-        <number>match.index,
-        source
-      );
-    } else if (isTag(groups)) {
-      leftStrip = !!groups.rightStripTag;
-      yield new Token(TOKEN_TAG, groups.tagName, <number>match.index, source);
-      if (groups.tagExpression.length)
-        yield new Token(
-          TOKEN_EXPRESSION,
-          groups.tagExpression,
-          <number>match.index,
-          source
-        );
-    } else if (isLiteral(groups)) {
-      const rightStrip = !!groups.rightStripLiteral;
-      if (leftStrip && rightStrip) {
-        yield new Token(
-          TOKEN_LITERAL,
-          groups.literal.trim(),
-          <number>match.index,
-          source
-        );
-      } else if (leftStrip) {
-        yield new Token(
-          TOKEN_LITERAL,
-          groups.literal.trimStart(),
-          <number>match.index,
-          source
-        );
-      } else if (rightStrip) {
-        yield new Token(
-          TOKEN_LITERAL,
-          groups.literal.trimEnd(),
-          <number>match.index,
-          source
-        );
+        // Assume a template literal that starts with "{{" or "{%" is an error.
+        // As per the reference implementation.
+        if (value.startsWith(statementStart))
+          throw new LiquidSyntaxError(
+            `expected '${statementEnd}', found 'eof'`,
+            new Token(TOKEN_LITERAL, value, <number>match.index, source)
+          );
+        if (value.startsWith(tagStart))
+          throw new LiquidSyntaxError(
+            `expected '${tagEnd}', found 'eof'`,
+            new Token(TOKEN_LITERAL, value, <number>match.index, source)
+          );
+
+        yield new Token(TOKEN_LITERAL, value, <number>match.index, source);
+      } else if (isRaw(groups)) {
+        yield new Token(TOKEN_LITERAL, groups.raw, <number>match.index, source);
       } else {
-        yield new Token(
-          TOKEN_LITERAL,
-          groups.literal,
-          <number>match.index,
-          source
-        );
+        throw Error(`unexpected token kind: ${match}`);
       }
-      leftStrip = false;
-    } else if (isRaw(groups)) {
-      yield new Token(TOKEN_LITERAL, groups.raw, <number>match.index, source);
-    } else {
-      throw Error(`unexpected token kind: ${match}`);
     }
   }
+  return _tokenize;
 }

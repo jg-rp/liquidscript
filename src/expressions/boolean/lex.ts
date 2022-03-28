@@ -330,7 +330,7 @@ export function* tokenize(
       const op = OPERATORS.get(groups.TOKEN_OP);
       if (op === undefined)
         throw new LiquidSyntaxError(
-          `unknown operator ${groups.TOKEN_OP}`,
+          `unknown operator '${groups.TOKEN_OP}'`,
           new Token(
             TOKEN_ILLEGAL,
             groups.TOKEN_OP,
