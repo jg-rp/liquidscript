@@ -86,7 +86,7 @@ export type EnvironmentOptions = {
   /**
    * A function that accepts the name of a template variable name and
    * returns a subclass of `Undefined`.
-   * @defaultValue A `StrictUndefined` factory function.
+   * @defaultValue A `LaxUndefined` factory function.
    */
   undefinedFactory?: (name: string) => Undefined;
 };

@@ -7,6 +7,7 @@
   - Error messages now include any offending operators rather than the name of the token that represents the operator.
   - The template name and line number of the error is included. Previously this only happened for render-time errors.
 - More efficient parsing of `liquid` tag expressions. The `TemplateParser` class now includes a `parseLiquid()` method that is similar to `parseBlock()`, but does not needlessly check an empty set for the name of an end tag.
+- Added `toLiquidSync` to the drop protocol.
 
 ## Version 0.2.0-alpha.1
 

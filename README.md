@@ -143,6 +143,46 @@ const template = env.fromString("Hello, {{ you }}!");
 
 Notice that `Environment` accepts a `loader` option, whereas `Template.fromString()` does not.
 
+## Drop Protocol
+
+A "drop" is an object that is more than just a mapping of names to values. When included in a Liquid render context, a drop can, for example, behave like a Liquid primitive, dynamically produce properties via a dispatching method or expose its methods as if they were simple properties.
+
+An object does this by implementing some or all of the "drop protocol". The drop protocol is nothing more than a set of conventions using well defined [Symbols](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol). Those symbols are:
+
+| Property               | Description                                                                                                                                                                                                                                                                                   |
+| ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `[toLiquid]`           | A function valued property that is called to convert an object to its corresponding Liquid value. `[toLiquid]` is passed the active render context as its only argument.                                                                                                                      |
+| `[toLiquidSync]`       | A synchronous version of `[toLiquid]`                                                                                                                                                                                                                                                         |
+| `[toLiquidPrimitive]`  | A function valued property that is called to convert an object to its corresponding Liquid primitive value. The return value of this function will be used in Liquid comparison expressions.                                                                                                  |
+| `[toLiquidString]`     | A function valued property that is called to convert an object to its Liquid specific string representation. This function will take priority over `toString()` when an object is output or passed to a string filter.                                                                        |
+| `[toLiquidHtml]`       | A function valued property that is called to convert an object to an HTML-safe string representation. When HTML auto-escaping is enabled, the return value of this function will take priority over `[toLiquidString]` and `toString()`, and it will not be escaped.                          |
+| `[isLiquidCallable]`   | A function valued property that is called to test a method name against a set of whitelisted methods that Liquid can call. A method name is passed as the only argument, and a boolean return value is expected. Liquid callable methods are not passed any arguments.                        |
+| `[liquidDispatch]`     | A function valued property that is called in the event that a property is missing from an object. The name of the missing property is passed as the only argument. This function is expected to return a Promise and should throw an `InternalKeyError` if the named property is unavailable. |
+| `[liquidDispatchSync]` | A synchronous version of `[liquidDispatch]`.                                                                                                                                                                                                                                                  |
+
+This example demonstrates how one might use `[toLiquid]` to implement a lazy loading user object.
+
+```typescript
+import { Template, Liquidable, toLiquid } from "liquidscript";
+
+type User = { firstName: string; lastName: string };
+
+class LazyUserDrop implements Liquidable {
+  private obj?: User;
+  constructor(private userId: string) {}
+
+  async queryDatabase(): Promise<User> {
+    // Do database IO here.
+    return { firstName: "John", lastName: "Smith" };
+  }
+
+  async [toLiquid](): Promise<User> {
+    if (this.obj === undefined) this.obj = await this.queryDatabase();
+    return this.obj;
+  }
+}
+```
+
 ## Project Status
 
 LiquidScript is currently available as an alpha release. This means that:

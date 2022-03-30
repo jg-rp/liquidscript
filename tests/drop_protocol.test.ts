@@ -1,11 +1,12 @@
 import {
-  Drop,
   isLiquidCallable,
+  Liquidable,
   liquidDispatch,
   liquidDispatchSync,
   toLiquid,
   toLiquidPrimitive,
   toLiquidString,
+  toLiquidSync,
 } from "../src/drop";
 import { Environment } from "../src/environment";
 import { LiquidKeyError } from "../src/errors";
@@ -14,16 +15,12 @@ class MockSuper {
   some = "thing";
 }
 
-class MockDrop extends MockSuper implements Drop {
+class MockDrop extends MockSuper {
   private keys = new Set(["a", "b"]);
   private callable = new Set<PropertyKey>(["greeting"]);
   private a: string = "hello";
   private b: string = "goodbye";
   #c: string = "secret";
-
-  [toLiquid](): MockDrop {
-    return this;
-  }
 
   [toLiquidPrimitive](): unknown {
     // This drop could be used as an array index.
@@ -58,6 +55,25 @@ class MockDrop extends MockSuper implements Drop {
   }
 }
 
+type PlainObject = { [index: string]: string };
+
+class MockLazyDrop implements Liquidable {
+  private obj?: PlainObject;
+
+  getData(): PlainObject {
+    if (this.obj === undefined) this.obj = { a: "Hello", b: "Goodbye" };
+    return this.obj;
+  }
+
+  async [toLiquid](): Promise<PlainObject> {
+    return this.getData();
+  }
+
+  [toLiquidSync](): PlainObject {
+    return this.getData();
+  }
+}
+
 type Case = {
   description: string;
   source: string;
@@ -68,6 +84,7 @@ type Case = {
 describe("drop protocol", () => {
   const env = new Environment({});
   const aDrop = new MockDrop();
+  const lazyDrop = new MockLazyDrop();
 
   const cases: Case[] = [
     {
@@ -146,6 +163,14 @@ describe("drop protocol", () => {
       want: "",
       globals: {
         obj: {},
+      },
+    },
+    {
+      description: "replace a drop with toLiquid",
+      source: "{{ drop.a }}",
+      want: "Hello",
+      globals: {
+        drop: lazyDrop,
       },
     },
   ];

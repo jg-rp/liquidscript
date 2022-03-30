@@ -1,10 +1,6 @@
 import { DateTime } from "luxon";
 import { DefaultMap } from "../../collections";
-import {
-  isLiquidPrimitive,
-  toLiquidPrimitive,
-  toLiquidString,
-} from "../../drop";
+import { isLiquidPrimitive, toLiquidPrimitive } from "../../drop";
 import { FilterArgumentError } from "../../errors";
 import { EMPTY, isLiquidTruthy } from "../../expression";
 import { checkArguments, FilterContext } from "../../filter";

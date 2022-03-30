@@ -3,6 +3,7 @@ import { chainObjects, Missing, ObjectChain } from "./chain_object";
 import {
   hasLiquidCallable,
   isLiquidable,
+  isLiquidableSync,
   isLiquidCallable,
   isLiquidDispatchable,
   isLiquidDispatchableSync,
@@ -12,6 +13,7 @@ import {
   LiquidPrimitive,
   toLiquid,
   toLiquidPrimitive,
+  toLiquidSync,
 } from "./drop";
 import { Environment } from "./environment";
 import { InternalKeyError, MaxContextDepthError } from "./errors";
@@ -140,12 +142,18 @@ export class RenderContext {
    * does not expect a dotted or bracketed identifier.
    * @param name - The name of the template variable to resolve.
    * @returns The value stored against the given name, or an instance of
-   * the `Missing` class defined on the attached environment.
+   * the `Undefined` class defined on the attached environment.
    */
-  public resolve(name: string): unknown {
+  public async resolve(name: string): Promise<unknown> {
     const value = this.scope[name];
     if (value === Missing) return this.environment.undefinedFactory(name);
     return isLiquidable(value) ? value[toLiquid](this) : value;
+  }
+
+  public resolveSync(name: string): unknown {
+    const value = this.scope[name];
+    if (value === Missing) return this.environment.undefinedFactory(name);
+    return isLiquidableSync(value) ? value[toLiquidSync](this) : value;
   }
 
   /**
@@ -164,13 +172,13 @@ export class RenderContext {
     path?: ContextPath,
     missing: unknown = Missing
   ): Promise<unknown> {
-    let obj = this.resolve(name);
+    let obj = await this.resolve(name);
     if (!path || !path.length) return obj;
 
     for (const item of path) {
       try {
         obj = await getItem(obj, item);
-        if (isLiquidable(obj)) obj = obj[toLiquid](this);
+        if (isLiquidable(obj)) obj = await obj[toLiquid](this);
       } catch (error) {
         if (error instanceof InternalKeyError) {
           if (missing !== Missing) return missing;
@@ -192,13 +200,13 @@ export class RenderContext {
     path?: ContextPath,
     missing: unknown = Missing
   ): unknown {
-    let obj = this.resolve(name);
+    let obj = this.resolveSync(name);
     if (!path || !path.length) return obj;
 
     for (const item of path) {
       try {
         obj = getItemSync(obj, item);
-        if (isLiquidable(obj)) obj = obj[toLiquid](this);
+        if (isLiquidableSync(obj)) obj = obj[toLiquidSync](this);
       } catch (error) {
         if (error instanceof InternalKeyError) {
           if (missing !== Missing) return missing;

@@ -2,13 +2,6 @@ import { RenderContext } from "./context";
 
 // XXX: to_number for filters
 
-export type Drop = Liquidable &
-  LiquidPrimitive &
-  LiquidCallable &
-  LiquidDispatchable &
-  LiquidDispatchableSync &
-  LiquidStringable;
-
 /**
  * A symbol that specifies a function valued property that is called to
  * convert an object to its corresponding Liquid value.
@@ -16,7 +9,7 @@ export type Drop = Liquidable &
 export const toLiquid = Symbol.for("liquid.drop.liquid");
 
 export interface Liquidable {
-  [toLiquid](context: RenderContext): unknown;
+  [toLiquid](context: RenderContext): Promise<unknown>;
 }
 
 /**
@@ -29,6 +22,31 @@ export function isLiquidable(value: unknown): value is Liquidable {
   return (
     isObject(value) &&
     toLiquid in value &&
+    typeof Reflect.get(value, toLiquid) === "function"
+  );
+}
+
+/**
+ * A symbol that specifies a function valued property that is called to
+ * convert an object to its corresponding Liquid value.
+ */
+export const toLiquidSync = Symbol.for("liquid.drop.liquidSync");
+
+export interface LiquidableSync {
+  [toLiquidSync](context: RenderContext): unknown;
+}
+
+/**
+ * A type predicate for the `LiquidableSync` interface.
+ * @param value - A value that may or may not implement the `LiquidableSync`
+ * interface.
+ * @returns `true` if the argument value implements the `LiquidableSync`
+ * interface, `false` otherwise.
+ */
+export function isLiquidableSync(value: unknown): value is LiquidableSync {
+  return (
+    isObject(value) &&
+    toLiquidSync in value &&
     typeof Reflect.get(value, toLiquid) === "function"
   );
 }
