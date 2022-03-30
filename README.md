@@ -27,6 +27,7 @@ template.render({ you: "Liquid" }).then(console.log); // Hello, Liquid!
 ## Table of Contents
 
 - [Getting Started](#getting-started)
+- [Drop Protocol](#drop-protocol)
 - [Project Status](#project-status)
 - [Dependencies](#dependencies)
 - [Why?](#why)
@@ -145,9 +146,9 @@ Notice that `Environment` accepts a `loader` option, whereas `Template.fromStrin
 
 ## Drop Protocol
 
-A "drop" is an object that is more than just a mapping of names to values. When included in a Liquid render context, a drop can, for example, behave like a Liquid primitive, dynamically produce properties via a dispatching method or expose its methods as if they were simple properties.
+In LiquidScript, a "drop" is an object that implements some or all of the "drop protocol". When included in a Liquid render context, a drop can, for example, behave like a Liquid primitive, dynamically produce properties via a dispatching method or expose its methods as if they were simple properties.
 
-An object does this by implementing some or all of the "drop protocol". The drop protocol is nothing more than a set of conventions using well defined [Symbols](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol). Those symbols are:
+The drop protocol is nothing more than a set of conventions using well defined [Symbols](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol). Those symbols are:
 
 | Property               | Description                                                                                                                                                                                                                                                                                   |
 | ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
