@@ -56,4 +56,16 @@ describe("date filter", () => {
       date.apply(filterContext, ["Fri Jul 16 01:00:00 2004", "%m/%d/%Y"])
     ).toBe("07/16/2004");
   });
+
+  test("unix time string", () => {
+    expect(date.apply(filterContext, ["1152098955", "%m/%d/%Y"])).toBe(
+      "07/05/2006"
+    );
+  });
+
+  test("unix time number", () => {
+    expect(date.apply(filterContext, [1152098955, "%m/%d/%Y"])).toBe(
+      "07/05/2006"
+    );
+  });
 });

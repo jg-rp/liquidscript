@@ -4,9 +4,11 @@ import { isLiquidPrimitive, toLiquidPrimitive } from "../../drop";
 import { FilterArgumentError } from "../../errors";
 import { EMPTY, isLiquidTruthy } from "../../expression";
 import { checkArguments, FilterContext } from "../../filter";
+import { isNumberT } from "../../number";
 import {
   isArray,
   isObject,
+  isPrimitiveNumber,
   isString,
   isUndefined,
   liquidStringify,
@@ -14,10 +16,13 @@ import {
 import { Markup } from "../drops/markup";
 
 /**
+ * Return the length of an array or string. If the input is an object or map,
+ * returns the number of keys.
  *
- * @param this
- * @param left
- * @returns
+ * @param this - An object containing a reference to the active render context
+ * and any keyword/named arguments.
+ * @param left - Any value.
+ * @returns The size of an object or `0` if a size can not be determined.
  */
 export function size(this: FilterContext, left: unknown): number {
   checkArguments(arguments.length, 0);
@@ -29,12 +34,13 @@ export function size(this: FilterContext, left: unknown): number {
 }
 
 /**
+ * Return a default value if the input is nil, false or empty.
  *
- * @param this
- * @param left
- * @param _default
- * @param allowFalse
- * @returns
+ * @param this - An object containing a reference to the active render context
+ * and any keyword/named arguments.
+ * @param left - Any value.
+ * @param _default - Optional default value. Defaults to an empty string.
+ * @returns The default value if the input is nil, false or empty.
  */
 export function default_(
   this: FilterContext,
@@ -83,8 +89,11 @@ function replaceDateFormat(format: string): string {
   return format.replace(RE_DATE_FORMAT, (match) => FORMAT_TOKENS.get(match));
 }
 
+/**
+ * Parse a string as DateTime by trying each of the common date formats
+ * in turn. This does not do fuzzy or natural language parsing.
+ */
 function parseDateString(s: string): DateTime {
-  // TODO: Better parsing
   let _date = DateTime.fromSQL(s);
   if (_date.isValid) return _date;
 
@@ -94,15 +103,25 @@ function parseDateString(s: string): DateTime {
   _date = DateTime.fromHTTP(s);
   if (_date.isValid) return _date;
 
+  if (s.match(/\d+/)) {
+    _date = DateTime.fromSeconds(Number(s));
+    if (_date.isValid) return _date;
+  }
+
   return _date;
 }
 
 /**
+ * Format a date according to the given format string. If the input is not a
+ * date it will be converted to a string and parsed using one of the common
+ * date representation standards.
  *
- * @param this
- * @param left
- * @param format
- * @returns
+ * @param this - An object containing a reference to the active render context
+ * and any keyword/named arguments.
+ * @param left - The date to be formatted.
+ * @param format - A format string.
+ * @returns A string representation of the input date according to the given
+ * format string.
  */
 export function date(
   this: FilterContext,
@@ -111,11 +130,12 @@ export function date(
 ): string {
   checkArguments(arguments.length, 1, 1);
   if (isUndefined(left)) return "";
-  if (isUndefined(format)) return String(left);
+  if (isUndefined(format)) return liquidStringify(left);
 
   let _date: DateTime;
 
-  // TODO: Parse date numbers
+  // Numbers could be a unix timestamp or an ISO date/time without separators.
+  if (isPrimitiveNumber(left) || isNumberT(left)) left = left.toString();
 
   if (isString(left)) {
     if (left === "now" || left === "today") {
@@ -131,17 +151,20 @@ export function date(
     throw new FilterArgumentError(`expected a date, found ${left}`);
   }
 
-  // TODO: Check format string
-  return _date.toFormat(replaceDateFormat(format as string));
+  return _date.toFormat(replaceDateFormat(liquidStringify(format)));
 }
 
 /**
+ * Return a substring or subsequence of the input value.
  *
- * @param this
- * @param left
- * @param offset
- * @param length
- * @returns
+ * @param this - An object containing a reference to the active render context
+ * and any keyword/named arguments.
+ * @param left - Any value. If its not an array or string, it will be
+ * converted to a string.
+ * @param offset - Start of the subsequence in number of items or characters.
+ * @param length - The maximum number of items or characters in the resulting
+ * sequence.
+ * @returns A substring for subsequence.
  */
 export function slice(
   this: FilterContext,

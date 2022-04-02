@@ -138,27 +138,21 @@ export class Integer extends LiquidNumber {
 export type NumberT = Integer | Float;
 
 /**
- *
- * @param val
- * @returns
+ * A type predicate for Liquid's number wrapper types.
  */
 export function isNumberT(val: unknown): val is NumberT {
   return val instanceof Integer || val instanceof Float;
 }
 
 /**
- *
- * @param val
- * @returns
+ * A type predicate for Liquid's `Integer` type.
  */
 export function isInteger(val: unknown): val is Integer {
   return val instanceof Integer;
 }
 
 /**
- *
- * @param val
- * @returns
+ * A type predicate for Liquid's `Float` type.
  */
 export function isFloat(val: unknown): val is Float {
   return val instanceof Float;
@@ -180,22 +174,30 @@ function _stringToNumberT(s: string): NumberT {
 }
 
 /**
+ * A type predicate for valid inputs to the `parseNumberT` function.
  *
- * @param val
- * @returns
+ * @param val - Any value.
+ * @returns `true` if the input value can be passed to `parseNumberT`.
  */
 export function isN(val: unknown): val is N {
   return isNumberT(val) || isString(val) || isFinite(val as number);
 }
 
 /**
+ * Parse a string, primitive number or Number object to a Liquid
+ * integer or float.
  *
- * @param n
- * @returns
+ * @param n - A number or string representation of a number.
+ * @returns A wrapped number representing a Liquid integer or float.
  */
 export function parseNumberT(n: N): NumberT {
-  if (n instanceof Number) return new Integer(n.valueOf());
-  if (isPrimitiveNumber(n)) return new Integer(n);
+  if (n instanceof LiquidNumber) return n;
+  if (n instanceof Number)
+    return Number.isInteger(n)
+      ? new Integer(n.valueOf())
+      : new Float(n.valueOf());
+  if (isPrimitiveNumber(n))
+    return Number.isInteger(n) ? new Integer(n) : new Float(n);
   if (isString(n)) return _stringToNumberT(n);
-  return n;
+  return n; // TODO: throw an error, for JS users
 }

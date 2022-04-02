@@ -124,7 +124,7 @@ const template = Template.fromString("Hello, {{ you }}!", {
 });
 ```
 
-While `Template.fromString()` can be convenient, most application will want to configure a single `Environment`, then load and render templates from it. This is usually more efficient than using `Template` directly.
+While `Template.fromString()` can be convenient, most applications will want to configure a single `Environment`, then load and render templates from it. This is usually more efficient than using `Template` directly.
 
 ```javascript
 import {
