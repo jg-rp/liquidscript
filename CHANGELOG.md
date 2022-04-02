@@ -1,5 +1,9 @@
 # LiquidScript Change Log
 
+## Version 0.4.0-alpha.1
+
+- Parse unix timestamps with the `date` filter.
+
 ## Version 0.3.0-alpha.1
 
 - Fixed line numbers in error messages involving tag expressions containing newlines.
