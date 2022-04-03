@@ -2,19 +2,24 @@ import { RenderContext } from "./context";
 import { FilterArgumentError } from "./errors";
 
 export type FilterContext = {
+  /**
+   * The active render context.
+   */
   context: RenderContext;
+
+  /**
+   * Keyword/named filter arguments. As used by the `default` filter.
+   */
   options: { [index: string]: unknown };
 };
 
 export type Filter = {
-  (left: unknown, ...args: unknown[]): unknown;
+  (this: FilterContext, left: unknown, ...args: unknown[]): unknown;
 };
 
 /**
- *
- * @param n
- * @param max
- * @param min
+ * A utility function that checks throws an error if the given number of
+ * arguments are between the expected minimum and maximum.
  */
 export function checkArguments(n: number, max: number, min?: number): void {
   n -= 1;

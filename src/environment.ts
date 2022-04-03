@@ -241,6 +241,17 @@ export class Environment {
   }
 
   /**
+   * Add a filter to this environment.
+   *
+   * @param name - The filter's name, as used by template authors to apply
+   * the filter.
+   * @param filter - A function implementing the filter.
+   */
+  public addFilter(name: string, filter: Filter): void {
+    this.filters[name] = filter;
+  }
+
+  /**
    * Re-throw an error.
    *
    * Override this method if you want to implement a "lax mode".
