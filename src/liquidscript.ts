@@ -17,6 +17,8 @@ export { Loader, TemplateSource } from "./loader";
 export { Template } from "./template";
 export { Undefined, LaxUndefined, StrictUndefined } from "./undefined";
 
+export { Markup } from "./builtin/drops/markup";
+
 export * from "./builtin";
 export * as tokens from "./token";
 export * from "./ast";
