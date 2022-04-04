@@ -1,8 +1,8 @@
 import { LiteralNode } from "./builtin/tags/literal";
 import { RenderContext } from "./context";
-import { InternalLiquidError } from "./errors";
+import { DisabledTagError, InternalLiquidError } from "./errors";
 import { RenderStream } from "./io/output_stream";
-import { Token } from "./token";
+import { Token, TOKEN_TAG } from "./token";
 
 export interface Node {
   /**
@@ -60,6 +60,7 @@ export class BlockNode implements Node {
     out: RenderStream
   ): Promise<void> {
     for (const node of this.nodes) {
+      throwForDisabledTag(node, context);
       try {
         if (node instanceof LiteralNode) {
           node.renderSync(context, out);
@@ -77,6 +78,7 @@ export class BlockNode implements Node {
 
   public renderSync(context: RenderContext, out: RenderStream): void {
     for (const node of this.nodes) {
+      throwForDisabledTag(node, context);
       try {
         node.renderSync(context, out);
       } catch (error) {
@@ -118,4 +120,24 @@ export function forcedOutput(root: Node): boolean {
     if (node.forceOutput) return true;
   }
   return false;
+}
+
+/**
+ * Throw an error if the given tag is disallowed in the given context.
+ */
+export function throwForDisabledTag(
+  node: Node,
+  context: RenderContext,
+  templateName?: string
+): void {
+  if (
+    !!context.disabledTags.size &&
+    node.token.kind === TOKEN_TAG &&
+    context.disabledTags.has(node.token.value)
+  )
+    throw new DisabledTagError(
+      `'${node.token.value}' is not allowed in this context`,
+      node.token,
+      templateName
+    );
 }

@@ -199,6 +199,22 @@ export class OrphanedContinueTagError extends LiquidError {
 }
 
 /**
+ * An error thrown when tag is used in a render context where such tags are
+ * disabled.
+ */
+export class DisabledTagError extends LiquidError {
+  constructor(public message: string, token: Token, templateName?: string) {
+    super(message, token);
+    Object.setPrototypeOf(this, DisabledTagError.prototype);
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, DisabledTagError);
+    }
+    this.name = "DisabledTagError";
+    this.message = _message(message, token, templateName);
+  }
+}
+
+/**
  * The base class for all internal Liquid errors.
  */
 export abstract class InternalLiquidError extends Error {

@@ -1,4 +1,4 @@
-import { Node, Root } from "./ast";
+import { Node, Root, throwForDisabledTag } from "./ast";
 import { LiteralNode } from "./builtin/tags/literal";
 import { chainObjects } from "./chain_object";
 import { ContextScope, RenderContext } from "./context";
@@ -172,6 +172,7 @@ export class Template {
     partial: boolean = false
   ): Promise<void> {
     for (const node of this.tree.nodes) {
+      throwForDisabledTag(node, context, this.name);
       try {
         if (node instanceof LiteralNode) {
           node.renderSync(context, outputStream);
@@ -195,6 +196,7 @@ export class Template {
     partial: boolean = false
   ): void {
     for (const node of this.tree.nodes) {
+      throwForDisabledTag(node, context, this.name);
       try {
         node.renderSync(context, outputStream);
       } catch (error) {
