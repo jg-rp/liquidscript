@@ -24,6 +24,7 @@ export * as tokens from "./token";
 export * from "./ast";
 export * from "./drop";
 export * from "./expression";
+export * from "./filter";
 export * from "./number";
 export * from "./parse";
 export * from "./range";

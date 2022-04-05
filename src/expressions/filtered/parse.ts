@@ -1,5 +1,9 @@
 import { LiquidSyntaxError } from "../../errors";
-import { Expression, Filter, FilteredExpression } from "../../expression";
+import {
+  Expression,
+  ExpressionFilter,
+  FilteredExpression,
+} from "../../expression";
 import { Token } from "../../token";
 import {
   makeParseRange,
@@ -91,14 +95,14 @@ function* splitAtPipe(tokens: IterableIterator<Token>): Generator<Token[]> {
   yield buf;
 }
 
-function parseFilter(tokens: Token[]): Filter {
+function parseFilter(tokens: Token[]): ExpressionFilter {
   const stream = new ExpressionTokenStream(tokens.values());
 
   stream.expect(TOKEN_IDENT);
   const name = stream.next().value;
 
   // Shortcut for filters with no arguments.
-  if (stream.current.kind === TOKEN_EOF) return new Filter(name);
+  if (stream.current.kind === TOKEN_EOF) return new ExpressionFilter(name);
 
   // Eat colon
   stream.expect(TOKEN_COLON);
@@ -128,7 +132,7 @@ function parseFilter(tokens: Token[]): Filter {
     }
   }
 
-  return new Filter(name, args, kwargs);
+  return new ExpressionFilter(name, args, kwargs);
 }
 
 export function parse(

@@ -243,7 +243,7 @@ export function times(
  * A utility function that converts a value to a number. Returns `0` if the
  * input value can't be converted to a number.
  */
-function parseNumberOrZero(value: unknown): NumberT {
+export function parseNumberOrZero(value: unknown): NumberT {
   // XXX: See https://github.com/jg-rp/liquid/issues/49
   if (isN(value)) {
     const num = parseNumberT(value);

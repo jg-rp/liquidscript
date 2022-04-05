@@ -1,7 +1,7 @@
 import {
   Expression,
   FALSE,
-  Filter,
+  ExpressionFilter,
   FilteredExpression,
   FloatLiteral,
   IntegerLiteral,
@@ -53,15 +53,17 @@ describe("parse filtered expression", () => {
   test("one filter with no args", () => {
     const expr = parse("'hello' | upcase");
     expect(expr).toStrictEqual(
-      new FilteredExpression(new StringLiteral("hello"), [new Filter("upcase")])
+      new FilteredExpression(new StringLiteral("hello"), [
+        new ExpressionFilter("upcase"),
+      ])
     );
   });
   test("two filters with no args", () => {
     const expr = parse("'hello' | upcase | downcase");
     expect(expr).toStrictEqual(
       new FilteredExpression(new StringLiteral("hello"), [
-        new Filter("upcase"),
-        new Filter("downcase"),
+        new ExpressionFilter("upcase"),
+        new ExpressionFilter("downcase"),
       ])
     );
   });
@@ -69,7 +71,7 @@ describe("parse filtered expression", () => {
     const expr = parse("'hello' | slice: 2, 4");
     expect(expr).toStrictEqual(
       new FilteredExpression(new StringLiteral("hello"), [
-        new Filter("slice", [
+        new ExpressionFilter("slice", [
           new IntegerLiteral(new Integer(2)),
           new IntegerLiteral(new Integer(4)),
         ]),
@@ -80,7 +82,7 @@ describe("parse filtered expression", () => {
     const expr = parse("'hello' | default: 2, allow_false:true");
     expect(expr).toStrictEqual(
       new FilteredExpression(new StringLiteral("hello"), [
-        new Filter(
+        new ExpressionFilter(
           "default",
           [new IntegerLiteral(new Integer(2))],
           new Map<string, Expression>([["allow_false", TRUE]])

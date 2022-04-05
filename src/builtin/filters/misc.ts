@@ -173,6 +173,7 @@ export function slice(
   length?: unknown
 ): string | unknown[] | Markup {
   checkArguments(arguments.length, 2, 1);
+  // TODO: Handle NumberT
   const _offset = Number(offset);
   if (isUndefined(offset) || !Number.isInteger(_offset))
     throw new FilterArgumentError(

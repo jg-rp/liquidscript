@@ -112,6 +112,7 @@ export class Template {
       this.makeGlobals(globals),
       { templateName: this.name }
     );
+    // TODO: get RenderStream implementation from this.environment
     const outputStream = new BufferedRenderStream();
     await this.renderWithContext(context, outputStream);
     return outputStream.toString();
@@ -127,6 +128,7 @@ export class Template {
       this.makeGlobals(globals),
       { templateName: this.name }
     );
+    // TODO: get RenderStream implementation from this.environment
     const outputStream = new BufferedRenderStream();
     this.renderWithContextSync(context, outputStream);
     return outputStream.toString();

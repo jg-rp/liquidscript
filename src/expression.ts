@@ -305,7 +305,7 @@ export class Identifier implements Expression {
   }
 }
 
-export class Filter {
+export class ExpressionFilter {
   constructor(
     readonly name: string,
     private args: Expression[] = [],
@@ -364,7 +364,7 @@ export class Filter {
 export class FilteredExpression implements Expression {
   constructor(
     readonly expression: Expression,
-    readonly filters: Filter[] = []
+    readonly filters: ExpressionFilter[] = []
   ) {}
 
   public equals(other: unknown): boolean {

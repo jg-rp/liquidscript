@@ -136,6 +136,7 @@ export class ForNode implements Node {
           : context.environment.undefinedFactory("parentloop")
       );
 
+      // XXX: Enforce scope push limit?
       const namespace: ContextScope = { forloop: forloop };
       context.scope.push(namespace);
       context.forLoops.push(forloop);

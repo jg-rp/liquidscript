@@ -39,3 +39,12 @@ export function checkArguments(n: number, max: number, min?: number): void {
       `missing argument, expected at least ${min}, but got ${n}`
     );
 }
+
+/**
+ * Throw an error if the given filter context contains options.
+ */
+export function throwIfOptions(context: FilterContext): void {
+  for (const _ in context.options) {
+    throw new FilterArgumentError("unexpected filter options");
+  }
+}

@@ -3,6 +3,7 @@
 ## Version 0.4.0-alpha.1
 
 - Parse unix timestamps with the `date` filter.
+- Renamed `expression.Filter` to `ExpressionFilter`. This avoids conflicts with The filter implementation type.
 
 ## Version 0.3.0-alpha.1
 

@@ -1428,6 +1428,15 @@
           "strict": false
         },
         {
+          "name": "false keyword argument before positional",
+          "template": "{{ false | default: allow_false: false, \"bar\" }}",
+          "want": "bar",
+          "context": {},
+          "partials": {},
+          "error": false,
+          "strict": false
+        },
+        {
           "name": "missing argument",
           "template": "{{ false | default }}",
           "want": "",
@@ -1488,6 +1497,15 @@
           "context": {},
           "partials": {},
           "error": true,
+          "strict": false
+        },
+        {
+          "name": "true keyword argument before positional",
+          "template": "{{ false | default: allow_false: true, \"bar\" }}",
+          "want": "false",
+          "context": {},
+          "partials": {},
+          "error": false,
           "strict": false
         },
         {
@@ -7643,6 +7661,27 @@
           },
           "partials": {},
           "error": true,
+          "strict": false
+        },
+        {
+          "name": "value is false",
+          "template": "{% assign x =  a | where: 'b', false %}{% for obj in x %}{% for i in obj %}({{ i[0] }},{{ i[1] }}){% endfor %}{% endfor %}",
+          "want": "(b,false)",
+          "context": {
+            "a": [
+              {
+                "b": false
+              },
+              {
+                "b": "bar"
+              },
+              {
+                "b": null
+              }
+            ]
+          },
+          "partials": {},
+          "error": false,
           "strict": false
         }
       ]

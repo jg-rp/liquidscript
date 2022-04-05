@@ -24,3 +24,5 @@ export class BufferedRenderStream implements RenderStream {
     return this.buffer.join("");
   }
 }
+
+// TODO: A RenderStream with resource limits?
