@@ -1,0 +1,173 @@
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+
+# Getting Started
+
+LiquidScript is a JavaScript and TypeScript engine for [Liquid](https://shopify.github.io/liquid/), the safe, customer-facing template language for flexible web apps.
+
+This page gets you started using Liquid with JavaScript. See [Introduction to Liquid](/docs/language/introduction), the [filter reference](../language/filters) and the [tag reference](/docs/language/tags) to learn about writing Liquid templates.
+
+## Install
+
+### Node.js
+
+Install LiquidScript using your preferred project manager:
+
+<Tabs groupId="js-package">
+<TabItem value="npm" label="npm">
+
+```bash
+npm install --save liquidscript
+```
+
+</TabItem>
+<TabItem value="yarn" label="yarn">
+
+```bash
+yarn add liquidscript
+```
+
+</TabItem>
+<TabItem value="pnpm" label="pnpm">
+
+```bash
+pnpm add liquidscript
+```
+
+</TabItem>
+</Tabs>
+
+And import the module:
+
+<Tabs groupId="js-modules">
+<TabItem value="esm" label="ESM">
+
+```js
+import * as liquid from "liquidscript";
+const template = liquid.Template.from("Hello, {{ you }}!");
+```
+
+</TabItem>
+<TabItem value="cjs" label="CJS">
+
+```js
+const liquid = require("liquidscript");
+const template = liquid.Template.from("Hello, {{ you }}!");
+```
+
+</TabItem>
+</Tabs>
+
+Or, without the `liquid` namespace:
+
+<Tabs groupId="js-modules">
+<TabItem value="esm" label="ESM">
+
+```js
+import { Template } as liquid from "liquidscript";
+const template = Template.from("Hello, {{ you }}!");
+```
+
+</TabItem>
+<TabItem value="cjs" label="CJS">
+
+```js
+const { Template } = require("liquidscript");
+const template = Template.from("Hello, {{ you }}!");
+```
+
+</TabItem>
+</Tabs>
+
+### Browser
+
+Download and include LiquidScript in a script tag:
+
+```html
+<script src="path/to/liquidscript.iife.bundle.min.js"></script>
+<script>
+  const template = liquidscript.Template.from("Hello, {{ you }}!");
+  template.render({ you: "World" }).then(console.log);
+</script>
+```
+
+Or, using a [CDN](https://www.jsdelivr.com/package/npm/liquidscript):
+
+```html
+<script
+  src="https://cdn.jsdelivr.net/npm/liquidscript@0.3.0-alpha.1/dist/liquidscript.iife.bundle.min.js"
+  integrity="sha256-oH5MRskRn5Yar2e+SXJzzgiUfjgH8BvSa9u10V+iWpc="
+  crossorigin="anonymous"
+></script>
+<script>
+  const template = liquidscript.Template.from("Hello, {{ you }}!");
+  template.render({ you: "World" }).then(console.log);
+</script>
+```
+
+## Render
+
+Render a template string by creating a [`Template`](/docs/api/classes/Template) and calling its [`render()`](/docs/api/classes/Template#render) or [`renderSync()`](/docs/api/classes/Template#rendersync) methods.
+
+```js
+import { Template } from "liquidscript";
+
+const template = Template.fromString("Hello, {{ you }}!");
+console.log(template.renderSync({ you: "World" })); // Hello, World!
+template.render({ you: "Liquid" }).then(console.log); // Hello, Liquid!
+```
+
+Properties from the object passed to `render()` and `renderSync()` are available for templates to use in Liquid expressions.
+
+```javascript
+import { Template } from "liquidscript";
+
+const template = Template.fromString(`
+{%- for person in people -%}
+  Hello, {{ person.name }}!
+{% endfor -%}
+`);
+
+const data = {
+  people: [{ name: "John" }, { name: "Sally" }],
+};
+
+console.log(template.renderSync(data));
+// Hello, John
+// Hello, Sally
+```
+
+## Configure
+
+You can pass configuration options as the second argument to [`Template.fromString()`](/docs/api/classes/Template#fromstring). This example enables automatic HTML escaping and will throw an error at render time if a template attempts to use an undefined variable. See [`EnvironmentOptions`](/docs/api/modules#environmentoptions) for all available options.
+
+```javascript
+import { Template, StrictUndefined } from "liquidscript";
+
+const template = Template.fromString("Hello, {{ you }}!", {
+  autoEscape: true,
+  undefinedFactory: StrictUndefined.from,
+});
+```
+
+### Environment
+
+While `Template.fromString()` can be convenient, most applications will want to configure a single [`Environment`](/docs/api/classes/Environment), then load and render templates from it. This is usually more efficient than using `Template` directly.
+
+```javascript
+import {
+  Environment,
+  NodeFileSystemLoader,
+  StrictUndefined,
+} from "liquidscript";
+
+const env = new Environment({
+  autoEscape: true,
+  loader: new NodeFileSystemLoader("./templates/"),
+  undefinedFactory: StrictUndefined.from,
+});
+
+const template = env.fromString("Hello, {{ you }}!");
+```
+
+Notice that `Environment` accepts a `loader` option, whereas `Template.fromString()` does not.
