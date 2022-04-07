@@ -24,14 +24,14 @@ export interface Node {
   readonly captureOutput?: boolean;
 
   /**
-   * Render this not to the given output stream.
+   * Render this node to the given output stream.
    * @param context - The active render context.
    * @param out - The stream to output to.
    */
   render(context: RenderContext, out: RenderStream): Promise<void>;
 
   /**
-   * A synchronous version of `render`.
+   * A synchronous version of {@link render}.
    * @see {@link render}
    */
   renderSync(context: RenderContext, out: RenderStream): void;
