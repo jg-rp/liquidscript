@@ -1,5 +1,12 @@
 # LiquidScript Change Log
 
+## Version 0.5.0-alpha.1
+
+- New `RenderContext.extend()` and `RenderContext.extendSync()` helpers for extending the current scope for the duration of a callback function.
+- New `Environment.addTag()` method for adding custom tags to an environment.
+- New `makeTokenizer()` functions for reusing built-in expression tokenizers.
+- New extra `with` tag. Extra tags are not not part of "standard" Liquid and are not registered automatically.
+
 ## Version 0.4.0-alpha.1
 
 - Parse unix timestamps with the `date` filter.
