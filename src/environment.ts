@@ -252,6 +252,17 @@ export class Environment {
   }
 
   /**
+   * Add a tag to this environment.
+   *
+   * @param name - The tag's name, as used by template authors to use the
+   * tag.
+   * @param tag - An object implementing the Tag interface.
+   */
+  public addTag(name: string, tag: Tag): void {
+    this.tags[name] = tag;
+  }
+
+  /**
    * Re-throw an error.
    *
    * Override this method if you want to implement a "lax mode".
