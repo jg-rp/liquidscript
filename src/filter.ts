@@ -19,7 +19,7 @@ export type Filter = {
 
 /**
  * A utility function that checks throws an error if the given number of
- * arguments are between the expected minimum and maximum.
+ * arguments are not between the expected minimum and maximum.
  */
 export function checkArguments(n: number, max: number, min?: number): void {
   n -= 1;

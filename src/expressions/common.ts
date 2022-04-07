@@ -19,6 +19,7 @@ import {
   TRUE,
 } from "../expression";
 import { Float, Integer } from "../number";
+import { Token } from "../token";
 
 import {
   ExpressionTokenStream,
@@ -230,3 +231,8 @@ export function makeParseRange(
   }
   return _parseRangeLiteral;
 }
+
+export type Tokenizer = (
+  expression: string,
+  startIndex?: number
+) => Generator<Token>;

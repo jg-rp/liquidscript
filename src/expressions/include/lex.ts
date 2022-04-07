@@ -6,6 +6,7 @@ import {
   IDENT_INDEX_PATTERN,
   IDENT_STRING_PATTERN,
   STRING_PATTERN,
+  Tokenizer,
 } from "../common";
 
 import {
@@ -235,133 +236,132 @@ function isIllegalMatch(match: MatchGroups): match is IllegalMatch {
   return match.TOKEN_ILLEGAL === undefined ? false : true;
 }
 
-/**
- *
- * @param source
- * @param startIndex
- */
-export function* tokenize(
-  source: string,
-  startIndex: number = 0
-): Generator<Token> {
-  for (const match of source.matchAll(RE)) {
-    const groups = match.groups as MatchGroups;
-    if (isIdentifierMatch(groups)) {
-      if (KEYWORDS.has(groups.TOKEN_IDENT))
+export function makeTokenizer(re: RegExp, keywords: Set<string>): Tokenizer {
+  return function* tokenize(
+    source: string,
+    startIndex: number = 0
+  ): Generator<Token> {
+    for (const match of source.matchAll(re)) {
+      const groups = match.groups as MatchGroups;
+      if (isIdentifierMatch(groups)) {
+        if (keywords.has(groups.TOKEN_IDENT))
+          yield new Token(
+            match[0],
+            match[0],
+            <number>match.index + startIndex,
+            source
+          );
+        else
+          yield new Token(
+            TOKEN_IDENT,
+            groups.TOKEN_IDENT,
+            <number>match.index + startIndex,
+            source
+          );
+      } else if (isIdentIndexMatch(groups))
         yield new Token(
-          match[0],
-          match[0],
+          TOKEN_IDENT_INDEX,
+          groups.identIndex,
           <number>match.index + startIndex,
           source
         );
-      else
+      else if (isIdentStringMatch(groups))
         yield new Token(
           TOKEN_IDENT,
-          groups.TOKEN_IDENT,
+          groups.identQuoted,
           <number>match.index + startIndex,
           source
         );
-    } else if (isIdentIndexMatch(groups))
-      yield new Token(
-        TOKEN_IDENT_INDEX,
-        groups.identIndex,
-        <number>match.index + startIndex,
-        source
-      );
-    else if (isIdentStringMatch(groups))
-      yield new Token(
-        TOKEN_IDENT,
-        groups.identQuoted,
-        <number>match.index + startIndex,
-        source
-      );
-    else if (isStringMatch(groups))
-      yield new Token(
-        TOKEN_STRING,
-        groups.quoted,
-        <number>match.index + startIndex,
-        source
-      );
-    else if (isNewlineMatch(groups) || isSkipMatch(groups)) continue;
-    else if (isRangeMatch(groups))
-      yield new Token(
-        TOKEN_RANGE,
-        groups.TOKEN_RANGE,
-        <number>match.index + startIndex,
-        source
-      );
-    else if (isFloatMatch(groups))
-      yield new Token(
-        TOKEN_FLOAT,
-        groups.TOKEN_FLOAT,
-        <number>match.index + startIndex,
-        source
-      );
-    else if (isIntegerMatch(groups))
-      yield new Token(
-        TOKEN_INTEGER,
-        groups.TOKEN_INTEGER,
-        <number>match.index + startIndex,
-        source
-      );
-    else if (isDotMatch(groups))
-      yield new Token(
-        TOKEN_DOT,
-        groups.TOKEN_DOT,
-        <number>match.index + startIndex,
-        source
-      );
-    else if (isLParenMatch(groups))
-      yield new Token(
-        TOKEN_LPAREN,
-        groups.TOKEN_LPAREN,
-        <number>match.index + startIndex,
-        source
-      );
-    else if (isRParenMatch(groups))
-      yield new Token(
-        TOKEN_RPAREN,
-        groups.TOKEN_RPAREN,
-        <number>match.index + startIndex,
-        source
-      );
-    else if (isLBracketMatch(groups))
-      yield new Token(
-        TOKEN_LBRACKET,
-        groups.TOKEN_LBRACKET,
-        <number>match.index + startIndex,
-        source
-      );
-    else if (isRBracketMatch(groups))
-      yield new Token(
-        TOKEN_RBRACKET,
-        groups.TOKEN_RBRACKET,
-        <number>match.index + startIndex,
-        source
-      );
-    else if (isCommaMatch(groups))
-      yield new Token(
-        TOKEN_COMMA,
-        groups.TOKEN_COMMA,
-        <number>match.index + startIndex,
-        source
-      );
-    else if (isColonMatch(groups))
-      yield new Token(
-        TOKEN_COLON,
-        groups.TOKEN_COLON,
-        <number>match.index + startIndex,
-        source
-      );
-    else if (isIllegalMatch(groups))
-      throw new LiquidSyntaxError(
-        `unexpected token '${groups.TOKEN_ILLEGAL}'`,
-        new Token(
-          TOKEN_ILLEGAL,
-          groups.TOKEN_ILLEGAL,
+      else if (isStringMatch(groups))
+        yield new Token(
+          TOKEN_STRING,
+          groups.quoted,
           <number>match.index + startIndex,
           source
-        )
-      );
-  }
+        );
+      else if (isNewlineMatch(groups) || isSkipMatch(groups)) continue;
+      else if (isRangeMatch(groups))
+        yield new Token(
+          TOKEN_RANGE,
+          groups.TOKEN_RANGE,
+          <number>match.index + startIndex,
+          source
+        );
+      else if (isFloatMatch(groups))
+        yield new Token(
+          TOKEN_FLOAT,
+          groups.TOKEN_FLOAT,
+          <number>match.index + startIndex,
+          source
+        );
+      else if (isIntegerMatch(groups))
+        yield new Token(
+          TOKEN_INTEGER,
+          groups.TOKEN_INTEGER,
+          <number>match.index + startIndex,
+          source
+        );
+      else if (isDotMatch(groups))
+        yield new Token(
+          TOKEN_DOT,
+          groups.TOKEN_DOT,
+          <number>match.index + startIndex,
+          source
+        );
+      else if (isLParenMatch(groups))
+        yield new Token(
+          TOKEN_LPAREN,
+          groups.TOKEN_LPAREN,
+          <number>match.index + startIndex,
+          source
+        );
+      else if (isRParenMatch(groups))
+        yield new Token(
+          TOKEN_RPAREN,
+          groups.TOKEN_RPAREN,
+          <number>match.index + startIndex,
+          source
+        );
+      else if (isLBracketMatch(groups))
+        yield new Token(
+          TOKEN_LBRACKET,
+          groups.TOKEN_LBRACKET,
+          <number>match.index + startIndex,
+          source
+        );
+      else if (isRBracketMatch(groups))
+        yield new Token(
+          TOKEN_RBRACKET,
+          groups.TOKEN_RBRACKET,
+          <number>match.index + startIndex,
+          source
+        );
+      else if (isCommaMatch(groups))
+        yield new Token(
+          TOKEN_COMMA,
+          groups.TOKEN_COMMA,
+          <number>match.index + startIndex,
+          source
+        );
+      else if (isColonMatch(groups))
+        yield new Token(
+          TOKEN_COLON,
+          groups.TOKEN_COLON,
+          <number>match.index + startIndex,
+          source
+        );
+      else if (isIllegalMatch(groups))
+        throw new LiquidSyntaxError(
+          `unexpected token '${groups.TOKEN_ILLEGAL}'`,
+          new Token(
+            TOKEN_ILLEGAL,
+            groups.TOKEN_ILLEGAL,
+            <number>match.index + startIndex,
+            source
+          )
+        );
+    }
+  };
 }
+
+export const tokenize = makeTokenizer(RE, KEYWORDS);
