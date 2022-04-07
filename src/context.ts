@@ -290,6 +290,34 @@ export class RenderContext {
       }
     );
   }
+
+  /**
+   * Extend the current scope for the duration of the given callback function.
+   *
+   * @param scope - Variables with which to extend the
+   * @param callback - A function to call with the extended scope.
+   * @returns The callback functions return value.
+   */
+  public async extend<T>(scope: ContextScope, callback: () => T): Promise<T> {
+    this.scope.push(scope);
+    try {
+      return await callback();
+    } finally {
+      this.scope.pop();
+    }
+  }
+
+  /**
+   * A synchronous version of {@link extend}.
+   */
+  public extendSync<T>(scope: ContextScope, callback: () => T): T {
+    this.scope.push(scope);
+    try {
+      return callback();
+    } finally {
+      this.scope.pop();
+    }
+  }
 }
 
 /**
