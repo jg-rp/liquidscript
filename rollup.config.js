@@ -28,18 +28,6 @@ const nodeBundles = {
   external: ["decimal.js", "luxon", "fs/promises"],
   plugins: [
     replace(replaceVersionNumber),
-    replace({
-      delimiters: ["", ""],
-      include: "./src/builtin/loaders/index.ts",
-      preventAssignment: true,
-      'export * from "./fetch_loader";': "",
-    }),
-    replace({
-      delimiters: ["", ""],
-      include: "./src/builtin/loaders/index.ts",
-      preventAssignment: true,
-      'export * from "./xml_http_request_loader";': "",
-    }),
     // Allows node_modules resolution
     resolve({ extensions }),
     // Allow bundling cjs modules. Rollup doesn't understand cjs

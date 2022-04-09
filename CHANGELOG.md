@@ -1,5 +1,9 @@
 # LiquidScript Change Log
 
+## Version 0.5.0-alpha.2
+
+- Don't remove browser specific loaders in Node builds.
+
 ## Version 0.5.0-alpha.1
 
 - New `RenderContext.extend()` and `RenderContext.extendSync()` helpers for extending the current scope for the duration of a callback function.

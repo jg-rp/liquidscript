@@ -3,6 +3,7 @@
 A JavaScript and TypeScript engine for the Liquid template language.
 
 [![npm version](https://img.shields.io/npm/v/liquidscript?style=flat-square)](https://www.npmjs.com/package/liquidscript)
+[![tests status](https://img.shields.io/github/workflow/status/jg-rp/liquidscript/Tests?label=tests&style=flat-square)](https://github.com/jg-rp/liquidscript/actions/workflows/tests.yaml)
 
 ```javascript
 import { Template } from "liquidscript";
