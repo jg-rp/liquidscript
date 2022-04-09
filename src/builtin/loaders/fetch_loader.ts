@@ -1,6 +1,25 @@
 import { TemplateNotFoundError } from "../../errors";
 import { Loader, TemplateSource } from "../../loader";
 
+type RequestCache =
+  | "default"
+  | "force-cache"
+  | "no-cache"
+  | "no-store"
+  | "only-if-cached"
+  | "reload";
+
+type RequestCredentials = "include" | "omit" | "same-origin";
+
+type RequestMode = "same-origin" | "cors" | "navigate" | "no-cors";
+
+type HeadersInit = string[][] | Record<string, string> | Headers;
+
+declare let Headers: {
+  prototype: Headers;
+  new (init?: HeadersInit): Headers;
+};
+
 type init = {
   cache: RequestCache;
   credentials: RequestCredentials;

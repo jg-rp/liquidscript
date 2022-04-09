@@ -1,6 +1,16 @@
 import { TemplateNotFoundError } from "../../errors";
 import { Loader, TemplateSource } from "../../loader";
 
+declare let XMLHttpRequest: {
+  prototype: XMLHttpRequest;
+  new (): XMLHttpRequest;
+  readonly DONE: number;
+  readonly HEADERS_RECEIVED: number;
+  readonly LOADING: number;
+  readonly OPENED: number;
+  readonly UNSENT: number;
+};
+
 export type XMLHttpRequestLoaderOptions = {
   /**
    * Indicates if the loader should bust the browser's cache by

@@ -1,5 +1,9 @@
 # LiquidScript Change Log
 
+## Version 0.5.1-alpha.1
+
+- Declare DOM types for browser specific loaders.
+
 ## Version 0.5.0-alpha.2
 
 - Don't remove browser specific loaders in Node builds.
