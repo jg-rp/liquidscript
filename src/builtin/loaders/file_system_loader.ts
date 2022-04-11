@@ -110,10 +110,11 @@ export class NodeFileSystemLoader extends Loader {
    * If a file with the given name can not be found.
    */
   protected async resolve(name: string): Promise<string> {
-    if (name.startsWith(".")) throw new TemplateNotFoundError(name);
     const p = path.normalize(name);
     for (const sp of this.searchPath) {
       const templatePath = path.join(sp, p);
+      // Is someone trying to escape the search path?
+      if (!isSubPath(sp, templatePath)) throw new TemplateNotFoundError(name);
       try {
         const stat = await fs.stat(templatePath);
         if (stat.isFile()) return templatePath;
@@ -128,10 +129,12 @@ export class NodeFileSystemLoader extends Loader {
    * A synchronous version of {@link resolve}.
    */
   protected resolveSync(name: string): string {
-    if (name.startsWith(".")) throw new TemplateNotFoundError(name);
+    // XXX: what about foo/../../ ?
     const p = path.normalize(name);
     for (const sp of this.searchPath) {
       const templatePath = path.join(sp, p);
+      // Is someone trying to escape the search path?
+      if (!isSubPath(sp, templatePath)) throw new TemplateNotFoundError(name);
       try {
         const stat = fsCallback.statSync(templatePath);
         if (stat.isFile()) return templatePath;
@@ -306,10 +309,11 @@ export class CachingNodeFileSystemLoader extends Loader {
    * @returns
    */
   protected async resolve(name: string): Promise<[string, number]> {
-    if (name.startsWith(".")) throw new TemplateNotFoundError(name);
     const p = path.normalize(name);
     for (const sp of this.searchPath) {
       const templatePath = path.join(sp, p);
+      // Is someone trying to escape the search path?
+      if (!isSubPath(sp, templatePath)) throw new TemplateNotFoundError(name);
       try {
         const stat = await fs.stat(templatePath);
         if (stat.isFile()) return [templatePath, stat.mtimeMs];
@@ -326,10 +330,11 @@ export class CachingNodeFileSystemLoader extends Loader {
    * @returns
    */
   protected resolveSync(name: string): [string, number] {
-    if (name.startsWith(".")) throw new TemplateNotFoundError(name);
     const p = path.normalize(name);
     for (const sp of this.searchPath) {
       const templatePath = path.join(sp, p);
+      // Is someone trying to escape the search path?
+      if (!isSubPath(sp, templatePath)) throw new TemplateNotFoundError(name);
       try {
         const stat = fsCallback.statSync(templatePath);
         if (stat.isFile()) return [templatePath, stat.mtimeMs];
@@ -339,4 +344,12 @@ export class CachingNodeFileSystemLoader extends Loader {
     }
     throw new TemplateNotFoundError(name);
   }
+}
+
+/** Return `true` if the given path is a sub path of `parent`. */
+function isSubPath(parent: string, dir: string): boolean {
+  const relative = path.relative(parent, dir);
+  return (
+    !!relative.length && !relative.startsWith(".") && !path.isAbsolute(relative)
+  );
 }

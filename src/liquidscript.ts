@@ -32,5 +32,6 @@ export * from "./tag";
 export * from "./errors";
 export * as object from "./types";
 export * as expressions from "./expressions";
+export * as extra from "./extra";
 
 // TODO: express interface

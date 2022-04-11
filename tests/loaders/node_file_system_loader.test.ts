@@ -100,12 +100,18 @@ describe("node file system loader", () => {
     expect(() => env.getTemplateSync("../private.liquid")).toThrow(
       TemplateNotFoundError
     );
+    expect(() => env.getTemplateSync("foo/../../private.liquid")).toThrow(
+      TemplateNotFoundError
+    );
   });
   test("async don't escape template search path", async () => {
     const loader = new NodeFileSystemLoader("tests/fixtures/templates");
     const env = new Environment({ loader });
     expect(
       async () => await env.getTemplate("../private.liquid")
+    ).rejects.toThrow(TemplateNotFoundError);
+    expect(
+      async () => await env.getTemplate("foo../../private.liquid")
     ).rejects.toThrow(TemplateNotFoundError);
   });
   test("sync don't search absolute paths", () => {
