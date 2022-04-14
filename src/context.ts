@@ -20,6 +20,7 @@ import { InternalKeyError, MaxContextDepthError } from "./errors";
 import { isNumberT } from "./number";
 import { Template } from "./template";
 import {
+  ContextScope,
   isArray,
   isFunction,
   isIterable,
@@ -30,7 +31,6 @@ import {
   isString,
 } from "./types";
 
-export type ContextScope = { [index: string]: unknown };
 export type ContextPath = Array<number | string | LiquidPrimitive>;
 
 export type RenderContextOptions = {
@@ -232,7 +232,7 @@ export class RenderContext {
     name: string,
     loaderContext: { [index: string]: unknown }
   ): Promise<Template> {
-    return this.environment.getTemplate(name, loaderContext, this);
+    return this.environment.getTemplate(name, undefined, this, loaderContext);
   }
 
   /**
@@ -243,7 +243,12 @@ export class RenderContext {
     name: string,
     loaderContext: { [index: string]: unknown } = {}
   ): Template {
-    return this.environment.getTemplateSync(name, loaderContext, this);
+    return this.environment.getTemplateSync(
+      name,
+      undefined,
+      this,
+      loaderContext
+    );
   }
 
   /**

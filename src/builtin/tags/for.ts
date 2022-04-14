@@ -1,5 +1,5 @@
 import { BlockNode, forcedOutput, Node } from "../../ast";
-import { ContextScope, RenderContext } from "../../context";
+import { RenderContext } from "../../context";
 import { Environment } from "../../environment";
 import { BreakIteration, ContinueIteration } from "../../errors";
 import { LoopExpression } from "../../expression";
@@ -8,6 +8,7 @@ import { BufferedRenderStream, RenderStream } from "../../io/output_stream";
 import { Tag } from "../../tag";
 import { Token, TOKEN_EXPRESSION, TOKEN_TAG, TokenStream } from "../../token";
 import { ForLoopDrop } from "../drops/forloop";
+import { ContextScope } from "../../types";
 
 const TAG_FOR = "for";
 const TAG_ENDFOR = "endfor";

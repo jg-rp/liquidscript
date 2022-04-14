@@ -1,5 +1,5 @@
 import { Node } from "../../ast";
-import { RenderContext, ContextScope } from "../../context";
+import { RenderContext } from "../../context";
 import { LiquidSyntaxError } from "../../errors";
 import { Expression, Identifier, StringLiteral } from "../../expression";
 import {
@@ -22,12 +22,12 @@ import {
 import { RenderStream } from "../../io/output_stream";
 import { Tag } from "../../tag";
 import { Token, TokenStream, TOKEN_EOF, TOKEN_EXPRESSION } from "../../token";
-import { isLiquidArrayLike } from "../../types";
+import { isLiquidArrayLike, ContextScope } from "../../types";
 import { ForLoopDrop } from "../drops/forloop";
 
 export class RenderTag implements Tag {
   readonly block = false;
-  readonly name = "render";
+  readonly name: string = "render";
   protected nodeClass = RenderNode;
 
   protected parseArgument(stream: ExpressionTokenStream): [string, Expression] {

@@ -1,8 +1,9 @@
-import { ContextScope, RenderContext } from "../../context";
+import { RenderContext } from "../../context";
 import { Environment } from "../../environment";
 import { TemplateNotFoundError } from "../../errors";
 import { Loader, TemplateSource } from "../../loader";
 import { Template } from "../../template";
+import { ContextScope } from "../../types";
 
 /**
  * A template loader that will try each of an array of loaders until

@@ -1,12 +1,12 @@
 import { BlockNode, Node } from "../../ast";
-import { RenderContext, ContextScope } from "../../context";
+import { RenderContext } from "../../context";
 import { Environment } from "../../environment";
 import { InternalTypeError } from "../../errors";
 import { LoopExpression } from "../../expression";
 import { parse } from "../../expressions/loop/parse";
 import { RenderStream } from "../../io/output_stream";
 import { isInteger } from "../../number";
-import { isPrimitiveInteger } from "../../types";
+import { isPrimitiveInteger, ContextScope } from "../../types";
 import { Tag } from "../../tag";
 import { Token, TokenStream, TOKEN_EXPRESSION } from "../../token";
 import { TableRowLoopDrop } from "../drops/tablerowloop";

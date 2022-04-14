@@ -138,3 +138,15 @@ export type LiquidArrayLike = Array<unknown>; // XXX: iterables?
 export function isLiquidArrayLike(value: unknown): value is LiquidArrayLike {
   return isArray(value);
 }
+
+
+export type ContextScope = { [index: string]: unknown };
+
+/**
+ * A type predicate for the `ContextScope` type.
+ * @param value - Any value
+ * @returns `true` if the value is a non-array object.
+ */
+export function isContextScope(value: unknown): value is ContextScope {
+  return isObject(value) && !isArray(value);
+}

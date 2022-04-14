@@ -1,11 +1,9 @@
 export const version = "__VERSION__";
 
 export { RenderContext } from "./context";
-export type {
-  RenderContextOptions,
-  ContextPath,
-  ContextScope,
-} from "./context";
+export type { RenderContextOptions, ContextPath } from "./context";
+
+export type { ContextScope } from "./types";
 
 export { Environment } from "./environment";
 export type { EnvironmentOptions } from "./environment";
@@ -22,6 +20,7 @@ export { Markup } from "./builtin/drops/markup";
 export * from "./builtin";
 export * as tokens from "./token";
 export * from "./ast";
+export * from "./cache";
 export * from "./drop";
 export * from "./expression";
 export * from "./filter";

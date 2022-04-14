@@ -3,12 +3,12 @@ import fs from "fs/promises";
 import path from "path";
 
 import { LRUCache } from "../../cache";
-import { ContextScope, RenderContext } from "../../context";
+import { RenderContext } from "../../context";
 import { Environment } from "../../environment";
 import { TemplateNotFoundError } from "../../errors";
 import { Loader, TemplateSource } from "../../loader";
 import { Template } from "../../template";
-import { isArray } from "../../types";
+import { isArray, ContextScope } from "../../types";
 
 /**
  * Options for a file system template loader in the NodeJS runtime.
@@ -129,7 +129,6 @@ export class NodeFileSystemLoader extends Loader {
    * A synchronous version of {@link resolve}.
    */
   protected resolveSync(name: string): string {
-    // XXX: what about foo/../../ ?
     const p = path.normalize(name);
     for (const sp of this.searchPath) {
       const templatePath = path.join(sp, p);
@@ -260,8 +259,8 @@ export class CachingNodeFileSystemLoader extends Loader {
         name,
         globals,
         source.matter,
-        source.uptoDate,
-        source.uptoDateSync
+        source.upToDate,
+        source.upToDateSync
       );
       this.#cache.set(name, template);
       return template;
@@ -283,8 +282,8 @@ export class CachingNodeFileSystemLoader extends Loader {
         name,
         globals,
         source.matter,
-        source.uptoDate,
-        source.uptoDateSync
+        source.upToDate,
+        source.upToDateSync
       );
       this.#cache.set(name, template);
       return template;

@@ -1,5 +1,5 @@
 import { Node } from "../../ast";
-import { RenderContext, ContextScope } from "../../context";
+import { RenderContext } from "../../context";
 import { LiquidSyntaxError } from "../../errors";
 import { Expression, Identifier, StringLiteral } from "../../expression";
 import {
@@ -21,11 +21,11 @@ import {
 import { RenderStream } from "../../io/output_stream";
 import { Tag } from "../../tag";
 import { Token, TokenStream, TOKEN_EOF, TOKEN_EXPRESSION } from "../../token";
-import { isLiquidArrayLike } from "../../types";
+import { isLiquidArrayLike, ContextScope } from "../../types";
 
 export class IncludeTag implements Tag {
   readonly block = false;
-  readonly name = "include";
+  readonly name: string = "include";
   protected nodeClass = IncludeNode;
 
   protected parseArgument(stream: ExpressionTokenStream): [string, Expression] {

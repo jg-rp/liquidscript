@@ -2,7 +2,7 @@ import { Root } from "./ast";
 import { registerBuiltin } from "./builtin/register";
 import { chainObjects } from "./chain_object";
 import { LRUCache } from "./cache";
-import { ContextScope, RenderContext } from "./context";
+import { RenderContext } from "./context";
 import { Filter } from "./filter";
 import { compileRules, tokenizerFor } from "./lex";
 import { Loader } from "./loader";
@@ -12,6 +12,7 @@ import { Tag } from "./tag";
 import { Template } from "./template";
 import { TemplateTokenStream, Token } from "./token";
 import { LaxUndefined, Undefined } from "./undefined";
+import { ContextScope } from "./types";
 import { LiquidSyntaxError } from "./errors";
 
 const implicitEnvironmentCache = new LRUCache<string, Environment>(10);
@@ -217,6 +218,9 @@ export class Environment {
    * @param globals - An optional object who's properties will be added
    * to the render context every time the resulting template is rendered.
    * @param matter - Extra globals, usually added by a template loader.
+   * @param upToDate - A function that will return `true` if this template is
+   * up to date, or `false` if it needs to loaded again.
+   * @param upToDateSync - A synchronous version of `upToDate`.
    * @returns A `Template` bound to this environment, ready to be rendered.
    * @throws `NoSuchTemplateError` if a template with the given name can not
    * be found.

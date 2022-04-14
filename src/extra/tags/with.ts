@@ -1,5 +1,5 @@
 import { BlockNode, Node } from "../../ast";
-import { ContextScope, RenderContext } from "../../context";
+import { RenderContext } from "../../context";
 import { Environment } from "../../environment";
 import {
   ExpressionTokenStream,
@@ -17,6 +17,7 @@ import { Tag } from "../../tag";
 import { Token, TokenStream, TOKEN_EOF, TOKEN_EXPRESSION } from "../../token";
 import { RE, makeTokenizer } from "../../expressions/include";
 import { Expression } from "../../expression";
+import { ContextScope } from "../../types";
 
 // Reuse the tokenizer from the built-in `include` tag, but with some different keywords.
 const tokenize = makeTokenizer(

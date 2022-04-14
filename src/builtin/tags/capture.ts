@@ -8,6 +8,7 @@ import { Tag } from "../../tag";
 import { Token, TokenStream, TOKEN_EOF, TOKEN_EXPRESSION } from "../../token";
 import { Markup } from "../drops/markup";
 
+// TODO: Move these inside the Tag class for easier sub classing. Maybe as static members.
 const TAG_CAPTURE = "capture";
 const TAG_END_CAPTURE = "endcapture";
 const END_CAPTURE_BLOCK = new Set([TAG_END_CAPTURE, TOKEN_EOF]);
@@ -15,8 +16,8 @@ const RE_CAPTURE = new RegExp("^\\w[a-zA-Z0-9_\\-]*$");
 
 export class CaptureTag implements Tag {
   readonly block = true;
-  readonly name = TAG_CAPTURE;
-  readonly end = TAG_END_CAPTURE;
+  readonly name: string = TAG_CAPTURE;
+  readonly end: string = TAG_END_CAPTURE;
   protected nodeClass = CaptureNode;
 
   public parse(stream: TokenStream, environment: Environment): Node {

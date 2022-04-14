@@ -1,7 +1,7 @@
 import { Node, Root, throwForDisabledTag } from "./ast";
 import { LiteralNode } from "./builtin/tags/literal";
 import { chainObjects } from "./chain_object";
-import { ContextScope, RenderContext } from "./context";
+import { RenderContext } from "./context";
 import { Environment, EnvironmentOptions } from "./environment";
 import {
   InternalLiquidError,
@@ -10,6 +10,7 @@ import {
   LiquidSyntaxError,
 } from "./errors";
 import { BufferedRenderStream, RenderStream } from "./io/output_stream";
+import { ContextScope } from "./types";
 
 /**
  * A Liquid template that has been parsed and is bound to an environment,

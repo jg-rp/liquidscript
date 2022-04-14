@@ -1,6 +1,7 @@
-import { RenderContext, ContextScope } from "./context";
+import { RenderContext } from "./context";
 import { Environment } from "./environment";
 import { Template } from "./template";
+import { ContextScope } from "./types";
 
 /**
  * Represents a Liquid template's source code and additional meta data.
@@ -26,13 +27,13 @@ export class TemplateSource {
      * A function that returns `true` if the template is up to date, or
      * `false` if it needs to be loaded again.
      */
-    readonly uptoDate?: () => Promise<boolean>,
+    readonly upToDate?: () => Promise<boolean>,
 
     /**
      * A function that returns `true` if the template is up to date, or
      * `false` if it needs to be loaded again.
      */
-    readonly uptoDateSync?: () => boolean
+    readonly upToDateSync?: () => boolean
   ) {}
 }
 
@@ -80,7 +81,13 @@ export abstract class Loader {
     loaderContext?: { [index: string]: unknown }
   ): Promise<Template> {
     const source = await this.getSource(name, context, loaderContext);
-    return environment.fromString(source.source, name, globals);
+    return environment.fromString(
+      source.source,
+      name,
+      globals,
+      source.matter,
+      source.upToDate
+    );
   }
 
   /**
@@ -95,6 +102,13 @@ export abstract class Loader {
     loaderContext?: { [index: string]: unknown }
   ): Template {
     const source = this.getSourceSync(name, context, loaderContext);
-    return environment.fromString(source.source, name, globals);
+    return environment.fromString(
+      source.source,
+      name,
+      globals,
+      source.matter,
+      source.upToDate,
+      source.upToDateSync
+    );
   }
 }
