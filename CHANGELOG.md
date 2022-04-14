@@ -1,5 +1,15 @@
 # LiquidScript Change Log
 
+## Version 0.5.3-alpha.1
+
+- Fixed a bug where the `loaderContext` object passed to `RenderContext.getTemplate` and `RenderContext.getTemplateSync` would not get passed on to template loaders.
+- Fixed a bug where the abstract `Loader` class was not passing `matter`, `upToDate` and `upToDateSync` on to `Environment.fromString`.
+- Renamed `TemplateSource.uptoDate` to `TemplateSource.upToDate` and `TemplateSource.uptoDateSync` to `TemplateSource.upToDateSync`.
+
+## Version 0.5.2-alpha.1
+
+- Fixed a bug with `NodeFileSystemLoader` and `CachingNodeFileSystemLoader` where template authors could escape the template search path.
+
 ## Version 0.5.1-alpha.1
 
 - Declare DOM types for browser specific loaders.
