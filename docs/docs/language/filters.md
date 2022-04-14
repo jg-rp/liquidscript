@@ -4,7 +4,7 @@
 Some of the examples here are borrowed from [Shopify's Liquid documentation](https://shopify.github.io/liquid/). You can find their license [here](https://github.com/Shopify/liquid/blob/master/LICENSE).
 :::
 
-This page documents the standard filters built-in to Liquid. See [custom filters](/docs/guides/custom-filters) for examples of how to write your own.
+This page documents the standard filters built-in to Liquid. See [custom filters](../guides/custom-filters.mdx) for examples of how to write your own.
 
 ## abs
 

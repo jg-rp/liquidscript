@@ -1,6 +1,6 @@
 # HTML Auto-Escape
 
-LiquidScript offers HTML auto-escaping. Where context variables are automatically escaped on output. Disabled by default, enable it by setting the [Environment](../api/classes/Environment) or [Template.fromString()](../api/classes/Template#fromstring) `autoEscape` option to `true`.
+LiquidScript offers HTML auto-escaping. Where context variables are automatically escaped on output. Disabled by default, enable it by setting the [Environment](../api/classes/Environment.md) or [Template.fromString()](../api/classes/Template.md#fromstring) `autoEscape` option to `true`.
 
 ```js
 import { Environment } from "liquidscript";
@@ -18,7 +18,7 @@ console.log(
 
 ## Markup
 
-Mark a string as "safe" by wrapping it in a [`Markup`](/docs/api/classes/Markup) object.
+Mark a string as "safe" by wrapping it in a [`Markup`](../api/classes/Markup.md) object.
 
 ```js
 import { Environment, Markup } from "liquidscript";
@@ -36,7 +36,7 @@ In general, if a filter manipulates a `Markup` wrapped string in an "unsafe" way
 
 ## toLiquidHtml
 
-When HTML auto-escaping is enabled, if an object implements a [`[toLiquidHtml]`](./objects-and-drops#drop-protocol) method, LiquidScript will use the string returned from `[toLiquidHtml]()` instead of `[toLiquidString]()` and `toString()` on output.
+When HTML auto-escaping is enabled, if an object implements a [`toLiquidHtml`](./objects-and-drops.md#drop-protocol) method, LiquidScript will use the string returned from `[toLiquidHtml]()` instead of `[toLiquidString]()` and `toString()` on output.
 
 ```js
 import { Environment, Markup, toLiquidHtml } from "liquidscript";

@@ -26,11 +26,12 @@ const config = {
           sidebarPath: require.resolve("./sidebars.js"),
           // Please change this to your repo.
           editUrl: "https://github.com/jg-rp/liquidscript/tree/docs",
+          routeBasePath: "/",
         },
         blog: {
           showReadingTime: true,
           // Please change this to your repo.
-          editUrl: "https://github.com/jg-rp/liquidscript/tree/docs",
+          editUrl: "https://github.com/jg-rp/liquidscript/tree/blog",
         },
         theme: {
           customCss: require.resolve("./src/css/custom.css"),
@@ -49,6 +50,7 @@ const config = {
       {
         entryPoints: ["../src/liquidscript.ts"],
         tsconfig: "../tsconfig.json",
+        readme: "docs/README_API.md",
       },
     ],
   ],
@@ -83,7 +85,7 @@ const config = {
             label: "Tags",
           },
           {
-            to: "docs/api/",
+            to: "/api/",
             label: "API",
             position: "left",
           },

@@ -41,7 +41,7 @@ Tags allow us to include logic, like loops and conditions, in our Liquid templat
 
 Variables can be modified prior to output or assignment using _filters_. Filters are applied to a variable using the pipe symbol (`|`), followed by the filter's name and, possibly, some filter arguments. Filter arguments appear after a colon (`:`) and are separated by commas (`,`).
 
-Multiple filters can be chained, effectively piping the output of one filter into the input of another. Here we use the [sort](../language/filters#sort) and [first](../language/filters#first) filters to get the cheapest item in a collection of products.
+Multiple filters can be chained, effectively piping the output of one filter into the input of another. Here we use the [sort](../language/filters.md#sort) and [first](../language/filters.md#first) filters to get the cheapest item in a collection of products.
 
 ```liquid
 {% assign cheapest = collection.products | sort: "price" | first %}

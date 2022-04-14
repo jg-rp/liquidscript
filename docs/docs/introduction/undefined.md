@@ -4,7 +4,7 @@ LiquidScript does not have a "lax" mode like some Liquid engines, but we can con
 
 ## Undefined Variables
 
-When rendering a Liquid template, if a variable name can not be resolved, an instance of [`Undefined`](/docs/api/classes/Undefined) is used instead. We can customize template rendering behavior supplying an `Undefined` factory function to the [`Environment`](/docs/api/classes/environment) constructor or [`Template.fromString()`](/docs/api/classes/Template#fromstring).
+When rendering a Liquid template, if a variable name can not be resolved, an instance of [`Undefined`](../api/classes/Undefined.md) is used instead. We can customize template rendering behavior supplying an `Undefined` factory function to the [`Environment`](../api/classes/Environment.md) constructor or [`Template.fromString()`](../api/classes/Template.md#fromstring).
 
 ```javascript
 import { Environment, StrictUndefined } from "liquidsscript";
@@ -14,7 +14,7 @@ env.fromString("{{ nosuchthing }}").renderSync();
 // LiquidUndefinedError: 'nosuchthing' is undefined (<string>:1)
 ```
 
-Built-in `Undefined` types are [`LaxUndefined`](/docs/api/classes/LaxUndefined) (the default) and [`StrictUndefined`](/docs/api/classes/StrictUndefined).
+Built-in `Undefined` types are [`LaxUndefined`](../api/classes/LaxUndefined.md) (the default) and [`StrictUndefined`](../api/classes/StrictUndefined.md).
 
 ### Default Undefined
 
@@ -36,7 +36,7 @@ Hello
 
 ### Strict Undefined
 
-Given [`StrictUndefined.from`](/docs/api/classes/StrictUndefined#from) as the `undefinedFactory` option to an environment or `Template.fromString()`, any operation on an undefined variable will raise a `LiquidUndefinedError`.
+Given [`StrictUndefined.from`](../api/classes/StrictUndefined.md#from) as the `undefinedFactory` option to an environment or `Template.fromString()`, any operation on an undefined variable will raise a `LiquidUndefinedError`.
 
 ```javascript
 import { Environment, StrictUndefined } from "liquidscript";

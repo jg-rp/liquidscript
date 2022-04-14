@@ -1,0 +1,468 @@
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+
+# Custom Loaders
+
+[Template loaders](../introduction/loading-templates.md#built-in-template-loaders) are responsible for finding a template's source text given a name or identifier. You might want to write a custom template loader to read templates from a database, narrow the template search space for a specific user or add extra context data to a template, for example.
+
+Write a custom template loader by extending the [`Loader`](../api/classes/Loader.md) base class and implementing its [`getSource()`](../api/classes/Loader.md#getsource) and [`getSourceSync()`](../api/classes/Loader.md#getsourcesync) methods. Then configure an [`Environment`](../api/classes/Environment.md) to use your loader with the [`loader`](../api/modules.md#environmentoptions) option.
+
+## Example Map Loader
+
+This example loader reads templates from a `Map` of template names to template source text strings.
+
+[`getSource()`](../api/classes/Loader.md#getsource) and [`getSourceSync()`](../api/classes/Loader.md#getsourcesync) are expected to return a [`TemplateSource`](../api/classes/TemplateSource.md) object representing the template source and associated meta data. If a template's source can not be found, [`getSource()`](../api/classes/Loader.md#getsource) and [`getSourceSync()`](../api/classes/Loader.md#getsourcesync) should throw a [`TemplateNotFoundError`](../api/classes/TemplateNotFoundError.md).
+
+<Tabs groupId="js-ts">
+<TabItem value="js" label="JavaScript">
+
+```js
+import { Loader, TemplateSource, TemplateNotFoundError } from "liquidscript";
+
+export class MapLoader extends Loader {
+  #map;
+
+  constructor(map) {
+    super();
+    this.#map = map === undefined ? new Map() : map;
+  }
+
+  async getSource(name) {
+    return this.getSourceSync(name);
+  }
+
+  getSourceSync(name) {
+    const source = this.#map.get(name);
+    if (source === undefined) throw new TemplateNotFoundError(name);
+    return new TemplateSource(source, name);
+  }
+}
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```typescript
+import { Loader, TemplateSource, TemplateNotFoundError } from "liquidscript";
+
+class MapLoader extends Loader {
+  #templateMap: Map<string, string>;
+
+  constructor(map?: Map<string, string>) {
+    super();
+    this.#templateMap = map === undefined ? new Map<string, string>() : map;
+  }
+
+  public async getSource(name: string): Promise<TemplateSource> {
+    return this.getSourceSync(name);
+  }
+
+  public getSourceSync(name: string): TemplateSource {
+    const source = this.#templateMap.get(name);
+    if (source === undefined) throw new TemplateNotFoundError(name);
+    return new TemplateSource(source, name);
+  }
+}
+```
+
+</TabItem>
+</Tabs>
+
+If `MapLoader` is exported from a `"my_loaders"` module, we can import it and configure an `Environment` to use it like this.
+
+```js
+import { Environment } from "liquidscript";
+import { MapLoader } from "./my_loaders";
+
+const templates = new Map([
+  ["some_template", "{% include 'some_snippet' %}"],
+  ["some_snippet", "Hello, {{ you }}!"],
+]);
+
+const env = new Environment({ loader: new MapLoader(templates) });
+const template = env.getTemplateSync("some_template");
+console.log(template.renderSync({ you: "World" }));
+// Hello, World!
+```
+
+## Loading Sections and Snippets
+
+We can mimic [Shopify's snippet](https://shopify.dev/api/liquid/tags/theme-tags#render) and [static section](https://shopify.dev/api/liquid/tags/theme-tags#section) loading behavior with a custom template loader and `section` tag. This example will look for templates rendered with `{% include %}` or `{% render %}` in a `snippets` subfolder, those rendered with `{% section %}` in a `section` subfolder, and all other templates in a `templates` subfolder.
+
+`SectionLoader` makes use of the `LoaderContext` object passed to `getSource()` and `getSourceSync()`. `LoaderContext` can contain any arbitrary objects and primitives that a template loader might use to modify its search space or retrieve extra template meta data. By convention, the built in [`include`](../language/tags.md#include) and [`render`](../language/tags.md#render) tags add a `tag` property to their `LoaderContext`, allowing us to determine which tag, if any, is trying to load a template.
+
+<Tabs groupId="js-ts">
+<TabItem value="js" label="JavaScript">
+
+```js title=section_loader.js
+import fsCallback from "fs";
+import fs from "fs/promises";
+import path from "path";
+
+import {
+  Loader,
+  TemplateSource,
+  TemplateNotFoundError,
+  object,
+  tags,
+} from "liquidscript";
+
+class SectionLoader extends Loader {
+  #path;
+  #sections;
+  #snippets;
+  #templates;
+  encoding = "utf8";
+  fileExtension = ".liquid";
+
+  constructor(searchPath) {
+    super();
+    this.#path = searchPath;
+    this.#sections = path.join(this.#path, "sections");
+    this.#snippets = path.join(this.#path, "snippets");
+    this.#templates = path.join(this.#path, "templates");
+  }
+
+  async getSource(name, renderContext, loaderContext) {
+    const templatePath = await this.resolve(
+      this.withFileExtension(name),
+      object.liquidStringify(
+        loaderContext === undefined ? undefined : loaderContext.tag
+      )
+    );
+    const source = await fs.readFile(templatePath, { encoding: this.encoding });
+    return new TemplateSource(source, templatePath);
+  }
+
+  getSourceSync(name, renderContext, loaderContext) {
+    const templatePath = this.resolveSync(
+      this.withFileExtension(name),
+      object.liquidStringify(
+        loaderContext === undefined ? undefined : loaderContext.tag
+      )
+    );
+    const source = fsCallback.readFileSync(templatePath, {
+      encoding: this.encoding,
+    });
+    return new TemplateSource(source, templatePath);
+  }
+
+  withFileExtension(name) {
+    return path.extname(name) ? name : name + this.fileExtension;
+  }
+
+  async resolve(name, tag) {
+    const searchPath = this.resolveTag(tag);
+    const templatePath = path.join(searchPath, path.normalize(name));
+
+    if (!isSubPath(searchPath, templatePath))
+      throw new TemplateNotFoundError(name);
+
+    try {
+      const stat = await fs.stat(templatePath);
+      if (stat.isFile()) return templatePath;
+      throw new TemplateNotFoundError(name);
+    } catch {
+      throw new TemplateNotFoundError(name);
+    }
+  }
+
+  resolveSync(name, tag) {
+    const searchPath = this.resolveTag(tag);
+    const templatePath = path.join(searchPath, path.normalize(name));
+
+    if (!isSubPath(searchPath, templatePath))
+      throw new TemplateNotFoundError(name);
+
+    try {
+      const stat = fsCallback.statSync(templatePath);
+      if (stat.isFile()) return templatePath;
+      throw new TemplateNotFoundError(name);
+    } catch {
+      throw new TemplateNotFoundError(name);
+    }
+  }
+
+  resolveTag(tag) {
+    switch (tag) {
+      case "render":
+      case "include":
+        return this.#snippets;
+      case "section":
+        return this.#sections;
+      case "":
+        return this.#templates;
+      default:
+        throw new TemplateNotFoundError(
+          "SectionLoader can only load 'render', 'include' and 'section' tags"
+        );
+    }
+  }
+}
+
+function isSubPath(parent, dir) {
+  const relative = path.relative(parent, dir);
+  return !!relative && !relative.startsWith(".") && !path.isAbsolute(relative);
+}
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```typescript title="section_loader.ts"
+import fsCallback from "fs";
+import fs from "fs/promises";
+import path from "path";
+
+import {
+  Loader,
+  RenderContext,
+  TemplateSource,
+  TemplateNotFoundError,
+  object,
+  tags,
+} from "liquidscript";
+
+class SectionLoader extends Loader {
+  #path: string;
+  #sections: string;
+  #snippets: string;
+  #templates: string;
+  readonly encoding: BufferEncoding = "utf8";
+  readonly fileExtension: string = ".liquid";
+
+  constructor(searchPath: string) {
+    super();
+    this.#path = searchPath;
+    this.#sections = path.join(this.#path, "sections");
+    this.#snippets = path.join(this.#path, "snippets");
+    this.#templates = path.join(this.#path, "templates");
+  }
+
+  public async getSource(
+    name: string,
+    renderContext?: RenderContext,
+    loaderContext?: { [index: string]: unknown }
+  ): Promise<TemplateSource> {
+    const templatePath = await this.resolve(
+      this.withFileExtension(name),
+      object.liquidStringify(loaderContext?.tag)
+    );
+    const source = await fs.readFile(templatePath, { encoding: this.encoding });
+    return new TemplateSource(source, templatePath);
+  }
+
+  public getSourceSync(
+    name: string,
+    renderContext?: RenderContext,
+    loaderContext?: { [index: string]: unknown }
+  ): TemplateSource {
+    const templatePath = this.resolveSync(
+      this.withFileExtension(name),
+      object.liquidStringify(loaderContext?.tag)
+    );
+    const source = fsCallback.readFileSync(templatePath, {
+      encoding: this.encoding,
+    });
+    return new TemplateSource(source, templatePath);
+  }
+
+  protected withFileExtension(name: string): string {
+    return path.extname(name) ? name : name + this.fileExtension;
+  }
+
+  protected async resolve(name: string, tag: string): Promise<string> {
+    const searchPath = this.resolveTag(tag);
+    const templatePath = path.join(searchPath, path.normalize(name));
+
+    if (!isSubPath(searchPath, templatePath))
+      throw new TemplateNotFoundError(name);
+
+    try {
+      const stat = await fs.stat(templatePath);
+      if (stat.isFile()) return templatePath;
+      throw new TemplateNotFoundError(name);
+    } catch {
+      throw new TemplateNotFoundError(name);
+    }
+  }
+
+  protected resolveSync(name: string, tag: string): string {
+    const searchPath = this.resolveTag(tag);
+    const templatePath = path.join(searchPath, path.normalize(name));
+
+    if (!isSubPath(searchPath, templatePath))
+      throw new TemplateNotFoundError(name);
+
+    try {
+      const stat = fsCallback.statSync(templatePath);
+      if (stat.isFile()) return templatePath;
+      throw new TemplateNotFoundError(name);
+    } catch {
+      throw new TemplateNotFoundError(name);
+    }
+  }
+
+  protected resolveTag(tag: string): string {
+    switch (tag) {
+      case "render":
+      case "include":
+        return this.#snippets;
+      case "section":
+        return this.#sections;
+      case "":
+        return this.#templates;
+      default:
+        throw new TemplateNotFoundError(
+          "SectionLoader can only load 'render', 'include' and 'section' tags"
+        );
+    }
+  }
+}
+
+function isSubPath(parent: string, dir: string): boolean {
+  const relative = path.relative(parent, dir);
+  return !!relative && !relative.startsWith(".") && !path.isAbsolute(relative);
+}
+```
+
+</TabItem>
+</Tabs>
+
+Our `section` tag is a minimal extension of the [`include`](../language/tags.md#include) tag.
+
+```js title="section_tag.js"
+class SectionTag extends tags.IncludeTag {
+  name = "section";
+  nodeClass = SectionNode;
+}
+
+class SectionNode extends tags.IncludeNode {
+  tag = "section";
+}
+```
+
+With `SectionLoader` exported from a `"section_loader"` module and `SectionTag` exported from `"section_tag"`, we can configure an [`Environment`](../api/classes/Environment.md) like this.
+
+```js
+import { Environment, StrictUndefined } from "liquidscript";
+import { SectionLoader } from "./section_loader";
+import { SectionTag } from "./section_tag";
+
+const env = new Environment({
+  loader: new SectionLoader("templates/"),
+  undefinedFactory: StrictUndefined.from,
+});
+
+env.addTag("section", new SectionTag());
+```
+
+## Caching Loaders
+
+Parsing a Liquid template is significantly slower than rendering a Liquid template (not including render-time IO). As such, we should cache parsed templates where possible to prevent the same template being parsed multiple times unnecessarily. One example scenario where even a modest in-memory cache can yield a noticeable performance improvement is that of [including](../language/tags.md#include) a partial template repeatedly inside a [for loop](../language/tags.md#for).
+
+:::info
+Please see the implementation of `CachingNodeFileSystemLoader` in [src/builtin/loaders/file_system_loader.ts](https://github.com/jg-rp/liquidscript/blob/main/src/builtin/loaders/file_system_loader.ts) for a full example.
+:::
+
+[`CachingNodeFileSystemLoader`](../api/classes/CachingNodeFileSystemLoader.md) overrides [`load()`](../api/classes/Loader.md#load) and [`loadSync()`](../api/classes/Loader.md#loadsync) of its parent [`Loader`](../api/classes/Loader.md) class. It uses an [`LRUCache`](../api/classes/LRUCache.md), which is checked before delegating to `getSource()` and `getSourceSync()` in the event of a cache miss.
+
+The optional [`upToDate`](../api/classes/TemplateSource.md#uptodate) and [`upToDateSync`](../api/classes/TemplateSource.md#uptodatesync) properties of a [`TemplateSource`](../api/classes/TemplateSource.md) provide a way to bust a template cache if the underlying source text has been modified.
+
+## Front Matter Loader
+
+A [`TemplateSource`](../api/classes/TemplateSource.md) object, as returned by [`getSource()`](../api/classes/Loader.md#getsource) and [`getSourceSync()`](../api/classes/Loader.md#getsourcesync) of a template [`Loader`](../api/classes/Loader.md), optionally includes a [`matter`](../api/classes/TemplateSource.md#matter) property. If given, `matter` should be extra render context data in addition to [environment globals](../introduction/render-context.md#environment-globals) and [template globals](../introduction/render-context.md#template-globals). Like template globals, matter data is pinned to a template and will be merged with environment globals at render time.
+
+This example implements a front matter template loader by extending [`NodeFileSystemLoader`](../api/classes/NodeFileSystemLoader.md) and parsing [YAML](https://yaml.org/) from the start of a every template source file.
+
+<Tabs groupId="js-ts">
+<TabItem value="js" label="JavaScript">
+
+```js
+import {
+  Environment,
+  NodeFileSystemLoader,
+  TemplateSource,
+} from "liquidscript";
+
+import yaml from "js-yaml";
+
+const RE_FRONT_MATTER = /^\s*---\s*(.*?)\s*---\s*/ms;
+
+class FrontMatterLoader extends NodeFileSystemLoader {
+  async getSource(name) {
+    return this.loadMatter(await super.getSource(name));
+  }
+
+  getSourceSync(name) {
+    return this.loadMatter(super.getSourceSync(name));
+  }
+
+  loadMatter(templateSource) {
+    const match = templateSource.source.match(RE_FRONT_MATTER);
+    if (match) {
+      // TODO: check YAML schema and handle YAML errors
+      const matter = yaml.load(match[1]);
+      return new TemplateSource(
+        templateSource.source.slice(match[0].length),
+        templateSource.name,
+        matter,
+        templateSource.upToDate,
+        templateSource.upToDateSync
+      );
+    }
+    return templateSource;
+  }
+}
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```typescript
+import {
+  ContextScope,
+  NodeFileSystemLoader,
+  object,
+  TemplateSource,
+} from "liquidscript";
+
+import yaml from "js-yaml";
+
+const RE_FRONT_MATTER = /^\s*---\s*(.*?)\s*---\s*/ms;
+
+class FrontMatterLoader extends NodeFileSystemLoader {
+  public async getSource(name: string): Promise<TemplateSource> {
+    return this.loadMatter(await super.getSource(name));
+  }
+
+  public getSourceSync(name: string): TemplateSource {
+    return this.loadMatter(super.getSourceSync(name));
+  }
+
+  protected loadMatter(templateSource: TemplateSource): TemplateSource {
+    const match = templateSource.source.match(RE_FRONT_MATTER);
+    if (match) {
+      // TODO: check YAML schema and handle YAML errors
+      const matter = yaml.load(match[1]);
+      if (object.isContextScope(matter)) {
+        return new TemplateSource(
+          templateSource.source.slice(match[0].length),
+          templateSource.name,
+          matter,
+          templateSource.upToDate,
+          templateSource.upToDateSync
+        );
+      }
+    }
+    return templateSource;
+  }
+}
+```
+
+</TabItem>
+</Tabs>
+
+## Database Loader
+
+TODO: with user ID narrowing

@@ -3,9 +3,9 @@ import TabItem from "@theme/TabItem";
 
 # Custom Filters
 
-Liquid [filters](../language/introduction#filters) are JavaScript functions. A filter function is any callable that accepts at least one argument, the result of the left hand side of a filtered expression. The function's return value will be output, assigned or piped to more filters.
+Liquid [filters](../language/introduction.md#filters) are JavaScript functions. A filter function is any callable that accepts at least one argument, the result of the left hand side of a filtered expression. The function's return value will be output, assigned or piped to more filters.
 
-You can add to, remove or modify Liquid's [built-in filters](../language/filters) to suit your needs by registering filter functions with an [Environment](../api/classes/Environment), then rendering your templates from that environment.
+You can add to, remove or modify Liquid's [built-in filters](../language/filters.md) to suit your needs by registering filter functions with an [Environment](../api/classes/Environment.md), then rendering your templates from that environment.
 
 :::info
 All built-in filters are implemented in this way, so have a look in [src/builtin/filters/](https://github.com/jg-rp/liquidscript/tree/main/src/builtin/filters) for more examples.
@@ -13,7 +13,7 @@ All built-in filters are implemented in this way, so have a look in [src/builtin
 
 ## Add a Filter
 
-Add a custom template filter to an [Environment](../api/classes/Environment) by calling its [addFilter()](../api/classes/Environment#addfilter) method. Here's a simple example of adding JavaScript's [`String.prototype.endsWith`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/endsWith) as a filter function.
+Add a custom template filter to an [Environment](../api/classes/Environment.md) by calling its [`addFilter()`](../api/classes/Environment.md#addfilter) method. Here's a simple example of adding JavaScript's [`String.prototype.endsWith`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/endsWith) as a filter function.
 
 <Tabs groupId="js-ts">
 <TabItem value="js" label="JavaScript">
@@ -49,22 +49,20 @@ In a template you'd use it like this.
 
 ## Replace a Filter
 
-If given the name of an existing filter function, [Environment.add_filter()](../api/classes/Environment#addfilter) will replace it without warning. For example, suppose you wish to replace the [slice](../language/filters#slice) filter for one which uses start and end values instead of start and length, and is a bit more forgiving in terms of allowed inputs.
+If given the name of an existing filter function, [`Environment.add_filter()`](../api/classes/Environment.md#addfilter) will replace it without warning. For example, suppose you wish to replace the [slice](../language/filters.md#slice) filter for one which uses start and end values instead of start and length, and is a bit more forgiving in terms of allowed inputs.
 
 ```js
-import { Environment, Markup } from "liquidscript";
-import { parseNumberOrZero } from "liquidscript/filters";
-import { isArray, liquidStringify } from "liquidscript/objects";
+import { Environment, Markup, filters, object } from "liquidscript";
 
 function mySlice(value, start, end) {
   // Make sure the input value is an array or string.
-  value = isArray(value) ? value : liquidStringify(value);
+  value = object.isArray(value) ? value : object.liquidStringify(value);
   // Make sure `start` is a number.
-  start = parseNumberOrZero(start);
+  start = filters.parseNumberOrZero(start);
   // Stop is optional
   if (end === undefined) return value.slice(start);
   // Make sure `stop` is a number.
-  end = parseNumberOrZero(end);
+  end = filters.parseNumberOrZero(end);
   return value.slice(start, end);
 }
 
@@ -74,7 +72,7 @@ env.addFilter("slice", mySlice);
 
 ## Remove a Filter
 
-Remove a filter by deleting it from [Environment.filters](../api/classes/Environment#filters). It's a plain object mapping filter names to filter functions.
+Remove a filter by deleting it from [`Environment.filters`](../api/classes/Environment.md#filters). It's a plain object mapping filter names to filter functions.
 
 ```js
 import { Environment } from "liquidscript";
@@ -85,9 +83,9 @@ delete env.filters.base64_decode;
 
 ## Filter Context
 
-Filter functions are applied with their `this` value set to a [`FilterContext`](../api/modules#filtercontext), giving filters access to the current environment and render context.
+Filter functions are applied with their `this` value set to a [`FilterContext`](../api/modules.md#filtercontext), giving filters access to the current environment and render context.
 
-This example resolves the name `handle` in the scope of the current render context, then uses it's value as part of the filter's return value. We also reference the `autoEscape` option set on the active environment.
+This example resolves the name `"handle"` in the scope of the current render context, then uses the result as part of the filter's return value. We also reference the `autoEscape` option set on the active environment.
 
 <Tabs groupId="js-ts">
 <TabItem value="js" label="JavaScript">
@@ -126,43 +124,45 @@ env.addFilter("link_to_tag", LinkToTag);
 
 ### Keyword Arguments and Options
 
-The [`FilterContext`](../api/modules#filtercontext) also includes any keyword arguments passed to the filters. These are available as `this.options`. The [`default`](../language/filters#default) filter is the only built-in filter to use a keyword argument. For example, `{{ user.name | default: 'anonymous', allow_false: false }}`
+The [`FilterContext`](../api/modules.md#filtercontext) also includes any keyword arguments passed to the filter. These are available as `this.options`. The [`default`](../language/filters.md#default) filter is the only built-in filter to use a keyword argument. For example, `{{ user.name | default: 'anonymous', allow_false: false }}`
 
 :::info
-In Liquid, keyword arguments can appear in any order, even before positional arguments. It is because of this, and the desire to allow filters with [rest parameters](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/rest_parameters), that LiquidScript puts options in the filter context object instead of the last argument of the filter function.
+In Liquid, keyword arguments can appear in any order, even before and in between positional arguments. It is because of this, and the desire to allow filters with [rest parameters](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/rest_parameters), that LiquidScript puts options in the filter context object instead of the last argument of the filter function.
 :::
 
 ## Liquid Numbers and Arithmetic
 
-Unlike JavaScript, Liquid has distinct integer and float number types. To maintain compatibility with the reference implementation of Liquid, LiquidScript defines an [`Integer`](../api/classes/Integer) type, a [`Float`](../api/classes/Float) type and [utility functions](../api/modules#parsenumbert) for converting to these types.
+Unlike JavaScript, Liquid has distinct integer and float number types. To maintain compatibility with the reference implementation of Liquid, LiquidScript defines an [`Integer`](../api/classes/Integer.md) type, a [`Float`](../api/classes/Float.md) type and [utility functions](../api/modules.md#parsenumbert) for converting to these types.
 
 Both `Integer` and `Float` export methods for performing decimal arithmetic, as opposed to JavaScripts usual floating point arithmetic.
 
-When writing custom filters that expect numbers as inputs, you should be prepared to handle JavaScript primitive numbers and Liquid numbers. All built-in math filters convert their arguments to Liquid's [`NumberT`](../api/modules#numbert) type on input, exclusively use methods of those types for arithmetic, and return a `NumberT` too.
+When writing custom filters that expect numbers as inputs, you should be prepared to handle JavaScript primitive numbers **and** Liquid numbers. All built-in math filters convert their arguments to Liquid's [`NumberT`](../api/modules.md#numbert) type on input, exclusively use methods of those types for arithmetic, and return a `NumberT` too.
 
-To illustrate, here's the implementation of the [`plus`](../language/filters#plus) filter.
+To illustrate, here's the implementation of the [`plus`](../language/filters.md#plus) filter. It makes no assumptions about the type of its arguments and both arguments default to zero if they can't be converted to a number.
 
 <Tabs groupId="js-ts">
 <TabItem value="js" label="JavaScript">
 
 ```js
-TODO;
+import { FilterContext, NumberT, checkArguments, filters } from "liquidscript";
+
+function plus(left, right) {
+  // Throw an error if there are too many or too few arguments.
+  checkArguments(arguments.length, 1, 1);
+  return filters.parseNumberOrZero(left).plus(filters.parseNumberOrZero(right));
+}
 ```
 
 </TabItem>
 <TabItem value="ts" label="TypeScript">
 
 ```typescript
-import { FilterContext, NumberT, checkArguments } from "liquidscript";
-import { parseNumberOrZero } from "liquidscript/filters";
+import { FilterContext, NumberT, checkArguments, filters } from "liquidscript";
 
-export function plus(
-  this: FilterContext,
-  left: unknown,
-  right: unknown
-): NumberT {
+function plus(this: FilterContext, left: unknown, right: unknown): NumberT {
+  // Throw an error if there are too many or too few arguments.
   checkArguments(arguments.length, 1, 1);
-  return parseNumberOrZero(left).plus(parseNumberOrZero(right));
+  return filters.parseNumberOrZero(left).plus(filters.parseNumberOrZero(right));
 }
 ```
 
@@ -171,12 +171,87 @@ export function plus(
 
 ## Auto-Escape and Markup
 
-TODO:
+LiquidScript exports a [`Markup`](../api/classes/Markup.md) object that wraps a string, indicating it is safe to output without [HTML escaping](../introduction/auto-escape.md). Most filter functions that expect strings as inputs should be prepared to handle `Markup` objects too.
+
+Here's an implementation of the [`append`](../language/filters.md#append) filter that demonstrates handling of `Markup` objects.
+
+<Tabs groupId="js-ts">
+<TabItem value="js" label="JavaScript">
+
+```js
+import {
+  FilterContext,
+  checkArguments,
+  Markup,
+  toLiquidScript,
+  object,
+} from "liquidscript";
+
+function append(left, other) {
+  // Throw an error if there are too many or too few arguments.
+  checkArguments(arguments.length, 1, 1);
+
+  if (left instanceof Markup)
+    return new Markup(
+      left[toLiquidString]() + Markup.escape(other)[toLiquidString]()
+    );
+
+  if (other instanceof Markup) {
+    return new Markup(
+      Markup.escape(left)[toLiquidString]() + other[toLiquidString]()
+    );
+  }
+
+  return object.liquidStringify(left) + object.liquidStringify(other);
+}
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```typescript
+import {
+  FilterContext,
+  checkArguments,
+  Markup,
+  toLiquidScript,
+  object,
+} from "liquidscript";
+
+function append(
+  this: FilterContext,
+  left: unknown,
+  other: unknown
+): string | Markup {
+  // Throw an error if there are too many or too few arguments.
+  checkArguments(arguments.length, 1, 1);
+
+  if (left instanceof Markup)
+    return new Markup(
+      left[toLiquidString]() + Markup.escape(other)[toLiquidString]()
+    );
+
+  if (other instanceof Markup) {
+    return new Markup(
+      Markup.escape(left)[toLiquidString]() + other[toLiquidString]()
+    );
+  }
+
+  return object.liquidStringify(left) + object.liquidStringify(other);
+}
+```
+
+</TabItem>
+</Tabs>
 
 ## Missing and Excess Arguments
 
-TODO:
+All filters built in to Liquid throw a [`LiquidFilterArgumentError`](../api/classes/LiquidFilterArgumentError.md) if a required argument is missing or too many arguments are provided.
 
-## Raising Exceptions From Filter Functions
+When writing custom filters, if you want to be consistent with those built-in filters, you can use [`checkArguments`](../api/modules.md#checkarguments) to throw an error with a suitable message.
 
-TODO:
+## Undefined vs undefined
+
+LiquidScript defines an [`Undefined`](../introduction/undefined.md) type, which is distinct from JavaScript's primitive `undefined` value. With [`LaxUndefined`](../api/classes/LaxUndefined.md), `Undefined` objects will be passed to filter functions if they are "called" with arguments that can not be resolved by the active render context.
+
+If a filter function needs to detect `Undefined` and `undefined` arguments, it can use [`object.isUndefined()`](../api/namespaces/object.md#isundefined).

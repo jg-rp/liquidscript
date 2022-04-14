@@ -1,0 +1,323 @@
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+
+# Custom Tags
+
+Liquid [tags](../language/introduction.md#tags) are defined by a pair of JavaScript objects. One implementing the [`Tag`](../api/interfaces/Tag.md) interface and one implementing the [`Node`](../api/interfaces/Node.md) interface. The [`parse`](../api/interfaces/Node.md) method of a `Tag` is responsible for parsing a tag's expression and returning a `Node`, which will be added to a template's parse tree.
+
+You can add to, remove or modify Liquid's built-in tags to suit your needs by registering tags with an Environment, then rendering your templates from that environment.
+
+:::info
+All built-in tags are implemented this way, so have a look in [src/builtin/tags/](https://github.com/jg-rp/liquidscript/tree/main/src/builtin/tags) for more examples.
+:::
+
+## Add a Tag
+
+Taking inspiration from [Django's Template Language](https://docs.djangoproject.com/en/3.2/ref/templates/builtins/#with), lets implement a `with` tag, which extends the local scope for the duration of its block. Our `with` tag's expressions consists of one or more named arguments separated by commas. Each argument is a variable name, followed by a colon, then a Liquid keyword, string, integer, float, range expression or identifier.
+
+```plain
+{% with <identifier>: <object> [, <identifier>: object ... ] %}
+  <literal,statement,tag> ...
+{% endwith %}
+```
+
+This implementation keeps any variables set inside the `with` block (using `assign` or `capture`) alive after the block has been rendered.
+
+:::info
+We use [class syntax](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes) here for both Javascript and TypeScript examples. Constructor functions and objects with function valued properties would work equally as well.
+:::
+
+### Example Tag
+
+A [`Tag`](../api/interfaces/Tag.md) is free to parse its expression any way it chooses. Built in tags use regular expressions to [generate](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Generator) a [stream of tokens](../api/classes/expressions.ExpressionTokenStream.md), then step through those tokens yielding [`Expression`](../api/interfaces/Expression.md) objects.
+
+Here we'll reuse the tokenizer from the [`include`](../language/tags.md#include) tag, as it, too, accepts any number of comma separated named arguments. We will, however, supply a different set of allowed keywords to the tokenizer function.
+
+<Tabs groupId="js-ts">
+<TabItem value="js" label="JavaScript">
+
+```js title="with_tag.js"
+import { expressions, tokens } from "liquidscript";
+
+// Reuse the `include` tokenizer.
+const tokenize = expressions.include.makeTokenizer(
+  expressions.include.RE,
+  new Set([
+    expressions.TOKEN_TRUE,
+    expressions.TOKEN_FALSE,
+    expressions.TOKEN_NIL,
+    expressions.TOKEN_NULL,
+  ])
+);
+
+// Indicates the end of a `with` block.
+const TAG_ENDWITH = "endwith";
+const END_WITH_BLOCK = new Set([TAG_ENDWITH]);
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```typescript title="with_tag.ts"
+import {
+  Environment,
+  Expression,
+  Tag,
+  expressions,
+  tokens,
+  Node,
+  BlockNode,
+  RenderContext,
+  RenderStream,
+  ContextScope,
+} from "liquidscript";
+
+// Reuse the `include` tokenizer.
+const tokenize = expressions.include.makeTokenizer(
+  expressions.include.RE,
+  new Set([
+    expressions.TOKEN_TRUE,
+    expressions.TOKEN_FALSE,
+    expressions.TOKEN_NIL,
+    expressions.TOKEN_NULL,
+  ])
+);
+
+// Indicates the end of a `with` block.
+const TAG_ENDWITH = "endwith";
+const END_WITH_BLOCK = new Set([TAG_ENDWITH]);
+
+type Arguments = {
+  [index: string]: Expression;
+};
+```
+
+</TabItem>
+</Tabs>
+
+The [`parse()`](../api/interfaces/Tag.md#parse) method of a `Tag` object receives a [`TokenStream`](../api/classes/tokens.TemplateTokenStream.md) and a reference to the active [`Environment`](../api/classes/Environment.md). This stream of [tokens](../api/namespaces/tokens.md#variables) includes template literals, output statements, tags and unparsed tag expressions.
+
+The current token in the stream will always be of the type [`TOKEN_TAG`](../api/namespaces/tokens.md#token_tag), representing the start of the tag we're parsing. By convention, this token is used to populate the `token` property of the associated `Node` object. If the tag has an expression (anything after the tag's name), it will immediately follow the `TOKEN_TAG` in the stream as a [`TOKEN_EXPRESSION`](../api/namespaces/tokens.md#token_expression). In the example bellow we use [`TokenStream.expect()`](../api/interfaces/tokens.TokenStream.md#expect) to confirm that an expression was provided.
+
+We use [`parseBlock()`](../api/interfaces/Parser.md#parseblock) from the active environment to parse our `with` tag's block, which could contain any number of other tags and output statements. Every block tag is expected to leave the stream with it's "end" tag as the current token.
+
+Note that `parseExpression` and `parseArgument` are an implementation detail and not part of the [`Tag`](../api/interfaces/Tag.md) interface.
+
+<Tabs groupId="js-ts">
+<TabItem value="js" label="JavaScript">
+
+```js title="with_tag.js (continued)"
+class WithTag {
+  parse(stream, environment) {
+    const token = stream.next();
+    stream.expect(tokens.TOKEN_EXPRESSION);
+    const args = this.parseExpression(stream.current);
+    stream.next();
+    const block = environment.parser.parseBlock(stream, END_WITH_BLOCK);
+    stream.expectTag(TAG_ENDWITH);
+    return new WithNode(token, args, block);
+  }
+
+  parseExpression(expressionToken) {
+    const args = {};
+    const eStream = new expressions.ExpressionTokenStream(
+      tokenize(expressionToken.value, expressionToken.index)
+    );
+
+    while (eStream.current.kind !== tokens.TOKEN_EOF) {
+      const [key, expr] = this.parseArgument(eStream);
+      args[key] = expr;
+      // Eat comma.
+      if (eStream.current.kind === expressions.TOKEN_COMMA) eStream.next();
+    }
+
+    return args;
+  }
+
+  parseArgument(eStream) {
+    const key = expressions.parseUnchainedIdentifier(eStream).toString();
+    eStream.next();
+    eStream.expect(expressions.TOKEN_COLON);
+    eStream.next(); // Eat colon
+    const val = expressions.filtered.parseObject(eStream);
+    eStream.next();
+    return [key, val];
+  }
+}
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```typescript title="with_tag.ts (continued)"
+class WithTag implements Tag {
+  public parse(stream: tokens.TokenStream, environment: Environment): Node {
+    const token = stream.next();
+    stream.expect(tokens.TOKEN_EXPRESSION);
+    const args = this.parseExpression(stream.current);
+    stream.next();
+    const block = environment.parser.parseBlock(stream, END_WITH_BLOCK);
+    stream.expectTag(TAG_ENDWITH);
+    return new WithNode(token, args, block);
+  }
+
+  protected parseExpression(expressionToken: tokens.Token): Arguments {
+    const args: Arguments = {};
+    const eStream = new expressions.ExpressionTokenStream(
+      tokenize(expressionToken.value, expressionToken.index)
+    );
+
+    while (eStream.current.kind !== tokens.TOKEN_EOF) {
+      const [key, expr] = this.parseArgument(eStream);
+      args[key] = expr;
+      // Eat comma.
+      if (eStream.current.kind === expressions.TOKEN_COMMA) eStream.next();
+    }
+
+    return args;
+  }
+
+  protected parseArgument(
+    eStream: expressions.ExpressionTokenStream
+  ): [string, Expression] {
+    const key = expressions.parseUnchainedIdentifier(eStream).toString();
+    eStream.next();
+    eStream.expect(expressions.TOKEN_COLON);
+    eStream.next(); // Eat colon
+    const val = expressions.filtered.parseObject(eStream);
+    eStream.next();
+    return [key, val];
+  }
+}
+```
+
+</TabItem>
+</Tabs>
+
+### Example Node
+
+Every [`Node`](../api/interfaces/Node.md) is required to implement synchronous and asynchronous versions of a [`render`](../api/interfaces/Node.md#render) method. By referencing its [`Expressions`](../api/interfaces/Expression.md) and the active [render context](../api/classes/RenderContext.md), the `render` method is responsible for writing text to the [output stream](../api/interfaces/RenderStream.md).
+
+Our `WithNode` simply evaluates each of its arguments and uses the results to extend the scope of the active render context before rendering its [block](../api/classes/BlockNode.md).
+
+<Tabs groupId="js-ts">
+<TabItem value="js" label="JavaScript">
+
+```js title="with_tag.js (continued)"
+class WithNode {
+  constructor(token, args, block) {
+    this.token = token;
+    this.args = args;
+    this.block = block;
+  }
+
+  async render(context, out) {
+    const scope = {};
+    for (const [key, value] of Object.entries(this.args)) {
+      scope[key] = await value.evaluate(context);
+    }
+    await context.extend(scope, () => this.block.render(context, out));
+  }
+
+  renderSync(context, out) {
+    const scope = Object.fromEntries(
+      Object.entries(this.args).map(([key, value]) => [
+        key,
+        value.evaluateSync(context),
+      ])
+    );
+    context.extendSync(scope, () => this.block.renderSync(context, out));
+  }
+
+  children() {
+    return [this.block];
+  }
+}
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```typescript title="with_tag.ts (continued)"
+class WithNode implements Node {
+  constructor(
+    readonly token: tokens.Token,
+    readonly args: Arguments,
+    readonly block: BlockNode
+  ) {}
+
+  async render(context: RenderContext, out: RenderStream): Promise<void> {
+    const scope: ContextScope = {};
+    for (const [key, value] of Object.entries(this.args)) {
+      scope[key] = await value.evaluate(context);
+    }
+    await context.extend(scope, () => this.block.render(context, out));
+  }
+
+  renderSync(context: RenderContext, out: RenderStream): void {
+    const scope: ContextScope = Object.fromEntries(
+      Object.entries(this.args).map(([key, value]) => [
+        key,
+        value.evaluateSync(context),
+      ])
+    );
+    context.extendSync(scope, () => this.block.renderSync(context, out));
+  }
+
+  children(): Node[] {
+    return [this.block];
+  }
+}
+```
+
+</TabItem>
+</Tabs>
+
+### Example Tag Usage
+
+If the above tag implementation is exported from a module called `with_tag.js` (or `ts`), we can import and register the tag with a LiquidScript [`Environment`](../api/classes/Environment.md), then use `{% with %}` in templates rendered from that environment.
+
+The first argument of [`addTag()`](../api/classes/Environment.md#addtag) is the tag's name, as used by template authors. The second argument is our object implementing the `Tag` interface.
+
+```js
+import { Environment } from "liquidscript";
+import { WithTag } from "./with_tag";
+
+const env = new Environment();
+env.addTag("with", new WithTag());
+
+const template = env.fromString(`
+{% with greeting: 'Hello', name: 'Sally' %}
+  {{ greeting }}, {{ name }}!
+{% endwith %}
+`);
+
+console.log(template.renderSync());
+// Hello, Sally!
+```
+
+## Replace a Tag
+
+If given the name of an existing tag, [`Environment.addTag()`](../api/classes/Environment.md#addtag) will replace it without warning. For example, the extra "if not" tag, which adds support for negating expressions with `not` and grouping terms with parentheses, is a drop-in replacement for the standard [`if`](../language/tags.md#if) tag.
+
+:::caution
+The extra `IfNotTag` has not yet been implemented, but will be.
+:::
+
+```js
+import { Environment, extra } from "liquidscript";
+
+const env = new Environment();
+env.addTag("if", new extra.tags.IfNotTag());
+```
+
+## Remove a Tag
+
+Remove a tag by deleting it from [`Environment.tags`](../api/classes/Environment.md#tags). It's a plain object mapping tag names to `Tag` objects. This example removes the little known [`ifchanged`](../language/tags.md#ifchanged) tag, making it unavailable to templates rendered from the environment.
+
+```js
+import { Environment } from "liquidscript";
+
+const env = new Environment();
+delete env.tags.ifchanged;
+```

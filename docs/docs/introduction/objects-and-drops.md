@@ -1,6 +1,6 @@
 # Objects and Drops
 
-When passed as `globals` to the [`fromString()`](../api/classes/Template#fromstring) and [`getTemplate()`](../api/classes/Environment#gettemplate) methods of [`Template`](../api/classes/Template) and [`Environment`](../api/classes/Environment), an object's properties will be available to template authors as [global variables](./render-context). LiquidScript will **not** call methods on render context objects unless explicitly whitelisted, instead treating them as [undefined](./undefined.md) variables.
+When passed as `globals` to the [`fromString()`](../api/classes/Template.md#fromstring) and [`getTemplate()`](../api/classes/Environment.md#gettemplate) methods of [`Template`](../api/classes/Template.md) and [`Environment`](../api/classes/Environment.md), an object's properties will be available to template authors as [global variables](./render-context.md). LiquidScript will **not** call methods on render context objects unless explicitly whitelisted, instead treating them as [undefined](./undefined.md) variables.
 
 Consider this example where we pass an array of product objects to `renderSync()`.
 
@@ -51,20 +51,20 @@ In LiquidScript, a "drop" is an object that implements some or all of the "drop 
 
 The drop protocol is nothing more than a set of conventions using well defined [Symbols](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol). Those symbols are:
 
-| Property                                                    | Description                                                                                                                                                                                                                                                                                   |
-| ----------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [`[toLiquid]`](#toliquid)                                   | A function valued property that is called to convert an object to its corresponding Liquid value. `[toLiquid]` is passed the active render context as its only argument.                                                                                                                      |
-| [`[toLiquidSync]`](../api/modules#toliquidsync)             | A synchronous version of `[toLiquid]`                                                                                                                                                                                                                                                         |
-| [`[toLiquidPrimitive]`](../api/modules#toliquidprimitive)   | A function valued property that is called to convert an object to its corresponding Liquid primitive value. The return value of this function will be used in Liquid comparison expressions.                                                                                                  |
-| [`[toLiquidString]`](../api/modules#toliquidstring)         | A function valued property that is called to convert an object to its Liquid specific string representation. This function will take priority over `toString()` when an object is output or passed to a string filter.                                                                        |
-| [`[toLiquidHtml]`](../api/modules#toliquidhtml)             | A function valued property that is called to convert an object to an HTML-safe string representation. When HTML auto-escaping is enabled, the return value of this function will take priority over `[toLiquidString]` and `toString()`, and it will not be escaped.                          |
-| [`[isLiquidCallable]`](#isliquidcallable)                   | A function valued property that is called to test a method name against a set of whitelisted methods that Liquid can call. A method name is passed as the only argument, and a boolean return value is expected. Liquid callable methods are not passed any arguments.                        |
-| [`[liquidDispatch]`](#liquiddispatch)                       | A function valued property that is called in the event that a property is missing from an object. The name of the missing property is passed as the only argument. This function is expected to return a Promise and should throw an `InternalKeyError` if the named property is unavailable. |
-| [`[liquidDispatchSync]`](../api/modules#liquiddispatchsync) | A synchronous version of `[liquidDispatch]`.                                                                                                                                                                                                                                                  |
+| Property                                                       | Description                                                                                                                                                                                                                                                                                   |
+| -------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`[toLiquid]`](#toliquid)                                      | A function valued property that is called to convert an object to its corresponding Liquid value. `[toLiquid]` is passed the active render context as its only argument.                                                                                                                      |
+| [`[toLiquidSync]`](../api/modules.md#toliquidsync)             | A synchronous version of `[toLiquid]`                                                                                                                                                                                                                                                         |
+| [`[toLiquidPrimitive]`](../api/modules.md#toliquidprimitive)   | A function valued property that is called to convert an object to its corresponding Liquid primitive value. The return value of this function will be used in Liquid comparison expressions.                                                                                                  |
+| [`[toLiquidString]`](../api/modules.md#toliquidstring)         | A function valued property that is called to convert an object to its Liquid specific string representation. This function will take priority over `toString()` when an object is output or passed to a string filter.                                                                        |
+| [`[toLiquidHtml]`](../api/modules.md#toliquidhtml)             | A function valued property that is called to convert an object to an HTML-safe string representation. When HTML auto-escaping is enabled, the return value of this function will take priority over `[toLiquidString]` and `toString()`, and it will not be escaped.                          |
+| [`[isLiquidCallable]`](#isliquidcallable)                      | A function valued property that is called to test a method name against a set of whitelisted methods that Liquid can call. A method name is passed as the only argument, and a boolean return value is expected. Liquid callable methods are not passed any arguments.                        |
+| [`[liquidDispatch]`](#liquiddispatch)                          | A function valued property that is called in the event that a property is missing from an object. The name of the missing property is passed as the only argument. This function is expected to return a Promise and should throw an `InternalKeyError` if the named property is unavailable. |
+| [`[liquidDispatchSync]`](../api/modules.md#liquiddispatchsync) | A synchronous version of `[liquidDispatch]`.                                                                                                                                                                                                                                                  |
 
 ### toLiquid
 
-This example demonstrates how one might use [`toLiquid`](../api/modules#toliquid) to implement a lazy loading user object.
+This example demonstrates how one might use [`toLiquid`](../api/modules.md#toliquid) to implement a lazy loading user object.
 
 ```typescript
 import { Liquidable, toLiquid } from "liquidscript";
@@ -89,7 +89,7 @@ class LazyUserDrop implements Liquidable {
 
 ### liquidDispatch
 
-Here we define a class implementing a [`liquidDispatchSync`](../api/modules#liquiddispatchsync) method, which will catch all attempts to access undefined properties on instances of that class.
+Here we define a class implementing a [`liquidDispatchSync`](../api/modules.md#liquiddispatchsync) method, which will catch all attempts to access undefined properties on instances of that class.
 
 ```typescript
 import {
@@ -115,7 +115,7 @@ When in an async context, if `liquidDispatch` is not defined, LiquidScript will 
 
 ### isLiquidCallable
 
-We can tell LiquidScript to call an object's methods by implementing an [`isLiquidCallable`](../api/modules#isliquidcallable) method. If this method returns `true`, LiquidScript can call the named method without any arguments.
+We can tell LiquidScript to call an object's methods by implementing an [`isLiquidCallable`](../api/modules.md#isliquidcallable) method. If this method returns `true`, LiquidScript can call the named method without any arguments.
 
 This example user class would allow LiquidScript to call `fullName()`, but not `save()`. Note that a [getter](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/get) method/property would work equally as well.
 
