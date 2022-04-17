@@ -106,7 +106,6 @@ export function liquidStringify(value: unknown): string {
   if (isLiquidStringable(value)) return value[toLiquidString]();
   if (isArray(value)) return value.join("");
   const s = String(value);
-  // XXX: Not good.
   return s === "[object Object]" ? "{}" : s;
 }
 
@@ -139,7 +138,9 @@ export function isLiquidArrayLike(value: unknown): value is LiquidArrayLike {
   return isArray(value);
 }
 
-
+/**
+ * A plain object with string indexes (not an array).
+ */
 export type ContextScope = { [index: string]: unknown };
 
 /**

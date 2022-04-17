@@ -14,7 +14,7 @@ import { TemplateTokenStream, Token } from "./token";
 import { LaxUndefined, Undefined } from "./undefined";
 import { ContextScope } from "./types";
 import { LiquidSyntaxError } from "./errors";
-import { BufferedRenderStream, RenderStream } from "./liquidscript";
+import { BufferedRenderStream, RenderStream } from "./io/output_stream";
 
 const implicitEnvironmentCache = new LRUCache<string, Environment>(10);
 
@@ -123,7 +123,7 @@ export type TemplateContext = {
 
   /**
    * A function that will return `true` if this template is up to
-   * date, or `false` if it needs to loaded again.
+   * date, or `false` if it needs to be loaded again.
    */
   upToDate?: () => Promise<boolean>;
 

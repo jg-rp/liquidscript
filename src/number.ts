@@ -199,5 +199,5 @@ export function parseNumberT(n: N): NumberT {
   if (isPrimitiveNumber(n))
     return Number.isInteger(n) ? new Integer(n) : new Float(n);
   if (isString(n)) return _stringToNumberT(n);
-  return n; // TODO: throw an error, for JS users
+  return n;
 }

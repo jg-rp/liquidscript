@@ -6,7 +6,7 @@ export type { RenderContextOptions, ContextPath } from "./context";
 export type { ContextScope } from "./types";
 
 export { Environment } from "./environment";
-export type { EnvironmentOptions } from "./environment";
+export type { EnvironmentOptions, TemplateContext } from "./environment";
 
 export { BufferedRenderStream } from "./io/output_stream";
 export type { RenderStream } from "./io/output_stream";

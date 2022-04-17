@@ -119,7 +119,7 @@ export class Template {
     const context = new this.renderContextClass(
       this.environment,
       this.makeGlobals(globals),
-      { templateName: this.name }
+      { templateName: this.name, loaderContext: this.loaderContext }
     );
     const outputStream = this.environment.renderStreamFactory();
     await this.renderWithContext(context, outputStream);
@@ -134,7 +134,7 @@ export class Template {
     const context = new this.renderContextClass(
       this.environment,
       this.makeGlobals(globals),
-      { templateName: this.name }
+      { templateName: this.name, loaderContext: this.loaderContext }
     );
     const outputStream = this.environment.renderStreamFactory();
     this.renderWithContextSync(context, outputStream);
@@ -215,11 +215,11 @@ export class Template {
   }
 
   /**
-   * Copy this template with new globals.
+   * Copy this template with new render context globals.
    *
    * @param globals - An optional object who's properties will be added
    * to the render context every time this template is rendered.
-   * @returns A this template with new globals.
+   * @returns A copy of this template with new render context globals.
    */
   public withGlobals(globals?: ContextScope) {
     return new Template(this.environment, this.tree, globals, {
@@ -232,6 +232,10 @@ export class Template {
   }
 
   /**
+   * Combine render context global variables from the bound environment,
+   * the "matter" object originating from a template loader (if any) and
+   * those passed to `render()`.
+   *
    * Override this to change global template scope priorities.
    */
   protected makeGlobals(templateGlobals: ContextScope): ContextScope {

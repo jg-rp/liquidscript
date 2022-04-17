@@ -37,6 +37,7 @@ export type RenderContextOptions = {
   templateName?: string;
   disabledTags?: Set<string>;
   copyDepth?: number;
+  loaderContext?: ContextScope;
 };
 
 /**
@@ -103,6 +104,13 @@ export class RenderContext {
   private copyDepth: number;
 
   /**
+   * An object containing arbitrary properties passed down from a
+   * template loader. The properties of this object are not intended
+   * to be accessible by template authors.
+   */
+  readonly loaderContext: ContextScope;
+
+  /**
    *
    * @param environment - The environment from which this context was created.
    * @param globals - Global template variables, passed down from the
@@ -112,11 +120,17 @@ export class RenderContext {
   constructor(
     readonly environment: Environment,
     private globals: ContextScope = {},
-    { disabledTags, templateName, copyDepth }: RenderContextOptions = {}
+    {
+      disabledTags,
+      templateName,
+      copyDepth,
+      loaderContext,
+    }: RenderContextOptions = {}
   ) {
     this.disabledTags = disabledTags ?? new Set();
     this.templateName = templateName ?? "<string>";
     this.copyDepth = copyDepth ?? 0;
+    this.loaderContext = loaderContext ?? {};
     // Scopes are searched in this order.
     this.scope = chainObjects(
       this.locals,
@@ -232,7 +246,12 @@ export class RenderContext {
     name: string,
     loaderContext: { [index: string]: unknown }
   ): Promise<Template> {
-    return this.environment.getTemplate(name, undefined, this, loaderContext);
+    return this.environment.getTemplate(
+      name,
+      undefined,
+      this,
+      this.makeLoaderContext(loaderContext)
+    );
   }
 
   /**
@@ -247,8 +266,16 @@ export class RenderContext {
       name,
       undefined,
       this,
-      loaderContext
+      this.makeLoaderContext(loaderContext)
     );
+  }
+
+  /**
+   * Merge a loader context object with the loader context already stored
+   * in this render context.
+   */
+  protected makeLoaderContext(loaderContext: ContextScope): ContextScope {
+    return { ...this.loaderContext, ...loaderContext };
   }
 
   /**
