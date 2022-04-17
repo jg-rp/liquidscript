@@ -5606,7 +5606,7 @@ __metadata:
     eslint-plugin-tsdoc: ^0.2.14
     jest: ^27.4.7
     js-yaml: ^4.1.0
-    luxon: ^2.3.0
+    luxon: ^2.3.1
     prettier: ^2.5.1
     rewire: ^6.0.0
     rollup: ^2.70.0
@@ -5694,7 +5694,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"luxon@npm:^2.3.0":
+"luxon@npm:^2.3.1":
   version: 2.3.1
   resolution: "luxon@npm:2.3.1"
   checksum: ce5eec873a0172a0956618531e28010e8d8319a8b3a836b893d0f92239413a1fc5f77841ca24988e27bd61e8b2748e160e9dfcb13e92d7f031c1e31ad1c8ae91

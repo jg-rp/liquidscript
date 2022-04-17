@@ -81,7 +81,7 @@
   },
   "dependencies": {
     "decimal.js": "^10.3.1",
-    "luxon": "^2.3.0"
+    "luxon": "^2.3.1"
   },
   "keywords": [
     "liquid",
