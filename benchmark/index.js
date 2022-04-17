@@ -89,16 +89,16 @@ function parseTheme(theme) {
   const templates = [];
   for (const t of theme.templates) {
     templates.push(
-      environment.fromString(t.source, t.path, {
-        template: t.name,
-      })
+      environment.fromString(t.source, { template: t.name }, { name: t.path })
     );
   }
 
   return {
-    layout: environment.fromString(theme.layout.source, theme.layout.path, {
-      template: theme.layout.name,
-    }),
+    layout: environment.fromString(
+      theme.layout.source,
+      { template: theme.layout.name },
+      { name: theme.layout.path }
+    ),
     templates: templates,
   };
 }
@@ -112,9 +112,11 @@ function parseIncludeThemes(themes) {
   for (const theme of themes) {
     for (const layout of theme.layouts) {
       templates.push(
-        environment.fromString(layout.source, layout.path, {
-          template: layout.templateName,
-        })
+        environment.fromString(
+          layout.source,
+          { template: layout.templateName },
+          { name: layout.path }
+        )
       );
     }
   }
@@ -126,12 +128,16 @@ function parse(n = 100) {
   for (let i = 0; i < n; i++) {
     for (const theme of themeSources) {
       for (const template of theme.templates) {
-        environment.fromString(theme.layout.source, theme.layout.path, {
-          template: theme.layout.name,
-        });
-        environment.fromString(template.source, template.path, {
-          template: template.name,
-        });
+        environment.fromString(
+          theme.layout.source,
+          { template: theme.layout.name },
+          { name: theme.layout.path }
+        );
+        environment.fromString(
+          template.source,
+          { template: template.name },
+          { name: template.path }
+        );
       }
     }
   }
@@ -145,15 +151,19 @@ function parseAndRenderSync(n = 100) {
     for (const theme of themeSources) {
       for (const template of theme.templates) {
         const content = environment
-          .fromString(template.source, template.path, {
-            template: template.name,
-          })
+          .fromString(
+            template.source,
+            { template: template.name },
+            { name: template.path }
+          )
           .renderSync();
 
         environment
-          .fromString(theme.layout.source, theme.layout.path, {
-            template: template.name,
-          })
+          .fromString(
+            theme.layout.source,
+            { template: template.name },
+            { name: theme.layout.path }
+          )
           .renderSync({ content_for_layout: content });
       }
     }

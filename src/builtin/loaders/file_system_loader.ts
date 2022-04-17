@@ -249,19 +249,19 @@ export class CachingNodeFileSystemLoader extends Loader {
     name: string,
     environment: Environment,
     context?: RenderContext,
-    globals?: ContextScope
+    globals?: ContextScope,
+    loaderContext?: ContextScope
   ): Promise<Template> {
     const cached = this.#cache.get(name);
     if (!cached || (this.autoReload && !(await cached.isUpToDate()))) {
       const source = await this.getSource(name);
-      const template = environment.fromString(
-        source.source,
+      const template = environment.fromString(source.source, globals, {
         name,
-        globals,
-        source.matter,
-        source.upToDate,
-        source.upToDateSync
-      );
+        matter: source.matter,
+        loaderContext,
+        upToDate: source.upToDate,
+        upToDateSync: source.upToDateSync,
+      });
       this.#cache.set(name, template);
       return template;
     }
@@ -272,19 +272,19 @@ export class CachingNodeFileSystemLoader extends Loader {
     name: string,
     environment: Environment,
     context?: RenderContext,
-    globals?: ContextScope
+    globals?: ContextScope,
+    loaderContext?: ContextScope
   ): Template {
     const cached = this.#cache.get(name);
     if (!cached || (this.autoReload && !cached.isUpToDateSync())) {
       const source = this.getSourceSync(name);
-      const template = environment.fromString(
-        source.source,
+      const template = environment.fromString(source.source, globals, {
         name,
-        globals,
-        source.matter,
-        source.upToDate,
-        source.upToDateSync
-      );
+        matter: source.matter,
+        loaderContext,
+        upToDate: source.upToDate,
+        upToDateSync: source.upToDateSync,
+      });
       this.#cache.set(name, template);
       return template;
     }

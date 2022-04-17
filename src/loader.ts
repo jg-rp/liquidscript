@@ -81,13 +81,13 @@ export abstract class Loader {
     loaderContext?: { [index: string]: unknown }
   ): Promise<Template> {
     const source = await this.getSource(name, context, loaderContext);
-    return environment.fromString(
-      source.source,
+    return environment.fromString(source.source, globals, {
       name,
-      globals,
-      source.matter,
-      source.upToDate
-    );
+      matter: source.matter,
+      loaderContext,
+      upToDate: source.upToDate,
+      upToDateSync: source.upToDateSync,
+    });
   }
 
   /**
@@ -102,13 +102,12 @@ export abstract class Loader {
     loaderContext?: { [index: string]: unknown }
   ): Template {
     const source = this.getSourceSync(name, context, loaderContext);
-    return environment.fromString(
-      source.source,
+    return environment.fromString(source.source, globals, {
       name,
-      globals,
-      source.matter,
-      source.upToDate,
-      source.upToDateSync
-    );
+      matter: source.matter,
+      loaderContext,
+      upToDate: source.upToDate,
+      upToDateSync: source.upToDateSync,
+    });
   }
 }

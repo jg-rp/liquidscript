@@ -20,7 +20,7 @@ class MockDrop implements LiquidStringable, LiquidHTMLable {
 describe("HTML auto escape", () => {
   test("disable HTML auto escape", () => {
     expect(
-      Template.from("{{ name }}", { autoEscape: false }).renderSync({
+      Template.from("{{ name }}", undefined, { autoEscape: false }).renderSync({
         name: '<script>alert("XSS!");</script>',
       })
     ).toBe('<script>alert("XSS!");</script>');
@@ -28,15 +28,17 @@ describe("HTML auto escape", () => {
 
   test("ignore toLiquidHtml when auto escaping is disabled", () => {
     expect(
-      Template.from("{{ thing }}", { autoEscape: false }).renderSync({
-        thing: new MockDrop(),
-      })
+      Template.from("{{ thing }}", undefined, { autoEscape: false }).renderSync(
+        {
+          thing: new MockDrop(),
+        }
+      )
     ).toBe("not HTML");
   });
 
   test("escape a script tag", () => {
     expect(
-      Template.from("{{ thing }}", { autoEscape: true }).renderSync({
+      Template.from("{{ thing }}", undefined, { autoEscape: true }).renderSync({
         thing: '<script>alert("XSS!");</script>',
       })
     ).toBe("&lt;script&gt;alert(&#34;XSS!&#34;);&lt;/script&gt;");
@@ -44,7 +46,9 @@ describe("HTML auto escape", () => {
 
   test("don't escape template literals", () => {
     expect(
-      Template.from("<br>{{ thing }}", { autoEscape: true }).renderSync({
+      Template.from("<br>{{ thing }}", undefined, {
+        autoEscape: true,
+      }).renderSync({
         thing: '<script>alert("XSS!");</script>',
       })
     ).toBe("<br>&lt;script&gt;alert(&#34;XSS!&#34;);&lt;/script&gt;");
@@ -52,7 +56,9 @@ describe("HTML auto escape", () => {
 
   test("don't escape string literals", () => {
     expect(
-      Template.from("{{ '<em>Hello</em>' }}", { autoEscape: true }).renderSync()
+      Template.from("{{ '<em>Hello</em>' }}", undefined, {
+        autoEscape: true,
+      }).renderSync()
     ).toBe("<em>Hello</em>");
   });
 
@@ -65,6 +71,7 @@ describe("HTML auto escape", () => {
           "</p>" +
           "{% endcapture %}" +
           "{{ foo }}",
+        undefined,
         { autoEscape: true }
       ).renderSync({
         thing: '<script>alert("XSS!");</script>',
@@ -78,7 +85,7 @@ describe("HTML auto escape", () => {
 
   test("drops implementing toLiquidHtml are safe", () => {
     expect(
-      Template.from("{{ thing }}", { autoEscape: true }).renderSync({
+      Template.from("{{ thing }}", undefined, { autoEscape: true }).renderSync({
         thing: new MockDrop(),
       })
     ).toBe("<em>HELLO</em>");

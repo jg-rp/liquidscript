@@ -1,5 +1,9 @@
 # LiquidScript Change Log
 
+## Version 1.0.0-beta.1
+
+- **Breaking Change**: Both `Environment.fromString()` and `Template.fromString()` have been changed to accept a template source string (as before), render context globals as the second argument, and a `TemplateContext` object as an optional third argument.
+
 ## Version 0.5.3-alpha.1
 
 - Fixed a bug where the `loaderContext` object passed to `RenderContext.getTemplate` and `RenderContext.getTemplateSync` would not get passed on to template loaders.

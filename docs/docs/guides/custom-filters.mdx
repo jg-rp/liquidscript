@@ -41,7 +41,7 @@ env.addFilter("ends_with", (val: string, arg: string) => val.endsWith(arg));
 In a template you'd use it like this.
 
 ```liquid
-{% assign foo = "foobar" | endswith: "bar" %}
+{% assign foo = "foobar" | ends_with: "bar" %}
 {% if foo %}
     <!-- do something -->
 {% endif %}
@@ -59,9 +59,9 @@ function mySlice(value, start, end) {
   value = object.isArray(value) ? value : object.liquidStringify(value);
   // Make sure `start` is a number.
   start = filters.parseNumberOrZero(start);
-  // Stop is optional
+  // End is optional
   if (end === undefined) return value.slice(start);
-  // Make sure `stop` is a number.
+  // Make sure `end` is a number.
   end = filters.parseNumberOrZero(end);
   return value.slice(start, end);
 }
@@ -127,14 +127,14 @@ env.addFilter("link_to_tag", LinkToTag);
 The [`FilterContext`](../api/modules.md#filtercontext) also includes any keyword arguments passed to the filter. These are available as `this.options`. The [`default`](../language/filters.md#default) filter is the only built-in filter to use a keyword argument. For example, `{{ user.name | default: 'anonymous', allow_false: false }}`
 
 :::info
-In Liquid, keyword arguments can appear in any order, even before and in between positional arguments. It is because of this, and the desire to allow filters with [rest parameters](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/rest_parameters), that LiquidScript puts options in the filter context object instead of the last argument of the filter function.
+In Liquid, keyword arguments can appear in any order, even before and inbetween positional arguments. It is because of this, and the desire to allow filters with [rest parameters](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/rest_parameters), that LiquidScript puts options in the filter context object instead of the last argument of the filter function.
 :::
 
 ## Liquid Numbers and Arithmetic
 
 Unlike JavaScript, Liquid has distinct integer and float number types. To maintain compatibility with the reference implementation of Liquid, LiquidScript defines an [`Integer`](../api/classes/Integer.md) type, a [`Float`](../api/classes/Float.md) type and [utility functions](../api/modules.md#parsenumbert) for converting to these types.
 
-Both `Integer` and `Float` export methods for performing decimal arithmetic, as opposed to JavaScripts usual floating point arithmetic.
+Both `Integer` and `Float` export methods for performing decimal arithmetic, as opposed to JavaScript's usual floating point arithmetic.
 
 When writing custom filters that expect numbers as inputs, you should be prepared to handle JavaScript primitive numbers **and** Liquid numbers. All built-in math filters convert their arguments to Liquid's [`NumberT`](../api/modules.md#numbert) type on input, exclusively use methods of those types for arithmetic, and return a `NumberT` too.
 

@@ -31,6 +31,10 @@ We use [class syntax](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Re
 
 A [`Tag`](../api/interfaces/Tag.md) is free to parse its expression any way it chooses. Built in tags use regular expressions to [generate](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Generator) a [stream of tokens](../api/classes/expressions.ExpressionTokenStream.md), then step through those tokens yielding [`Expression`](../api/interfaces/Expression.md) objects.
 
+:::info
+Despite their names, `ExpressionTokenStream`, `TokenStream` and `RenderStream` do not implement a Node.js stream or a web stream.
+:::
+
 Here we'll reuse the tokenizer from the [`include`](../language/tags.md#include) tag, as it, too, accepts any number of comma separated named arguments. We will, however, supply a different set of allowed keywords to the tokenizer function.
 
 <Tabs groupId="js-ts">
@@ -53,6 +57,8 @@ const tokenize = expressions.include.makeTokenizer(
 // Indicates the end of a `with` block.
 const TAG_ENDWITH = "endwith";
 const END_WITH_BLOCK = new Set([TAG_ENDWITH]);
+
+// ...
 ```
 
 </TabItem>
@@ -90,6 +96,8 @@ const END_WITH_BLOCK = new Set([TAG_ENDWITH]);
 type Arguments = {
   [index: string]: Expression;
 };
+
+// ...
 ```
 
 </TabItem>
@@ -144,6 +152,8 @@ class WithTag {
     return [key, val];
   }
 }
+
+// ...
 ```
 
 </TabItem>
@@ -189,6 +199,8 @@ class WithTag implements Tag {
     return [key, val];
   }
 }
+
+// ...
 ```
 
 </TabItem>

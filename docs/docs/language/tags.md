@@ -9,7 +9,7 @@ Some of the examples here are borrowed from [Shopify's Liquid documentation](htt
 You can find their license [here](https://github.com/Shopify/liquid/blob/master/LICENSE).
 :::
 
-This page documents the standard tags built-in to Liquid. See [custom tags](../guides/custom-tags.md) for examples of how to write your own.
+This page documents the standard tags built-in to Liquid. See [custom tags](../guides/custom-tags.mdx) for examples of how to write your own.
 
 ## assign
 

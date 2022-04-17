@@ -9,7 +9,9 @@ describe("template from string", () => {
   test("implicit environments are cached", () => {
     const template = Template.fromString("Hello, {{ you }}!");
     const anotherTemplate = Template.fromString("Goodbye, {{ you }}.");
-    const yetAnotherTemplate = Template.fromString("foo", { autoEscape: true });
+    const yetAnotherTemplate = Template.fromString("foo", undefined, {
+      autoEscape: true,
+    });
     expect(Object.is(template.environment, anotherTemplate.environment)).toBe(
       true
     );

@@ -54,11 +54,7 @@ const source = `
 </html>
 `;
 
-// The second argument is an optional name for the template.
-const template = env.fromString(source, "some_template.liquid", {
-  page: { name: "Blog" },
-});
-
+const template = env.fromString(source, { page: { name: "Blog" } });
 console.log(template.renderSync());
 ```
 
@@ -91,11 +87,7 @@ const source = `
 </html>
 `;
 
-// The second argument is an optional name for the template.
-const template = env.fromString(source, "some_template.liquid", {
-  page: { name: "Blog" },
-});
-
+const template = env.fromString(source, { page: { name: "Blog" } });
 console.log(template.renderSync({ user: { name: "Sally" } }));
 ```
 
@@ -112,6 +104,6 @@ console.log(template.renderSync({ user: { name: "Sally" } }));
 
 ## Matter
 
-Matter variables are those that are added to a [template](../api/classes/Template.md) by a [loader](loading-templates.md). They could be from a [front matter loader](../guides/custom-loaders.md#front-matter-loader) or extra meta data from a [database loader](../guides/custom-loaders.md#async-database-loader).
+Matter variables are those that are added to a [template](../api/classes/Template.md) by a [loader](loading-templates.md). They could be from a [front matter loader](../guides/custom-loaders.mdx#front-matter-loader) or extra meta data from a [database loader](../guides/custom-loaders.mdx#async-database-loader).
 
 These, too, are merged into the _global_ namespace, taking priority over template globals, but not `render()` keyword arguments.

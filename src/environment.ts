@@ -14,6 +14,7 @@ import { TemplateTokenStream, Token } from "./token";
 import { LaxUndefined, Undefined } from "./undefined";
 import { ContextScope } from "./types";
 import { LiquidSyntaxError } from "./errors";
+import { BufferedRenderStream, RenderStream } from "./liquidscript";
 
 const implicitEnvironmentCache = new LRUCache<string, Environment>(10);
 
@@ -90,6 +91,46 @@ export type EnvironmentOptions = {
    * @defaultValue A `LaxUndefined` factory function.
    */
   undefinedFactory?: (name: string) => Undefined;
+
+  /**
+   * A factory function that will be used to create a render stream
+   * for each template rendered from the environment.
+   */
+  renderStreamFactory?: () => RenderStream;
+};
+
+/**
+ * Optional meta data and utilities for managing liquid templates.
+ */
+export type TemplateContext = {
+  /**
+   * A name or identifier for the template. This name will be used
+   * in error messages.
+   */
+  name?: string;
+
+  /**
+   * Extra global render context variables. Usually added by a
+   * template loader.
+   */
+  matter?: ContextScope;
+
+  /**
+   * Additional, arbitrary data that a loader can use to scope or
+   * otherwise narrow its search space.
+   */
+  loaderContext?: ContextScope;
+
+  /**
+   * A function that will return `true` if this template is up to
+   * date, or `false` if it needs to loaded again.
+   */
+  upToDate?: () => Promise<boolean>;
+
+  /**
+   * A synchronous version of `upToDate`.
+   */
+  upToDateSync?: () => boolean;
 };
 
 /**
@@ -108,6 +149,7 @@ export class Environment {
   readonly tagEndString: string;
   protected templateClass: typeof Template = Template;
   readonly undefinedFactory: (name: string) => Undefined;
+  readonly renderStreamFactory: () => RenderStream;
 
   /**
    * An object mapping filter names to filter functions.
@@ -123,6 +165,11 @@ export class Environment {
   #tokenize: (source: string) => Generator<Token>;
   #parser: Parser;
 
+  /**
+   * Environment constructor.
+   *
+   * @param options - Environment options.
+   */
   constructor({
     autoEscape,
     globals,
@@ -134,6 +181,7 @@ export class Environment {
     tagStartString,
     tagEndString,
     undefinedFactory,
+    renderStreamFactory,
   }: EnvironmentOptions = {}) {
     this.autoEscape = autoEscape ?? false;
     this.globals = globals ?? {};
@@ -145,6 +193,8 @@ export class Environment {
     this.tagStartString = tagStartString ?? "{%";
     this.tagEndString = tagEndString ?? "%}";
     this.undefinedFactory = undefinedFactory ?? LaxUndefined.from;
+    this.renderStreamFactory =
+      renderStreamFactory ?? (() => new BufferedRenderStream());
 
     this.#tokenRules = compileRules(
       this.statementStartString,
@@ -166,11 +216,19 @@ export class Environment {
     registerBuiltin(this);
   }
 
+  /**
+   * Return an environment configured with the given options. The `globals`
+   * and `loader` options are ignored when creating implicit environments.
+   *
+   * @param options - Options for the implicit environment.
+   */
   static getImplicitEnvironment(options: EnvironmentOptions = {}): Environment {
-    const cacheKey = JSON.stringify(options, Object.keys(options).sort());
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { globals, loader, ...opts } = options;
+    const cacheKey = JSON.stringify(opts, Object.keys(opts).sort());
     let env = implicitEnvironmentCache.get(cacheKey);
     if (!env) {
-      env = new Environment(options);
+      env = new Environment(opts);
       implicitEnvironmentCache.set(cacheKey, env);
     }
     return env;
@@ -214,33 +272,24 @@ export class Environment {
   /**
    * Parse the given string as a Liquid template.
    * @param source - The Liquid template source code.
-   * @param name - An optional name identifying the template.
    * @param globals - An optional object who's properties will be added
    * to the render context every time the resulting template is rendered.
-   * @param matter - Extra globals, usually added by a template loader.
-   * @param upToDate - A function that will return `true` if this template is
-   * up to date, or `false` if it needs to loaded again.
-   * @param upToDateSync - A synchronous version of `upToDate`.
+   * @param templateContext - Optional meta data. Mostly for managing loading
+   * and reloading of templates.
    * @returns A `Template` bound to this environment, ready to be rendered.
    * @throws `NoSuchTemplateError` if a template with the given name can not
    * be found.
    */
   public fromString(
     source: string,
-    name?: string,
     globals?: ContextScope,
-    matter?: ContextScope,
-    upToDate?: () => Promise<boolean>,
-    upToDateSync?: () => boolean
+    templateContext: TemplateContext = {}
   ): Template {
     return new this.templateClass(
       this,
-      this.parse(source, name),
-      name || "",
+      this.parse(source, templateContext?.name),
       this.makeGlobals(globals),
-      matter,
-      upToDate,
-      upToDateSync
+      templateContext
     );
   }
 
