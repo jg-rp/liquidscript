@@ -463,6 +463,74 @@ class FrontMatterLoader extends NodeFileSystemLoader {
 </TabItem>
 </Tabs>
 
-## Database Loader
+## Scoped Database Loader
 
-TODO: with user ID narrowing
+We can implement a _scoped_ template loader using the `loaderContext` argument to [`getTemplate()`](../api/classes/Environment.md#gettemplate) or as part of the `templateContext` argument to [`fromString()`](../api/classes/Environment.md#fromstring). A scoped template loader is useful for multi-user application where each user has their own collection of templates.
+
+This example loader reads templates from a MongoDB database, narrowing its search space using a `uid` property set on the `loaderContext` object passed to [`getSource()`](../api/classes/Loader.md#getsource).
+
+```javascript title="mongo_loader.mjs"
+import { Loader, TemplateNotFoundError, TemplateSource } from "liquidscript";
+
+export class MongoDBLoader extends Loader {
+  constructor(collection) {
+    super();
+    this.collection = collection;
+    this.re = /[a-zA-Z][a-zA-Z0-9_\-]+/;
+  }
+
+  async getSource(name, renderContext, loaderContext) {
+    const uid = loaderContext !== undefined ? loaderContext.uid : undefined;
+    if (uid === undefined)
+      throw new TemplateNotFoundError(
+        "MongoDBLoader requires a loader context with a 'uid' property"
+      );
+
+    if (!this.re.test(name))
+      throw new TemplateNotFoundError(`invalid template name: ${name}`);
+
+    const query = { uid: uid, [`templates.${name}`]: { $exists: 1 } };
+    const projection = { _id: 0, [`templates.${name}`]: 1 };
+
+    const result = await this.collection.findOne(query, projection);
+    if (!result) throw new TemplateNotFoundError(name);
+    return new TemplateSource(result.templates[name], name);
+  }
+
+  getSourceSync() {
+    throw new Error("MongoDBLoader is an async only loader");
+  }
+}
+```
+
+The `MongoDBLoader` constructor expects a MongoDB `Collection` from an already connected client, and that documents in that collection have a `uid` and `templates` field. Fields in the embedded `templates` document are Liquid template names and their values are Liquid template source text.
+
+If `MongoDBLoader` is exported from the module `"mongo_loader.mjs"`, we could use it like this.
+
+```javascript
+import { Environment } from "liquidscript";
+import { MongoClient } from "mongodb";
+import { MongoDBLoader } from "./mongo_loader";
+
+const uri = "mongodb://<somehost>";
+const client = new MongoClient(uri);
+
+async function run() {
+  try {
+    await client.connect();
+    const db = client.db("mydatabase");
+    const col = db.collection("mycollection");
+    const env = new Environment({ loader: new MongoDBLoader(col) });
+
+    const template = await env.getTemplate("index", undefined, undefined, {
+      uid: "ABC0123",
+    });
+
+    const result = await template.render();
+    console.log(result);
+  } finally {
+    await client.close();
+  }
+}
+run().catch(console.dir);
+```
