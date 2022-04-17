@@ -187,11 +187,11 @@ class LazyUserDrop implements Liquidable {
 
 ## Project Status
 
-LiquidScript is currently available as an alpha release. This means that:
+LiquidScript is currently available as a beta release. This means that:
 
-- Documentation is either missing or incomplete.
-- There's potential for the API to change in a backwards incompatible way. For example, syntax tree walking will almost certainly change to include expression objects as well as tree nodes.
-- Test coverage is currently at 83%, although in-browser testing has been limited to recent versions of Chrome and Firefox thus far.
+- The API is stable.
+- Documentation is mostly complete, although there is room for improvement.
+- Test coverage is currently above 80%, although in-browser testing has been limited to recent versions of Chrome and Firefox thus far.
 
 ## Dependencies
 

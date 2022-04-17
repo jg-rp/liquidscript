@@ -6,6 +6,7 @@ module.exports = {
   roots: ["<rootDir>/src/", "<rootDir>/tests/"],
   collectCoverage: false,
   coverageDirectory: "<rootDir>/coverage",
+  coverageReporters: ["html"],
   testPathIgnorePatterns: ["/node_modules/", "<rootDir>/tests/browser/"],
   slowTestThreshold: 10,
 };
