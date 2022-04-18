@@ -4,7 +4,7 @@ import { isLiquidPrimitive, toLiquidPrimitive } from "../../drop";
 import { FilterArgumentError } from "../../errors";
 import { EMPTY, isLiquidTruthy } from "../../expression";
 import { checkArguments, FilterContext } from "../../filter";
-import { isNumberT } from "../../number";
+import { isInteger, isN, isNumberT, parseNumberT } from "../../number";
 import {
   isArray,
   isObject,
@@ -173,21 +173,23 @@ export function slice(
   length?: unknown
 ): string | unknown[] | Markup {
   checkArguments(arguments.length, 2, 1);
-  // TODO: Handle NumberT
-  const _offset = Number(offset);
-  if (isUndefined(offset) || !Number.isInteger(_offset))
-    throw new FilterArgumentError(
-      `expected an integer offset, found ${offset}`
-    );
-
-  const _length = isUndefined(length) ? 1 : Number(length);
-  if (!Number.isInteger(_length))
-    throw new FilterArgumentError(
-      `expected an integer length, found ${length}`
-    );
+  const _offset = parseIntegerOrThrow(offset, "offset");
+  const _length = isUndefined(length)
+    ? 1
+    : parseIntegerOrThrow(length, "length");
 
   // Arrays and strings only.
   const _left = isArray(left) ? left : liquidStringify(left);
   const start = _offset < 0 ? _left.length + _offset : _offset;
   return _left.slice(start, start + _length);
+}
+
+function parseIntegerOrThrow(value: unknown, name: string): number {
+  if (isN(value)) {
+    const num = parseNumberT(value);
+    if (isInteger(num)) return num.valueOf();
+  }
+  throw new FilterArgumentError(
+    `expected an integer ${name}, found '${value}'`
+  );
 }

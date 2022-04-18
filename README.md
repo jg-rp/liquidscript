@@ -191,7 +191,7 @@ LiquidScript is currently available as a beta release. This means that:
 
 - The API is stable.
 - High-level documentation is mostly complete. API documentation is a work in progress.
-- Core functionality and features are complete. Some "nice to have" features and non-standard tags/filters will be forthcoming.
+- Core functionality and features are complete. Some "nice to have" features and non-standard tags/filters are forthcoming.
 - Test coverage is currently above 80%, although in-browser testing has been limited to recent versions of Chrome and Firefox thus far.
 
 ## Dependencies

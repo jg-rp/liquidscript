@@ -148,7 +148,7 @@ export function isNumberT(val: unknown): val is NumberT {
  * A type predicate for Liquid's `Integer` type.
  */
 export function isInteger(val: unknown): val is Integer {
-  return val instanceof Integer;
+  return val instanceof Integer && !isNaN(val.valueOf());
 }
 
 /**
