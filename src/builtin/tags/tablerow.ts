@@ -1,4 +1,4 @@
-import { BlockNode, Node } from "../../ast";
+import { BlockNode, Node, ChildNode } from "../../ast";
 import { RenderContext } from "../../context";
 import { Environment } from "../../environment";
 import { InternalTypeError } from "../../errors";
@@ -29,7 +29,7 @@ export class TableRowTag implements Tag {
     return new this.nodeClass(
       token,
       expr,
-      environment.parser.parseBlock(stream, END_TAGBLOCK)
+      environment.parser.parseBlock(stream, END_TAGBLOCK, token)
     );
   }
 }
@@ -122,7 +122,7 @@ export class TableRowNode implements Node {
     }
   }
 
-  children(): Node[] {
-    return [this.block];
+  children(): ChildNode[] {
+    return this.block.children();
   }
 }

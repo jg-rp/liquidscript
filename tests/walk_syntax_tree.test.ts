@@ -18,10 +18,13 @@ describe("walk a syntax tree", () => {
     );
 
     const tokenKinds = Array.from(walk(template.tree.nodes[0])).map(
-      (n) => n.token.kind
+      (n) => n.node.token.kind
     );
 
     expect(tokenKinds).toStrictEqual([
+      TOKEN_TAG,
+      TOKEN_TAG,
+      TOKEN_TAG,
       TOKEN_TAG,
       TOKEN_TAG,
       TOKEN_STATEMENT,

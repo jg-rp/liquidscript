@@ -183,8 +183,4 @@ export class IncludeNode implements Node {
       context.scope.pop();
     }
   }
-
-  children(): Node[] {
-    return [];
-  }
 }

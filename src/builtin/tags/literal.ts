@@ -24,8 +24,4 @@ export class LiteralNode implements Node {
   public renderSync(context: RenderContext, out: RenderStream): void {
     out.write(this.token.value);
   }
-
-  children(): Node[] {
-    return [];
-  }
 }

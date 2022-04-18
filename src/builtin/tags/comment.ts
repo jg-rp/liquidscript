@@ -33,8 +33,4 @@ export class CommentNode implements Node {
   public renderSync(): void {
     return;
   }
-
-  children(): Node[] {
-    return [];
-  }
 }

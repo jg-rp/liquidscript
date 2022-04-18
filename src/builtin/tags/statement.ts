@@ -50,10 +50,6 @@ export class OutputStatementNode implements Node {
     }
   }
 
-  children(): Node[] {
-    return [];
-  }
-
   toString(): string {
     return "`" + this.expression.toString() + "`";
   }

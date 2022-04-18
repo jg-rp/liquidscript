@@ -41,8 +41,4 @@ export class DecrementNode implements Node {
     context.counters[this.identifier] = val;
     out.write(val.toString());
   }
-
-  public children(): Node[] {
-    return [];
-  }
 }

@@ -1,4 +1,4 @@
-import { BlockNode, forcedOutput, Node } from "../../ast";
+import { BlockNode, forcedOutput, Node, ChildNode } from "../../ast";
 import { RenderContext } from "../../context";
 import { Environment } from "../../environment";
 import { BooleanExpression, Literal } from "../../expression";
@@ -65,8 +65,11 @@ export class CaseTag implements Tag {
         .split(",")
         .map((expr) => this.parseExpression(_case, expr, stream));
 
-      stream.next();
-      const whenBlock = parser.parseBlock(stream, END_WHEN_BLOCK);
+      const whenBlock = parser.parseBlock(
+        stream,
+        END_WHEN_BLOCK,
+        stream.next()
+      );
       whens.push(
         ...whenExprs.map((expr) => ({ condition: expr, block: whenBlock }))
       );
@@ -77,11 +80,10 @@ export class CaseTag implements Tag {
       stream.current.kind === TOKEN_TAG &&
       stream.current.value === TAG_ELSE
     ) {
-      stream.next();
       return new this.nodeClass(
         token,
         whens,
-        parser.parseBlock(stream, END_CASE_BLOCK)
+        parser.parseBlock(stream, END_CASE_BLOCK, stream.next())
       );
     }
     return new this.nodeClass(token, whens);
@@ -143,11 +145,14 @@ export class CaseNode implements Node {
     if (this.forceOutput || /\S/.test(buffered)) out.write(buffered);
   }
 
-  children(): Node[] {
-    const _children = Array.from(
-      this.whens.map((alt: ConditionalAlternative) => alt.block)
+  children(): ChildNode[] {
+    const _children = this.whens.map(
+      (alt: ConditionalAlternative): ChildNode => ({
+        node: alt.block,
+        expression: alt.condition,
+      })
     );
-    if (this.default_ !== undefined) _children.push(this.default_);
+    if (this.default_ !== undefined) _children.push({ node: this.default_ });
     return _children;
   }
 }

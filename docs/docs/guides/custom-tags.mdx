@@ -121,7 +121,7 @@ class WithTag {
     stream.expect(tokens.TOKEN_EXPRESSION);
     const args = this.parseExpression(stream.current);
     stream.next();
-    const block = environment.parser.parseBlock(stream, END_WITH_BLOCK);
+    const block = environment.parser.parseBlock(stream, END_WITH_BLOCK, token);
     stream.expectTag(TAG_ENDWITH);
     return new WithNode(token, args, block);
   }
@@ -166,7 +166,7 @@ class WithTag implements Tag {
     stream.expect(tokens.TOKEN_EXPRESSION);
     const args = this.parseExpression(stream.current);
     stream.next();
-    const block = environment.parser.parseBlock(stream, END_WITH_BLOCK);
+    const block = environment.parser.parseBlock(stream, END_WITH_BLOCK, token);
     stream.expectTag(TAG_ENDWITH);
     return new WithNode(token, args, block);
   }
@@ -242,7 +242,7 @@ class WithNode {
   }
 
   children() {
-    return [this.block];
+    return [{ node: this.block }];
   }
 }
 ```
@@ -277,7 +277,7 @@ class WithNode implements Node {
   }
 
   children(): Node[] {
-    return [this.block];
+    return [{ node: this.block }];
   }
 }
 ```

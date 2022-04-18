@@ -83,10 +83,6 @@ export class CycleNode implements Node {
     const args = this.args.map((arg) => arg.evaluateSync(context));
     this.cycle(context, out, groupName, args);
   }
-
-  public children(): Node[] {
-    return [];
-  }
 }
 
 function* parseArgs(stream: ExpressionTokenStream): Generator<Expression> {

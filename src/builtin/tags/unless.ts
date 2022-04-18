@@ -1,4 +1,4 @@
-import { BlockNode, forcedOutput, Node } from "../../ast";
+import { BlockNode, forcedOutput, Node, ChildNode } from "../../ast";
 import { RenderContext } from "../../context";
 import { Environment } from "../../environment";
 import { Expression } from "../../expression";
@@ -44,7 +44,7 @@ export class UnlessTag implements Tag {
     const condition = this.parseExpression(stream);
     stream.next();
 
-    const consequence = parser.parseBlock(stream, END_IF_BLOCK);
+    const consequence = parser.parseBlock(stream, END_IF_BLOCK, token);
     const conditionalAlternatives: ConditionalAlternative[] = [];
 
     while (
@@ -54,10 +54,9 @@ export class UnlessTag implements Tag {
       // Eat TAG_ELSIF
       stream.next();
       const expr = this.parseExpression(stream);
-      stream.next();
       conditionalAlternatives.push({
         condition: expr,
-        consequence: parser.parseBlock(stream, END_ELSEIF_BLOCK),
+        consequence: parser.parseBlock(stream, END_ELSEIF_BLOCK, stream.next()),
       });
     }
 
@@ -65,13 +64,12 @@ export class UnlessTag implements Tag {
       stream.current.kind === TOKEN_TAG &&
       stream.current.value === TAG_ELSE
     ) {
-      stream.next();
       return new this.nodeClass(
         token,
         condition,
         consequence,
         conditionalAlternatives,
-        parser.parseBlock(stream, END_ELSE_BLOCK)
+        parser.parseBlock(stream, END_ELSE_BLOCK, stream.next())
       );
     }
 
@@ -153,14 +151,18 @@ export class UnlessNode implements Node {
     }
   }
 
-  children(): Node[] {
+  children(): ChildNode[] {
     const _children = [
-      this.consequence,
+      { node: this.consequence, expression: this.condition },
       ...this.conditionalAlternatives.map(
-        (alt: ConditionalAlternative) => alt.consequence
+        (alt: ConditionalAlternative): ChildNode => ({
+          node: alt.consequence,
+          expression: alt.condition,
+        })
       ),
     ];
-    if (this.alternative !== undefined) _children.push(this.consequence);
+    if (this.alternative !== undefined)
+      _children.push({ node: this.alternative });
     return _children;
   }
 }

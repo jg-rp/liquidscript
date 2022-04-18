@@ -1,6 +1,7 @@
 import { LiteralNode } from "./builtin/tags/literal";
 import { RenderContext } from "./context";
 import { DisabledTagError, InternalLiquidError } from "./errors";
+import { Expression } from "./expression";
 import { RenderStream } from "./io/output_stream";
 import { Token, TOKEN_TAG } from "./token";
 
@@ -39,7 +40,7 @@ export interface Node {
   /**
    * Return an array of child nodes.
    */
-  children(): Node[];
+  children?: () => ChildNode[];
 }
 
 /**
@@ -90,10 +91,22 @@ export class BlockNode implements Node {
     }
   }
 
-  public children(): Node[] {
-    return this.nodes;
+  public children(): ChildNode[] {
+    return this.nodes.map(
+      (n): ChildNode => ({
+        node: n,
+      })
+    );
   }
 }
+
+/**
+ * An AST node and optional expression guarding that node.
+ */
+export type ChildNode = {
+  node: Node;
+  expression?: Expression;
+};
 
 /**
  * Traverse the syntax tree rooted at `root` in depth-first pre-order.
@@ -101,11 +114,11 @@ export class BlockNode implements Node {
  * @param root - The syntax tree node to start from.
  * @returns A generator producing nodes that are decedents of the `root` node.
  */
-export function* walk(root: Node): Generator<Node> {
+export function* walk(root: Node): Generator<ChildNode> {
   if (root.children) {
     for (const node of root.children()) {
       yield node;
-      yield* walk(node);
+      yield* walk(node.node);
     }
   }
 }
@@ -115,9 +128,9 @@ export function* walk(root: Node): Generator<Node> {
  * output statements (or equivalent nodes). `false` otherwise.
  */
 export function forcedOutput(root: Node): boolean {
-  for (const node of walk(root)) {
-    if (node.captureOutput) return false;
-    if (node.forceOutput) return true;
+  for (const child of walk(root)) {
+    if (child.node.captureOutput) return false;
+    if (child.node.forceOutput) return true;
   }
   return false;
 }

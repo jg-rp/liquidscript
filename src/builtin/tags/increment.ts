@@ -37,8 +37,4 @@ export class IncrementNode implements Node {
     context.counters[this.identifier] = val + 1;
     out.write(val.toString());
   }
-
-  children(): Node[] {
-    return [];
-  }
 }

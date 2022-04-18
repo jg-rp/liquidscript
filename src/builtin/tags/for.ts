@@ -1,4 +1,4 @@
-import { BlockNode, forcedOutput, Node } from "../../ast";
+import { BlockNode, forcedOutput, Node, ChildNode } from "../../ast";
 import { RenderContext } from "../../context";
 import { Environment } from "../../environment";
 import { BreakIteration, ContinueIteration } from "../../errors";
@@ -48,7 +48,7 @@ export class ForTag implements Tag {
     stream.expect(TOKEN_EXPRESSION);
     const expr = parse(stream.current.value);
     stream.next();
-    const block = environment.parser.parseBlock(stream, ENDFORBLOCK);
+    const block = environment.parser.parseBlock(stream, ENDFORBLOCK, token);
 
     let _default: BlockNode | undefined = undefined;
 
@@ -56,8 +56,11 @@ export class ForTag implements Tag {
       stream.current.kind === TOKEN_TAG &&
       stream.current.value === TAG_ELSE
     ) {
-      stream.next();
-      _default = environment.parser.parseBlock(stream, ENDFORELSEBLOCK);
+      _default = environment.parser.parseBlock(
+        stream,
+        ENDFORELSEBLOCK,
+        stream.next()
+      );
     }
 
     stream.expect(TOKEN_TAG);
@@ -80,7 +83,7 @@ export class BreakNode implements Node {
     throw new BreakIteration("break");
   }
 
-  children(): Node[] {
+  children(): ChildNode[] {
     return [];
   }
 }
@@ -98,10 +101,6 @@ export class ContinueNode implements Node {
 
   public renderSync(): void {
     throw new ContinueIteration("continue");
-  }
-
-  children(): Node[] {
-    return [];
   }
 }
 
@@ -219,9 +218,11 @@ export class ForNode implements Node {
     }
   }
 
-  children(): Node[] {
-    const _children = [...this.block.nodes];
-    if (this.default_) _children.push(this.default_);
+  children(): ChildNode[] {
+    const _children: ChildNode[] = [
+      { node: this.block, expression: this.expression },
+    ];
+    if (this.default_) _children.push({ node: this.default_ });
     return _children;
   }
 }

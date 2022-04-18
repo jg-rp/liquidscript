@@ -1,4 +1,4 @@
-import { BlockNode, Node } from "../../ast";
+import { BlockNode, Node, ChildNode } from "../../ast";
 import { RenderContext } from "../../context";
 import { Environment } from "../../environment";
 import { LiquidSyntaxError } from "../../errors";
@@ -132,7 +132,7 @@ export class LiquidNode implements Node {
     this.block.renderSync(context, out);
   }
 
-  children(): Node[] {
-    return [];
+  children(): ChildNode[] {
+    return this.block.children();
   }
 }

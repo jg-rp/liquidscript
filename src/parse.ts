@@ -21,8 +21,10 @@ export interface Parser {
    * @param stream - A template token stream.
    * @param end - A set of tag names that indicate the end of the
    * block.
+   * @param token - The token to store on the block. Defaults to the
+   * current token in the stream.
    */
-  parseBlock(stream: TokenStream, end: Set<string>): BlockNode;
+  parseBlock(stream: TokenStream, end: Set<string>, token?: Token): BlockNode;
 
   /**
    * Like {@link parseBlock}, but read until the end of the stream.
@@ -50,8 +52,12 @@ export class TemplateParser implements Parser {
     return root;
   }
 
-  public parseBlock(stream: TokenStream, end: Set<string>): BlockNode {
-    const block = new BlockNode(stream.current);
+  public parseBlock(
+    stream: TokenStream,
+    end: Set<string>,
+    token?: Token
+  ): BlockNode {
+    const block = new BlockNode(token ?? stream.current);
     while (
       !(stream.current.kind === TOKEN_TAG && end.has(stream.current.value))
     ) {

@@ -1,4 +1,4 @@
-import { BlockNode, Node } from "../../ast";
+import { BlockNode, Node, ChildNode } from "../../ast";
 import { RenderContext } from "../../context";
 import { Environment } from "../../environment";
 import { BufferedRenderStream, RenderStream } from "../../io/output_stream";
@@ -16,7 +16,7 @@ export class IfChangedTag implements Tag {
     const token = stream.next();
     return new this.nodeClass(
       token,
-      environment.parser.parseBlock(stream, END_IFCHANGED_BLOCK)
+      environment.parser.parseBlock(stream, END_IFCHANGED_BLOCK, token)
     );
   }
 }
@@ -53,7 +53,7 @@ export class IfChangedNode implements Node {
     }
   }
 
-  public children(): Node[] {
-    return [this.block];
+  public children(): ChildNode[] {
+    return this.block.children();
   }
 }

@@ -1,4 +1,4 @@
-import { BlockNode, Node } from "../../ast";
+import { BlockNode, Node, ChildNode } from "../../ast";
 import { RenderContext } from "../../context";
 import { Environment } from "../../environment";
 import { LiquidSyntaxError } from "../../errors";
@@ -35,7 +35,7 @@ export class CaptureTag implements Tag {
     return new this.nodeClass(
       token,
       name,
-      environment.parser.parseBlock(stream, END_CAPTURE_BLOCK)
+      environment.parser.parseBlock(stream, END_CAPTURE_BLOCK, token)
     );
   }
 }
@@ -66,7 +66,7 @@ export class CaptureNode implements Node {
     this.assign(context, buf);
   }
 
-  children(): Node[] {
-    return [this.block];
+  children(): ChildNode[] {
+    return this.block.children();
   }
 }

@@ -1,4 +1,4 @@
-import { BlockNode, Node } from "../../ast";
+import { BlockNode, Node, ChildNode } from "../../ast";
 import { RenderContext } from "../../context";
 import { Environment } from "../../environment";
 import {
@@ -45,7 +45,7 @@ export class WithTag implements Tag {
     stream.expect(TOKEN_EXPRESSION);
     const args = this.parseExpression(stream.current);
     stream.next();
-    const block = environment.parser.parseBlock(stream, END_WITH_BLOCK);
+    const block = environment.parser.parseBlock(stream, END_WITH_BLOCK, token);
     return new WithNode(token, args, block);
   }
 
@@ -103,7 +103,7 @@ export class WithNode implements Node {
     context.extendSync(scope, () => this.block.renderSync(context, out));
   }
 
-  children(): Node[] {
-    return [this.block];
+  children(): ChildNode[] {
+    return [{ node: this.block }];
   }
 }

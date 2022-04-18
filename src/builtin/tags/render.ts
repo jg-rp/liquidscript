@@ -211,8 +211,4 @@ export class RenderNode implements Node {
       template.renderWithContextSync(ctx, out, true, true);
     }
   }
-
-  children(): Node[] {
-    return [];
-  }
 }

@@ -50,8 +50,4 @@ export class AssignNode implements Node {
   public renderSync(context: RenderContext): void {
     context.assign(this.name, this.expression.evaluateSync(context));
   }
-
-  children(): Node[] {
-    return [];
-  }
 }
