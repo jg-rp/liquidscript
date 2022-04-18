@@ -4,7 +4,7 @@
 
 - **Breaking Change**: Both `Environment.fromString()` and `Template.fromString()` have been changed to accept a template source string (as before), render context globals as the second argument, and a `TemplateContext` object as an optional third argument.
 - **Breaking Change**: The `children` method of the `Node` interface is now optional. If implemented it should return an array of `ChildNode`s, whereas before it would have been an array of `Nodes`.
-- **Breaking Change**: `TemplateParser.parseBlock()` now accepts an optional `token` argument. If given this token will be assigned to the resulting block. The current token in the stream will be used otherwise. All built-in block tags now parse their initial tag to `parseBlock()` instead of the tag for the first node in the block.
+- **Breaking Change**: `TemplateParser.parseBlock()` now accepts an optional `token` argument. If given, this token will be assigned to the resulting block. The current token in the stream will be used otherwise. All built-in block tags now pass their initial tag to `parseBlock()` instead of the tag for the first node in the block.
 
 ## Version 0.5.3-alpha.1
 
