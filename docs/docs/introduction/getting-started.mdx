@@ -141,17 +141,23 @@ console.log(template.renderSync(data));
 // Hello, Sally
 ```
 
+The optional second argument to [`Template.fromString()`](../api/classes/Template.md#fromstring) is an object containing [global render context variables](./render-context.md#template-globals). These will be pinned to the resulting template and included automatically every time you call `render()` or `renderSync()`.
+
 ## Configure
 
-You can pass configuration options as the second argument to [`Template.fromString()`](../api/classes/Template.md#fromstring). This example enables automatic HTML escaping and will throw an error at render time if a template attempts to use an undefined variable. See [`EnvironmentOptions`](../api/modules.md#environmentoptions) for all available options.
+You can pass configuration options as the third argument to [`Template.fromString()`](../api/classes/Template.md#fromstring). This example enables automatic HTML escaping and will throw an error at render time if a template attempts to use an undefined variable. See [`EnvironmentOptions`](../api/modules.md#environmentoptions) for all available options.
 
 ```javascript
 import { Template, StrictUndefined } from "liquidscript";
 
-const template = Template.fromString("Hello, {{ you }}!", {
-  autoEscape: true,
-  undefinedFactory: StrictUndefined.from,
-});
+const template = Template.fromString(
+  "Hello, {{ you }}!",
+  {},
+  {
+    autoEscape: true,
+    undefinedFactory: StrictUndefined.from,
+  }
+);
 ```
 
 ### Environment
