@@ -15,11 +15,9 @@ const TAG_ENDFOR = "endfor";
 const TAG_ELSE = "else";
 const TAG_BREAK = "break";
 const TAG_CONTINUE = "continue";
-const ENDFORBLOCK = new Set([TAG_ENDFOR, TAG_ELSE]);
-const ENDFORELSEBLOCK = new Set([TAG_ENDFOR]);
 
 export class BreakTag implements Tag {
-  readonly name = TAG_BREAK;
+  readonly name: string = TAG_BREAK;
   readonly block = false;
 
   parse(stream: TokenStream): BreakNode {
@@ -28,7 +26,7 @@ export class BreakTag implements Tag {
 }
 
 export class ContinueTag implements Tag {
-  readonly name = TAG_CONTINUE;
+  readonly name: string = TAG_CONTINUE;
   readonly block = false;
 
   parse(stream: TokenStream): ContinueNode {
@@ -37,9 +35,12 @@ export class ContinueTag implements Tag {
 }
 
 export class ForTag implements Tag {
-  readonly name = TAG_FOR;
+  protected static ENDFORBLOCK = new Set([TAG_ENDFOR, TAG_ELSE]);
+  protected static ENDFORELSEBLOCK = new Set([TAG_ENDFOR]);
+
+  readonly name: string = TAG_FOR;
   readonly block = true;
-  readonly end = TAG_ENDFOR;
+  readonly end: string = TAG_ENDFOR;
   protected nodeClass = ForNode;
 
   parse(stream: TokenStream, environment: Environment): Node {
@@ -48,7 +49,11 @@ export class ForTag implements Tag {
     stream.expect(TOKEN_EXPRESSION);
     const expr = parse(stream.current.value);
     stream.next();
-    const block = environment.parser.parseBlock(stream, ENDFORBLOCK, token);
+    const block = environment.parser.parseBlock(
+      stream,
+      ForTag.ENDFORBLOCK,
+      token
+    );
 
     let _default: BlockNode | undefined = undefined;
 
@@ -58,7 +63,7 @@ export class ForTag implements Tag {
     ) {
       _default = environment.parser.parseBlock(
         stream,
-        ENDFORELSEBLOCK,
+        ForTag.ENDFORELSEBLOCK,
         stream.next()
       );
     }
@@ -81,10 +86,6 @@ export class BreakNode implements Node {
 
   public renderSync(): void {
     throw new BreakIteration("break");
-  }
-
-  children(): ChildNode[] {
-    return [];
   }
 }
 
@@ -137,6 +138,7 @@ export class ForNode implements Node {
       );
 
       // XXX: Enforce scope push limit?
+      // TODO: Refactor to use context.extend
       const namespace: ContextScope = { forloop: forloop };
       context.scope.push(namespace);
       context.forLoops.push(forloop);

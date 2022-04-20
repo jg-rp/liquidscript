@@ -9,7 +9,7 @@ import { Token, TokenStream, TOKEN_EXPRESSION } from "../../token";
 
 export class DecrementTag implements Tag {
   readonly block = false;
-  readonly name = "decrement";
+  readonly name: string = "decrement";
   protected nodeClass = DecrementNode;
 
   public parse(stream: TokenStream): Node {

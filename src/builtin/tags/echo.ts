@@ -7,7 +7,7 @@ import { NIL } from "../../expression";
 
 export class EchoTag implements Tag {
   readonly block = false;
-  readonly name = "echo";
+  readonly name: string = "echo";
   protected nodeClass = EchoNode;
 
   parse(stream: TokenStream): Node {

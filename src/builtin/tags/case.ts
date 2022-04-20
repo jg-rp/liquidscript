@@ -18,18 +18,23 @@ const TAG_ENDCASE = "endcase";
 const TAG_WHEN = "when";
 const TAG_ELSE = "else";
 
-const END_WHEN_BLOCK = new Set([TAG_ENDCASE, TAG_WHEN, TAG_ELSE, TOKEN_EOF]);
-const END_CASE_BLOCK = new Set([TAG_ENDCASE]);
-
 type ConditionalAlternative = {
   condition: BooleanExpression;
   block: BlockNode;
 };
 
 export class CaseTag implements Tag {
+  protected static END_WHEN_BLOCK = new Set([
+    TAG_ENDCASE,
+    TAG_WHEN,
+    TAG_ELSE,
+    TOKEN_EOF,
+  ]);
+  protected static END_CASE_BLOCK = new Set([TAG_ENDCASE]);
+
   readonly block = true;
-  readonly name = TAG_CASE;
-  readonly end = TAG_ENDCASE;
+  readonly name: string = TAG_CASE;
+  readonly end: string = TAG_ENDCASE;
   protected nodeClass = CaseNode;
 
   protected parseExpression(
@@ -50,7 +55,7 @@ export class CaseTag implements Tag {
     // Eat whitespace or junk between `case` and when/else/endcase
     while (
       stream.current.kind !== TOKEN_TAG &&
-      !END_WHEN_BLOCK.has(stream.current.value)
+      !CaseTag.END_WHEN_BLOCK.has(stream.current.value)
     )
       stream.next();
 
@@ -67,7 +72,7 @@ export class CaseTag implements Tag {
 
       const whenBlock = parser.parseBlock(
         stream,
-        END_WHEN_BLOCK,
+        CaseTag.END_WHEN_BLOCK,
         stream.next()
       );
       whens.push(
@@ -83,7 +88,7 @@ export class CaseTag implements Tag {
       return new this.nodeClass(
         token,
         whens,
-        parser.parseBlock(stream, END_CASE_BLOCK, stream.next())
+        parser.parseBlock(stream, CaseTag.END_CASE_BLOCK, stream.next())
       );
     }
     return new this.nodeClass(token, whens);

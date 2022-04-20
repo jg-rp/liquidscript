@@ -13,12 +13,12 @@ import { TableRowLoopDrop } from "../drops/tablerowloop";
 
 const TAG_TABLEROW = "tablerow";
 const TAG_ENDTABLEROW = "endtablerow";
-const END_TAGBLOCK = new Set([TAG_ENDTABLEROW]);
 
 export class TableRowTag implements Tag {
+  protected static END_TAGBLOCK = new Set([TAG_ENDTABLEROW]);
   readonly block = true;
-  readonly name = TAG_TABLEROW;
-  readonly end = TAG_ENDTABLEROW;
+  readonly name: string = TAG_TABLEROW;
+  readonly end: string = TAG_ENDTABLEROW;
   protected nodeClass = TableRowNode;
 
   parse(stream: TokenStream, environment: Environment): Node {
@@ -29,7 +29,7 @@ export class TableRowTag implements Tag {
     return new this.nodeClass(
       token,
       expr,
-      environment.parser.parseBlock(stream, END_TAGBLOCK, token)
+      environment.parser.parseBlock(stream, TableRowTag.END_TAGBLOCK, token)
     );
   }
 }

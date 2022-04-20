@@ -11,7 +11,7 @@ import { isLiquidHTMLable, toLiquidHtml } from "../../drop";
 
 export class OutputStatement implements Tag {
   readonly block = false;
-  readonly name = "statement";
+  readonly name: string = "statement";
   protected nodeClass = OutputStatementNode;
 
   parse(stream: TokenStream): Node {

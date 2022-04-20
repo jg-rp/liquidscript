@@ -5,10 +5,10 @@ import { BufferedRenderStream, RenderStream } from "../../io/output_stream";
 import { Tag } from "../../tag";
 import { Token, TokenStream } from "../../token";
 
-const END_IFCHANGED_BLOCK = new Set(["endifchanged"]);
-
 export class IfChangedTag implements Tag {
-  readonly name = "ifchanged";
+  protected static END_IFCHANGED_BLOCK = new Set(["endifchanged"]);
+
+  readonly name: string = "ifchanged";
   readonly block = true;
   protected nodeClass = IfChangedNode;
 
@@ -16,7 +16,11 @@ export class IfChangedTag implements Tag {
     const token = stream.next();
     return new this.nodeClass(
       token,
-      environment.parser.parseBlock(stream, END_IFCHANGED_BLOCK, token)
+      environment.parser.parseBlock(
+        stream,
+        IfChangedTag.END_IFCHANGED_BLOCK,
+        token
+      )
     );
   }
 }

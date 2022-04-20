@@ -18,6 +18,7 @@ export const Cycles = Symbol.for("liquid.tags.cycles");
 
 export class CycleTag implements Tag {
   readonly block = false;
+  readonly name: string = "cycle";
   protected nodeClass = CycleNode;
 
   public parse(stream: TokenStream): Node {

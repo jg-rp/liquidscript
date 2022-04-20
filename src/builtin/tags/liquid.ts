@@ -97,7 +97,7 @@ function* tokenize(
 
 export class LiquidTag implements Tag {
   readonly block = false;
-  readonly name = "liquid";
+  readonly name: string = "liquid";
   protected nodeClass = LiquidNode;
 
   parse(stream: TokenStream, environment: Environment): Node {

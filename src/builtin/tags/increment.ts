@@ -9,7 +9,7 @@ import { Token, TokenStream, TOKEN_EXPRESSION } from "../../token";
 
 export class IncrementTag implements Tag {
   readonly block = false;
-  readonly name = "increment";
+  readonly name: string = "increment";
   protected nodeClass = IncrementNode;
 
   parse(stream: TokenStream): Node {

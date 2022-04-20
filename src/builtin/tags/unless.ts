@@ -18,19 +18,28 @@ const TAG_ENDUNLESS = "endunless";
 const TAG_ELSIF = "elsif";
 const TAG_ELSE = "else";
 
-const END_IF_BLOCK = new Set([TAG_ENDUNLESS, TAG_ELSIF, TAG_ELSE, TOKEN_EOF]);
-const END_ELSEIF_BLOCK = new Set([TAG_ENDUNLESS, TAG_ELSIF, TAG_ELSE]);
-const END_ELSE_BLOCK = new Set([TAG_ENDUNLESS]);
-
 type ConditionalAlternative = {
   condition: Expression;
   consequence: BlockNode;
 };
 
 export class UnlessTag implements Tag {
+  protected static END_IF_BLOCK = new Set([
+    TAG_ENDUNLESS,
+    TAG_ELSIF,
+    TAG_ELSE,
+    TOKEN_EOF,
+  ]);
+  protected static END_ELSEIF_BLOCK = new Set([
+    TAG_ENDUNLESS,
+    TAG_ELSIF,
+    TAG_ELSE,
+  ]);
+  protected static END_ELSE_BLOCK = new Set([TAG_ENDUNLESS]);
+
   readonly block = true;
-  readonly name = TAG_UNLESS;
-  readonly end = TAG_ENDUNLESS;
+  readonly name: string = TAG_UNLESS;
+  readonly end: string = TAG_ENDUNLESS;
   protected nodeClass = UnlessNode;
 
   protected parseExpression(stream: TokenStream): Expression {
@@ -44,7 +53,11 @@ export class UnlessTag implements Tag {
     const condition = this.parseExpression(stream);
     stream.next();
 
-    const consequence = parser.parseBlock(stream, END_IF_BLOCK, token);
+    const consequence = parser.parseBlock(
+      stream,
+      UnlessTag.END_IF_BLOCK,
+      token
+    );
     const conditionalAlternatives: ConditionalAlternative[] = [];
 
     while (
@@ -56,7 +69,11 @@ export class UnlessTag implements Tag {
       const expr = this.parseExpression(stream);
       conditionalAlternatives.push({
         condition: expr,
-        consequence: parser.parseBlock(stream, END_ELSEIF_BLOCK, stream.next()),
+        consequence: parser.parseBlock(
+          stream,
+          UnlessTag.END_ELSEIF_BLOCK,
+          stream.next()
+        ),
       });
     }
 
@@ -69,7 +86,7 @@ export class UnlessTag implements Tag {
         condition,
         consequence,
         conditionalAlternatives,
-        parser.parseBlock(stream, END_ELSE_BLOCK, stream.next())
+        parser.parseBlock(stream, UnlessTag.END_ELSE_BLOCK, stream.next())
       );
     }
 

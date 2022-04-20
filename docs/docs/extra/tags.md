@@ -4,6 +4,8 @@ This page documents extra tags available in LiquidScript. These tags are not par
 
 ## if (not)
 
+**_New in version 1.1.0_**
+
 A drop-in replacement for the standard [`if`](../language/tags.md#if) tag that supports logical `not` and grouping with parentheses. Please see [the tag reference](../language/tags.md#expressions) for a description of the standard `if` expression.
 
 ```

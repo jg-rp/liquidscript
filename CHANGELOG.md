@@ -3,6 +3,7 @@
 ## Version 1.1.0-beta.1
 
 - New "if not" tag. A drop-in replacement for the standard `if` tag that supports logical `not` and grouping with parentheses.
+- Moved some module-level constants to static class variables for easier subclassing of tags.
 
 ## Version 1.0.0-beta.1
 

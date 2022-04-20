@@ -23,14 +23,19 @@ const TAG_ENDIF = "endif";
 const TAG_ELSIF = "elsif";
 const TAG_ELSE = "else";
 
-const END_IF_BLOCK = new Set([TAG_ENDIF, TAG_ELSIF, TAG_ELSE, TOKEN_EOF]);
-const END_ELSEIF_BLOCK = new Set([TAG_ENDIF, TAG_ELSIF, TAG_ELSE]);
-const END_ELSE_BLOCK = new Set([TAG_ENDIF]);
-
 export class IfTag implements Tag {
+  protected static END_IF_BLOCK = new Set([
+    TAG_ENDIF,
+    TAG_ELSIF,
+    TAG_ELSE,
+    TOKEN_EOF,
+  ]);
+  protected static END_ELSEIF_BLOCK = new Set([TAG_ENDIF, TAG_ELSIF, TAG_ELSE]);
+  protected static END_ELSE_BLOCK = new Set([TAG_ENDIF]);
+
   readonly block = true;
-  readonly name = TAG_IF;
-  readonly end = TAG_ENDIF;
+  readonly name: string = TAG_IF;
+  readonly end: string = TAG_ENDIF;
   protected nodeClass = IfNode;
 
   protected parseExpression(stream: TokenStream): BooleanExpression {
@@ -44,7 +49,7 @@ export class IfTag implements Tag {
     const condition = this.parseExpression(stream);
     stream.next();
 
-    const consequence = parser.parseBlock(stream, END_IF_BLOCK, token);
+    const consequence = parser.parseBlock(stream, IfTag.END_IF_BLOCK, token);
     const conditionalAlternatives: ConditionalAlternative[] = [];
 
     while (
@@ -56,7 +61,11 @@ export class IfTag implements Tag {
       const expr = this.parseExpression(stream);
       conditionalAlternatives.push({
         condition: expr,
-        consequence: parser.parseBlock(stream, END_ELSEIF_BLOCK, stream.next()),
+        consequence: parser.parseBlock(
+          stream,
+          IfTag.END_ELSEIF_BLOCK,
+          stream.next()
+        ),
       });
     }
 
@@ -69,7 +78,7 @@ export class IfTag implements Tag {
         condition,
         consequence,
         conditionalAlternatives,
-        parser.parseBlock(stream, END_ELSE_BLOCK, stream.next())
+        parser.parseBlock(stream, IfTag.END_ELSE_BLOCK, stream.next())
       );
     }
 

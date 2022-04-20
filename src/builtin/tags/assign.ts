@@ -7,19 +7,20 @@ import { parse } from "../../expressions/filtered/parse";
 import { Tag } from "../../tag";
 import { Token, TokenStream, TOKEN_EXPRESSION } from "../../token";
 
-const TAG_ASSIGN = "assign";
-const RE_ASSIGN = new RegExp(`^(${ASSIGN_IDENTIFIER_PATTERN})\\s*=\\s*(.+)$`);
-
 export class AssignTag implements Tag {
+  protected static RE_ASSIGN = new RegExp(
+    `^(${ASSIGN_IDENTIFIER_PATTERN})\\s*=\\s*(.+)$`
+  );
+
   readonly block = false;
-  readonly name: string = TAG_ASSIGN;
+  readonly name: string = "assign";
   protected nodeClass = AssignNode;
 
   public parse(stream: TokenStream): Node {
     const token = stream.next();
     stream.expect(TOKEN_EXPRESSION);
 
-    const match = stream.current.value.match(RE_ASSIGN);
+    const match = stream.current.value.match(AssignTag.RE_ASSIGN);
     if (!match)
       throw new LiquidSyntaxError(
         `invalid assignment expression '${stream.current.value}'`,
