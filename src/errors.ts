@@ -377,6 +377,17 @@ export class InternalTypeError extends InternalLiquidError {
   }
 }
 
+export class InternalSyntaxError extends InternalLiquidError {
+  constructor(public message: string) {
+    super(message);
+    Object.setPrototypeOf(this, InternalSyntaxError.prototype);
+  }
+
+  public withToken(token: Token, templateName?: string): LiquidError {
+    return new LiquidSyntaxError(this.message, token, templateName);
+  }
+}
+
 export abstract class LiquidInterrupt extends Error {
   constructor(public message: string) {
     super(message);

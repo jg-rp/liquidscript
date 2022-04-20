@@ -193,11 +193,12 @@ export function parseUnchainedIdentifier(
  * @returns
  */
 export function makeParseRange(
-  parseObj: (stream: ExpressionTokenStream) => Expression
+  parseObj: (stream: ExpressionTokenStream) => Expression,
+  expectToken: string = TOKEN_LPAREN
 ): (stream: ExpressionTokenStream) => RangeLiteral {
   function _parseRangeLiteral(stream: ExpressionTokenStream): RangeLiteral {
     // Eat open parenthesis
-    stream.expect(TOKEN_LPAREN);
+    stream.expect(expectToken);
     stream.next();
 
     // Parse start
@@ -214,7 +215,7 @@ export function makeParseRange(
     stream.expect(TOKEN_RANGE);
     stream.next();
 
-    // Parse start
+    // Parse stop
     if (!RANGE_OBJ_TOKENS.has(stream.current.kind))
       throw new LiquidSyntaxError(
         `unexpected '${stream.current.value}' in range expression`,

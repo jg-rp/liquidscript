@@ -1,5 +1,9 @@
 # LiquidScript Change Log
 
+## Version 1.1.0-beta.1
+
+- New "if not" tag. A drop-in replacement for the standard `if` tag that supports logical `not` and grouping with parentheses.
+
 ## Version 1.0.0-beta.1
 
 - **Breaking Change**: Both `Environment.fromString()` and `Template.fromString()` have been changed to accept a template source string (as before), render context globals as the second argument, and a `TemplateContext` object as an optional third argument.

@@ -46,6 +46,7 @@ export const TOKEN_ASSIGN = "TOKEN_ASSIGN";
 // Logical operators
 export const TOKEN_AND = "and";
 export const TOKEN_OR = "or";
+export const TOKEN_NOT = "not";
 
 // Comparison operators
 export const TOKEN_EQ = "TOKEN_EQ";
