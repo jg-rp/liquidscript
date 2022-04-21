@@ -46,12 +46,9 @@ function commentFormNode(token, article, block) {
           `class="comment-form" method="post" action="">\n`
       );
 
-      context.scope.push({ form: form });
-      try {
+      await context.extend({ form: form }, async () => {
         await block.render(context, out);
-      } finally {
-        context.scope.pop();
-      }
+      });
 
       out.write("\n</form>");
     },
@@ -74,12 +71,9 @@ function commentFormNode(token, article, block) {
           `class="comment-form" method="post" action="">\n`
       );
 
-      context.scope.push({ form: form });
-      try {
+      context.extendSync({ form: form }, () => {
         block.renderSync(context, out);
-      } finally {
-        context.scope.pop();
-      }
+      });
 
       out.write("\n</form>");
     },

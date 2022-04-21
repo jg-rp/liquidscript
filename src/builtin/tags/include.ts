@@ -125,9 +125,7 @@ export class IncludeNode implements Node {
       scope[key] = await value.evaluate(context);
     }
 
-    context.scope[chainPush](scope);
-
-    try {
+    await context.extend(scope, async () => {
       if (this.bindName) {
         const bindValue = await this.bindName.evaluate(context);
         const bindKey = this.alias || template.name.split(".")[0];
@@ -145,9 +143,7 @@ export class IncludeNode implements Node {
       } else {
         await template.renderWithContext(context, out, false, true);
       }
-    } finally {
-      context.scope[chainPop]();
-    }
+    });
   }
 
   public renderSync(context: RenderContext, out: RenderStream): void {
@@ -160,9 +156,7 @@ export class IncludeNode implements Node {
       ])
     );
 
-    context.scope[chainPush](scope);
-
-    try {
+    context.extendSync(scope, () => {
       if (this.bindName) {
         const bindValue = this.bindName.evaluateSync(context);
         const bindKey = this.alias || template.name.split(".")[0];
@@ -180,8 +174,6 @@ export class IncludeNode implements Node {
       } else {
         template.renderWithContextSync(context, out, false, true);
       }
-    } finally {
-      context.scope[chainPop]();
-    }
+    });
   }
 }

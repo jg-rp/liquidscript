@@ -125,12 +125,9 @@ function paginateNode(token, ident, pageSize, block) {
         }
       }
 
-      context.scope.push({ paginate: pagination });
-      try {
+      await context.extend({ paginate: pagination }, async () => {
         await block.render(context, out);
-      } finally {
-        context.scope.pop();
-      }
+      });
     },
     renderSync: function (context, out) {
       const collection = ident.evaluateSync(context);
@@ -169,12 +166,9 @@ function paginateNode(token, ident, pageSize, block) {
         }
       }
 
-      context.scope.push({ paginate: pagination });
-      try {
+      context.extendSync({ paginate: pagination }, () => {
         block.renderSync(context, out);
-      } finally {
-        context.scope.pop();
-      }
+      });
     },
   };
 }

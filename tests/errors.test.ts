@@ -243,3 +243,21 @@ describe("syntax errors", () => {
     );
   });
 });
+
+describe("render context errors", () => {
+  test("max context depth", () => {
+    const env = new Environment({ maxContextDepth: 3 });
+    const template = env.fromString(
+      "{% for i in (1..3) %}" +
+        "{% for j in (1..3) %}" +
+        "{% for k in (1..3) %}" +
+        "Hello, {{ you }}!" +
+        "{% endfor %}" +
+        "{% endfor %}" +
+        "{% endfor %}"
+    );
+    expect(() => template.renderSync({ you: "World" })).toThrowError(
+      "maximum context depth reached"
+    );
+  });
+});

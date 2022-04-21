@@ -138,30 +138,27 @@ export class ForNode implements Node {
           : context.environment.undefinedFactory("parentloop")
       );
 
-      // XXX: Enforce scope push limit?
-      // TODO: Refactor to use context.extend
       const namespace: ContextScope = { forloop: forloop };
-      context.scope[chainPush](namespace);
       context.forLoops.push(forloop);
-
       try {
-        for (const item of forloop) {
-          namespace[name] = item;
-          try {
-            await this.block.render(context, buf);
-          } catch (error) {
-            if (error instanceof BreakIteration) {
-              break;
-            } else if (error instanceof ContinueIteration) {
-              continue;
-            } else {
-              throw error;
+        await context.extend(namespace, async () => {
+          for (const item of forloop) {
+            namespace[name] = item;
+            try {
+              await this.block.render(context, buf);
+            } catch (error) {
+              if (error instanceof BreakIteration) {
+                break;
+              } else if (error instanceof ContinueIteration) {
+                continue;
+              } else {
+                throw error;
+              }
             }
           }
-        }
+        });
       } finally {
         context.forLoops.pop();
-        context.scope[chainPop]();
       }
     } else if (this.default_ !== undefined) {
       await this.default_.render(context, buf);
@@ -189,26 +186,25 @@ export class ForNode implements Node {
       );
 
       const namespace: ContextScope = { forloop: forloop };
-      context.scope[chainPush](namespace);
       context.forLoops.push(forloop);
-
       try {
-        for (const item of forloop) {
-          namespace[name] = item;
-          try {
-            this.block.renderSync(context, buf);
-          } catch (error) {
-            if (error instanceof BreakIteration) {
-              break;
-            } else if (error instanceof ContinueIteration) {
-              continue;
-            } else {
-              throw error;
+        context.extendSync(namespace, () => {
+          for (const item of forloop) {
+            namespace[name] = item;
+            try {
+              this.block.renderSync(context, buf);
+            } catch (error) {
+              if (error instanceof BreakIteration) {
+                break;
+              } else if (error instanceof ContinueIteration) {
+                continue;
+              } else {
+                throw error;
+              }
             }
           }
-        }
+        });
       } finally {
-        context.scope[chainPop]();
         context.forLoops.pop();
       }
     } else if (this.default_ !== undefined) {

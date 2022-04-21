@@ -3,6 +3,7 @@ import {
   chainObjects,
   chainPop,
   chainPush,
+  chainSize,
   Missing,
   ObjectChain,
 } from "./chain_object";
@@ -337,6 +338,9 @@ export class RenderContext {
    * @returns The callback functions return value.
    */
   public async extend<T>(scope: ContextScope, callback: () => T): Promise<T> {
+    if (this.scope[chainSize]() > this.environment.maxContextDepth)
+      throw new MaxContextDepthError("maximum context depth reached");
+
     this.scope[chainPush](scope);
     try {
       return await callback();
@@ -349,6 +353,9 @@ export class RenderContext {
    * A synchronous version of {@link extend}.
    */
   public extendSync<T>(scope: ContextScope, callback: () => T): T {
+    if (this.scope[chainSize]() > this.environment.maxContextDepth)
+      throw new MaxContextDepthError("maximum context depth reached");
+
     this.scope[chainPush](scope);
     try {
       return callback();

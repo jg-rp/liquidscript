@@ -64,9 +64,8 @@ export class TableRowNode implements Node {
 
     const tablerowloop = new TableRowLoopDrop(name, it, length, cols as number);
     const namespace: ContextScope = { tablerowloop: tablerowloop };
-    context.scope[chainPush](namespace);
 
-    try {
+    await context.extend(namespace, async () => {
       out.write('<tr class="row1">\n');
       for (const item of tablerowloop) {
         namespace[name] = item;
@@ -79,9 +78,7 @@ export class TableRowNode implements Node {
         }
       }
       out.write("</tr>\n");
-    } finally {
-      context.scope[chainPop]();
-    }
+    });
   }
 
   public renderSync(context: RenderContext, out: RenderStream): void {
@@ -103,9 +100,8 @@ export class TableRowNode implements Node {
 
     const tablerowloop = new TableRowLoopDrop(name, it, length, cols as number);
     const namespace: ContextScope = { tablerowloop: tablerowloop };
-    context.scope[chainPush](namespace);
 
-    try {
+    context.extendSync(namespace, () => {
       out.write('<tr class="row1">\n');
       for (const item of tablerowloop) {
         namespace[name] = item;
@@ -118,9 +114,7 @@ export class TableRowNode implements Node {
         }
       }
       out.write("</tr>\n");
-    } finally {
-      context.scope[chainPop]();
-    }
+    });
   }
 
   children(): ChildNode[] {
