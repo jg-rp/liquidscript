@@ -1,4 +1,5 @@
 import { Node } from "../../ast";
+import { chainPop, chainPush } from "../../chain_object";
 import { RenderContext } from "../../context";
 import { LiquidSyntaxError } from "../../errors";
 import { Expression, Identifier, StringLiteral } from "../../expression";
@@ -124,7 +125,7 @@ export class IncludeNode implements Node {
       scope[key] = await value.evaluate(context);
     }
 
-    context.scope.push(scope);
+    context.scope[chainPush](scope);
 
     try {
       if (this.bindName) {
@@ -145,7 +146,7 @@ export class IncludeNode implements Node {
         await template.renderWithContext(context, out, false, true);
       }
     } finally {
-      context.scope.pop();
+      context.scope[chainPop]();
     }
   }
 
@@ -159,7 +160,7 @@ export class IncludeNode implements Node {
       ])
     );
 
-    context.scope.push(scope);
+    context.scope[chainPush](scope);
 
     try {
       if (this.bindName) {
@@ -180,7 +181,7 @@ export class IncludeNode implements Node {
         template.renderWithContextSync(context, out, false, true);
       }
     } finally {
-      context.scope.pop();
+      context.scope[chainPop]();
     }
   }
 }

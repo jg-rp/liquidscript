@@ -4,6 +4,7 @@
 
 - New "if not" tag. A drop-in replacement for the standard `if` tag that supports logical `not` and grouping with parentheses.
 - Moved some module-level constants to static class variables for easier subclassing of tags.
+- Allow `ObjectChain` to contain `push`, `pop` and `size` properties.
 
 ## Version 1.0.0-beta.1
 

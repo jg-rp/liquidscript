@@ -1,4 +1,10 @@
-import { chainObjects, Missing } from "../src/chain_object";
+import {
+  chainObjects,
+  chainPop,
+  chainPush,
+  chainSize,
+  Missing,
+} from "../src/chain_object";
 
 describe("read only chain map", () => {
   test("empty chain", () => {
@@ -53,7 +59,7 @@ describe("read only chain map", () => {
     expect(chain["a"]).toBe(1);
     expect(chain["c"]).toBe(3);
 
-    chain.push(
+    chain[chainPush](
       Object.fromEntries([
         ["x", 10],
         ["y", 9],
@@ -63,7 +69,7 @@ describe("read only chain map", () => {
 
     expect(chain["x"]).toBe(10);
     expect(chain["a"]).toBe(42);
-    chain.pop();
+    chain[chainPop]();
     expect(chain["a"]).toBe(1);
   });
 
@@ -71,6 +77,7 @@ describe("read only chain map", () => {
     const chain = chainObjects({ a: 1 }, { b: 2, a: 99 });
     expect("a" in chain).toBe(true);
     expect("b" in chain).toBe(true);
+    expect("x" in chain).toBe(false);
   });
 
   test("nested objects", () => {
@@ -83,5 +90,25 @@ describe("read only chain map", () => {
     const chain = chainObjects({ a: 1, b: chainObjects({ c: 3, d: 4 }) });
     const some = chain["b"];
     expect(Reflect.get(some as object, "c")).toBe(3);
+  });
+
+  test("size of a chain", () => {
+    const chain = chainObjects({ a: 1 }, { b: 2, a: 99 });
+    const size = chain[chainSize]();
+    expect(size).toBe(2);
+  });
+
+  test("allow push, pop and size properties", () => {
+    const chain = chainObjects({ push: 1 }, { pop: 2, size: 99 });
+    expect(chain.push).toBe(1);
+    expect(chain.pop).toBe(2);
+    expect(chain.size).toBe(99);
+  });
+
+  test("push, pop and size not in chain", () => {
+    const chain = chainObjects({ a: 1 }, { b: 2, a: 99 });
+    expect("push" in chain).toBe(false);
+    expect("pop" in chain).toBe(false);
+    expect("size" in chain).toBe(false);
   });
 });

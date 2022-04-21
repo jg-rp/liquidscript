@@ -10,6 +10,7 @@ import { isPrimitiveInteger, ContextScope } from "../../types";
 import { Tag } from "../../tag";
 import { Token, TokenStream, TOKEN_EXPRESSION } from "../../token";
 import { TableRowLoopDrop } from "../drops/tablerowloop";
+import { chainPop, chainPush } from "../../chain_object";
 
 const TAG_TABLEROW = "tablerow";
 const TAG_ENDTABLEROW = "endtablerow";
@@ -63,7 +64,7 @@ export class TableRowNode implements Node {
 
     const tablerowloop = new TableRowLoopDrop(name, it, length, cols as number);
     const namespace: ContextScope = { tablerowloop: tablerowloop };
-    context.scope.push(namespace);
+    context.scope[chainPush](namespace);
 
     try {
       out.write('<tr class="row1">\n');
@@ -79,7 +80,7 @@ export class TableRowNode implements Node {
       }
       out.write("</tr>\n");
     } finally {
-      context.scope.pop();
+      context.scope[chainPop]();
     }
   }
 
@@ -102,7 +103,7 @@ export class TableRowNode implements Node {
 
     const tablerowloop = new TableRowLoopDrop(name, it, length, cols as number);
     const namespace: ContextScope = { tablerowloop: tablerowloop };
-    context.scope.push(namespace);
+    context.scope[chainPush](namespace);
 
     try {
       out.write('<tr class="row1">\n');
@@ -118,7 +119,7 @@ export class TableRowNode implements Node {
       }
       out.write("</tr>\n");
     } finally {
-      context.scope.pop();
+      context.scope[chainPop]();
     }
   }
 

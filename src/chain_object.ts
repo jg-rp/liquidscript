@@ -1,12 +1,16 @@
 import { ReadOnlyObjectChainError } from "./errors";
 
 export const Missing = Symbol.for("liquid.context.missing");
+export const chainPush = Symbol.for("liquid.context.chain_push");
+export const chainPop = Symbol.for("liquid.context.chain_pop");
+export const chainSize = Symbol.for("liquid.context.chain_size");
 const ChainObjects = Symbol.for("liquid.context.chain_objects");
 
 export type ObjectChain = {
   [index: string]: unknown;
-  push(obj: object): void;
-  pop(): object | undefined;
+  [chainPush](obj: object): void;
+  [chainPop](): object | undefined;
+  [chainSize](): number;
 };
 
 class ChainObject {
@@ -15,12 +19,16 @@ class ChainObject {
     this._objects = objects.length ? objects.reverse() : [];
   }
 
-  public push(obj: object): void {
+  public [chainPush](obj: object): void {
     this[ChainObjects].push(obj);
   }
 
-  public pop(): object | undefined {
+  public [chainPop](): object | undefined {
     return this[ChainObjects].pop();
+  }
+
+  public [chainSize](): number {
+    return this[ChainObjects].length;
   }
 
   public get [ChainObjects](): object[] {
@@ -30,7 +38,12 @@ class ChainObject {
 
 const chainObjectHandler = {
   get: function (target: ChainObject, prop: string | symbol): unknown {
-    if (prop === "push" || prop === "pop" || prop === ChainObjects) {
+    if (
+      prop === chainPush ||
+      prop === chainPop ||
+      prop === chainSize ||
+      prop === ChainObjects
+    ) {
       return Reflect.get(target, prop);
     }
 
@@ -48,10 +61,6 @@ const chainObjectHandler = {
     return Missing;
   },
   has: function (target: ChainObject, prop: string | symbol): boolean {
-    if (prop == "push" || prop == "pop") {
-      return true;
-    }
-
     for (let i = target[ChainObjects].length - 1; i >= 0; i--) {
       if (target[ChainObjects][i] instanceof ChainObject) {
         return prop in target[ChainObjects][i];

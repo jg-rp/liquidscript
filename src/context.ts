@@ -1,5 +1,11 @@
 import { ForLoopDrop } from "./builtin/drops/forloop";
-import { chainObjects, Missing, ObjectChain } from "./chain_object";
+import {
+  chainObjects,
+  chainPop,
+  chainPush,
+  Missing,
+  ObjectChain,
+} from "./chain_object";
 import {
   hasLiquidCallable,
   isLiquidable,
@@ -331,11 +337,11 @@ export class RenderContext {
    * @returns The callback functions return value.
    */
   public async extend<T>(scope: ContextScope, callback: () => T): Promise<T> {
-    this.scope.push(scope);
+    this.scope[chainPush](scope);
     try {
       return await callback();
     } finally {
-      this.scope.pop();
+      this.scope[chainPop]();
     }
   }
 
@@ -343,11 +349,11 @@ export class RenderContext {
    * A synchronous version of {@link extend}.
    */
   public extendSync<T>(scope: ContextScope, callback: () => T): T {
-    this.scope.push(scope);
+    this.scope[chainPush](scope);
     try {
       return callback();
     } finally {
-      this.scope.pop();
+      this.scope[chainPop]();
     }
   }
 }

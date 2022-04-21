@@ -2,6 +2,7 @@ export const version = "__VERSION__";
 
 export { RenderContext } from "./context";
 export type { RenderContextOptions, ContextPath } from "./context";
+export * from "./chain_object";
 
 export type { ContextScope } from "./types";
 

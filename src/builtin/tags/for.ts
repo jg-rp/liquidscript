@@ -9,6 +9,7 @@ import { Tag } from "../../tag";
 import { Token, TOKEN_EXPRESSION, TOKEN_TAG, TokenStream } from "../../token";
 import { ForLoopDrop } from "../drops/forloop";
 import { ContextScope } from "../../types";
+import { chainPop, chainPush } from "../../chain_object";
 
 const TAG_FOR = "for";
 const TAG_ENDFOR = "endfor";
@@ -140,7 +141,7 @@ export class ForNode implements Node {
       // XXX: Enforce scope push limit?
       // TODO: Refactor to use context.extend
       const namespace: ContextScope = { forloop: forloop };
-      context.scope.push(namespace);
+      context.scope[chainPush](namespace);
       context.forLoops.push(forloop);
 
       try {
@@ -160,7 +161,7 @@ export class ForNode implements Node {
         }
       } finally {
         context.forLoops.pop();
-        context.scope.pop();
+        context.scope[chainPop]();
       }
     } else if (this.default_ !== undefined) {
       await this.default_.render(context, buf);
@@ -188,7 +189,7 @@ export class ForNode implements Node {
       );
 
       const namespace: ContextScope = { forloop: forloop };
-      context.scope.push(namespace);
+      context.scope[chainPush](namespace);
       context.forLoops.push(forloop);
 
       try {
@@ -207,7 +208,7 @@ export class ForNode implements Node {
           }
         }
       } finally {
-        context.scope.pop();
+        context.scope[chainPop]();
         context.forLoops.pop();
       }
     } else if (this.default_ !== undefined) {
