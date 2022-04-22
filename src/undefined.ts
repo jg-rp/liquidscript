@@ -1,4 +1,4 @@
-import { toLiquidPrimitive } from "./drop";
+import { liquidDispatch, liquidDispatchSync, toLiquidPrimitive } from "./drop";
 import { InternalUndefinedError } from "./errors";
 
 /**
@@ -23,6 +23,13 @@ export abstract class Undefined {
   public toString(): string {
     return `Undefined(${this.name})`;
   }
+
+  /**
+   * Prompt the undefined type to throw an error.
+   */
+  public poke(): void {
+    this.toString();
+  }
 }
 
 /**
@@ -38,6 +45,10 @@ export class StrictUndefined extends Undefined {
     throw new InternalUndefinedError(this.name);
   }
 
+  public poke(): void {
+    throw new InternalUndefinedError(this.name);
+  }
+
   public valueOf() {
     throw new InternalUndefinedError(this.name);
   }
@@ -47,6 +58,13 @@ export class StrictUndefined extends Undefined {
   }
 
   public [toLiquidPrimitive]() {
+    throw new InternalUndefinedError(this.name);
+  }
+
+  public async [liquidDispatch]() {
+    throw new InternalUndefinedError(this.name);
+  }
+  public [liquidDispatchSync]() {
     throw new InternalUndefinedError(this.name);
   }
 
@@ -76,8 +94,19 @@ export class LaxUndefined extends Undefined {
     return "";
   }
 
+  public poke(): void {
+    return;
+  }
+
   public valueOf() {
     return "";
+  }
+
+  public async [liquidDispatch]() {
+    return this;
+  }
+  public [liquidDispatchSync]() {
+    return this;
   }
 
   public [Symbol.iterator](): Iterator<unknown> {
@@ -104,5 +133,51 @@ export class LaxUndefined extends Undefined {
 
   get size() {
     return this;
+  }
+}
+
+/**
+ * An {@link Undefined} type that will evaluate to `false` in a boolean
+ * expression and throw an error when iterated, output or when accessing
+ * its properties.
+ */
+export class FalsyStrictUndefined extends Undefined {
+  static from(name: string): FalsyStrictUndefined {
+    return new FalsyStrictUndefined(name);
+  }
+
+  public toString(): string {
+    throw new InternalUndefinedError(this.name);
+  }
+
+  public poke(): void {
+    throw new InternalUndefinedError(this.name);
+  }
+
+  public valueOf() {
+    throw new InternalUndefinedError(this.name);
+  }
+
+  public [Symbol.iterator](): Iterator<unknown> {
+    throw new InternalUndefinedError(this.name);
+  }
+
+  public async [liquidDispatch]() {
+    throw new InternalUndefinedError(this.name);
+  }
+  public [liquidDispatchSync]() {
+    throw new InternalUndefinedError(this.name);
+  }
+
+  get first() {
+    throw new InternalUndefinedError(this.name);
+  }
+
+  get last() {
+    throw new InternalUndefinedError(this.name);
+  }
+
+  get size() {
+    throw new InternalUndefinedError(this.name);
   }
 }

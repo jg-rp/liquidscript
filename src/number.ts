@@ -2,8 +2,6 @@ import Decimal from "decimal.js";
 
 Decimal.set({ precision: 16 });
 
-// TODO: Integer and Float object pool?
-
 // eslint-disable-next-line @typescript-eslint/ban-types
 export type N = string | number | Number | LiquidNumber;
 

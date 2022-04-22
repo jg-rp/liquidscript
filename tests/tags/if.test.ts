@@ -1,8 +1,5 @@
 import { Environment } from "../../src/environment";
 
-// TODO: Finish tests
-// TODO: if null, undefined,
-
 type Case = {
   description: string;
   source: string;
@@ -84,6 +81,20 @@ describe("built-in if tag", () => {
       source: "{% if a %}hello{% endif %}",
       globals: { a: false },
       want: "",
+    },
+    {
+      description:
+        "conditionally evaluate a block from a null context variable",
+      source: "{% if a %}true{% else %}false{% endif %}",
+      globals: { a: null },
+      want: "false",
+    },
+    {
+      description:
+        "conditionally evaluate a block from an undefined context variable",
+      source: "{% if a %}true{% else %}false{% endif %}",
+      globals: { a: undefined },
+      want: "false",
     },
     {
       description: "conditionally evaluate a block with equality test",

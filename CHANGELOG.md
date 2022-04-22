@@ -6,6 +6,7 @@
 - Moved some module-level constants to static class variables for easier subclassing of tags.
 - Allow `ObjectChain` to contain `push`, `pop` and `size` properties. This is a **potentially breaking change** for early adopters writing custom tags using `context.scope.push` and `context.scope.pop`. The symbols `chainPush` and `chainPop` would be needed instead.
 - Enforce `maxContextDepth` when extended a render context scope as well as copying a `RenderContext`.
+- New `FalsyStrictUndefined` type. `FalsyStrictUndefined` is similar to `StrictUndefined`, but can be tested for truthiness and compared to other values in an `if`/`unless` expression without throwing an error.
 
 ## Version 1.0.0-beta.1
 

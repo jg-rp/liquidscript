@@ -14,7 +14,7 @@ env.fromString("{{ nosuchthing }}").renderSync();
 // LiquidUndefinedError: 'nosuchthing' is undefined (<string>:1)
 ```
 
-Built-in `Undefined` types are [`LaxUndefined`](../api/classes/LaxUndefined.md) (the default) and [`StrictUndefined`](../api/classes/StrictUndefined.md).
+Built-in `Undefined` types are [`LaxUndefined`](../api/classes/LaxUndefined.md) (the default), [`StrictUndefined`](../api/classes/StrictUndefined.md) and [`FalsyStrictUndefined`](../api/classes/FalsyStrictUndefined.md).
 
 ### Default Undefined
 
@@ -46,13 +46,44 @@ env.fromString("{{ nosuchthing }}").renderSync();
 // LiquidUndefinedError: 'nosuchthing' is undefined (<string>:1)
 ```
 
-Note that the "standard" `default` filter does not handle undefined values the [way you might expect](https://github.com/Shopify/liquid/issues/1404). The following example will raise an UndefinedError if username is undefined.
+Note that the "standard" `default` filter does not handle undefined values the [way you might expect](https://github.com/Shopify/liquid/issues/1404). The following example will raise a `LiquidUndefinedError` if username is undefined.
 
 ```liquid
 Hello {{ username | default: "user" }}
 ```
 
 Similarly, standard `{% if %}` expressions do not allow you to detect undefined values. See [Shopify Liquid issue #1034](https://github.com/Shopify/liquid/issues/1034).
+
+```javascript
+import { Environment, StrictUndefined } from "liquidscript";
+
+const env = new Environment({ undefinedFactory: StrictUndefined.from });
+env
+  .fromString("{% if nosuchthing %}true{% else %}false{% endif %}")
+  .renderSync();
+// LiquidUndefinedError: 'nosuchthing' is undefined (<string>:1)
+```
+
+### Falsy Undefined
+
+[`FalsyStrictUndefined`](../api/classes/FalsyStrictUndefined.md) addresses the issues with `StrictUndefined` described above. Given [`FalsyStrictUndefined.from`](../api/classes/FalsyStrictUndefined.md#from) as the `undefinedFactory` option to an environment or `Template.fromString()`, undefined values can be tested for truthiness and compared to other values in an `if`/`unless` expression without throwing an error. An `UndefinedError` will be thrown when an undefined value is iterated, output or when accessing its properties.
+
+```javascript
+import { Environment, FalsyStrictUndefined } from "liquidscript";
+
+const env = new Environment({ undefinedFactory: FalsyStrictUndefined.from });
+
+env
+  .fromString("{% if nosuchthing %}true{% else %}false{% endif %}")
+  .renderSync();
+// false
+
+env.fromString("{{ nosuchthing | default: 'hello' }}").renderSync();
+// hello
+
+env.fromString("{{ nosuchthing }}").renderSync();
+// LiquidUndefinedError: 'nosuchthing' is undefined (<string>:1)
+```
 
 ## Undefined Filters
 

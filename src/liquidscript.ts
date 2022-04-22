@@ -14,7 +14,12 @@ export type { RenderStream } from "./io/output_stream";
 
 export { Loader, TemplateSource } from "./loader";
 export { Template } from "./template";
-export { Undefined, LaxUndefined, StrictUndefined } from "./undefined";
+export {
+  Undefined,
+  LaxUndefined,
+  StrictUndefined,
+  FalsyStrictUndefined,
+} from "./undefined";
 
 export { Markup } from "./builtin/drops/markup";
 

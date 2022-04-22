@@ -4,8 +4,6 @@ import {
   LiquidSyntaxError,
 } from "../src/liquidscript";
 
-// TODO: detect orphaned tags at parse time when `partial` is false?
-
 describe("syntax errors", () => {
   const env = new Environment({ undefinedFactory: LaxUndefined.from });
 

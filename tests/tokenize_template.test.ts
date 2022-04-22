@@ -7,8 +7,6 @@ import {
   TOKEN_TAG,
 } from "../src/token";
 
-// TODO: Finish tests
-
 describe("tokenize templates", () => {
   const rules = compileRules();
   const tokenize = tokenizerFor(rules);
@@ -19,6 +17,7 @@ describe("tokenize templates", () => {
       new Token(TOKEN_LITERAL, "<HTML>some</HTML>", 0, "<HTML>some</HTML>"),
     ]);
   });
+
   test("output surrounded by literals", () => {
     const tokens = Array.from(tokenize("<HTML>{{ other }}</HTML>"));
     expect(tokens).toStrictEqual([
@@ -27,6 +26,7 @@ describe("tokenize templates", () => {
       new Token(TOKEN_LITERAL, "</HTML>", 17, "<HTML>{{ other }}</HTML>"),
     ]);
   });
+
   test("output with whitespace control", () => {
     const tokens = Array.from(tokenize("<HTML>{{- other -}}</HTML>"));
     expect(tokens).toStrictEqual([
@@ -35,6 +35,7 @@ describe("tokenize templates", () => {
       new Token(TOKEN_LITERAL, "</HTML>", 19, "<HTML>{{- other -}}</HTML>"),
     ]);
   });
+
   test("block tag", () => {
     const tokens = Array.from(tokenize("{% if true %}hello{% endif %}"));
     expect(tokens).toStrictEqual([
@@ -44,6 +45,7 @@ describe("tokenize templates", () => {
       new Token(TOKEN_TAG, "endif", 18, "{% if true %}hello{% endif %}"),
     ]);
   });
+
   test("multi block tag", () => {
     const t =
       "{% if false %}hello{% elsif true %}g'day{% else %}goodbye{% endif %}";
@@ -58,6 +60,14 @@ describe("tokenize templates", () => {
       new Token(TOKEN_TAG, "else", 40, t),
       new Token(TOKEN_LITERAL, "goodbye", 50, t),
       new Token(TOKEN_TAG, "endif", 57, t),
+    ]);
+  });
+
+  test("raw", () => {
+    const t = "{% raw %}{{ hello }} %}{% {{ {% endraw %}";
+    const tokens = Array.from(tokenize(t));
+    expect(tokens).toStrictEqual([
+      new Token(TOKEN_LITERAL, "{{ hello }} %}{% {{ ", 0, t),
     ]);
   });
 });

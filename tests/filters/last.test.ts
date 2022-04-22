@@ -2,8 +2,7 @@ import { last } from "../../src/builtin/filters/array";
 import { RenderContext } from "../../src/context";
 import { Environment } from "../../src/environment";
 import { FilterContext } from "../../src/filter";
-
-// TODO: Last of a range.
+import { Range } from "../../src/range";
 
 describe("last filter", () => {
   const env = new Environment({});
@@ -48,5 +47,10 @@ describe("last filter", () => {
   test("last of a number", () => {
     const result = last.apply(filterContext, [7]);
     expect(result).toBe(null);
+  });
+
+  test("last of a range", () => {
+    const result = last.apply(filterContext, [new Range(1, 3)]);
+    expect(result).toBe(3);
   });
 });

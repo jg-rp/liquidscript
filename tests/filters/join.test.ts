@@ -4,8 +4,6 @@ import { Environment } from "../../src/environment";
 import { FilterContext } from "../../src/filter";
 import { Range } from "../../src/range";
 
-// TODO: finish tests
-
 describe("join filter", () => {
   const env = new Environment({});
   const ctx = new RenderContext(env);

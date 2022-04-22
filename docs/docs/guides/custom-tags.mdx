@@ -310,11 +310,7 @@ console.log(template.renderSync());
 
 ## Replace a Tag
 
-If given the name of an existing tag, [`Environment.addTag()`](../api/classes/Environment.md#addtag) will replace it without warning. For example, the extra "if not" tag, which adds support for negating expressions with `not` and grouping terms with parentheses, is a drop-in replacement for the standard [`if`](../language/tags.md#if) tag.
-
-:::caution
-The extra `IfNotTag` has not yet been implemented, but will be.
-:::
+If given the name of an existing tag, [`Environment.addTag()`](../api/classes/Environment.md#addtag) will replace it without warning. For example, the extra ["if not" tag](../extra/tags.md#if-not), which adds support for negating expressions with `not` and grouping terms with parentheses, is a drop-in replacement for the standard [`if`](../language/tags.md#if) tag.
 
 ```js
 import { Environment, extra } from "liquidscript";

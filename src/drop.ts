@@ -1,7 +1,5 @@
 import { RenderContext } from "./context";
 
-// XXX: to_number for filters
-
 /**
  * A symbol that specifies a function valued property that is called to
  * convert an object to its corresponding Liquid value.

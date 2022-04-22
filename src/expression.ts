@@ -718,7 +718,6 @@ function compare(left: unknown, operator: string, right: unknown): boolean {
       if (isObject(left) && isPropertyKey(right)) {
         return Object.propertyIsEnumerable.call(left, right);
       }
-    // XXX: array contains Empty, Blank, Nil or Range?
   }
 
   if (left instanceof Undefined || right instanceof Undefined) return false;

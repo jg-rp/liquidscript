@@ -58,8 +58,6 @@ export class Template {
     );
   }
 
-  // TODO: static fromStream?
-
   /**
    * Parse a Liquid template, automatically creating an environment to
    * bind it to.
@@ -140,8 +138,6 @@ export class Template {
     this.renderWithContextSync(context, outputStream);
     return outputStream.toString();
   }
-
-  // TODO: createReadStream?
 
   protected handleError(
     error: unknown,

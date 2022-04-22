@@ -2,8 +2,7 @@ import { first } from "../../src/builtin/filters/array";
 import { RenderContext } from "../../src/context";
 import { Environment } from "../../src/environment";
 import { FilterContext } from "../../src/filter";
-
-// TODO: First of a range
+import { Range } from "../../src/range";
 
 describe("first filter", () => {
   const env = new Environment({});
@@ -53,5 +52,10 @@ describe("first filter", () => {
   test("first of a number", () => {
     const result = first.apply(filterContext, [7]);
     expect(result).toBe(null);
+  });
+
+  test("first of a range", () => {
+    const result = first.apply(filterContext, [new Range(1, 3)]);
+    expect(result).toBe(1);
   });
 });
