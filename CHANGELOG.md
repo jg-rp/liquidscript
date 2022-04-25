@@ -3,6 +3,7 @@
 ## Version 1.2.0-beta.1 (unreleased)
 
 - New general purpose argument list parser. Parse Liquid expressions containing any number of named or keyword arguments, with a choice of key/value separator.
+- Fixed a bug with the `assign` tag where it would incorrectly throw a `LiquidSyntaxError` when parts of its expression were split over multiple lines.
 
 ### Docs
 

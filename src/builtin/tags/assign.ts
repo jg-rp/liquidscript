@@ -9,7 +9,8 @@ import { Token, TokenStream, TOKEN_EXPRESSION } from "../../token";
 
 export class AssignTag implements Tag {
   protected static RE_ASSIGN = new RegExp(
-    `^(${ASSIGN_IDENTIFIER_PATTERN})\\s*=\\s*(.+)$`
+    `^(${ASSIGN_IDENTIFIER_PATTERN})\\s*=\\s*(.+)$`,
+    "s"
   );
 
   readonly block = false;

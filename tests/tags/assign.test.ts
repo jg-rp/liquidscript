@@ -24,6 +24,13 @@ describe("built-in assign tag", () => {
       source: "{% assign x = (1..3) %}{{ x | join: '#' }}",
       want: "1#2#3",
     },
+    {
+      description: "multi-line assign",
+      source: `{% assign x 
+        = 'hello '
+        | append: 'world' %}{{ x }}`,
+      want: "hello world",
+    },
   ];
 
   describe("async", () => {
