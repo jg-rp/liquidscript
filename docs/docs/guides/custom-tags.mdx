@@ -24,7 +24,7 @@ Taking inspiration from [Django's Template Language](https://docs.djangoproject.
 This implementation keeps any variables set inside the `with` block (using `assign` or `capture`) alive after the block has been rendered.
 
 :::info
-We use [class syntax](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes) here for both Javascript and TypeScript examples. Constructor functions and objects with function valued properties would work equally as well.
+We use [class syntax](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes) here for both JavaScript and TypeScript examples. Constructor functions and objects with function valued properties would work equally as well.
 :::
 
 ### Example Tag
@@ -329,3 +329,238 @@ import { Environment } from "liquidscript";
 const env = new Environment();
 delete env.tags.ifchanged;
 ```
+
+## Jekyll Style Include Example
+
+This example implements an `{% include %}` tag, as found in [Jekyll](https://jekyllrb.com/). Unlike the [standard `include` tag](../language/tags.md#include), this implementation expects either the name of the template without quotes (`my_template.liquid`), or a fully formed output statement (`{{ some_variable }}`) that resolves to a string. Additionally, key/value arguments should be separated by `=` rather than `:`, and those arguments are put into an `include` namespace rather than merging them into the existing scope.
+
+:::note
+A [custom template loader](./custom-loaders.mdx#loading-sections-and-snippets) would also be needed to mimic Jekyll's folder structure.
+:::
+
+<Tabs groupId="js-ts">
+<TabItem value="js" label="JavaScript">
+
+```js title="jekyll_include_tag.mjs"
+import { StringLiteral, expressions, tokens } from "liquidscript";
+
+const RE_VARIABLE_SYNTAX =
+  /^\s*\{\{\s*(?<stmt>[\w\-.]+\s*(?:\|.*)?)\}\}\s*(?<args>.*)$/ds;
+
+class JekyllIncludeTag {
+  parse(stream) {
+    const token = stream.next();
+    stream.expect(tokens.TOKEN_EXPRESSION);
+
+    // An expression that evaluates to the template name
+    let templateNameExpression;
+    // An expression token stream including argument tokens only.
+    let argStream;
+
+    const match = stream.current.value.match(RE_VARIABLE_SYNTAX);
+    if (match) {
+      templateNameExpression = expressions.filtered.parse(match.groups.stmt);
+      argStream = new expressions.ExpressionTokenStream(
+        expressions.arguments.tokenize(
+          match.groups.args,
+          stream.current.index + match.indices.groups.args[0]
+        )
+      );
+    } else {
+      const [name, args] = stream.current.value.trim().split(/\s(.*)/s);
+      templateNameExpression = new StringLiteral(name);
+      argStream = new expressions.ExpressionTokenStream(
+        expressions.arguments.tokenize(args, stream.current.index + name.length)
+      );
+    }
+
+    // Key/value pairs, separated by commas, with `=` between each key and
+    // it's corresponding value.
+    const args = expressions.arguments.parseArguments(
+      argStream,
+      expressions.TOKEN_ASSIGN
+    );
+
+    return new JekyllIncludeNode(token, templateNameExpression, args);
+  }
+}
+
+class JekyllIncludeNode {
+  constructor(token, templateName, args) {
+    this.token = token;
+    this.templateName = templateName;
+    this.args = args;
+  }
+
+  async render(context, out) {
+    // Resolve the template name. It could be a variable that resolves to a
+    // string or a string literal.
+    const templateName = await this.templateName.evaluate(context);
+
+    // Load the template. We tag it with "include" so the template loader
+    // knows what tag is asking for a template.
+    const template = await context.getTemplate(templateName, {
+      tag: "include",
+    });
+
+    // Arguments go into an `include` namespace.
+    const includeScope = {};
+    for (const [key, value] of Object.entries(this.args)) {
+      includeScope[key] = await value.evaluate(context);
+    }
+
+    await context.extend({ include: includeScope }, async () => {
+      await template.renderWithContext(context, out, false, true);
+    });
+  }
+
+  renderSync(context, out) {
+    const templateName = this.templateName.evaluateSync(context);
+    const template = context.getTemplateSync(templateName, { tag: "include" });
+
+    const includeScope = {};
+    for (const [key, value] of Object.entries(this.args)) {
+      includeScope[key] = value.evaluateSync(context);
+    }
+
+    context.extendSync({ include: includeScope }, () => {
+      template.renderWithContextSync(context, out, false, true);
+    });
+  }
+}
+```
+
+</TabItem>
+<TabItem value="ts" label="TypeScript">
+
+```typescript title="jekyll_include_tag.ts"
+import {
+  ContextScope,
+  Expression,
+  expressions,
+  LiquidTypeError,
+  Node,
+  object,
+  RenderContext,
+  RenderStream,
+  StringLiteral,
+  tokens,
+  Tag,
+} from "liquidscript";
+
+const RE_VARIABLE_SYNTAX =
+  /^\s*\{\{\s*(?<stmt>[\w\-.]+\s*(?:\|.*)?)\}\}\s*(?<args>.*)$/ds;
+
+/**
+ * The match object we expect back from our variable syntax regular expression.
+ */
+interface VariableSyntaxMatch {
+  groups: { stmt: string; args: string };
+  indices: { groups: { stmt: number[]; args: number[] } };
+}
+
+/**
+ * A type predicate for the `VariableSyntaxMatch` interface.
+ */
+function isVariableSyntaxMatch(match: unknown): match is VariableSyntaxMatch {
+  return match !== null;
+}
+
+class JekyllIncludeTag implements Tag {
+  parse(stream: tokens.TokenStream) {
+    const token = stream.next();
+    stream.expect(tokens.TOKEN_EXPRESSION);
+
+    // An expression that evaluates to the template name.
+    let templateNameExpression;
+    // An expression token stream including argument tokens only.
+    let argStream;
+
+    const match = stream.current.value.match(RE_VARIABLE_SYNTAX);
+    if (isVariableSyntaxMatch(match)) {
+      templateNameExpression = expressions.filtered.parse(match.groups.stmt);
+      argStream = new expressions.ExpressionTokenStream(
+        expressions.arguments.tokenize(
+          match.groups.args,
+          stream.current.index + match.indices.groups.args[0]
+        )
+      );
+    } else {
+      const [name, args] = stream.current.value.trim().split(/\s(.*)/s);
+      templateNameExpression = new StringLiteral(name);
+      argStream = new expressions.ExpressionTokenStream(
+        expressions.arguments.tokenize(args, stream.current.index + name.length)
+      );
+    }
+
+    // Key/value pairs, separated by commas, with `=` between each key and
+    // it's corresponding value.
+    const args = expressions.arguments.parseArguments(
+      argStream,
+      expressions.TOKEN_ASSIGN
+    );
+
+    return new JekyllIncludeNode(token, templateNameExpression, args);
+  }
+}
+
+class JekyllIncludeNode implements Node {
+  constructor(
+    readonly token: tokens.Token,
+    readonly templateName: Expression,
+    readonly args: expressions.arguments.Arguments
+  ) {}
+
+  async render(context: RenderContext, out: RenderStream) {
+    // Resolve the template name. It could be a variable that resolves to a
+    // string or a string literal.
+    const templateName = await this.templateName.evaluate(context);
+
+    if (!object.isString(templateName))
+      throw new LiquidTypeError(
+        `invalid template name, expected a string, found ${templateName}`,
+        this.token
+      );
+
+    // Load the template. We tag it with "include" so the template loader
+    // knows what tag is asking for a template.
+    const template = await context.getTemplate(templateName, {
+      tag: "include",
+    });
+
+    // Arguments go into an `include` namespace.
+    const includeScope: ContextScope = {};
+    for (const [key, value] of Object.entries(this.args)) {
+      includeScope[key] = await value.evaluate(context);
+    }
+
+    await context.extend({ include: includeScope }, async () => {
+      await template.renderWithContext(context, out, false, true);
+    });
+  }
+
+  renderSync(context: RenderContext, out: RenderStream) {
+    const templateName = this.templateName.evaluateSync(context);
+
+    if (!object.isString(templateName))
+      throw new LiquidTypeError(
+        `invalid template name, expected a string, found ${templateName}`,
+        this.token
+      );
+
+    const template = context.getTemplateSync(templateName, { tag: "include" });
+
+    const includeScope: ContextScope = {};
+    for (const [key, value] of Object.entries(this.args)) {
+      includeScope[key] = value.evaluateSync(context);
+    }
+
+    context.extendSync({ include: includeScope }, () => {
+      template.renderWithContextSync(context, out, false, true);
+    });
+  }
+}
+```
+
+</TabItem>
+</Tabs>

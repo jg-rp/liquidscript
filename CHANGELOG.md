@@ -1,11 +1,19 @@
 # LiquidScript Change Log
 
+## Version 1.2.0-beta.1 (unreleased)
+
+- New general purpose argument list parser. Parse Liquid expressions containing any number of named or keyword arguments, with a choice of key/value separator.
+
+### Docs
+
+- New example Jekyll style `include` tag.
+
 ## Version 1.1.0-beta.1
 
 - New "if not" tag. A drop-in replacement for the standard `if` tag that supports logical `not` and grouping with parentheses.
 - Moved some module-level constants to static class variables for easier subclassing of tags.
-- Allow `ObjectChain` to contain `push`, `pop` and `size` properties. This is a **potentially breaking change** for early adopters writing custom tags using `context.scope.push` and `context.scope.pop`. The symbols `chainPush` and `chainPop` would be needed instead.
-- Enforce `maxContextDepth` when extended a render context scope as well as copying a `RenderContext`.
+- Allow `ObjectChain` to contain `push`, `pop` and `size` properties. This is **potentially a breaking change** for early adopters writing custom tags using `context.scope.push` and `context.scope.pop`. The symbols `chainPush` and `chainPop` would be needed instead.
+- Enforce `maxContextDepth` when extending a render context scope as well as copying a `RenderContext`.
 - New `FalsyStrictUndefined` type. `FalsyStrictUndefined` is similar to `StrictUndefined`, but can be tested for truthiness and compared to other values in an `if`/`unless` expression without throwing an error.
 
 ## Version 1.0.0-beta.1

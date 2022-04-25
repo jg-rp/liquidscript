@@ -136,8 +136,8 @@ export function parseObject(
   return left;
 }
 
-export function parse(expr: string, lineNumber: number = 1): BooleanExpression {
+export function parse(expr: string, startIndex: number = 1): BooleanExpression {
   return new BooleanExpression(
-    parseObject(new ExpressionTokenStream(tokenize(expr, lineNumber)))
+    parseObject(new ExpressionTokenStream(tokenize(expr, startIndex)))
   );
 }

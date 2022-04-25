@@ -213,7 +213,7 @@ export class Template {
   /**
    * Copy this template with new render context globals.
    *
-   * @param globals - An optional object who's properties will be added
+   * @param globals - An object who's properties will be added
    * to the render context every time this template is rendered.
    * @returns A copy of this template with new render context globals.
    */
