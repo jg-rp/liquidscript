@@ -1,5 +1,5 @@
 {
-  "version": "0.7.0",
+  "version": "0.8.0",
   "test_groups": [
     {
       "name": "liquid.golden.abs_filter",
@@ -6122,6 +6122,17 @@
           "strict": false
         },
         {
+          "name": "incompatible types",
+          "template": "{{ a | sort }}",
+          "want": "",
+          "context": {
+            "a": [[], {}, 1, "4"]
+          },
+          "partials": {},
+          "error": true,
+          "strict": false
+        },
+        {
           "name": "left value is not an array",
           "template": "{{ a | sort | join: '#' }}",
           "want": "123",
@@ -7643,6 +7654,27 @@
           "strict": false
         },
         {
+          "name": "second argument is undefined",
+          "template": "{% assign x = a | where: 'title', nosuchthing %}{% for obj in x %}{% for i in obj %}({{ i[0] }},{{ i[1] }}){% endfor %}{% endfor %}",
+          "want": "(title,foo)(title,bar)",
+          "context": {
+            "a": [
+              {
+                "title": "foo"
+              },
+              {
+                "title": "bar"
+              },
+              {
+                "title": null
+              }
+            ]
+          },
+          "partials": {},
+          "error": false,
+          "strict": false
+        },
+        {
           "name": "too many arguments",
           "template": "{{ a | where: 'title', 'foo', 'bar' }}",
           "want": "",
@@ -7661,6 +7693,27 @@
           },
           "partials": {},
           "error": true,
+          "strict": false
+        },
+        {
+          "name": "value is explicit nil",
+          "template": "{% assign x =  a | where: 'b', nil %}{% for obj in x %}{% for i in obj %}({{ i[0] }},{{ i[1] }}){% endfor %}{% endfor %}",
+          "want": "(b,bar)",
+          "context": {
+            "a": [
+              {
+                "b": false
+              },
+              {
+                "b": "bar"
+              },
+              {
+                "b": null
+              }
+            ]
+          },
+          "partials": {},
+          "error": false,
           "strict": false
         },
         {

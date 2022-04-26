@@ -2,8 +2,8 @@ import { getItemSync } from "../../context";
 import { toLiquidString } from "../../drop";
 import {
   FilterArgumentError,
-  FilterValueError,
   InternalKeyError,
+  InternalTypeError,
 } from "../../errors";
 import { isLiquidTruthy, NIL } from "../../expression";
 import { checkArguments, FilterContext } from "../../filter";
@@ -337,12 +337,12 @@ function compare(a: unknown, b: unknown): -1 | 0 | 1 {
   if (a !== undefined && b === undefined) return -1;
 
   if (typeof a !== typeof b)
-    throw new FilterValueError(
+    throw new InternalTypeError(
       `comparison with ${typeof a} and ${typeof b} failed`
     );
 
   if (isComparable(a) && isComparable(b)) return a < b ? -1 : a > b ? 1 : 0;
-  throw new FilterValueError(`comparison of '${a}' and '${b}' failed`);
+  throw new InternalTypeError(`comparison of '${a}' and '${b}' failed`);
 }
 
 function naturalCompare(a: unknown, b: unknown): -1 | 0 | 1 {

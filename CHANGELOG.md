@@ -4,6 +4,8 @@
 
 - New general purpose argument list parser. Parse Liquid expressions containing any number of named or keyword arguments, with a choice of key/value separator.
 - Fixed a bug with the `assign` tag where it would incorrectly throw a `LiquidSyntaxError` when parts of its expression were split over multiple lines.
+- Fixed a bug with the `where` filter. It is now consistent with the reference implementation when given `nil` or `Undefined` as its second argument.
+- Fixed a bug with the `sort` filter. It now raises a `LiquidTypeError` at render time if the items to be sorted are incompatible. The reference implementation raises an equivalent `Liquid::ArgumentError` in this situation.
 
 ### Docs
 
