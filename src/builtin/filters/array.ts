@@ -5,7 +5,7 @@ import {
   FilterValueError,
   InternalKeyError,
 } from "../../errors";
-import { isLiquidTruthy } from "../../expression";
+import { isLiquidTruthy, NIL } from "../../expression";
 import { checkArguments, FilterContext } from "../../filter";
 import { Range } from "../../range";
 import {
@@ -270,7 +270,7 @@ export function where(
   value?: unknown
 ): unknown[] {
   checkArguments(arguments.length, 2, 1);
-  if (value === undefined) {
+  if (value === null || NIL.equals(value) || isUndefined(value)) {
     return inputArray(left).filter((v) => isLiquidTruthy(getItem(v, prop)));
   }
   return inputArray(left).filter((v) => getItem(v, prop) === value);
