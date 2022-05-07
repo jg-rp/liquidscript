@@ -118,6 +118,7 @@ export class TableRowNode implements Node {
   }
 
   children(): ChildNode[] {
+    // TODO: expression
     return this.block.children();
   }
 }

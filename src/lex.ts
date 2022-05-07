@@ -37,7 +37,7 @@ export function compileRules(
   const rules = [
     `${ts}\\s*raw\\s*${te}(?<${MatchGroup.RAW}>.*?)${ts}\\s*endraw\\s*${te}`,
     `${ss}-?\\s*(?<${MatchGroup.STA}>.*?)\\s*(?<${MatchGroup.RSS}>-?)${se}`,
-    `(?<${MatchGroup.PRE}>${ts}-?\\s*(?<${MatchGroup.TAG}>\\w*)\\s*)` +
+    `(?<${MatchGroup.PRE}>${ts}-?\\s*(?<${MatchGroup.TAG}>#|\\w*)\\s*)` +
       `(?<${MatchGroup.EXP}>.*?)\\s*(?<${MatchGroup.RST}>-?)${te}`,
     `(?<${MatchGroup.LIT}>.+?(?=(?:(?:${ts}|${ss})(?<${MatchGroup.RSL}>-?))|$))`,
   ];

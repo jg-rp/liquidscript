@@ -17,7 +17,7 @@ import {
 const RULES = [
   [
     "LIQUID_EXPR",
-    "[ \\t]*(?<preamble>(?<name>\\w+)[ \\t]*)(?<expr>.*?)[ \\t\\r]*?(\\n+|$)",
+    "[ \\t]*(?<preamble>(?<name>#|\\w+)[ \\t]*)(?<expr>.*?)[ \\t\\r]*?(\\n+|$)",
   ],
   [TOKEN_SKIP, "[\\r\\n]+"],
   [TOKEN_ILLEGAL, "."],

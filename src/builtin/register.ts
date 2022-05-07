@@ -73,6 +73,7 @@ import { BreakTag } from "./tags/for";
 import { IfTag } from "./tags/if";
 import { IncrementTag } from "./tags/increment";
 import { IncludeTag } from "./tags/include";
+import { InlineCommentTag } from "./tags/inline_comment";
 import { LiquidTag } from "./tags/liquid";
 import { TemplateLiteral } from "./tags/literal";
 import { RenderTag } from "./tags/render";
@@ -100,6 +101,7 @@ export function registerBuiltin(env: Environment): void {
   env.tags["ifchanged"] = new IfChangedTag();
   env.tags["include"] = new IncludeTag();
   env.tags["increment"] = new IncrementTag();
+  env.tags["#"] = new InlineCommentTag();
   env.tags["literal"] = new TemplateLiteral();
   env.tags["liquid"] = new LiquidTag();
   env.tags["render"] = new RenderTag();
