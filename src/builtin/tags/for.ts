@@ -9,7 +9,6 @@ import { Tag } from "../../tag";
 import { Token, TOKEN_EXPRESSION, TOKEN_TAG, TokenStream } from "../../token";
 import { ForLoopDrop } from "../drops/forloop";
 import { ContextScope } from "../../types";
-import { chainPop, chainPush } from "../../chain_object";
 
 const TAG_FOR = "for";
 const TAG_ENDFOR = "endfor";
