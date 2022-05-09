@@ -628,10 +628,6 @@ Goodbye, World!
 
 Render the content of a named template. The name can be a string literal or a variable containing a string. The included template will share the namespace of the current template.
 
-:::caution
-Shopify have depreciated the `include` tag in favour of the `render` tag. If `include` is ever dropped from "standard" Liquid, we'll maintain an implementation in the [liquid-extra](https://github.com/jg-rp/liquid-extra) project.
-:::
-
 :::info
 `include` is not allowed inside a template rendered with `render`. You should expect a `DisabledTagError` from LiquidScript if you do so.
 :::

@@ -3,7 +3,7 @@ import TabItem from "@theme/TabItem";
 
 # Custom Loaders
 
-[Template loaders](../introduction/loading-templates.md#built-in-template-loaders) are responsible for finding a template's source text given a name or identifier. You might want to write a custom template loader to read templates from a database, narrow the template search space for a specific user or add extra context data to a template, for example.
+[Template loaders](../introduction/loading-templates.md#built-in-template-loaders) are responsible for finding a template's source text given a name or identifier. You might want to write a custom template loader to read templates from a database, narrow the template search space for a specific user, or add extra context data to a template, for example.
 
 Write a custom template loader by extending the [`Loader`](../api/classes/Loader.md) base class and implementing its [`getSource()`](../api/classes/Loader.md#getsource) and [`getSourceSync()`](../api/classes/Loader.md#getsourcesync) methods. Then configure an [`Environment`](../api/classes/Environment.md) to use your loader with the [`loader`](../api/modules.md#environmentoptions) option.
 
@@ -503,7 +503,7 @@ export class MongoDBLoader extends Loader {
 }
 ```
 
-The `MongoDBLoader` constructor expects a MongoDB `Collection` from an already connected client, and that documents in that collection have a `uid` and `templates` field. Fields in the embedded `templates` document are Liquid template names and their values are Liquid template source text.
+The `MongoDBLoader` constructor expects a MongoDB `Collection` from an already connected client, and that documents in that collection have a `uid` and `templates` field. Fields in the embedded `templates` document are Liquid template names and their values are Liquid template source text strings.
 
 If `MongoDBLoader` is exported from the module `"mongo_loader.mjs"`, we could use it like this.
 
