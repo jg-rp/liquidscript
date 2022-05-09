@@ -11,6 +11,50 @@ You can find their license [here](https://github.com/Shopify/liquid/blob/master/
 
 This page documents the standard tags built-in to Liquid. See [custom tags](../guides/custom-tags.mdx) for examples of how to write your own.
 
+## `#` (inline comment)
+
+`{% # ... %}`
+
+**_New in LiquidScript version 1.2.0-beta.1_**  
+**_New in Ruby Liquid version 5.4.0_**
+
+Comment out one or more lines with a single inline tag.
+
+```liquid
+{% # This is a comment %}
+{%-
+  # Comments can span multiple lines,
+  # but every line must start with a hash.
+-%}
+```
+
+```plain title="output"
+
+```
+
+Inside [liquid](#liquid) tags, any line starting with a hash will be considered a comment.
+
+```liquid
+{% liquid
+  # This is a comment
+  echo "Hello"
+%}
+```
+
+```plain title="output"
+Hello
+```
+
+You can't comment out other Liquid tags using an inline comment.
+
+```liquid
+{%- # {% echo 'Hello, World!' %} -%}
+```
+
+```plain title="output"
+ -%}
+```
+
 ## assign
 
 `{% assign <identifier> = <primitive,identifier> [| <filter> [| <filter> ... ]] %}`
