@@ -1,44 +1,17 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!-- Created with Inkscape (http://www.inkscape.org/) -->
-
 <svg
    xmlns:dc="http://purl.org/dc/elements/1.1/"
    xmlns:cc="http://creativecommons.org/ns#"
    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
    xmlns:svg="http://www.w3.org/2000/svg"
    xmlns="http://www.w3.org/2000/svg"
-   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
-   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="128"
-   height="128"
-   viewBox="0 0 33.866666 33.866668"
-   version="1.1"
    id="svg1088"
-   inkscape:version="0.92.5 (2060ec1f9f, 2020-04-08)"
-   sodipodi:docname="logo-128.svg">
+   version="1.1"
+   viewBox="0 0 33.866666 33.866668"
+   height="128"
+   width="128">
   <defs
      id="defs1082" />
-  <sodipodi:namedview
-     id="base"
-     pagecolor="#ffffff"
-     bordercolor="#666666"
-     borderopacity="1.0"
-     inkscape:pageopacity="0.0"
-     inkscape:pageshadow="2"
-     inkscape:zoom="3.959798"
-     inkscape:cx="41.283335"
-     inkscape:cy="72.730983"
-     inkscape:document-units="mm"
-     inkscape:current-layer="layer1"
-     showgrid="false"
-     units="px"
-     showguides="true"
-     inkscape:guide-bbox="true"
-     inkscape:window-width="1920"
-     inkscape:window-height="1172"
-     inkscape:window-x="0"
-     inkscape:window-y="0"
-     inkscape:window-maximized="1" />
   <metadata
      id="metadata1085">
     <rdf:RDF>
@@ -47,32 +20,32 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title />
+        <dc:title></dc:title>
       </cc:Work>
     </rdf:RDF>
   </metadata>
   <g
-     inkscape:label="Layer 1"
-     inkscape:groupmode="layer"
-     id="layer1"
-     transform="translate(0,-263.13332)">
+     transform="translate(0,-263.13332)"
+     id="layer1">
     <rect
-       style="fill:#c23a00;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:0.90758193;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;paint-order:stroke markers fill"
-       id="rect1633"
-       width="33.866665"
-       height="33.866665"
+       y="263.13333"
        x="8.9009603e-07"
-       y="263.13333" />
-    <text
-       xml:space="preserve"
+       height="33.866665"
+       width="33.866665"
+       id="rect1633"
+       style="fill:#c23a00;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:0.90758193;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;paint-order:stroke markers fill" />
+    <g
+       id="text1637"
        style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:21.16666603px;line-height:1.25;font-family:'DejaVu Sans Mono';-inkscape-font-specification:'DejaVu Sans Mono, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:0.26458332"
-       x="3.6679938"
-       y="287.77161"
-       id="text1637"><tspan
-         sodipodi:role="line"
-         id="tspan1635"
-         x="3.6679938"
-         y="287.77161"
-         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:21.16666603px;font-family:'DejaVu Sans Mono';-inkscape-font-specification:'DejaVu Sans Mono, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke-width:0.26458332">LS</tspan></text>
+       aria-label="LS">
+      <path
+         id="path901"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:21.16666603px;font-family:'DejaVu Sans Mono';-inkscape-font-specification:'DejaVu Sans Mono, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke-width:0.26458332"
+         d="m 5.9934332,287.77161 v -15.43059 h 3.0489094 v 12.74341 h 6.5215654 v 2.68718 z" />
+      <path
+         id="path903"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:21.16666603px;font-family:'DejaVu Sans Mono';-inkscape-font-specification:'DejaVu Sans Mono, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke-width:0.26458332"
+         d="m 21.672062,281.00199 q -2.304769,-0.8785 -3.121256,-1.83968 -0.816488,-0.97151 -0.816488,-2.60449 0,-2.09806 1.343587,-3.29696 1.343587,-1.19889 3.689697,-1.19889 1.064535,0 2.129069,0.24805 1.064535,0.23771 2.108399,0.71313 v 2.97657 q -0.981853,-0.69247 -1.994711,-1.0542 -1.012858,-0.36174 -2.005045,-0.36174 -1.105876,0 -1.694987,0.44442 -0.589111,0.44442 -0.589111,1.27124 0,0.64079 0.423746,1.06453 0.434082,0.41341 1.79834,0.91984 l 1.312582,0.4961 q 1.860351,0.68213 2.73885,1.80867 0.8785,1.12655 0.8785,2.84221 0,2.33577 -1.384929,3.49332 -1.374593,1.14722 -4.16512,1.14722 -1.147217,0 -2.304769,-0.27905 -1.147217,-0.26872 -2.222086,-0.80616 v -3.15226 q 1.219563,0.86817 2.356445,1.29191 1.147217,0.42375 2.263428,0.42375 1.126546,0 1.746663,-0.50643 0.620117,-0.51676 0.620117,-1.4366 0,-0.69247 -0.413411,-1.20923 -0.413412,-0.5271 -1.198894,-0.82683 z" />
+    </g>
   </g>
 </svg>
