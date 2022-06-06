@@ -76,9 +76,9 @@ Some excellent JavaScript implementations of Liquid already exist. To meet some 
 
 - Offer an asynchronous API, including handling of render context promises and asynchronous drops.
 
-- Offer HTML and XML auto-escaping, with facilities to mark text as "safe". See [Auto Escape](#auto-escape).
+- Offer HTML and XML auto-escaping, with facilities to mark text as "safe". See [Auto Escape](https://jg-rp.github.io/liquidscript/introduction/auto-escape).
 
-- Drops (arbitrary objects added to a render context) must not expose their methods unless explicitly whitelisted. See [drop protocol](#drop-protocol).
+- Drops (arbitrary objects added to a render context) must not expose their methods unless explicitly whitelisted. See [drop protocol](https://jg-rp.github.io/liquidscript/introduction/objects-and-drops#drop-protocol).
 
 ## Benchmark
 
