@@ -1,4 +1,4 @@
-import { Node } from "../../ast";
+import { ChildNode, Node } from "../../ast";
 import { RenderContext } from "../../context";
 import { RenderStream } from "../../io/output_stream";
 import { Tag } from "../../tag";
@@ -23,5 +23,9 @@ export class LiteralNode implements Node {
 
   public renderSync(context: RenderContext, out: RenderStream): void {
     out.write(this.token.value);
+  }
+
+  public children(): ChildNode[] {
+    return [];
   }
 }

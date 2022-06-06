@@ -19,6 +19,7 @@ const TAG_ELSIF = "elsif";
 const TAG_ELSE = "else";
 
 type ConditionalAlternative = {
+  token: Token;
   condition: Expression;
   consequence: BlockNode;
 };
@@ -65,9 +66,10 @@ export class UnlessTag implements Tag {
       stream.current.value === TAG_ELSIF
     ) {
       // Eat TAG_ELSIF
-      stream.next();
+      const altToken = stream.next();
       const expr = this.parseExpression(stream);
       conditionalAlternatives.push({
+        token: altToken,
         condition: expr,
         consequence: parser.parseBlock(
           stream,
@@ -169,17 +171,22 @@ export class UnlessNode implements Node {
   }
 
   children(): ChildNode[] {
-    const _children = [
-      { node: this.consequence, expression: this.condition },
+    const _children: ChildNode[] = [
+      {
+        token: this.consequence.token,
+        node: this.consequence,
+        expression: this.condition,
+      },
       ...this.conditionalAlternatives.map(
         (alt: ConditionalAlternative): ChildNode => ({
+          token: alt.token,
           node: alt.consequence,
           expression: alt.condition,
         })
       ),
     ];
     if (this.alternative !== undefined)
-      _children.push({ node: this.alternative });
+      _children.push({ token: this.alternative.token, node: this.alternative });
     return _children;
   }
 }

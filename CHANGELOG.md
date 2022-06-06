@@ -1,5 +1,15 @@
 # LiquidScript Change Log
 
+## Version 1.3.0
+
+**Breaking Changes**
+
+- Objects returned from `ast.Node.children` must now include a `token` property, being the token representing the start of the AST node.
+
+**Features**
+
+- Template static analysis. Report template variable usage using `Template.analyze()` and `Template.analyzeSync()`.
+
 ## Version 1.2.0-beta.1
 
 **Features**

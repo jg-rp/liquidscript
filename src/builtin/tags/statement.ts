@@ -1,4 +1,4 @@
-import { Node } from "../../ast";
+import { ChildNode, Node } from "../../ast";
 import { RenderContext } from "../../context";
 import { escape } from "../../html";
 import { RenderStream } from "../../io/output_stream";
@@ -52,5 +52,14 @@ export class OutputStatementNode implements Node {
 
   toString(): string {
     return "`" + this.expression.toString() + "`";
+  }
+
+  public children(): ChildNode[] {
+    return [
+      {
+        token: this.token,
+        expression: this.expression,
+      },
+    ];
   }
 }

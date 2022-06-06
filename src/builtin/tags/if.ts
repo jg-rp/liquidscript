@@ -14,6 +14,7 @@ import { BufferedRenderStream, RenderStream } from "../../io/output_stream";
 import { parse } from "../../expressions/boolean/parse";
 
 type ConditionalAlternative = {
+  token: Token;
   condition: BooleanExpression;
   consequence: BlockNode;
 };
@@ -57,9 +58,10 @@ export class IfTag implements Tag {
       stream.current.value === TAG_ELSIF
     ) {
       // Eat TAG_ELSIF
-      stream.next();
+      const altTok = stream.next();
       const expr = this.parseExpression(stream);
       conditionalAlternatives.push({
+        token: altTok,
         condition: expr,
         consequence: parser.parseBlock(
           stream,
@@ -164,17 +166,18 @@ export class IfNode implements Node {
   }
 
   children(): ChildNode[] {
-    const _children = [
-      { node: this.consequence, expression: this.condition },
+    const _children: Array<ChildNode> = [
+      { token: this.token, node: this.consequence, expression: this.condition },
       ...this.conditionalAlternatives.map(
         (alt: ConditionalAlternative): ChildNode => ({
+          token: alt.token,
           node: alt.consequence,
           expression: alt.condition,
         })
       ),
     ];
     if (this.alternative !== undefined)
-      _children.push({ node: this.alternative });
+      _children.push({ token: this.alternative.token, node: this.alternative });
     return _children;
   }
 }

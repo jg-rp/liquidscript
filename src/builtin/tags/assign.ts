@@ -1,4 +1,4 @@
-import { Node } from "../../ast";
+import { ChildNode, Node } from "../../ast";
 import { RenderContext } from "../../context";
 import { LiquidSyntaxError } from "../../errors";
 import { Expression, Literal } from "../../expression";
@@ -51,5 +51,15 @@ export class AssignNode implements Node {
 
   public renderSync(context: RenderContext): void {
     context.assign(this.name, this.expression.evaluateSync(context));
+  }
+
+  public children(): ChildNode[] {
+    return [
+      {
+        token: this.token,
+        expression: this.expression,
+        templateScope: [this.name],
+      },
+    ];
   }
 }

@@ -28,4 +28,11 @@ describe("default map", () => {
     );
     expect(m.get("foo").get("bar")).toBe(5);
   });
+
+  test("set default on get", () => {
+    const factory = (): string[] => [];
+    const m: DefaultMap<string, Array<string>> = new DefaultMap(factory);
+    m.get("foo").push("bar");
+    expect(m.get("foo")).toStrictEqual(["bar"]);
+  });
 });

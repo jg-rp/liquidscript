@@ -19,6 +19,7 @@ const TAG_WHEN = "when";
 const TAG_ELSE = "else";
 
 type ConditionalAlternative = {
+  token: Token;
   condition: BooleanExpression;
   block: BlockNode;
 };
@@ -64,7 +65,7 @@ export class CaseTag implements Tag {
       stream.current.kind === TOKEN_TAG &&
       stream.current.value === TAG_WHEN
     ) {
-      stream.next();
+      const whenToken = stream.next();
       // One conditional block for every object in a comma separated list.
       const whenExprs = stream.current.value
         .split(",")
@@ -76,7 +77,11 @@ export class CaseTag implements Tag {
         stream.next()
       );
       whens.push(
-        ...whenExprs.map((expr) => ({ condition: expr, block: whenBlock }))
+        ...whenExprs.map((expr) => ({
+          token: whenToken,
+          condition: expr,
+          block: whenBlock,
+        }))
       );
     }
 
@@ -153,11 +158,13 @@ export class CaseNode implements Node {
   children(): ChildNode[] {
     const _children = this.whens.map(
       (alt: ConditionalAlternative): ChildNode => ({
+        token: alt.token,
         node: alt.block,
         expression: alt.condition,
       })
     );
-    if (this.default_ !== undefined) _children.push({ node: this.default_ });
+    if (this.default_ !== undefined)
+      _children.push({ token: this.default_.token, node: this.default_ });
     return _children;
   }
 }

@@ -1,4 +1,4 @@
-import { Node } from "../../ast";
+import { ChildNode, Node } from "../../ast";
 import { RenderContext } from "../../context";
 import { LiquidSyntaxError } from "../../errors";
 import { Expression } from "../../expression";
@@ -83,6 +83,26 @@ export class CycleNode implements Node {
     const groupName = this.group ? this.group.evaluateSync(context) : undefined;
     const args = this.args.map((arg) => arg.evaluateSync(context));
     this.cycle(context, out, groupName, args);
+  }
+
+  public children(): ChildNode[] {
+    const _children: Array<ChildNode> = [];
+
+    if (this.group) {
+      _children.push({
+        token: this.token,
+        expression: this.group,
+      });
+    }
+
+    for (const arg of this.args) {
+      _children.push({
+        token: this.token,
+        expression: arg,
+      });
+    }
+
+    return _children;
   }
 }
 

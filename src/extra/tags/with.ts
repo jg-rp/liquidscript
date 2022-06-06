@@ -104,6 +104,6 @@ export class WithNode implements Node {
   }
 
   children(): ChildNode[] {
-    return [{ node: this.block }];
+    return [{ token: this.token, node: this.block }];
   }
 }

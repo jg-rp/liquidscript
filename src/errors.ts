@@ -429,3 +429,14 @@ function _message(
 ): string {
   return `${message} (${templateName || "<string>"}:${token.lineNumber()})`;
 }
+
+/**
+ * An error thrown during static template analysis. Indicates a `Node` or `Expression`
+ * could not be visited.
+ */
+export class TemplateTraversalError extends Error {
+  constructor(public message: string) {
+    super(message);
+    Object.setPrototypeOf(this, TemplateTraversalError.prototype);
+  }
+}

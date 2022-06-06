@@ -118,7 +118,13 @@ export class TableRowNode implements Node {
   }
 
   children(): ChildNode[] {
-    // TODO: expression
-    return this.block.children();
+    return [
+      {
+        token: this.block.token,
+        node: this.block,
+        expression: this.expression,
+        blockScope: ["tablerowloop", this.expression.name],
+      },
+    ];
   }
 }

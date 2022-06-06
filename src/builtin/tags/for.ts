@@ -218,9 +218,15 @@ export class ForNode implements Node {
 
   children(): ChildNode[] {
     const _children: ChildNode[] = [
-      { node: this.block, expression: this.expression },
+      {
+        token: this.block.token,
+        node: this.block,
+        expression: this.expression,
+        blockScope: [this.expression.name, "forloop"],
+      },
     ];
-    if (this.default_) _children.push({ node: this.default_ });
+    if (this.default_)
+      _children.push({ token: this.default_.token, node: this.default_ });
     return _children;
   }
 }

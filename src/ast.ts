@@ -4,6 +4,7 @@ import { DisabledTagError, InternalLiquidError } from "./errors";
 import { Expression } from "./expression";
 import { RenderStream } from "./io/output_stream";
 import { Token, TOKEN_TAG } from "./token";
+import { ContextScope } from "./types";
 
 export interface Node {
   /**
@@ -94,6 +95,7 @@ export class BlockNode implements Node {
   public children(): ChildNode[] {
     return this.nodes.map(
       (n): ChildNode => ({
+        token: this.token,
         node: n,
       })
     );
@@ -104,8 +106,50 @@ export class BlockNode implements Node {
  * An AST node and optional expression guarding that node.
  */
 export type ChildNode = {
-  node: Node;
+  /**
+   * The token that started this node. Used for reporting line numbers.
+   */
+  token: Token;
+
+  /**
+   * An optional `Expression` object related to the given `Node` object.
+   */
   expression?: Expression;
+
+  /**
+   * An `Node` object (some AST Nodes will have an `Expression` without
+   * an associated `Node`). Typically a `BlockNode`.
+   */
+  node?: Node;
+
+  /**
+   * An array of names the parent node adds to the template local
+   * namespace. For example, the built-in `assign`, `capture`, `increment`
+   * and `decrement` tags all add names to the template local scope.
+   */
+  templateScope?: Array<string>;
+
+  /**
+   * An array of names the parent node adds to its block. For example, the
+   * `for` tag adds the name "forloop" for the duration of its block.
+   */
+  blockScope?: Array<string>;
+
+  /**
+   * If given, indicates that the associated expression should be used to
+   * load a partial template. In "render" mode, the partial will be analyzed
+   * in an isolated namespace, without access to the parent's template local
+   * scope. In "include" mode, the partial will have access to the parents
+   * template local scope and the parent's scope can be updated by the partial
+   * template too.
+   */
+  loadMode?: "render" | "include";
+
+  /**
+   * Meta data a template loader might need to find the source of a partial
+   * template.
+   */
+  loadContext?: ContextScope;
 };
 
 /**
@@ -118,7 +162,7 @@ export function* walk(root: Node): Generator<ChildNode> {
   if (root.children) {
     for (const node of root.children()) {
       yield node;
-      yield* walk(node.node);
+      if (node.node) yield* walk(node.node);
     }
   }
 }
@@ -129,8 +173,8 @@ export function* walk(root: Node): Generator<ChildNode> {
  */
 export function forcedOutput(root: Node): boolean {
   for (const child of walk(root)) {
-    if (child.node.captureOutput) return false;
-    if (child.node.forceOutput) return true;
+    if (child.node?.captureOutput) return false;
+    if (child.node?.forceOutput) return true;
   }
   return false;
 }

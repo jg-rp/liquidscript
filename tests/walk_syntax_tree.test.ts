@@ -1,6 +1,5 @@
 import { walk } from "../src/ast";
 import { Environment } from "../src/environment";
-import { TOKEN_FOR } from "../src/expressions/tokens";
 import { TOKEN_STATEMENT, TOKEN_TAG } from "../src/token";
 
 describe("walk a syntax tree", () => {
@@ -18,7 +17,7 @@ describe("walk a syntax tree", () => {
     );
 
     const tokenKinds = Array.from(walk(template.tree.nodes[0])).map(
-      (n) => n.node.token.kind
+      (n) => n.node?.token.kind
     );
 
     expect(tokenKinds).toStrictEqual([
@@ -28,8 +27,11 @@ describe("walk a syntax tree", () => {
       TOKEN_TAG,
       TOKEN_TAG,
       TOKEN_STATEMENT,
+      undefined,
       TOKEN_STATEMENT,
+      undefined,
       TOKEN_STATEMENT,
+      undefined,
     ]);
   });
 });

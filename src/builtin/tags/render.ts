@@ -1,7 +1,12 @@
-import { Node } from "../../ast";
+import { ChildNode, Node } from "../../ast";
 import { RenderContext } from "../../context";
 import { LiquidSyntaxError } from "../../errors";
-import { Expression, Identifier, StringLiteral } from "../../expression";
+import {
+  Expression,
+  Identifier,
+  Literal,
+  StringLiteral,
+} from "../../expression";
 import {
   parseIdentifier,
   parseStringLiteral,
@@ -145,7 +150,7 @@ export class RenderNode implements Node {
 
     if (this.bindName) {
       const bindValue = await this.bindName.evaluate(context);
-      const bindKey = this.alias || template.name.split(".")[0];
+      const bindKey = this.alias || template.name.split(".", 1)[0];
 
       if (this.bindLoop && isLiquidArrayLike(bindValue)) {
         // Render the template once for each item in an array.
@@ -186,7 +191,7 @@ export class RenderNode implements Node {
 
     if (this.bindName) {
       const bindValue = this.bindName.evaluateSync(context);
-      const bindKey = this.alias || template.name.split(".")[0];
+      const bindKey = this.alias || template.name.split(".", 1)[0];
 
       if (this.bindLoop && isLiquidArrayLike(bindValue)) {
         // Render the template once for each item in an array.
@@ -210,5 +215,36 @@ export class RenderNode implements Node {
     } else {
       template.renderWithContextSync(ctx, out, true, true);
     }
+  }
+
+  public children(): ChildNode[] {
+    const blockScope: string[] = Object.keys(this.args);
+    const _children: ChildNode[] = [
+      {
+        token: this.token,
+        expression: this.templateName,
+        blockScope: blockScope,
+        loadMode: "render",
+        loadContext: { tag: "render" },
+      },
+    ];
+
+    if (this.bindName) {
+      if (this.alias) {
+        blockScope.push(this.alias);
+      } else if (this.templateName instanceof Literal) {
+        blockScope.push(this.templateName.toString().split(".", 1)[0]);
+      }
+
+      _children.push({
+        token: this.token,
+        expression: this.bindName,
+      });
+    }
+
+    for (const expr of Object.values(this.args)) {
+      _children.push({ token: this.token, expression: expr });
+    }
+    return _children;
   }
 }

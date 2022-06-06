@@ -62,7 +62,13 @@ export class CaptureNode implements Node {
     this.assign(context, buf);
   }
 
-  children(): ChildNode[] {
-    return this.block.children();
+  public children(): ChildNode[] {
+    return [
+      {
+        token: this.token,
+        node: this.block,
+        templateScope: [this.name],
+      },
+    ];
   }
 }

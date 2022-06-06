@@ -26,6 +26,7 @@ export interface Expression {
   evaluateSync(context: RenderContext): unknown;
   equals(other: unknown): boolean;
   toString(): string;
+  children?: () => Expression[];
 }
 
 export class Nil implements Expression {
@@ -45,6 +46,10 @@ export class Nil implements Expression {
 
   public toString(): string {
     return "";
+  }
+
+  public children(): Expression[] {
+    return [];
   }
 }
 
@@ -73,6 +78,10 @@ export class Empty implements Expression {
 
   public toString(): string {
     return "empty";
+  }
+
+  public children(): Expression[] {
+    return [];
   }
 }
 
@@ -103,6 +112,10 @@ export class Blank implements Expression {
   public toString(): string {
     return "blank";
   }
+
+  public children(): Expression[] {
+    return [];
+  }
 }
 
 export const BLANK = new Blank();
@@ -122,6 +135,10 @@ export class Continue implements Expression {
 
   public toString(): string {
     return "continue";
+  }
+
+  public children(): Expression[] {
+    return [];
   }
 }
 
@@ -146,6 +163,10 @@ export abstract class Literal<T> implements Expression {
 
   public toString(): string {
     return `${this.value}`;
+  }
+
+  public children(): Expression[] {
+    return [];
   }
 }
 
@@ -236,6 +257,10 @@ export class RangeLiteral implements Expression {
   public toString(): string {
     return `(${this.start}..${this.stop})`;
   }
+
+  public children(): Expression[] {
+    return [this.start, this.stop];
+  }
 }
 
 export class IdentifierPathElement extends Literal<number | string> {
@@ -303,13 +328,17 @@ export class Identifier implements Expression {
     }
     return context.getSync(this.root, path);
   }
+
+  public children(): Expression[] {
+    return this.path.filter(isExpression);
+  }
 }
 
 export class ExpressionFilter {
   constructor(
     readonly name: string,
-    private args: Expression[] = [],
-    private kwargs: Map<string, Expression> = new Map()
+    readonly args: Expression[] = [],
+    readonly kwargs: Map<string, Expression> = new Map()
   ) {}
 
   public toString() {
@@ -433,6 +462,19 @@ export class FilteredExpression implements Expression {
     }
     return result;
   }
+
+  public children(): Expression[] {
+    const _children = [this.expression];
+    for (const fltr of this.filters) {
+      for (const arg of fltr.args) {
+        _children.push(arg);
+      }
+      for (const arg of fltr.kwargs.values()) {
+        _children.push(arg);
+      }
+    }
+    return _children;
+  }
 }
 
 export class InfixExpression implements Expression {
@@ -474,6 +516,10 @@ export class InfixExpression implements Expression {
       this.right.evaluateSync(context)
     );
   }
+
+  public children(): Expression[] {
+    return [this.left, this.right];
+  }
 }
 
 export class BooleanExpression implements Expression {
@@ -496,6 +542,10 @@ export class BooleanExpression implements Expression {
 
   public evaluateSync(context: RenderContext): boolean {
     return isLiquidTruthy(this.expression.evaluateSync(context));
+  }
+
+  public children(): Expression[] {
+    return [this.expression];
   }
 }
 
@@ -636,6 +686,14 @@ export class LoopExpression implements Expression {
       this.limit?.evaluateSync(context),
       this.offset?.evaluateSync(context)
     );
+  }
+
+  public children(): Expression[] {
+    const _children: Expression[] = [this.iterable];
+    if (this.limit) _children.push(this.limit);
+    if (this.offset) _children.push(this.offset);
+    if (this.cols) _children.push(this.cols);
+    return _children;
   }
 }
 

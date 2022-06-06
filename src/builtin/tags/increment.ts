@@ -1,4 +1,4 @@
-import { Node } from "../../ast";
+import { ChildNode, Node } from "../../ast";
 import { RenderContext } from "../../context";
 import { parseUnchainedIdentifier } from "../../expressions/common";
 import { tokenize } from "../../expressions/filtered/lex";
@@ -36,5 +36,14 @@ export class IncrementNode implements Node {
     if (val === undefined) val = 0;
     context.counters[this.identifier] = val + 1;
     out.write(val.toString());
+  }
+
+  public children(): ChildNode[] {
+    return [
+      {
+        token: this.token,
+        templateScope: [this.identifier],
+      },
+    ];
   }
 }

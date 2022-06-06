@@ -20,6 +20,11 @@ export class DefaultMap<K, V> extends Map<K, V> {
   }
 
   get(key: K): V {
-    return this.has(key) ? <V>super.get(key) : this.default();
+    if (this.has(key)) {
+      return <V>super.get(key);
+    }
+
+    this.set(key, this.default());
+    return this.get(key);
   }
 }
