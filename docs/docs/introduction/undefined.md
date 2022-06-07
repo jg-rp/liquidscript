@@ -4,7 +4,7 @@ LiquidScript does not have a "lax" mode like some Liquid engines, but we can con
 
 ## Undefined Variables
 
-When rendering a Liquid template, if a variable name can not be resolved, an instance of [`Undefined`](../api/classes/Undefined.md) is used instead. We can customize template rendering behavior supplying an `Undefined` factory function to the [`Environment`](../api/classes/Environment.md) constructor or [`Template.fromString()`](../api/classes/Template.md#fromstring).
+When rendering a Liquid template, if a variable name can not be resolved, an instance of [`Undefined`](../api/classes/Undefined.md) is used instead. We can customize template rendering behavior by supplying an `Undefined` factory function to the [`Environment`](../api/classes/Environment.md) constructor or [`Template.fromString()`](../api/classes/Template.md#fromstring).
 
 ```javascript
 import { Environment, StrictUndefined } from "liquidsscript";
