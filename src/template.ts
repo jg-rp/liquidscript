@@ -277,7 +277,7 @@ export class Template {
   public async analyze({
     followPartials,
     raiseForFailures,
-  }: TemplateAnalysisOptions): Promise<TemplateAnalysis> {
+  }: TemplateAnalysisOptions = {}): Promise<TemplateAnalysis> {
     const counter = new TemplateVariableCounter(this, {
       followPartials,
       raiseForFailures,
@@ -301,7 +301,7 @@ export class Template {
   public analyzeSync({
     followPartials,
     raiseForFailures,
-  }: TemplateAnalysisOptions): TemplateAnalysis {
+  }: TemplateAnalysisOptions = {}): TemplateAnalysis {
     const counter = new TemplateVariableCounter(this, {
       followPartials,
       raiseForFailures,
