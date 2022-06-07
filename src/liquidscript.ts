@@ -14,6 +14,13 @@ export type { RenderStream } from "./io/output_stream";
 
 export { Loader, TemplateSource } from "./loader";
 export { Template } from "./template";
+export type {
+  TemplateAnalysis,
+  TemplateAnalysisOptions,
+  VariableRefs,
+  VariableLocation,
+  VariableLocations,
+} from "./template";
 export {
   Undefined,
   LaxUndefined,
