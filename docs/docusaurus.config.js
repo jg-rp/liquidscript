@@ -99,6 +99,72 @@ const config = {
       },
       footer: {
         style: "dark",
+        links: [
+          {
+            title: "Docs",
+            items: [
+              {
+                label: "Introduction",
+                to: "/introduction/getting-started",
+              },
+              {
+                label: "Installation",
+                to: "/introduction/getting-started#install",
+              },
+              {
+                label: "Filter Reference",
+                to: "/language/filters",
+              },
+              {
+                label: "Tag Reference",
+                to: "/language/tags",
+              },
+            ],
+          },
+          {
+            title: "Features",
+            items: [
+              {
+                label: "HTML Auto-Escape",
+                to: "/introduction/auto-escape",
+              },
+              {
+                label: "Static Template Analysis",
+                to: "/guides/static-analysis",
+              },
+            ],
+          },
+          {
+            title: "Links",
+            items: [
+              {
+                label: "GitHub",
+                href: "https://github.com/jg-rp/liquidscript",
+              },
+              {
+                label: "Change Log",
+                href: "https://github.com/jg-rp/liquidscript/blob/main/CHANGELOG.md",
+              },
+              {
+                label: "NPM",
+                href: "https://www.npmjs.com/package/liquidscript",
+              },
+            ],
+          },
+          {
+            title: "Related Projects",
+            items: [
+              {
+                label: "Python Liquid",
+                href: "https://github.com/jg-rp/liquid",
+              },
+              {
+                label: "Golden Liquid",
+                href: "https://github.com/jg-rp/golden-liquid",
+              },
+            ],
+          },
+        ],
         copyright: `Copyright © ${new Date().getFullYear()} James Prior. Built with Docusaurus.`,
       },
       prism: {

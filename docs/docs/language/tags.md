@@ -1,15 +1,11 @@
----
-sidebar_position: 2
----
-
 # Liquid Tags
+
+This page documents the standard tags built-in to Liquid. See [custom tags](../guides/custom-tags.mdx) for examples of how to write your own.
 
 :::info
 Some of the examples here are borrowed from [Shopify's Liquid documentation](https://shopify.github.io/liquid/).
 You can find their license [here](https://github.com/Shopify/liquid/blob/master/LICENSE).
 :::
-
-This page documents the standard tags built-in to Liquid. See [custom tags](../guides/custom-tags.mdx) for examples of how to write your own.
 
 ## `#` (inline comment)
 
