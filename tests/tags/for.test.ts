@@ -402,6 +402,12 @@ describe("built-in for tag", () => {
       want: "!\n\n\n    \n\n\n\n    \n\n\n\n    \n!",
       globals: {},
     },
+    {
+      description: "range with same start and stop",
+      source: "{% for i in (1..1) %}{{ i }}{% endfor %}",
+      globals: {},
+      want: "1",
+    },
   ];
 
   describe("async", () => {

@@ -22,7 +22,7 @@ export class Range implements Iterable<number> {
   constructor(start: number, stop: number) {
     this.start = Math.trunc(start);
     this.stop = Math.trunc(stop);
-    this.length = this.stop - this.start + (this.start === this.stop ? 0 : 1);
+    this.length = this.stop - this.start + 1;
   }
 
   public *[Symbol.iterator](): Iterator<number> {

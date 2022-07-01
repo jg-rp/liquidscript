@@ -1,5 +1,11 @@
 # LiquidScript Change Log
 
+## Version 1.3.1
+
+**Fixes**
+
+- Fixed a range expression bug where the length of a range would be incorrectly calculated if both start and stop values were the same.
+
 ## Version 1.3.0
 
 **Breaking Changes**
