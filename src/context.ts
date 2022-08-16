@@ -23,7 +23,11 @@ import {
   toLiquidSync,
 } from "./drop";
 import { Environment } from "./environment";
-import { InternalKeyError, MaxContextDepthError } from "./errors";
+import {
+  InternalKeyError,
+  MaxContextDepthError,
+  MaxLocalNamespaceLimitError,
+} from "./errors";
 import { isNumberT } from "./number";
 import { Template } from "./template";
 import {
@@ -45,6 +49,7 @@ export type RenderContextOptions = {
   disabledTags?: Set<string>;
   copyDepth?: number;
   loaderContext?: ContextScope;
+  localsScoreCarry?: number;
 };
 
 /**
@@ -82,6 +87,11 @@ export class RenderContext {
    * A namespace for variables set using the `assign` or `capture` tags.
    */
   private locals: ContextScope = {};
+
+  /**
+   * A non-specific indication of how much the local namespace has been used.
+   */
+  public localsScore: number;
 
   /**
    * A chain of scopes. When resolving names, each scope in the chain is
@@ -132,11 +142,13 @@ export class RenderContext {
       templateName,
       copyDepth,
       loaderContext,
+      localsScoreCarry,
     }: RenderContextOptions = {}
   ) {
     this.disabledTags = disabledTags ?? new Set();
     this.templateName = templateName ?? "<string>";
     this.copyDepth = copyDepth ?? 0;
+    this.localsScore = localsScoreCarry ?? 0;
     this.loaderContext = loaderContext ?? {};
     // Scopes are searched in this order.
     this.scope = chainObjects(
@@ -154,6 +166,12 @@ export class RenderContext {
    * @param value - The value of the template local variable.
    */
   public assign(key: string, value: unknown): void {
+    if (this.environment.localNamespaceLimit > -1) {
+      this.localsScore += assignScore(value);
+      if (this.localsScore > this.environment.localNamespaceLimit) {
+        throw new MaxLocalNamespaceLimitError("local namespace limit reached");
+      }
+    }
     this.locals[key] = value;
   }
 
@@ -326,6 +344,7 @@ export class RenderContext {
         templateName: this.templateName,
         disabledTags: new Set(disabledTags),
         copyDepth: this.copyDepth + 1,
+        localsScoreCarry: this.localsScore,
       }
     );
   }
@@ -561,4 +580,56 @@ export const BuiltIn = {
 
 function _toLiquid(value: unknown, context: RenderContext): unknown {
   return isLiquidable(value) ? value[toLiquid](context) : value;
+}
+
+export function assignScore(obj: unknown): number {
+  // TODO: drop protocol override?
+  if (isString(obj)) return obj.length * 2;
+  if (isArray(obj)) {
+    return obj.reduce((a: number, b: unknown) => a + assignScore(b), 0);
+  }
+  if (obj instanceof Set) {
+    let sum = 0;
+    for (const val of obj.keys()) {
+      sum += assignScore(val);
+    }
+    return sum;
+  }
+  if (obj instanceof Map) {
+    let sum = 0;
+    for (const val of obj.entries()) {
+      sum += assignScore(val);
+    }
+    return sum;
+  }
+  if (isIterable(obj)) {
+    let sum = 0;
+    for (const val of obj) {
+      sum += assignScore(val);
+    }
+    return sum;
+  }
+  if (isObject(obj)) {
+    const seen: Set<object> = new Set();
+    const stack: object[] = [obj];
+    let sum = 0;
+
+    while (stack.length) {
+      const val = stack.pop();
+      if (typeof val === "object") {
+        if (!seen.has(val)) {
+          seen.add(val);
+          for (const [key, val] of Object.entries(obj)) {
+            sum += assignScore(key);
+            stack.push(val);
+          }
+        }
+      } else {
+        sum += assignScore(val);
+      }
+    }
+
+    return sum;
+  }
+  return 1;
 }
