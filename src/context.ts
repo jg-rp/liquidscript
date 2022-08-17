@@ -29,6 +29,7 @@ import {
   MaxLocalNamespaceLimitError,
   MaxLoopIterationLimitError,
 } from "./errors";
+import { RenderStream } from "./liquidscript";
 import { isNumberT } from "./number";
 import { Template } from "./template";
 import {

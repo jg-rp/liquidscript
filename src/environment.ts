@@ -14,7 +14,11 @@ import { TemplateTokenStream, Token } from "./token";
 import { LaxUndefined, Undefined } from "./undefined";
 import { ContextScope } from "./types";
 import { LiquidSyntaxError } from "./errors";
-import { BufferedRenderStream, RenderStream } from "./io/output_stream";
+import {
+  BufferedRenderStream,
+  LimitedRenderStream,
+  RenderStream,
+} from "./io/output_stream";
 
 const implicitEnvironmentCache = new LRUCache<string, Environment>(10);
 
@@ -175,7 +179,7 @@ export class Environment {
   public maxContextDepth: number;
   public localNamespaceLimit: number;
   public loopIterationLimit: number;
-  public outputStreamLimit: number;
+  private _outputStreamLimit: number;
   readonly statementStartString: string;
   readonly statementEndString: string;
   public strictFilters: boolean;
@@ -183,7 +187,7 @@ export class Environment {
   readonly tagEndString: string;
   protected templateClass: typeof Template = Template;
   readonly undefinedFactory: (name: string) => Undefined;
-  readonly renderStreamFactory: () => RenderStream;
+  public renderStreamFactory: (stream?: RenderStream) => RenderStream;
 
   /**
    * An object mapping filter names to filter functions.
@@ -226,15 +230,16 @@ export class Environment {
     this.maxContextDepth = maxContextDepth ?? 30;
     this.localNamespaceLimit = localNamespaceLimit ?? -1;
     this.loopIterationLimit = loopIterationLimit ?? -1;
-    this.outputStreamLimit = outputStreamLimit ?? -1;
+    this._outputStreamLimit = outputStreamLimit ?? -1;
     this.statementStartString = statementStartString ?? "{{";
     this.statementEndString = statementEndString ?? "}}";
     this.strictFilters = strictFilters ?? true;
     this.tagStartString = tagStartString ?? "{%";
     this.tagEndString = tagEndString ?? "%}";
     this.undefinedFactory = undefinedFactory ?? LaxUndefined.from;
+
     this.renderStreamFactory =
-      renderStreamFactory ?? (() => new BufferedRenderStream());
+      renderStreamFactory ?? _makeRenderStreamFactory(this._outputStreamLimit);
 
     this.#tokenRules = compileRules(
       this.statementStartString,
@@ -383,4 +388,24 @@ export class Environment {
     if (templateGlobals === undefined) return this.globals;
     return chainObjects(templateGlobals, this.globals);
   }
+
+  public get outputStreamLimit() {
+    return this._outputStreamLimit;
+  }
+
+  public set outputStreamLimit(value: number) {
+    // Update the render stream factory with the new limit.
+    this._outputStreamLimit = value;
+    this.renderStreamFactory = _makeRenderStreamFactory(
+      this._outputStreamLimit
+    );
+  }
+}
+
+function _makeRenderStreamFactory(
+  limit: number
+): (buf?: RenderStream) => RenderStream {
+  return limit > -1
+    ? (buf?: RenderStream) => new LimitedRenderStream(limit - (buf?.size ?? 0))
+    : () => new BufferedRenderStream();
 }

@@ -10,7 +10,7 @@ import {
 } from "../../token";
 import { BooleanExpression } from "../../expression";
 import { RenderContext } from "../../context";
-import { BufferedRenderStream, RenderStream } from "../../io/output_stream";
+import { RenderStream } from "../../io/output_stream";
 import { parse } from "../../expressions/boolean/parse";
 
 type ConditionalAlternative = {
@@ -112,7 +112,9 @@ export class IfNode implements Node {
     // This intermediate buffer is used to detect and possibly
     // suppress blocks that, when rendered, contain only whitespace.
     // Don't buffer the output stream if this.forceOutput is true.
-    const buf = this.forceOutput ? out : new BufferedRenderStream();
+    const buf = this.forceOutput
+      ? out
+      : context.environment.renderStreamFactory(out);
     let rendered = false;
 
     if (await this.condition.evaluate(context)) {
@@ -139,7 +141,9 @@ export class IfNode implements Node {
   }
 
   public renderSync(context: RenderContext, out: RenderStream): void {
-    const buf = this.forceOutput ? out : new BufferedRenderStream();
+    const buf = this.forceOutput
+      ? out
+      : context.environment.renderStreamFactory(out);
     let rendered = false;
 
     if (this.condition.evaluateSync(context)) {

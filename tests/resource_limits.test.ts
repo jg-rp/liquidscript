@@ -5,6 +5,7 @@ import {
   ContextDepthError,
   LocalNamespaceLimitError,
   LoopIterationLimitError,
+  OutputStreamLimitError,
 } from "../src/errors";
 import { Float, Integer } from "../src/number";
 import { Range } from "../src/range";
@@ -244,6 +245,41 @@ describe("loop iteration limit", () => {
     expect(() => template.renderSync()).toThrowError(LoopIterationLimitError);
     expect(async () => await template.render()).rejects.toThrowError(
       LoopIterationLimitError
+    );
+  });
+});
+
+describe("output stream limit", () => {
+  test("set output stream limit with constructor", async () => {
+    const env = new Environment({ outputStreamLimit: 5 });
+    let template = env.fromString(
+      "{% if false %}some literal that is longer then the limit{% endif %}hello"
+    );
+    expect(template.renderSync()).toBe("hello");
+
+    template = env.fromString(
+      "{% if true %}some literal that is longer then the limit{% endif %}hello"
+    );
+    expect(() => template.renderSync()).toThrowError(OutputStreamLimitError);
+    expect(async () => await template.render()).rejects.toThrowError(
+      OutputStreamLimitError
+    );
+  });
+
+  test("set output stream limit after construction", async () => {
+    const env = new Environment();
+    env.outputStreamLimit = 5;
+    let template = env.fromString(
+      "{% if false %}some literal that is longer then the limit{% endif %}hello"
+    );
+    expect(template.renderSync()).toBe("hello");
+
+    template = env.fromString(
+      "{% if true %}some literal that is longer then the limit{% endif %}hello"
+    );
+    expect(() => template.renderSync()).toThrowError(OutputStreamLimitError);
+    expect(async () => await template.render()).rejects.toThrowError(
+      OutputStreamLimitError
     );
   });
 });

@@ -169,6 +169,21 @@ export class LoopIterationLimitError extends LiquidError {
 }
 
 /**
+ * An error thrown when the output stream limit is reached.
+ */
+export class OutputStreamLimitError extends LiquidError {
+  constructor(public message: string, token: Token, templateName?: string) {
+    super(message, token);
+    Object.setPrototypeOf(this, OutputStreamLimitError.prototype);
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, OutputStreamLimitError);
+    }
+    this.name = "OutputStreamLimitError";
+    this.message = _message(message, token, templateName);
+  }
+}
+
+/**
  * An error thrown by the {@link StrictUndefined} class.
  */
 export class LiquidUndefinedError extends LiquidError {
@@ -347,6 +362,20 @@ export class MaxLoopIterationLimitError extends InternalLiquidError {
 
   public withToken(token: Token, templateName?: string): LiquidError {
     return new LoopIterationLimitError(this.message, token, templateName);
+  }
+}
+
+/**
+ * An error thrown when the output stream limit is reached.
+ */
+export class InternalOutputStreamLimitError extends InternalLiquidError {
+  constructor(public message: string) {
+    super(message);
+    Object.setPrototypeOf(this, InternalOutputStreamLimitError.prototype);
+  }
+
+  public withToken(token: Token, templateName?: string): LiquidError {
+    return new OutputStreamLimitError(this.message, token, templateName);
   }
 }
 

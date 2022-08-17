@@ -3,7 +3,7 @@ import { RenderContext } from "../../context";
 import { Environment } from "../../environment";
 import { BooleanExpression, Literal } from "../../expression";
 import { parse } from "../../expressions/boolean/parse";
-import { BufferedRenderStream, RenderStream } from "../../io/output_stream";
+import { RenderStream } from "../../io/output_stream";
 import { Tag } from "../../tag";
 import {
   Token,
@@ -114,7 +114,7 @@ export class CaseNode implements Node {
     context: RenderContext,
     out: RenderStream
   ): Promise<void> {
-    const buf = new BufferedRenderStream();
+    const buf = context.environment.renderStreamFactory(out);
     let rendered = false;
 
     for (const _when of this.whens) {
@@ -137,7 +137,7 @@ export class CaseNode implements Node {
   }
 
   public renderSync(context: RenderContext, out: RenderStream): void {
-    const buf = new BufferedRenderStream();
+    const buf = context.environment.renderStreamFactory(out);
     let rendered = false;
 
     for (const _when of this.whens) {
