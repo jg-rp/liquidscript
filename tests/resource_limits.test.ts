@@ -1,7 +1,7 @@
 import { ObjectLoader } from "../src/builtin/loaders";
 import { assignScore, RenderContext } from "../src/context";
 import { Environment } from "../src/environment";
-import { LocalNamespaceLimitError } from "../src/errors";
+import { ContextDepthError, LocalNamespaceLimitError } from "../src/errors";
 import { Float, Integer } from "../src/number";
 import { Range } from "../src/range";
 
@@ -61,5 +61,79 @@ describe("local namespace limit", () => {
     expect(ctx.localsScore).toBe(10);
     env.localNamespaceLimit = 23;
     expect(() => template.renderSync()).toThrow(LocalNamespaceLimitError);
+  });
+});
+
+describe("render context depth limit", () => {
+  test("recursive render", () => {
+    const loader = new ObjectLoader({
+      foo: "{% render 'bar' %}",
+      bar: "{% render 'foo' %}",
+    });
+    const env = new Environment({ loader: loader });
+    const template = env.fromString("{% render 'foo' %}");
+    expect(() => template.renderSync()).toThrow(ContextDepthError);
+    expect(async () => await template.render()).rejects.toThrowError(
+      ContextDepthError
+    );
+  });
+  test("recursive include", () => {
+    const loader = new ObjectLoader({
+      foo: "{% include 'bar' %}",
+      bar: "{% include 'foo' %}",
+    });
+    const env = new Environment({ loader: loader });
+    const template = env.fromString("{% include 'foo' %}");
+    expect(() => template.renderSync()).toThrow(ContextDepthError);
+    expect(async () => await template.render()).rejects.toThrowError(
+      ContextDepthError
+    );
+    expect(async () => await template.render()).rejects.toThrowError(
+      "maximum context depth reached"
+    );
+  });
+  test("set context depth limit", async () => {
+    const loader = new ObjectLoader({
+      foo: "{% render 'bar' %}",
+      bar: "{% render 'baz' %}",
+      baz: "Hello",
+    });
+    const env = new Environment({ loader: loader });
+    const template = env.fromString("{% render 'foo' %}");
+
+    expect(template.renderSync()).toBe("Hello");
+    const result = await template.render();
+    expect(result).toBe("Hello");
+
+    env.maxContextDepth = 2;
+    expect(() => template.renderSync()).toThrow(ContextDepthError);
+    expect(async () => await template.render()).rejects.toThrowError(
+      ContextDepthError
+    );
+    expect(async () => await template.render()).rejects.toThrowError(
+      "maximum context depth reached"
+    );
+  });
+  test("set context depth limit include", async () => {
+    const loader = new ObjectLoader({
+      foo: "{% include 'bar' %}",
+      bar: "{% render 'baz' %}",
+      baz: "Hello",
+    });
+    const env = new Environment({ loader: loader });
+    const template = env.fromString("{% include 'foo' %}");
+
+    expect(template.renderSync()).toBe("Hello");
+    const result = await template.render();
+    expect(result).toBe("Hello");
+
+    env.maxContextDepth = 2;
+    expect(() => template.renderSync()).toThrow(ContextDepthError);
+    expect(async () => await template.render()).rejects.toThrowError(
+      ContextDepthError
+    );
+    expect(async () => await template.render()).rejects.toThrowError(
+      "maximum context depth reached"
+    );
   });
 });

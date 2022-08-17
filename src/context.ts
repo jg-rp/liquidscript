@@ -332,7 +332,7 @@ export class RenderContext {
     scope: ContextScope,
     disabledTags: Iterable<string>
   ): RenderContext {
-    if (this.copyDepth > this.environment.maxContextDepth)
+    if (this.copyDepth + 1 > this.environment.maxContextDepth)
       throw new MaxContextDepthError(
         "maximum context depth reached, possible recursive render"
       );
