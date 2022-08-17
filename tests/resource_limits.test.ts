@@ -1,7 +1,11 @@
 import { ObjectLoader } from "../src/builtin/loaders";
 import { assignScore, RenderContext } from "../src/context";
 import { Environment } from "../src/environment";
-import { ContextDepthError, LocalNamespaceLimitError } from "../src/errors";
+import {
+  ContextDepthError,
+  LocalNamespaceLimitError,
+  LoopIterationLimitError,
+} from "../src/errors";
 import { Float, Integer } from "../src/number";
 import { Range } from "../src/range";
 
@@ -134,6 +138,112 @@ describe("render context depth limit", () => {
     );
     expect(async () => await template.render()).rejects.toThrowError(
       "maximum context depth reached"
+    );
+  });
+});
+
+describe("loop iteration limit", () => {
+  test("no default limit", async () => {
+    const env = new Environment();
+    const template = env.fromString(
+      [
+        "{% for i in (1..100) %}",
+        "{% for j in (1..100) %}",
+        "x",
+        "{% endfor %}",
+        "{% endfor %}",
+      ].join("")
+    );
+    template.renderSync();
+    await template.render();
+  });
+
+  test("set loop limit", async () => {
+    const env = new Environment({ loopIterationLimit: 10000 });
+    let template = env.fromString(
+      [
+        "{% for i in (1..100) %}",
+        "{% for j in (1..100) %}",
+        "x",
+        "{% endfor %}",
+        "{% endfor %}",
+      ].join("")
+    );
+    template.renderSync();
+    await template.render();
+
+    template = env.fromString(
+      [
+        "{% for i in (1..101) %}",
+        "{% for j in (1..100) %}",
+        "x",
+        "{% endfor %}",
+        "{% endfor %}",
+      ].join("")
+    );
+    expect(() => template.renderSync()).toThrowError(LoopIterationLimitError);
+    expect(async () => await template.render()).rejects.toThrowError(
+      LoopIterationLimitError
+    );
+  });
+
+  test("render carries loop limit", async () => {
+    const loader = new ObjectLoader({
+      foo: [
+        "{% for i in (1..50) %}",
+        "{% for j in (1..50) %}",
+        "{{ i }},{{ j }}",
+        "{% endfor %}",
+        "{% endfor %}",
+      ].join(""),
+    });
+    const env = new Environment({ loader: loader, loopIterationLimit: 3000 });
+    const template = env.fromString(
+      "{% for i in (1..10) %}{% render 'foo' %}{% endfor %}"
+    );
+
+    expect(() => template.renderSync()).toThrowError(LoopIterationLimitError);
+    expect(async () => await template.render()).rejects.toThrowError(
+      LoopIterationLimitError
+    );
+  });
+
+  test("include carries loop limit", async () => {
+    const loader = new ObjectLoader({
+      foo: [
+        "{% for i in (1..50) %}",
+        "{% for j in (1..50) %}",
+        "{{ i }},{{ j }}",
+        "{% endfor %}",
+        "{% endfor %}",
+      ].join(""),
+    });
+    const env = new Environment({ loader: loader, loopIterationLimit: 3000 });
+    const template = env.fromString(
+      "{% for i in (1..10) %}{% include 'foo' %}{% endfor %}"
+    );
+
+    expect(() => template.renderSync()).toThrowError(LoopIterationLimitError);
+    expect(async () => await template.render()).rejects.toThrowError(
+      LoopIterationLimitError
+    );
+  });
+
+  test("tablerow contributes to loop limit", async () => {
+    const env = new Environment({ loopIterationLimit: 99 });
+    const template = env.fromString(
+      [
+        "{% for i in (1..10) %}",
+        "{% tablerow i in (1..10) cols:2 %}",
+        "{{ i }}",
+        "{% endtablerow %}",
+        "{% endfor %}",
+      ].join("")
+    );
+
+    expect(() => template.renderSync()).toThrowError(LoopIterationLimitError);
+    expect(async () => await template.render()).rejects.toThrowError(
+      LoopIterationLimitError
     );
   });
 });

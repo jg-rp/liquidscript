@@ -137,6 +137,7 @@ export class ForNode implements Node {
           : context.environment.undefinedFactory("parentloop")
       );
 
+      context.raiseForLoopLimit(forloop.length);
       const namespace: ContextScope = { forloop: forloop };
       context.forLoops.push(forloop);
       try {
@@ -184,6 +185,7 @@ export class ForNode implements Node {
           : context.environment.undefinedFactory("parentloop")
       );
 
+      context.raiseForLoopLimit(forloop.length);
       const namespace: ContextScope = { forloop: forloop };
       context.forLoops.push(forloop);
       try {

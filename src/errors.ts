@@ -154,6 +154,21 @@ export class LocalNamespaceLimitError extends LiquidError {
 }
 
 /**
+ * An error thrown when the loop iteration limit is reached.
+ */
+export class LoopIterationLimitError extends LiquidError {
+  constructor(public message: string, token: Token, templateName?: string) {
+    super(message, token);
+    Object.setPrototypeOf(this, LoopIterationLimitError.prototype);
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, LoopIterationLimitError);
+    }
+    this.name = "LoopIterationLimitError";
+    this.message = _message(message, token, templateName);
+  }
+}
+
+/**
  * An error thrown by the {@link StrictUndefined} class.
  */
 export class LiquidUndefinedError extends LiquidError {
@@ -318,6 +333,20 @@ export class MaxLocalNamespaceLimitError extends InternalLiquidError {
 
   public withToken(token: Token, templateName?: string): LiquidError {
     return new LocalNamespaceLimitError(this.message, token, templateName);
+  }
+}
+
+/**
+ * An error thrown when the loop iteration limit is reached.
+ */
+export class MaxLoopIterationLimitError extends InternalLiquidError {
+  constructor(public message: string) {
+    super(message);
+    Object.setPrototypeOf(this, MaxLoopIterationLimitError.prototype);
+  }
+
+  public withToken(token: Token, templateName?: string): LiquidError {
+    return new LoopIterationLimitError(this.message, token, templateName);
   }
 }
 

@@ -27,6 +27,7 @@ import {
   InternalKeyError,
   MaxContextDepthError,
   MaxLocalNamespaceLimitError,
+  MaxLoopIterationLimitError,
 } from "./errors";
 import { isNumberT } from "./number";
 import { Template } from "./template";
@@ -50,6 +51,7 @@ export type RenderContextOptions = {
   copyDepth?: number;
   loaderContext?: ContextScope;
   localsScoreCarry?: number;
+  loopIterationCarry?: number;
 };
 
 /**
@@ -92,6 +94,13 @@ export class RenderContext {
    * A non-specific indication of how much the local namespace has been used.
    */
   public localsScore: number;
+
+  /**
+   * A loop iteration count carried over from a parent context, if this one has
+   * been copied. This helps us adhere to loop iteration limits in templates
+   * rendered with the `render` tag.
+   */
+  readonly loopIterationCarry: number;
 
   /**
    * A chain of scopes. When resolving names, each scope in the chain is
@@ -143,6 +152,7 @@ export class RenderContext {
       copyDepth,
       loaderContext,
       localsScoreCarry,
+      loopIterationCarry,
     }: RenderContextOptions = {}
   ) {
     this.disabledTags = disabledTags ?? new Set();
@@ -150,6 +160,7 @@ export class RenderContext {
     this.copyDepth = copyDepth ?? 0;
     this.localsScore = localsScoreCarry ?? 0;
     this.loaderContext = loaderContext ?? {};
+    this.loopIterationCarry = loopIterationCarry ?? 1;
     // Scopes are searched in this order.
     this.scope = chainObjects(
       this.locals,
@@ -320,6 +331,18 @@ export class RenderContext {
     return reg;
   }
 
+  public raiseForLoopLimit(length: number = 1): void {
+    if (
+      this.environment.loopIterationLimit > -1 &&
+      this.forLoops
+        .map((loop) => loop.length)
+        .reduce((a, b) => a * b, length * this.loopIterationCarry) >
+        this.environment.loopIterationLimit
+    ) {
+      throw new MaxLoopIterationLimitError("loop iteration limit reached");
+    }
+  }
+
   /**
    * Create a new context by copying this one, without any local variables and
    * registers, and extending the copy with the given scope.
@@ -330,12 +353,19 @@ export class RenderContext {
    */
   public copy(
     scope: ContextScope,
-    disabledTags: Iterable<string>
+    disabledTags: Iterable<string>,
+    carryLoopIterations: boolean = false
   ): RenderContext {
     if (this.copyDepth + 1 > this.environment.maxContextDepth)
       throw new MaxContextDepthError(
         "maximum context depth reached, possible recursive render"
       );
+
+    const loopIterationCarry = carryLoopIterations
+      ? this.forLoops
+          .map((loop) => loop.length)
+          .reduce((a, b) => a * b, this.loopIterationCarry)
+      : 1;
 
     return new RenderContext(
       this.environment,
@@ -345,6 +375,7 @@ export class RenderContext {
         disabledTags: new Set(disabledTags),
         copyDepth: this.copyDepth + 1,
         localsScoreCarry: this.localsScore,
+        loopIterationCarry: loopIterationCarry,
       }
     );
   }
