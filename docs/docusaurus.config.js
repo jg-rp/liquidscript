@@ -132,6 +132,10 @@ const config = {
                 label: "Static Template Analysis",
                 to: "/guides/static-analysis",
               },
+              {
+                label: "Resource Limits",
+                to: "/guides/resource-limits",
+              },
             ],
           },
           {
