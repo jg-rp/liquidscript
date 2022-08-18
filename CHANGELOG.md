@@ -4,7 +4,7 @@
 
 **Features**
 
-- Resource limits. Optionally set limits on memory usage per template render to mitigate the impact of malicious templates.
+- Resource limits. Optionally set limits on memory usage per template render to mitigate the impact of malicious templates. ([docs](https://jg-rp.github.io/liquidscript/guides/resource-limits))
 
 ## Version 1.3.1
 
@@ -20,7 +20,7 @@
 
 **Features**
 
-- Template static analysis. Report template variable usage using `Template.analyze()` and `Template.analyzeSync()`.
+- Template static analysis. Report template variable usage using `Template.analyze()` and `Template.analyzeSync()`. ([docs](https://jg-rp.github.io/liquidscript/guides/static-analysis))
 
 ## Version 1.2.0-beta.1
 
