@@ -1,5 +1,11 @@
 # LiquidScript Change Log
 
+## Version 1.4.0
+
+**Features**
+
+- Resource limits. Optionally set limits on memory usage per template render to mitigate the impact of malicious templates.
+
 ## Version 1.3.1
 
 **Fixes**

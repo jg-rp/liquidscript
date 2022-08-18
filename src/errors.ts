@@ -139,6 +139,51 @@ export class ContextDepthError extends LiquidError {
 }
 
 /**
+ * An error thrown when a render context's local namespace limit is reached.
+ */
+export class LocalNamespaceLimitError extends LiquidError {
+  constructor(public message: string, token: Token, templateName?: string) {
+    super(message, token);
+    Object.setPrototypeOf(this, LocalNamespaceLimitError.prototype);
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, LocalNamespaceLimitError);
+    }
+    this.name = "LocalNamespaceLimitError";
+    this.message = _message(message, token, templateName);
+  }
+}
+
+/**
+ * An error thrown when the loop iteration limit is reached.
+ */
+export class LoopIterationLimitError extends LiquidError {
+  constructor(public message: string, token: Token, templateName?: string) {
+    super(message, token);
+    Object.setPrototypeOf(this, LoopIterationLimitError.prototype);
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, LoopIterationLimitError);
+    }
+    this.name = "LoopIterationLimitError";
+    this.message = _message(message, token, templateName);
+  }
+}
+
+/**
+ * An error thrown when the output stream limit is reached.
+ */
+export class OutputStreamLimitError extends LiquidError {
+  constructor(public message: string, token: Token, templateName?: string) {
+    super(message, token);
+    Object.setPrototypeOf(this, OutputStreamLimitError.prototype);
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, OutputStreamLimitError);
+    }
+    this.name = "OutputStreamLimitError";
+    this.message = _message(message, token, templateName);
+  }
+}
+
+/**
  * An error thrown by the {@link StrictUndefined} class.
  */
 export class LiquidUndefinedError extends LiquidError {
@@ -289,6 +334,48 @@ export class MaxContextDepthError extends InternalLiquidError {
 
   public withToken(token: Token, templateName?: string): LiquidError {
     return new ContextDepthError(this.message, token, templateName);
+  }
+}
+
+/**
+ * An error thrown when a render context's local namespace exceeds its limit.
+ */
+export class MaxLocalNamespaceLimitError extends InternalLiquidError {
+  constructor(public message: string) {
+    super(message);
+    Object.setPrototypeOf(this, MaxLocalNamespaceLimitError.prototype);
+  }
+
+  public withToken(token: Token, templateName?: string): LiquidError {
+    return new LocalNamespaceLimitError(this.message, token, templateName);
+  }
+}
+
+/**
+ * An error thrown when the loop iteration limit is reached.
+ */
+export class MaxLoopIterationLimitError extends InternalLiquidError {
+  constructor(public message: string) {
+    super(message);
+    Object.setPrototypeOf(this, MaxLoopIterationLimitError.prototype);
+  }
+
+  public withToken(token: Token, templateName?: string): LiquidError {
+    return new LoopIterationLimitError(this.message, token, templateName);
+  }
+}
+
+/**
+ * An error thrown when the output stream limit is reached.
+ */
+export class InternalOutputStreamLimitError extends InternalLiquidError {
+  constructor(public message: string) {
+    super(message);
+    Object.setPrototypeOf(this, InternalOutputStreamLimitError.prototype);
+  }
+
+  public withToken(token: Token, templateName?: string): LiquidError {
+    return new OutputStreamLimitError(this.message, token, templateName);
   }
 }
 

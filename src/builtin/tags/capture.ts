@@ -2,7 +2,7 @@ import { BlockNode, Node, ChildNode } from "../../ast";
 import { RenderContext } from "../../context";
 import { Environment } from "../../environment";
 import { LiquidSyntaxError } from "../../errors";
-import { BufferedRenderStream, RenderStream } from "../../io/output_stream";
+import { RenderStream } from "../../io/output_stream";
 import { Tag } from "../../tag";
 import { Token, TokenStream, TOKEN_EOF, TOKEN_EXPRESSION } from "../../token";
 import { Markup } from "../drops/markup";
@@ -50,14 +50,17 @@ export class CaptureNode implements Node {
     else context.assign(this.name, buffer.toString());
   }
 
-  public async render(context: RenderContext): Promise<void> {
-    const buf = new BufferedRenderStream();
+  public async render(
+    context: RenderContext,
+    out: RenderStream
+  ): Promise<void> {
+    const buf = context.environment.renderStreamFactory(out);
     await this.block.render(context, buf);
     this.assign(context, buf);
   }
 
-  public renderSync(context: RenderContext): void {
-    const buf = new BufferedRenderStream();
+  public renderSync(context: RenderContext, out: RenderStream): void {
+    const buf = context.environment.renderStreamFactory(out);
     this.block.renderSync(context, buf);
     this.assign(context, buf);
   }

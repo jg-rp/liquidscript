@@ -3,7 +3,7 @@ import { RenderContext } from "../../context";
 import { Environment } from "../../environment";
 import { Expression } from "../../expression";
 import { parse } from "../../expressions/boolean/parse";
-import { BufferedRenderStream, RenderStream } from "../../io/output_stream";
+import { RenderStream } from "../../io/output_stream";
 import { Tag } from "../../tag";
 import {
   Token,
@@ -117,7 +117,9 @@ export class UnlessNode implements Node {
     context: RenderContext,
     out: RenderStream
   ): Promise<void> {
-    const buf = this.forceOutput ? out : new BufferedRenderStream();
+    const buf = this.forceOutput
+      ? out
+      : context.environment.renderStreamFactory(out);
     let rendered = false;
 
     if (!(await this.condition.evaluate(context))) {
@@ -144,7 +146,9 @@ export class UnlessNode implements Node {
   }
 
   public renderSync(context: RenderContext, out: RenderStream): void {
-    const buf = this.forceOutput ? out : new BufferedRenderStream();
+    const buf = this.forceOutput
+      ? out
+      : context.environment.renderStreamFactory(out);
     let rendered = false;
 
     if (!this.condition.evaluateSync(context)) {

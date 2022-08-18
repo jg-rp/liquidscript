@@ -36,6 +36,7 @@ const sidebars = {
         "guides/custom-tags",
         "guides/custom-loaders",
         "guides/static-analysis",
+        "guides/resource-limits",
       ],
     },
   ],

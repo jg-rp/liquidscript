@@ -14,7 +14,11 @@ import { TemplateTokenStream, Token } from "./token";
 import { LaxUndefined, Undefined } from "./undefined";
 import { ContextScope } from "./types";
 import { LiquidSyntaxError } from "./errors";
-import { BufferedRenderStream, RenderStream } from "./io/output_stream";
+import {
+  BufferedRenderStream,
+  LimitedRenderStream,
+  RenderStream,
+} from "./io/output_stream";
 
 const implicitEnvironmentCache = new LRUCache<string, Environment>(10);
 
@@ -52,6 +56,37 @@ export type EnvironmentOptions = {
    * @defaultValue 30
    */
   maxContextDepth?: number;
+
+  /**
+   * The maximum "size" of a render context local namespace. Rather than the
+   * number of bytes in memory a local namespace occupies, "size" is a non-
+   * specific indication of how much a template uses the local namespace when
+   * it is rendered, typically using the `assign` and `capture` tags.
+   *
+   * If `localNamespaceLimit` is `undefined` or less than 0, there is no limit.
+   * Otherwise a `LocalNamespaceLimitError`is thrown when the namespace's size
+   * exceeds the limit.
+   * @defaultValue undefined
+   */
+  localNamespaceLimit?: number;
+
+  /**
+   * The maximum number of loop iteration allowed before a `LoopIterationLimitError`
+   * is thrown.
+   *
+   * If `loopIterationLimit` is undefined or less than 0, there is no soft limit.
+   * @defaultValue undefined
+   */
+  loopIterationLimit?: number;
+
+  /**
+   * The maximum number of bytes that can be written to a template's output
+   * stream, per render, before an `OutputStreamLimitError` is thrown.
+   *
+   * If `outputStreamLimit` is undefined or less than 0, there is no soft limit.
+   * @defaultValue undefined
+   */
+  outputStreamLimit?: number;
 
   /**
    * The sequence of characters indicating the start of a liquid output statement.
@@ -142,6 +177,9 @@ export class Environment {
   public globals: ContextScope;
   public loader: Loader;
   public maxContextDepth: number;
+  public localNamespaceLimit: number;
+  public loopIterationLimit: number;
+  private _outputStreamLimit: number;
   readonly statementStartString: string;
   readonly statementEndString: string;
   public strictFilters: boolean;
@@ -149,7 +187,7 @@ export class Environment {
   readonly tagEndString: string;
   protected templateClass: typeof Template = Template;
   readonly undefinedFactory: (name: string) => Undefined;
-  readonly renderStreamFactory: () => RenderStream;
+  public renderStreamFactory: (stream?: RenderStream) => RenderStream;
 
   /**
    * An object mapping filter names to filter functions.
@@ -175,6 +213,9 @@ export class Environment {
     globals,
     loader,
     maxContextDepth,
+    localNamespaceLimit,
+    loopIterationLimit,
+    outputStreamLimit,
     statementStartString,
     statementEndString,
     strictFilters,
@@ -187,14 +228,18 @@ export class Environment {
     this.globals = globals ?? {};
     this.loader = loader ?? new MapLoader();
     this.maxContextDepth = maxContextDepth ?? 30;
+    this.localNamespaceLimit = localNamespaceLimit ?? -1;
+    this.loopIterationLimit = loopIterationLimit ?? -1;
+    this._outputStreamLimit = outputStreamLimit ?? -1;
     this.statementStartString = statementStartString ?? "{{";
     this.statementEndString = statementEndString ?? "}}";
     this.strictFilters = strictFilters ?? true;
     this.tagStartString = tagStartString ?? "{%";
     this.tagEndString = tagEndString ?? "%}";
     this.undefinedFactory = undefinedFactory ?? LaxUndefined.from;
+
     this.renderStreamFactory =
-      renderStreamFactory ?? (() => new BufferedRenderStream());
+      renderStreamFactory ?? _makeRenderStreamFactory(this._outputStreamLimit);
 
     this.#tokenRules = compileRules(
       this.statementStartString,
@@ -343,4 +388,24 @@ export class Environment {
     if (templateGlobals === undefined) return this.globals;
     return chainObjects(templateGlobals, this.globals);
   }
+
+  public get outputStreamLimit() {
+    return this._outputStreamLimit;
+  }
+
+  public set outputStreamLimit(value: number) {
+    // Update the render stream factory with the new limit.
+    this._outputStreamLimit = value;
+    this.renderStreamFactory = _makeRenderStreamFactory(
+      this._outputStreamLimit
+    );
+  }
+}
+
+function _makeRenderStreamFactory(
+  limit: number
+): (buf?: RenderStream) => RenderStream {
+  return limit > -1
+    ? (buf?: RenderStream) => new LimitedRenderStream(limit - (buf?.size ?? 0))
+    : () => new BufferedRenderStream();
 }

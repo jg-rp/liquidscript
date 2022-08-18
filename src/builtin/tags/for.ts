@@ -4,7 +4,7 @@ import { Environment } from "../../environment";
 import { BreakIteration, ContinueIteration } from "../../errors";
 import { LoopExpression } from "../../expression";
 import { parse } from "../../expressions/loop/parse";
-import { BufferedRenderStream, RenderStream } from "../../io/output_stream";
+import { RenderStream } from "../../io/output_stream";
 import { Tag } from "../../tag";
 import { Token, TOKEN_EXPRESSION, TOKEN_TAG, TokenStream } from "../../token";
 import { ForLoopDrop } from "../drops/forloop";
@@ -124,7 +124,9 @@ export class ForNode implements Node {
     // This intermediate buffer is used to detect and possibly
     // suppress blocks that, when rendered, contain only whitespace
     // Don't buffer the output stream if this.forceOutput is true.
-    const buf = this.forceOutput ? out : new BufferedRenderStream();
+    const buf = this.forceOutput
+      ? out
+      : context.environment.renderStreamFactory(out);
 
     if (length > 0) {
       const name = this.expression.name;
@@ -137,6 +139,7 @@ export class ForNode implements Node {
           : context.environment.undefinedFactory("parentloop")
       );
 
+      context.raiseForLoopLimit(forloop.length);
       const namespace: ContextScope = { forloop: forloop };
       context.forLoops.push(forloop);
       try {
@@ -171,7 +174,9 @@ export class ForNode implements Node {
 
   public renderSync(context: RenderContext, out: RenderStream): void {
     const [it, length] = this.expression.evaluateSync(context);
-    const buf = this.forceOutput ? out : new BufferedRenderStream();
+    const buf = this.forceOutput
+      ? out
+      : context.environment.renderStreamFactory(out);
 
     if (length > 0) {
       const name = this.expression.name;
@@ -184,6 +189,7 @@ export class ForNode implements Node {
           : context.environment.undefinedFactory("parentloop")
       );
 
+      context.raiseForLoopLimit(forloop.length);
       const namespace: ContextScope = { forloop: forloop };
       context.forLoops.push(forloop);
       try {

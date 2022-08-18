@@ -23,7 +23,12 @@ import {
   toLiquidSync,
 } from "./drop";
 import { Environment } from "./environment";
-import { InternalKeyError, MaxContextDepthError } from "./errors";
+import {
+  InternalKeyError,
+  MaxContextDepthError,
+  MaxLocalNamespaceLimitError,
+  MaxLoopIterationLimitError,
+} from "./errors";
 import { isNumberT } from "./number";
 import { Template } from "./template";
 import {
@@ -45,6 +50,8 @@ export type RenderContextOptions = {
   disabledTags?: Set<string>;
   copyDepth?: number;
   loaderContext?: ContextScope;
+  localsScoreCarry?: number;
+  loopIterationCarry?: number;
 };
 
 /**
@@ -82,6 +89,18 @@ export class RenderContext {
    * A namespace for variables set using the `assign` or `capture` tags.
    */
   private locals: ContextScope = {};
+
+  /**
+   * A non-specific indication of how much the local namespace has been used.
+   */
+  public localsScore: number;
+
+  /**
+   * A loop iteration count carried over from a parent context, if this one has
+   * been copied. This helps us adhere to loop iteration limits in templates
+   * rendered with the `render` tag.
+   */
+  readonly loopIterationCarry: number;
 
   /**
    * A chain of scopes. When resolving names, each scope in the chain is
@@ -132,12 +151,16 @@ export class RenderContext {
       templateName,
       copyDepth,
       loaderContext,
+      localsScoreCarry,
+      loopIterationCarry,
     }: RenderContextOptions = {}
   ) {
     this.disabledTags = disabledTags ?? new Set();
     this.templateName = templateName ?? "<string>";
     this.copyDepth = copyDepth ?? 0;
+    this.localsScore = localsScoreCarry ?? 0;
     this.loaderContext = loaderContext ?? {};
+    this.loopIterationCarry = loopIterationCarry ?? 1;
     // Scopes are searched in this order.
     this.scope = chainObjects(
       this.locals,
@@ -154,6 +177,12 @@ export class RenderContext {
    * @param value - The value of the template local variable.
    */
   public assign(key: string, value: unknown): void {
+    if (this.environment.localNamespaceLimit > -1) {
+      this.localsScore += assignScore(value);
+      if (this.localsScore > this.environment.localNamespaceLimit) {
+        throw new MaxLocalNamespaceLimitError("local namespace limit reached");
+      }
+    }
     this.locals[key] = value;
   }
 
@@ -302,6 +331,18 @@ export class RenderContext {
     return reg;
   }
 
+  public raiseForLoopLimit(length: number = 1): void {
+    if (
+      this.environment.loopIterationLimit > -1 &&
+      this.forLoops
+        .map((loop) => loop.length)
+        .reduce((a, b) => a * b, length * this.loopIterationCarry) >
+        this.environment.loopIterationLimit
+    ) {
+      throw new MaxLoopIterationLimitError("loop iteration limit reached");
+    }
+  }
+
   /**
    * Create a new context by copying this one, without any local variables and
    * registers, and extending the copy with the given scope.
@@ -312,12 +353,19 @@ export class RenderContext {
    */
   public copy(
     scope: ContextScope,
-    disabledTags: Iterable<string>
+    disabledTags: Iterable<string>,
+    carryLoopIterations: boolean = false
   ): RenderContext {
-    if (this.copyDepth > this.environment.maxContextDepth)
+    if (this.copyDepth + 1 > this.environment.maxContextDepth)
       throw new MaxContextDepthError(
         "maximum context depth reached, possible recursive render"
       );
+
+    const loopIterationCarry = carryLoopIterations
+      ? this.forLoops
+          .map((loop) => loop.length)
+          .reduce((a, b) => a * b, this.loopIterationCarry)
+      : 1;
 
     return new RenderContext(
       this.environment,
@@ -326,6 +374,8 @@ export class RenderContext {
         templateName: this.templateName,
         disabledTags: new Set(disabledTags),
         copyDepth: this.copyDepth + 1,
+        localsScoreCarry: this.localsScore,
+        loopIterationCarry: loopIterationCarry,
       }
     );
   }
@@ -561,4 +611,56 @@ export const BuiltIn = {
 
 function _toLiquid(value: unknown, context: RenderContext): unknown {
   return isLiquidable(value) ? value[toLiquid](context) : value;
+}
+
+export function assignScore(obj: unknown): number {
+  // TODO: drop protocol override?
+  if (isString(obj)) return obj.length * 2;
+  if (isArray(obj)) {
+    return obj.reduce((a: number, b: unknown) => a + assignScore(b), 0);
+  }
+  if (obj instanceof Set) {
+    let sum = 0;
+    for (const val of obj.keys()) {
+      sum += assignScore(val);
+    }
+    return sum;
+  }
+  if (obj instanceof Map) {
+    let sum = 0;
+    for (const val of obj.entries()) {
+      sum += assignScore(val);
+    }
+    return sum;
+  }
+  if (isIterable(obj)) {
+    let sum = 0;
+    for (const val of obj) {
+      sum += assignScore(val);
+    }
+    return sum;
+  }
+  if (isObject(obj)) {
+    const seen: Set<object> = new Set();
+    const stack: object[] = [obj];
+    let sum = 0;
+
+    while (stack.length) {
+      const val = stack.pop();
+      if (typeof val === "object") {
+        if (!seen.has(val)) {
+          seen.add(val);
+          for (const [key, val] of Object.entries(obj)) {
+            sum += assignScore(key);
+            stack.push(val);
+          }
+        }
+      } else {
+        sum += assignScore(val);
+      }
+    }
+
+    return sum;
+  }
+  return 1;
 }
