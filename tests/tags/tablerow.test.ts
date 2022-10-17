@@ -101,6 +101,54 @@ describe("built-in tablerow tag", () => {
         '<td class="col1">5 true</td>' +
         "</tr>\n",
     },
+    {
+      description: "no cols param",
+      source:
+        "{% tablerow i in (1..2) %}\n" +
+        "col: {{ tablerowloop.col }}\n" +
+        "col0: {{ tablerowloop.col0 }}\n" +
+        "col_first: {{ tablerowloop.col_first }}\n" +
+        "col_last: {{ tablerowloop.col_last }}\n" +
+        "first: {{ tablerowloop.first }}\n" +
+        "index: {{ tablerowloop.index }}\n" +
+        "index0: {{ tablerowloop.index0 }}\n" +
+        "last: {{ tablerowloop.last }}\n" +
+        "length: {{ tablerowloop.length }}\n" +
+        "rindex: {{ tablerowloop.rindex }}\n" +
+        "rindex0: {{ tablerowloop.rindex0 }}\n" +
+        "row: {{ tablerowloop.row }}\n" +
+        "{% endtablerow %}",
+      globals: {},
+      want:
+        '<tr class="row1">\n' +
+        '<td class="col1">\n' +
+        "col: 1\n" +
+        "col0: 0\n" +
+        "col_first: true\n" +
+        "col_last: false\n" +
+        "first: true\n" +
+        "index: 1\n" +
+        "index0: 0\n" +
+        "last: false\n" +
+        "length: 2\n" +
+        "rindex: 2\n" +
+        "rindex0: 1\n" +
+        "row: 1\n" +
+        '</td><td class="col2">\n' +
+        "col: 2\n" +
+        "col0: 1\n" +
+        "col_first: false\n" +
+        "col_last: true\n" +
+        "first: false\n" +
+        "index: 2\n" +
+        "index0: 1\n" +
+        "last: true\n" +
+        "length: 2\n" +
+        "rindex: 1\n" +
+        "rindex0: 0\n" +
+        "row: 1\n" +
+        "</td></tr>\n",
+    },
   ];
 
   describe("async", () => {

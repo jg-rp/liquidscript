@@ -16,6 +16,7 @@ export class TableRowLoopDrop
     "col0",
     "col_first",
     "col_last",
+    "row",
   ]);
 
   private _index: number = -1;
