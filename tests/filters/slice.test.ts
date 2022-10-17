@@ -103,4 +103,40 @@ describe("slice filter", () => {
     const result = slice.apply(filterContext, ["Liquid", -2, 99]);
     expect(result).toBe("id");
   });
+
+  test("big negative second argument", () => {
+    const result = slice.apply(filterContext, [
+      "foobar",
+      0,
+      Number.MIN_SAFE_INTEGER - 1,
+    ]);
+    expect(result).toBe("");
+  });
+
+  test("big positive second argument", () => {
+    const result = slice.apply(filterContext, [
+      "foobar",
+      0,
+      Number.MAX_SAFE_INTEGER + 1,
+    ]);
+    expect(result).toBe("foobar");
+  });
+
+  test("big negative first argument", () => {
+    const result = slice.apply(filterContext, [
+      "foobar",
+      Number.MIN_SAFE_INTEGER - 1,
+      6,
+    ]);
+    expect(result).toBe("");
+  });
+
+  test("big positive first argument", () => {
+    const result = slice.apply(filterContext, [
+      "foobar",
+      Number.MAX_SAFE_INTEGER + 1,
+      6,
+    ]);
+    expect(result).toBe("");
+  });
 });

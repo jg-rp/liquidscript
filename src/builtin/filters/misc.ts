@@ -173,10 +173,10 @@ export function slice(
   length?: unknown
 ): string | unknown[] | Markup {
   checkArguments(arguments.length, 2, 1);
-  const _offset = parseIntegerOrThrow(offset, "offset");
-  const _length = isUndefined(length)
-    ? 1
-    : parseIntegerOrThrow(length, "length");
+  const _offset = _clamp_slice_arg(parseIntegerOrThrow(offset, "offset"));
+  const _length = _clamp_slice_arg(
+    isUndefined(length) ? 1 : parseIntegerOrThrow(length, "length")
+  );
 
   // Arrays and strings only.
   const _left = isArray(left) ? left : liquidStringify(left);
@@ -192,4 +192,13 @@ function parseIntegerOrThrow(value: unknown, name: string): number {
   throw new FilterArgumentError(
     `expected an integer ${name}, found '${value}'`
   );
+}
+
+// This range is smaller than the reference implementation.
+const MAX_SLICE_ARG = Number.MAX_SAFE_INTEGER;
+const MIN_SLICE_ARG = Number.MIN_SAFE_INTEGER;
+
+function _clamp_slice_arg(arg: number): number {
+  const rv = arg > MAX_SLICE_ARG ? MAX_SLICE_ARG : arg;
+  return rv < MIN_SLICE_ARG ? MIN_SLICE_ARG : rv;
 }
