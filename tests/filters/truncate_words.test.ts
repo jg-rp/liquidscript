@@ -46,8 +46,21 @@ describe("truncatewords filter", () => {
     expect(result).toBe("one...");
   });
   test("very big argument", () => {
-    expect(() => truncateWords.apply(filterContext, ["", 2147483648])).toThrow(
-      FilterArgumentError
-    );
+    const result = truncateWords.apply(filterContext, ["", 2147483648]);
+    expect(result).toBe("");
+  });
+  test("big positive argument", () => {
+    const result = truncateWords.apply(filterContext, [
+      "one two three four",
+      2147483648,
+    ]);
+    expect(result).toBe("one two three four");
+  });
+  test("big negative argument", () => {
+    const result = truncateWords.apply(filterContext, [
+      "one two three four",
+      -2147483648,
+    ]);
+    expect(result).toBe("one...");
   });
 });

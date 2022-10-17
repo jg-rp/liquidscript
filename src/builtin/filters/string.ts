@@ -583,10 +583,7 @@ export function truncateWords(
     );
 
   if (_wordCount <= 0) _wordCount = 1;
-  if (_wordCount > MAX_TRUNC_WORDS)
-    throw new FilterArgumentError(
-      `integer ${wordCount} too big for truncatewords`
-    );
+  if (_wordCount >= MAX_TRUNC_WORDS) return _left;
 
   const _end = liquidStringify(end);
   const words = _left.split(/\s+/g);
