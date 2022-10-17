@@ -1,10 +1,10 @@
 import { readFileSync } from "fs";
 import commonjs from "@rollup/plugin-commonjs";
 import resolve from "@rollup/plugin-node-resolve";
-import babel from "@rollup/plugin-babel";
+import { babel } from "@rollup/plugin-babel";
 import replace from "@rollup/plugin-replace";
 import { uglify } from "rollup-plugin-uglify";
-import pkg from "./package.json";
+import pkg from "./package.json" assert { type: "json" };
 
 const extensions = [".js", ".jsx", ".ts", ".tsx"];
 const name = "liquidscript";

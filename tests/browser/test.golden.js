@@ -7301,7 +7301,7 @@ const data = {
           want: "",
           context: {},
           partials: {},
-          error: true,
+          error: false,
           strict: false,
         },
       ],
