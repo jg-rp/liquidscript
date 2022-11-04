@@ -5,7 +5,7 @@ import { InternalTypeError } from "../../errors";
 import { LoopExpression } from "../../expression";
 import { parse } from "../../expressions/loop/parse";
 import { RenderStream } from "../../io/output_stream";
-import { isInteger } from "../../number";
+import { isFloat, isInteger, isN, parseNumberT } from "../../number";
 import { isPrimitiveInteger, ContextScope } from "../../types";
 import { Tag } from "../../tag";
 import { Token, TokenStream, TOKEN_EXPRESSION } from "../../token";
@@ -53,9 +53,9 @@ export class TableRowNode implements Node {
         ? length
         : await this.expression.cols.evaluate(context);
 
-    if (isInteger(cols)) {
-      cols = cols.valueOf();
-    } else if (!isPrimitiveInteger(cols)) {
+    if (isN(cols)) {
+      cols = Math.trunc(parseNumberT(cols).valueOf());
+    } else {
       throw new InternalTypeError(
         `tablerow cols must be an integer, found '${cols}'`
       );
@@ -90,9 +90,9 @@ export class TableRowNode implements Node {
         ? length
         : this.expression.cols.evaluateSync(context);
 
-    if (isInteger(cols)) {
-      cols = cols.valueOf();
-    } else if (!isPrimitiveInteger(cols)) {
+    if (isN(cols)) {
+      cols = Math.trunc(parseNumberT(cols).valueOf());
+    } else {
       throw new InternalTypeError(
         `tablerow cols must be an integer, found '${cols}'`
       );
