@@ -586,7 +586,7 @@ export function truncateWords(
   if (_wordCount >= MAX_TRUNC_WORDS) return _left;
 
   const _end = liquidStringify(end);
-  const words = _left.split(/\s+/g);
+  const words = _left.trim().split(/\s+/g);
 
   if (words.length <= _wordCount) return _left;
   return words.slice(0, _wordCount).join(" ") + _end;

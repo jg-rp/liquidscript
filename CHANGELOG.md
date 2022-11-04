@@ -1,5 +1,11 @@
 # LiquidScript Change Log
 
+## Version 1.4.2
+
+**Fixes**
+
+- The `truncatewords` filter now trims leading and trailing whitespace from its output.
+
 ## Version 1.4.1
 
 **Fixes**
@@ -7,7 +13,6 @@
 - The `tablerowloop` drop now exposes its `row` property, being the current row in the table.
 - The `truncatewords` filter no longer throws a `FilterArgumentError` if its word count argument is greater than `2147483647`. If the word count argument is greater than `2147483647`, the input string is returned.
 - The `slice` filter now clamps its arguments to between `Number.MIN_SAFE_INTEGER` and `Number.MAX_SAFE_INTEGER`. A smaller range than the reference implementation, but close enough while avoiding `BigInt` and custom slicing.
-
 
 ## Version 1.4.0
 
