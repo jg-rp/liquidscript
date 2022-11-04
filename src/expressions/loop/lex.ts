@@ -5,6 +5,7 @@ import {
   IDENTIFIER_PATTERN,
   IDENT_INDEX_PATTERN,
   IDENT_STRING_PATTERN,
+  STRING_PATTERN,
   Tokenizer,
 } from "../common";
 
@@ -12,6 +13,7 @@ import {
   TOKEN_IDENT,
   TOKEN_IDENT_INDEX,
   TOKEN_IDENT_STRING,
+  TOKEN_STRING,
   TOKEN_RANGE,
   TOKEN_FLOAT,
   TOKEN_INTEGER,
@@ -36,6 +38,7 @@ import {
 const RULES = [
   [TOKEN_IDENT_INDEX, IDENT_INDEX_PATTERN],
   [TOKEN_IDENT_STRING, IDENT_STRING_PATTERN],
+  [TOKEN_STRING, STRING_PATTERN],
   [TOKEN_RANGE, "\\.\\."],
   [TOKEN_FLOAT, "-?\\d+\\.(?!\\.)\\d*"],
   [TOKEN_INTEGER, "-?\\d+\\b"],
@@ -71,6 +74,11 @@ interface IdentIndexMatch {
 interface IdentStringMatch {
   TOKEN_IDENT_STRING: string;
   identQuoted: string;
+}
+
+interface StringMatch {
+  TOKEN_STRING: string;
+  quoted: string;
 }
 
 interface RangeMatch {
@@ -132,6 +140,7 @@ type MatchGroups = Readonly<
   Partial<
     IdentIndexMatch &
       IdentStringMatch &
+      StringMatch &
       RangeMatch &
       FloatMatch &
       IntegerMatch &
@@ -155,6 +164,10 @@ function isIdentIndexMatch(match: MatchGroups): match is IdentIndexMatch {
 
 function isIdentStringMatch(match: MatchGroups): match is IdentStringMatch {
   return match.TOKEN_IDENT_STRING === undefined ? false : true;
+}
+
+function isStringMatch(match: MatchGroups): match is StringMatch {
+  return match.TOKEN_STRING === undefined ? false : true;
 }
 
 function isRangeMatch(match: MatchGroups): match is RangeMatch {
@@ -246,6 +259,13 @@ export function makeTokenizer(re: RegExp, keywords: Set<string>): Tokenizer {
         yield new Token(
           TOKEN_IDENT,
           groups.identQuoted,
+          <number>match.index + startIndex,
+          source
+        );
+      else if (isStringMatch(groups))
+        yield new Token(
+          TOKEN_STRING,
+          groups.quoted,
           <number>match.index + startIndex,
           source
         );

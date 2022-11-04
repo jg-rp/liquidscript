@@ -5,6 +5,7 @@ import {
   LoopArgument,
   LoopExpression,
   Identifier,
+  IntegerLiteral,
   RangeLiteral,
 } from "../../expression";
 import {
@@ -13,6 +14,7 @@ import {
   parseIdentifier,
   parseIntegerLiteral,
 } from "../common";
+import { Integer } from "../../number";
 import {
   ExpressionTokenStream,
   TOKEN_COLON,
@@ -27,6 +29,7 @@ import {
   TOKEN_LPAREN,
   TOKEN_OFFSET,
   TOKEN_REVERSED,
+  TOKEN_STRING,
 } from "../tokens";
 import { tokenize } from "./lex";
 import { parseObject as parseSimpleObject } from "../filtered/parse";
@@ -45,11 +48,23 @@ function parseContinue(): Continue {
   return CONTINUE;
 }
 
+function parseStringArgument(stream: ExpressionTokenStream): LoopArgument {
+  try {
+    return new IntegerLiteral(new Integer(Number(stream.current.value)));
+  } catch (error) {
+    throw new LiquidSyntaxError(
+      `invalid integer argument '${stream.current.value}'`,
+      stream.current
+    );
+  }
+}
+
 export const TOKEN_MAP = new Map<string, parseFunc>([
   [TOKEN_IDENT, parseIdentifier],
   [TOKEN_INTEGER, parseIntegerLiteral],
   [TOKEN_FLOAT, parseFloatLiteral],
   [TOKEN_CONTINUE, parseContinue],
+  [TOKEN_STRING, parseStringArgument],
 ]);
 
 function parseLoopArgument(stream: ExpressionTokenStream): LoopArgument {
