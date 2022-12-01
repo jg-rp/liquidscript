@@ -5793,7 +5793,7 @@ __metadata:
     eslint-plugin-tsdoc: ^0.2.17
     jest: ^29.2.0
     js-yaml: ^4.1.0
-    luxon: ^3.0.4
+    luxon: ^3.1.1
     prettier: ^2.7.1
     rollup: ^3.2.2
     rollup-plugin-uglify: ^6.0.4
@@ -5882,10 +5882,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"luxon@npm:^3.0.4":
-  version: 3.0.4
-  resolution: "luxon@npm:3.0.4"
-  checksum: d0908c3951da2a10ccf23040210ead23b0da5366a9d0954e7d5db3560189a7bd703d8af1e00084f197effc9cd7158d1bddf32886d98a70d59ce9bc3fe88bbce0
+"luxon@npm:^3.1.1":
+  version: 3.1.1
+  resolution: "luxon@npm:3.1.1"
+  checksum: 388fb35d3c51a19d8b305a3338e7e74634b08562e7d2f9ed5c05a7f4bc9ee1c1ab6a2546b6d9c4c104516b24043757d65f5f3fe3d78b206fbf55a9586ab62230
   languageName: node
   linkType: hard
 
