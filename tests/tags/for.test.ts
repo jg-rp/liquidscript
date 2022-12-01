@@ -408,6 +408,12 @@ describe("built-in for tag", () => {
       globals: {},
       want: "1",
     },
+    {
+      description: "comma separated arguments",
+      source: "{% for i in (1..6) limit: 4, offset: 2, %}{{ i }} {% endfor %}",
+      globals: {},
+      want: "3 4 5 6 ",
+    },
   ];
 
   describe("async", () => {

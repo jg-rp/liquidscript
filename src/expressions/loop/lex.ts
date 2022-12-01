@@ -33,6 +33,7 @@ import {
   TOKEN_REVERSED,
   TOKEN_COLS,
   TOKEN_CONTINUE,
+  TOKEN_COMMA,
 } from "../tokens";
 
 const RULES = [
@@ -49,6 +50,7 @@ const RULES = [
   [TOKEN_LBRACKET, "\\["],
   [TOKEN_RBRACKET, "]"],
   [TOKEN_COLON, ":"],
+  [TOKEN_COMMA, ","],
   [TOKEN_PIPE, "\\|"],
   [TOKEN_NEWLINE, "\\n"],
   [TOKEN_SKIP, "[ \\t\\r]+"],
@@ -120,6 +122,11 @@ interface RBracketMatch {
 interface ColonMatch {
   TOKEN_COLON: string;
 }
+
+interface CommaMatch {
+  TOKEN_COMMA: string;
+}
+
 interface PipeMatch {
   TOKEN_PIPE: string;
 }
@@ -151,6 +158,7 @@ type MatchGroups = Readonly<
       LBracketMatch &
       RBracketMatch &
       ColonMatch &
+      CommaMatch &
       PipeMatch &
       NewlineMatch &
       SkipMatch &
@@ -208,6 +216,10 @@ function isRBracketMatch(match: MatchGroups): match is RBracketMatch {
 
 function isColonMatch(match: MatchGroups): match is ColonMatch {
   return match.TOKEN_COLON === undefined ? false : true;
+}
+
+function isCommaMatch(match: MatchGroups): match is CommaMatch {
+  return match.TOKEN_COMMA === undefined ? false : true;
 }
 
 function isPipeMatch(match: MatchGroups): match is PipeMatch {
@@ -330,6 +342,13 @@ export function makeTokenizer(re: RegExp, keywords: Set<string>): Tokenizer {
         yield new Token(
           TOKEN_COLON,
           groups.TOKEN_COLON,
+          <number>match.index + startIndex,
+          source
+        );
+      else if (isCommaMatch(groups))
+        yield new Token(
+          TOKEN_COMMA,
+          groups.TOKEN_COMMA,
           <number>match.index + startIndex,
           source
         );

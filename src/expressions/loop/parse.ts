@@ -19,6 +19,7 @@ import {
   ExpressionTokenStream,
   TOKEN_COLON,
   TOKEN_COLS,
+  TOKEN_COMMA,
   TOKEN_CONTINUE,
   TOKEN_EOF,
   TOKEN_FLOAT,
@@ -84,8 +85,10 @@ function parseLoopArguments(
 
   for (;;) {
     const tok = stream.current;
-    if (tok.kind == TOKEN_EOF) break;
-    if (LOOP_ARGS.has(tok.kind)) {
+    if (tok.kind === TOKEN_EOF) break;
+    if (tok.kind === TOKEN_COMMA) {
+      stream.next();
+    } else if (LOOP_ARGS.has(tok.kind)) {
       stream.next();
       stream.expect(TOKEN_COLON);
       stream.next();

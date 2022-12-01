@@ -92,4 +92,15 @@ describe("parse loop expression", () => {
       )
     );
   });
+  test("comma separated arguments", () => {
+    const expr = parse("i in array, limit: 4, offset: 2");
+    expect(expr).toStrictEqual(
+      new LoopExpression(
+        "i",
+        new Identifier("array", []),
+        new IntegerLiteral(new Integer(4)),
+        new IntegerLiteral(new Integer(2))
+      )
+    );
+  });
 });

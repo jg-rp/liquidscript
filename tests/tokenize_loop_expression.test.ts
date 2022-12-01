@@ -2,6 +2,7 @@ import { Token } from "../src/token";
 import { tokenize } from "../src/expressions/loop/lex";
 import {
   TOKEN_COLON,
+  TOKEN_COMMA,
   TOKEN_CONTINUE,
   TOKEN_FLOAT,
   TOKEN_IDENT,
@@ -93,6 +94,23 @@ describe("tokenize loop expressions", () => {
       new Token(TOKEN_OFFSET, "offset", 30, s),
       new Token(TOKEN_COLON, ":", 36, s),
       new Token(TOKEN_CONTINUE, "continue", 37, s),
+    ]);
+  });
+  test("comma separated arguments", () => {
+    const s = "i in array, limit: 4, offset: 2";
+    const tokens = Array.from(tokenize(s));
+    expect(tokens).toStrictEqual([
+      new Token(TOKEN_IDENT, "i", 0, s),
+      new Token(TOKEN_IN, "in", 2, s),
+      new Token(TOKEN_IDENT, "array", 5, s),
+      new Token(TOKEN_COMMA, ",", 10, s),
+      new Token(TOKEN_LIMIT, "limit", 12, s),
+      new Token(TOKEN_COLON, ":", 17, s),
+      new Token(TOKEN_INTEGER, "4", 19, s),
+      new Token(TOKEN_COMMA, ",", 20, s),
+      new Token(TOKEN_OFFSET, "offset", 22, s),
+      new Token(TOKEN_COLON, ":", 28, s),
+      new Token(TOKEN_INTEGER, "2", 30, s),
     ]);
   });
 });

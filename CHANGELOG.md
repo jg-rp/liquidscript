@@ -1,11 +1,17 @@
 # LiquidScript Change Log
 
+## Version 1.5.0 (unreleased)
+
+**Compatibility**
+
+- `for` tag arguments can now be separated by commas as well as whitespace. See [Shopify/liquid#1658](https://github.com/Shopify/liquid/pull/1658).
+
 ## Version 1.4.2
 
 **Fixes**
 
 - The `truncatewords` filter now trims leading and trailing whitespace from its output.
-- Arguments for the built-in `for` and `tablerow` tags now accept string representation of integers as well as integer literals and variables that resolve to integers.
+- The built-in `for` and `tablerow` tags now accept string arguments as well as integer literals and variables that resolve to integers.
 
 ## Version 1.4.1
 
