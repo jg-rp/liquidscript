@@ -1,6 +1,6 @@
 import { FilterArgumentError } from "../../errors";
 import { checkArguments, FilterContext } from "../../filter";
-import { isString, liquidStringify } from "../../types";
+import { liquidStringify } from "../../types";
 
 export function base64Encode(this: FilterContext, left: unknown): string {
   checkArguments(arguments.length, 0);

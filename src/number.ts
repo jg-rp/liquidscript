@@ -117,7 +117,7 @@ export abstract class LiquidNumber {
 }
 
 export class Float extends LiquidNumber {
-  public readonly float: true = true;
+  public readonly float = true as const;
 
   public toString(): string {
     const s = this.n.toString();
@@ -126,7 +126,7 @@ export class Float extends LiquidNumber {
 }
 
 export class Integer extends LiquidNumber {
-  public readonly float: false = false;
+  public readonly float = false as const;
 
   public toString(): string {
     return this.n.toString();

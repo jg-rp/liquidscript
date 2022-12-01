@@ -29,7 +29,7 @@ import {
   MaxLocalNamespaceLimitError,
   MaxLoopIterationLimitError,
 } from "./errors";
-import { isNumberT } from "./number";
+import { Integer, isInteger, isNumberT } from "./number";
 import { Template } from "./template";
 import {
   ContextScope,
@@ -560,7 +560,7 @@ async function getItem(obj: unknown, item: unknown): Promise<unknown> {
   throw new InternalKeyError(`${obj}[${String(item)}]`);
 }
 
-function getSize(obj: unknown): number {
+function getSize(obj: unknown): number | Integer {
   if (isNumberT(obj) || isPrimitiveNumber(obj)) {
     // XXX: This is not necessarily the case for wrapped decimal numbers
     return 8;
@@ -568,7 +568,10 @@ function getSize(obj: unknown): number {
     return obj.length;
   } else if (isObject(obj)) {
     if ("size" in obj) {
-      return Reflect.get(obj, "size");
+      const size = Reflect.get(obj, "size");
+      if (isPrimitiveNumber(size) || isInteger(size)) {
+        return size;
+      }
     } else {
       return Object.keys(obj).length;
     }

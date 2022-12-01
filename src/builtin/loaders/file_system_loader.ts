@@ -182,8 +182,8 @@ export class CachingNodeFileSystemLoader extends Loader {
 
   /**
    *
-   * @param templatePath
-   * @param mtime
+   * @param templatePath -
+   * @param mtime -
    * @returns
    */
   static async upToDate(templatePath: string, mtime: number): Promise<boolean> {
