@@ -2,6 +2,10 @@
 
 ## Version 1.5.0 (unreleased)
 
+**Fixes**
+
+- Fixed `case`/`when` tag expression parsing. `when` expressions no longer fail when presented with a string containing a comma. Handling of comma and `or` separated "sub-expressions" is now consistent with the reference implementation.
+
 **Compatibility**
 
 - `for` tag arguments can now be separated by commas as well as whitespace. See [Shopify/liquid#1658](https://github.com/Shopify/liquid/pull/1658).

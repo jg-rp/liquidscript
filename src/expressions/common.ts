@@ -45,6 +45,11 @@ const enum MatchGroup {
   IDENT_QUOTED = "identQuoted",
 }
 
+export type Tokenizer = (
+  expression: string,
+  startIndex?: number
+) => Generator<Token>;
+
 // Optional trailing question mark.
 export const IDENTIFIER_PATTERN = "[a-zA-Z_][\\w\\-]*\\??";
 
@@ -232,8 +237,3 @@ export function makeParseRange(
   }
   return _parseRangeLiteral;
 }
-
-export type Tokenizer = (
-  expression: string,
-  startIndex?: number
-) => Generator<Token>;

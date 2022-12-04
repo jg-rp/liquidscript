@@ -31,6 +31,12 @@ describe("tokenize filtered expressions", () => {
       new Token(TOKEN_STRING, "hello", 0, "'hello'"),
     ]);
   });
+  test("single quoted string representation of a float", () => {
+    const tokens = Array.from(tokenize("'42.2'"));
+    expect(tokens).toStrictEqual([
+      new Token(TOKEN_STRING, "42.2", 0, "'42.2'"),
+    ]);
+  });
   test("integer literal", () => {
     const tokens = Array.from(tokenize("42"));
     expect(tokens).toStrictEqual([new Token(TOKEN_INTEGER, "42", 0, "42")]);

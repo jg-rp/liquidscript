@@ -1,8 +1,12 @@
 import { BlockNode, forcedOutput, Node, ChildNode } from "../../ast";
 import { RenderContext } from "../../context";
 import { Environment } from "../../environment";
-import { BooleanExpression, Literal } from "../../expression";
-import { parse } from "../../expressions/boolean/parse";
+import {
+  BooleanExpression,
+  Expression,
+  InfixExpression,
+  Literal,
+} from "../../expression";
 import { RenderStream } from "../../io/output_stream";
 import { Tag } from "../../tag";
 import {
@@ -12,6 +16,14 @@ import {
   TOKEN_EXPRESSION,
   TOKEN_TAG,
 } from "../../token";
+
+import {
+  TOKEN_COMMA,
+  TOKEN_OR,
+  ExpressionTokenStream,
+} from "../../expressions";
+
+import { tokenize, parse } from "../../expressions/standard";
 
 const TAG_CASE = "case";
 const TAG_ENDCASE = "endcase";
@@ -31,27 +43,26 @@ export class CaseTag implements Tag {
     TAG_ELSE,
     TOKEN_EOF,
   ]);
+
   protected static END_CASE_BLOCK = new Set([TAG_ENDCASE]);
+  protected static DELIM_TOKENS = new Set([TOKEN_COMMA, TOKEN_OR]);
 
   readonly block = true;
   readonly name: string = TAG_CASE;
   readonly end: string = TAG_ENDCASE;
   protected nodeClass = CaseNode;
 
-  protected parseExpression(
-    _when: string,
-    obj: string,
-    stream: TokenStream
-  ): BooleanExpression {
-    stream.expect(TOKEN_EXPRESSION);
-    return parse(`${_when} == ${obj}`);
-  }
-
   public parse(stream: TokenStream, environment: Environment): Node {
     const parser = environment.parser;
     const token = stream.next();
+
+    // Parse the case expression
     stream.expect(TOKEN_EXPRESSION);
-    const _case = stream.next().value;
+    const _case = this.parse_case_expression(
+      stream.current.value,
+      stream.current.index
+    );
+    stream.next();
 
     // Eat whitespace or junk between `case` and when/else/endcase
     while (
@@ -66,10 +77,14 @@ export class CaseTag implements Tag {
       stream.current.value === TAG_WHEN
     ) {
       const whenToken = stream.next();
-      // One conditional block for every object in a comma separated list.
-      const whenExprs = stream.current.value
-        .split(",")
-        .map((expr) => this.parseExpression(_case, expr, stream));
+      stream.expect(TOKEN_EXPRESSION);
+
+      const whenExprs = this.parse_when_expression(
+        stream.current.value,
+        stream.current.index
+      ).map(
+        (expr) => new BooleanExpression(new InfixExpression(_case, "==", expr))
+      );
 
       const whenBlock = parser.parseBlock(
         stream,
@@ -96,7 +111,36 @@ export class CaseTag implements Tag {
         parser.parseBlock(stream, CaseTag.END_CASE_BLOCK, stream.next())
       );
     }
+
+    stream.expectTag(TAG_ENDCASE);
     return new this.nodeClass(token, whens);
+  }
+
+  protected parse_case_expression(
+    expr: string,
+    startIndex: number
+  ): Expression {
+    return parse(new ExpressionTokenStream(tokenize(expr, startIndex)));
+  }
+
+  protected parse_when_expression(
+    expr: string,
+    startIndex: number
+  ): Expression[] {
+    const expressions: Expression[] = [];
+    const stream = new ExpressionTokenStream(tokenize(expr, startIndex));
+
+    for (;;) {
+      expressions.push(parse(stream));
+      stream.next();
+      if (CaseTag.DELIM_TOKENS.has(stream.current.kind)) {
+        stream.next();
+      } else {
+        break;
+      }
+    }
+
+    return expressions;
   }
 }
 
