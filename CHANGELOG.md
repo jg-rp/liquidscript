@@ -1,6 +1,6 @@
 # LiquidScript Change Log
 
-## Version 1.5.0 (unreleased)
+## Version 1.5.0
 
 **Fixes**
 
