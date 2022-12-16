@@ -1,5 +1,11 @@
 # LiquidScript Change Log
 
+## Version 1.5.1
+
+**Fixes**
+
+- Fixed static template analysis fails with `{% break %}` and `{% continue %}`.
+
 ## Version 1.5.0
 
 **Fixes**

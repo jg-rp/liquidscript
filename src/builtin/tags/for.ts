@@ -87,6 +87,10 @@ export class BreakNode implements Node {
   public renderSync(): void {
     throw new BreakIteration("break");
   }
+
+  public children(): ChildNode[] {
+    return [];
+  }
 }
 
 export class ContinueNode implements Node {
@@ -102,6 +106,10 @@ export class ContinueNode implements Node {
 
   public renderSync(): void {
     throw new ContinueIteration("continue");
+  }
+
+  public children(): ChildNode[] {
+    return [];
   }
 }
 

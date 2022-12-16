@@ -259,21 +259,23 @@ describe("static template analysis", () => {
       [
         "{% for x in (1..y) %}",
         "  {{ x }}",
+        "  {% break %}",
         "{% else %}",
         "  {{ z }}",
+        "  {% continue %}",
         "{% endfor %}",
       ].join("\n")
     );
 
     const expectedGlobals: VariableRefs = {
       y: [{ templateName: "<string>", lineNumber: 1 }],
-      z: [{ templateName: "<string>", lineNumber: 4 }],
+      z: [{ templateName: "<string>", lineNumber: 5 }],
     };
     const expectedLocals: VariableRefs = {};
     const expectedVariables: VariableRefs = {
       x: [{ templateName: "<string>", lineNumber: 2 }],
       y: [{ templateName: "<string>", lineNumber: 1 }],
-      z: [{ templateName: "<string>", lineNumber: 4 }],
+      z: [{ templateName: "<string>", lineNumber: 5 }],
     };
 
     await _test(template, expectedVariables, expectedLocals, expectedGlobals);
