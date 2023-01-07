@@ -115,16 +115,30 @@ describe("static template analysis", () => {
     await _test(template, expectedVariables, expectedLocals, expectedGlobals);
   });
 
+  test("analyze identifier with bracketed string literal containing a dot", async () => {
+    const template = env.fromString("{{ x['y.z'].title }}");
+
+    const expectedGlobals: VariableRefs = {
+      'x["y.z"].title': [{ templateName: "<string>", lineNumber: 1 }],
+    };
+    const expectedLocals: VariableRefs = {};
+    const expectedVariables: VariableRefs = {
+      'x["y.z"].title': [{ templateName: "<string>", lineNumber: 1 }],
+    };
+
+    await _test(template, expectedVariables, expectedLocals, expectedGlobals);
+  });
+
   test("analyze identifier with nested identifier", async () => {
     const template = env.fromString("{{ x[y.z].title }}");
 
     const expectedGlobals: VariableRefs = {
-      "x.[y.z].title": [{ templateName: "<string>", lineNumber: 1 }],
+      "x[y.z].title": [{ templateName: "<string>", lineNumber: 1 }],
       "y.z": [{ templateName: "<string>", lineNumber: 1 }],
     };
     const expectedLocals: VariableRefs = {};
     const expectedVariables: VariableRefs = {
-      "x.[y.z].title": [{ templateName: "<string>", lineNumber: 1 }],
+      "x[y.z].title": [{ templateName: "<string>", lineNumber: 1 }],
       "y.z": [{ templateName: "<string>", lineNumber: 1 }],
     };
 

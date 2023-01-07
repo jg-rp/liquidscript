@@ -280,10 +280,20 @@ export class Identifier implements Expression {
 
   public toString(): string {
     const buf: string[] = [this.root];
+    let part: string;
     for (const e of this.path) {
-      buf.push(e instanceof Identifier ? `[${e}]` : String(e));
+      if (e instanceof Identifier) {
+        buf.push(`[${e}]`);
+      } else {
+        part = String(e);
+        if (part.includes(".")) {
+          buf.push(`["${part}"]`);
+        } else {
+          buf.push(part);
+        }
+      }
     }
-    return buf.join(".");
+    return buf.join(".").replace(".[", "[");
   }
 
   public async evaluate(context: RenderContext): Promise<unknown> {
