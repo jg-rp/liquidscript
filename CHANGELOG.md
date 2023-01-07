@@ -1,5 +1,11 @@
 # LiquidScript Change Log
 
+## Version 1.5.2
+
+**Fixes**
+
+- Fixed the string representation of variable paths that contain bracketed string elements with a dot. Previously `foo["x.y"].bar` would be represented as `foo.x.y.bar`. Now we retain the quoted property name `foo["x.y"].bar`. It is this string representation that is exposed in the results of `Template.analyze()`. See [#9](https://github.com/jg-rp/liquidscript/issues/9).
+
 ## Version 1.5.1
 
 **Fixes**
