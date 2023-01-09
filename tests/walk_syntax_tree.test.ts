@@ -1,4 +1,5 @@
 import { walk } from "../src/ast";
+import { CommentNode } from "../src/builtin/tags/comment";
 import { Environment } from "../src/environment";
 import { TOKEN_STATEMENT, TOKEN_TAG } from "../src/token";
 
@@ -33,5 +34,15 @@ describe("walk a syntax tree", () => {
       TOKEN_STATEMENT,
       undefined,
     ]);
+  });
+
+  test("find comment text", () => {
+    const template = env.fromString("{% comment %}foo{% endcomment %}");
+    expect(template.tree.nodes.length).toEqual(1);
+    const node = template.tree.nodes[0];
+    expect(node instanceof CommentNode).toBe(true);
+    if (node instanceof CommentNode) {
+      expect(node.text).toEqual("foo");
+    }
   });
 });

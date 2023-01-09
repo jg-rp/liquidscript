@@ -11,7 +11,7 @@ export class InlineCommentTag implements Tag {
   protected static RE_INVALID_INLINE_COMMENT = /\n\s*[^#\s]/m;
 
   public parse(stream: TokenStream): CommentNode {
-    const node = new this.nodeClass(stream.current);
+    const tok = stream.current;
     if (stream.peek.kind === TOKEN_EXPRESSION) {
       stream.next();
       if (
@@ -25,6 +25,6 @@ export class InlineCommentTag implements Tag {
         );
       }
     }
-    return node;
+    return new this.nodeClass(tok, stream.current.value);
   }
 }

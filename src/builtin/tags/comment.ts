@@ -9,7 +9,9 @@ export class CommentTag implements Tag {
   protected nodeClass = CommentNode;
 
   public parse(stream: TokenStream): Node {
-    const node = new this.nodeClass(stream.next());
+    const token = stream.next();
+    const text: string[] = [];
+
     while (
       stream.current.kind !== TOKEN_EOF &&
       !(
@@ -17,14 +19,15 @@ export class CommentTag implements Tag {
         stream.current.value === "endcomment"
       )
     ) {
+      text.push(stream.current.value);
       stream.next();
     }
-    return node;
+    return new this.nodeClass(token, text.join(""));
   }
 }
 
 export class CommentNode implements Node {
-  constructor(readonly token: Token) {}
+  constructor(readonly token: Token, readonly text: string) {}
 
   public async render(): Promise<void> {
     return;
