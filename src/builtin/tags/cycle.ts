@@ -13,8 +13,10 @@ import {
 import { RenderStream } from "../../io/output_stream";
 import { Tag } from "../../tag";
 import { Token, TokenStream, TOKEN_EOF, TOKEN_EXPRESSION } from "../../token";
+import { isUndefined, liquidStringify } from "../../types";
 
 export const Cycles = Symbol.for("liquid.tags.cycles");
+export const UndefinedCycleGroup = Symbol.for("liquid.tags.cycles.undefined");
 
 export class CycleTag implements Tag {
   readonly block = false;
@@ -57,11 +59,27 @@ export class CycleNode implements Node {
     groupName: unknown,
     args: unknown[]
   ): void {
-    const key = [groupName, args].toString();
     const cycles = context.getRegister(Cycles);
-    const index = <number>(cycles.has(key) ? cycles.get(key) : 0);
-    out.write(`${args[index]}`);
-    cycles.set(key, (index + 1) % args.length);
+    let key: symbol | string;
+    if (groupName === undefined) {
+      key = args.toString();
+    } else if (isUndefined(groupName)) {
+      key = UndefinedCycleGroup;
+    } else {
+      key = groupName?.toString() || "";
+    }
+
+    let index = <number>(cycles.has(key) ? cycles.get(key) : 0);
+
+    if (index < args.length) {
+      out.write(liquidStringify(args[index]));
+    }
+
+    index = index + 1;
+    if (index >= args.length) {
+      index = 0;
+    }
+    cycles.set(key, index % args.length);
   }
 
   public async render(

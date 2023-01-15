@@ -93,6 +93,31 @@ describe("built-in cycle tag", () => {
       globals: { a: "x", b: "y", c: "z" },
       want: "x y z x",
     },
+    {
+      description: "named group with shrinking number of arguments",
+      source:
+        "{% cycle 'a': '1', '2', '3' %}" +
+        "{% cycle 'a': '1', '2' %}" +
+        "{% cycle 'a': '1' %}",
+      globals: {},
+      want: "121",
+    },
+    {
+      description: "named group with growing number of arguments",
+      source:
+        "{% cycle 'a': '1' %}" +
+        "{% cycle 'a': '1', '2' %}" +
+        "{% cycle 'a': '1', '2', '3' %}",
+      globals: {},
+      want: "112",
+    },
+    {
+      description: "undefined group names",
+      source:
+        "{% cycle a: 1, 2, 3 %}{% cycle b: 1, 2, 3 %}{% cycle a: 1, 2, 3 %}",
+      globals: {},
+      want: "123",
+    },
   ];
 
   describe("async", () => {
