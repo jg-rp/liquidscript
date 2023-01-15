@@ -189,46 +189,37 @@ export function parseObject(
 
 function parse_grouped_expression(stream: ExpressionTokenStream): Expression {
   stream.next();
-  const exp = parseObject(stream);
-
+  let expr = parseObject(stream);
   stream.next();
-  while (stream.current.kind === TOKEN_RPAREN) stream.next();
 
-  return stream.current.kind === TOKEN_EOF
-    ? exp
-    : parseInfixExpression(stream, exp);
+  while (stream.current.kind !== TOKEN_RPAREN) {
+    if (stream.current.kind === TOKEN_EOF) {
+      throw new LiquidSyntaxError("unbalanced parentheses", stream.current);
+    }
+    expr = parseInfixExpression(stream, expr);
+  }
+
+  stream.expect(TOKEN_RPAREN);
+  return expr;
 }
 
 TOKEN_MAP.set(TOKEN_LPAREN, parse_grouped_expression);
-
-function checkBalancedParens(expr: string, lineNumber: number): void {
-  // XXX: Not ideal, but for as long as our parse functions are stateless,
-  // we can't effectively maintain a count of parentheses. Another option
-  // is to have the token stream count parentheses and throw an error if
-  // they are not balanced when it reaches EOF.
-  const tokens = tokenize(expr, lineNumber);
-  let cnt = 0;
-  for (const tok of tokens) {
-    switch (tok.kind) {
-      case TOKEN_LPAREN:
-      case TOKEN_RANGE_LPAREN:
-        cnt += 1;
-        break;
-      case TOKEN_RPAREN:
-        cnt -= 1;
-        break;
-    }
-  }
-  if (cnt !== 0) throw new InternalSyntaxError("unbalanced parentheses");
-}
 
 /**
  * Parse an expression that follows Liquid `if` tag semantics plus a
  * logical `not` operator and grouping with parentheses.
  */
 export function parse(expr: string, lineNumber: number = 1): BooleanExpression {
-  checkBalancedParens(expr, lineNumber);
-  return new BooleanExpression(
-    parseObject(new ExpressionTokenStream(tokenize(expr, lineNumber)))
-  );
+  const stream = new ExpressionTokenStream(tokenize(expr, lineNumber));
+  const booleanExpression = new BooleanExpression(parseObject(stream));
+  if (stream.peek.kind === TOKEN_RPAREN) {
+    throw new LiquidSyntaxError("unmatched ')'", stream.peek);
+  }
+  if (stream.peek.kind !== TOKEN_EOF) {
+    throw new LiquidSyntaxError(
+      `unexpected '${stream.peek.value}'`,
+      stream.peek
+    );
+  }
+  return booleanExpression;
 }
