@@ -605,7 +605,7 @@ export const For = Symbol.for("liquid.tags.for");
 export class LoopExpression implements Expression {
   constructor(
     readonly name: string,
-    readonly iterable: RangeLiteral | Identifier,
+    readonly iterable: RangeLiteral | Identifier | StringLiteral,
     readonly limit?: LoopArgument,
     readonly offset?: LoopArgument | Continue,
     readonly cols?: LoopArgument,
@@ -638,6 +638,7 @@ export class LoopExpression implements Expression {
     if (obj instanceof Range) return [obj, obj.length];
     if (obj instanceof Set) return [obj.values(), obj.size];
     if (obj instanceof Map) return [obj.entries(), obj.size];
+    if (isString(obj)) return [[obj], obj.length];
     if (isObject(obj)) {
       const it = isIterable(obj) ? obj : Object.entries(obj);
       return [it, Object.keys(obj).length];

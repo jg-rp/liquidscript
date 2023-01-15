@@ -7,12 +7,14 @@ import {
   Identifier,
   IntegerLiteral,
   RangeLiteral,
+  StringLiteral,
 } from "../../expression";
 import {
   makeParseRange,
   parseFloatLiteral,
   parseIdentifier,
   parseIntegerLiteral,
+  parseStringLiteral,
 } from "../common";
 import { Integer } from "../../number";
 import {
@@ -114,18 +116,23 @@ export function parse(expr: string, lineNumber = 0): LoopExpression {
   stream.expect(TOKEN_IN);
   stream.next();
 
-  let expression: Identifier | RangeLiteral;
+  let expression: Identifier | RangeLiteral | StringLiteral;
 
-  if (stream.current.kind == TOKEN_IDENT) {
-    expression = parseIdentifier(stream);
-    stream.next();
-  } else if (stream.current.kind == TOKEN_LPAREN) {
-    expression = parseRange(stream);
-    stream.next();
-  } else {
-    throw new LiquidSyntaxError(`invalid loop expression`, stream.current);
+  switch (stream.current.kind) {
+    case TOKEN_IDENT:
+      expression = parseIdentifier(stream);
+      break;
+    case TOKEN_LPAREN:
+      expression = parseRange(stream);
+      break;
+    case TOKEN_STRING:
+      expression = parseStringLiteral(stream);
+      break;
+    default:
+      throw new LiquidSyntaxError(`invalid loop expression`, stream.current);
   }
 
+  stream.next();
   const [args, reversed] = parseLoopArguments(stream);
   return new LoopExpression(
     name,
