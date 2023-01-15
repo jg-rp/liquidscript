@@ -54,7 +54,7 @@ export type Tokenizer = (
 export const IDENTIFIER_PATTERN = "[a-zA-Z_][\\w\\-]*\\??";
 
 // Trailing question mark is not allowed in assignment names.
-export const ASSIGN_IDENTIFIER_PATTERN = "[a-zA-Z_][\\w\\-]*";
+export const ASSIGN_IDENTIFIER_PATTERN = "[0-9a-zA-Z_][\\w\\-]*";
 
 // ["ident"] or ['ident']
 export const IDENT_STRING_PATTERN =
