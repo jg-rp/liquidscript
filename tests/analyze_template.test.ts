@@ -1,13 +1,14 @@
 import { ChildNode, Node } from "../src/ast";
+import { Environment } from "../src/environment";
+import { Expression } from "../src/expression";
+import { IfNotTag } from "../src/extra/tags/ifnot";
 import { ObjectLoader } from "../src/builtin/loaders";
 import { RenderContext } from "../src/context";
-import { Environment } from "../src/environment";
-import { TemplateTraversalError } from "../src/errors";
-import { Expression } from "../src/expression";
 import { RenderStream } from "../src/io/output_stream";
 import { Tag } from "../src/tag";
-import { VariableRefs, Template } from "../src/template";
+import { TemplateTraversalError } from "../src/errors";
 import { Token, TokenStream } from "../src/token";
+import { VariableRefs, Template } from "../src/template";
 
 class MockExpression implements Expression {
   async evaluate(): Promise<unknown> {
@@ -299,6 +300,37 @@ describe("static template analysis", () => {
     const template = env.fromString(
       [
         "{% if x %}",
+        "  {{ a }}",
+        "{% elsif y %}",
+        "  {{ b }}",
+        "{% endif %}",
+      ].join("\n")
+    );
+
+    const expectedGlobals: VariableRefs = {
+      x: [{ templateName: "<string>", lineNumber: 1 }],
+      a: [{ templateName: "<string>", lineNumber: 2 }],
+      y: [{ templateName: "<string>", lineNumber: 3 }],
+      b: [{ templateName: "<string>", lineNumber: 4 }],
+    };
+    const expectedLocals: VariableRefs = {};
+    const expectedVariables: VariableRefs = {
+      x: [{ templateName: "<string>", lineNumber: 1 }],
+      a: [{ templateName: "<string>", lineNumber: 2 }],
+      y: [{ templateName: "<string>", lineNumber: 3 }],
+      b: [{ templateName: "<string>", lineNumber: 4 }],
+    };
+
+    await _test(template, expectedVariables, expectedLocals, expectedGlobals);
+  });
+
+  test("analyze if (not) tag", async () => {
+    const env = new Environment();
+    env.addTag("if", new IfNotTag());
+
+    const template = env.fromString(
+      [
+        "{% if not x %}",
         "  {{ a }}",
         "{% elsif y %}",
         "  {{ b }}",

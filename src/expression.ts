@@ -517,6 +517,10 @@ export class PrefixExpression implements Expression {
     }
     throw new InternalTypeError(`unknown prefix operator '${this.operator}'`);
   }
+
+  public children(): Expression[] {
+    return [this.right];
+  }
 }
 
 export class InfixExpression implements Expression {
