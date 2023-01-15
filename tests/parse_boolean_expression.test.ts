@@ -6,15 +6,13 @@ import {
   IdentifierPathElement,
   InfixExpression,
   IntegerLiteral,
+  PrefixExpression,
   RangeLiteral,
   StringLiteral,
   TRUE,
 } from "../src/expression";
 import { parse as parseBoolean } from "../src/expressions/boolean/parse";
-import {
-  parse as parseBooleanNot,
-  PrefixExpression,
-} from "../src/expressions/boolean_not/parse";
+import { parse as parseBooleanNot } from "../src/expressions/boolean_not/parse";
 import { Float, Integer } from "../src/number";
 
 describe("parse standard boolean expressions", () => {

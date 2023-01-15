@@ -487,6 +487,38 @@ export class FilteredExpression implements Expression {
   }
 }
 
+export class PrefixExpression implements Expression {
+  constructor(readonly operator: string, readonly right: Expression) {}
+
+  public equals(other: unknown): boolean {
+    return (
+      other instanceof PrefixExpression &&
+      this.operator === other.operator &&
+      this.right === other.right
+    );
+  }
+
+  public toString(): string {
+    return `${this.operator}${this.right}`;
+  }
+
+  public async evaluate(context: RenderContext): Promise<boolean> {
+    if (this.operator === "not") {
+      const right = await this.right.evaluate(context);
+      return !isLiquidTruthy(right);
+    }
+    throw new InternalTypeError(`unknown prefix operator '${this.operator}'`);
+  }
+
+  public evaluateSync(context: RenderContext): boolean {
+    if (this.operator === "not") {
+      const right = this.right.evaluateSync(context);
+      return !isLiquidTruthy(right);
+    }
+    throw new InternalTypeError(`unknown prefix operator '${this.operator}'`);
+  }
+}
+
 export class InfixExpression implements Expression {
   constructor(
     readonly left: Expression,
