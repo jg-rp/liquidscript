@@ -1,6 +1,7 @@
 import { FilterArgumentError } from "../../errors";
 import { checkArguments, FilterContext } from "../../filter";
 import { isN, isNumberT, NumberT, parseNumberT, ZERO } from "../../number";
+import { isUndefined } from "../../types";
 
 /**
  * Return the absolute value of a number. Given a value that can't be cast to
@@ -210,11 +211,25 @@ export function round(
   decimalPlaces?: unknown
 ): NumberT {
   checkArguments(arguments.length, 1);
-  const _decimalPlaces = Number(decimalPlaces);
-  if (isFinite(_decimalPlaces)) {
-    return parseNumberOrZero(left).round(_decimalPlaces);
+
+  if (decimalPlaces === undefined || isUndefined(decimalPlaces)) {
+    return parseNumberOrZero(left).round();
   }
-  return parseNumberOrZero(left).round();
+
+  const _decimalPlaces = Number(decimalPlaces);
+  if (!isFinite(_decimalPlaces)) {
+    return parseNumberOrZero(left).round();
+  }
+
+  if (_decimalPlaces < 0) {
+    return ZERO;
+  }
+
+  if (_decimalPlaces == 0) {
+    return parseNumberOrZero(left).round();
+  }
+
+  return parseNumberOrZero(left).round(Math.round(_decimalPlaces));
 }
 
 /**
