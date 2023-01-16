@@ -1,5 +1,5 @@
 const data = {
-  version: "0.7.0",
+  version: "0.14.0",
   test_groups: [
     {
       name: "liquid.golden.abs_filter",
@@ -804,6 +804,29 @@ const data = {
           strict: false,
         },
         {
+          name: "comma string literal",
+          template:
+            "{% case foo %}{% when 'foo' %}bar{% when ',' %}comma{% endcase %}",
+          want: "comma",
+          context: {
+            foo: ",",
+          },
+          partials: {},
+          error: false,
+          strict: false,
+        },
+        {
+          name: "empty when tag",
+          template: "{% case foo %}{% when %}bar{% endcase %}",
+          want: "",
+          context: {
+            foo: "bar",
+          },
+          partials: {},
+          error: true,
+          strict: false,
+        },
+        {
           name: "evaluate multiple matching blocks",
           template:
             "{% case title %}{% when 'Hello' %}foo{% when a, 'Hello' %}bar{% endcase %}",
@@ -811,6 +834,30 @@ const data = {
           context: {
             title: "Hello",
             a: "Hello",
+          },
+          partials: {},
+          error: false,
+          strict: false,
+        },
+        {
+          name: "mix or and comma separated when expression",
+          template:
+            "{% case title %}{% when 'foo' %}foo{% when 'bar' or 'Hello', 'Hello' %}bar{% endcase %}",
+          want: "barbar",
+          context: {
+            title: "Hello",
+          },
+          partials: {},
+          error: false,
+          strict: false,
+        },
+        {
+          name: "mix or and comma separated when expression",
+          template:
+            "{% case title %}{% when 'foo' %}foo{% when 'bar' or 'Hello', 'Hello' %}bar{% endcase %}",
+          want: "barbar",
+          context: {
+            title: "Hello",
           },
           partials: {},
           error: false,
@@ -861,6 +908,18 @@ const data = {
           strict: false,
         },
         {
+          name: "or separated when expression",
+          template:
+            "{% case title %}{% when 'foo' %}foo{% when 'bar' or 'Hello' %}bar{% endcase %}",
+          want: "bar",
+          context: {
+            title: "Hello",
+          },
+          partials: {},
+          error: false,
+          strict: false,
+        },
+        {
           name: "simple case/when",
           template:
             "{% case title %}{% when 'foo' %}foo{% when 'Hello' %}bar{% endcase %}",
@@ -880,6 +939,18 @@ const data = {
           context: {
             title: "Hello",
             other: "Hello",
+          },
+          partials: {},
+          error: false,
+          strict: false,
+        },
+        {
+          name: "unexpected when token",
+          template:
+            "{% case title %}{% when 'foo' %}foo{% when 'bar' and 'Hello', 'Hello' %}bar{% endcase %}",
+          want: "",
+          context: {
+            title: "Hello",
           },
           partials: {},
           error: false,
@@ -1278,10 +1349,70 @@ const data = {
           strict: false,
         },
         {
+          name: "multiple undefined variable names",
+          template:
+            "{% cycle a: 1, 2, 3 %}{% cycle b: 1, 2, 3 %}{% cycle a: 1, 2, 3 %}",
+          want: "123",
+          context: {},
+          partials: {},
+          error: false,
+          strict: false,
+        },
+        {
+          name: "named with different items",
+          template:
+            "{% cycle 'a': 1, 2, 3 %}{% cycle 'a': 7, 8, 9 %}{% cycle 'a': 1, 2, 3 %}",
+          want: "183",
+          context: {},
+          partials: {},
+          error: false,
+          strict: false,
+        },
+        {
+          name: "named with different number of arguments",
+          template:
+            "{% cycle a: '1', '2' %}{% cycle a: '1', '2', '3' %}{% cycle a: '1' %}",
+          want: "12",
+          context: {},
+          partials: {},
+          error: false,
+          strict: false,
+        },
+        {
+          name: "named with growing number of arguments",
+          template:
+            "{% cycle a: '1' %}{% cycle a: '1', '2' %}{% cycle a: '1', '2', '3' %}",
+          want: "112",
+          context: {},
+          partials: {},
+          error: false,
+          strict: false,
+        },
+        {
+          name: "named with shrinking number of arguments",
+          template:
+            "{% cycle a: '1', '2', '3' %}{% cycle a: '1', '2' %}{% cycle a: '1' %}",
+          want: "121",
+          context: {},
+          partials: {},
+          error: false,
+          strict: false,
+        },
+        {
           name: "no identifier",
           template:
             "{% cycle 'some', 'other' %}{% cycle 'some', 'other' %}{% cycle 'some', 'other' %}",
           want: "someothersome",
+          context: {},
+          partials: {},
+          error: false,
+          strict: false,
+        },
+        {
+          name: "undefined variable names mixed with no name",
+          template:
+            "{% cycle a: 1, 2, 3 %}{% cycle b: 1, 2, 3 %}{% cycle 1, 2, 3 %}",
+          want: "121",
           context: {},
           partials: {},
           error: false,
@@ -1321,6 +1452,24 @@ const data = {
           context: {},
           partials: {},
           error: true,
+          strict: false,
+        },
+        {
+          name: "timestamp integer",
+          template: "{{ 1152098955 | date: '%m/%d/%Y' }}",
+          want: "07/05/2006",
+          context: {},
+          partials: {},
+          error: false,
+          strict: false,
+        },
+        {
+          name: "timestamp string",
+          template: "{{ '1152098955' | date: '%m/%d/%Y' }}",
+          want: "07/05/2006",
+          context: {},
+          partials: {},
+          error: false,
           strict: false,
         },
         {
@@ -1379,6 +1528,15 @@ const data = {
     {
       name: "liquid.golden.default_filter",
       tests: [
+        {
+          name: "0.0 is not falsy",
+          template: '{{ 0.0 | default: "bar" }}',
+          want: "0.0",
+          context: {},
+          partials: {},
+          error: false,
+          strict: false,
+        },
         {
           name: "allow false",
           template: "{{ false | default: 'bar', allow_false:true }}",
@@ -1449,6 +1607,15 @@ const data = {
           strict: false,
         },
         {
+          name: "false keyword argument before positional",
+          template: '{{ false | default: allow_false: false, "bar" }}',
+          want: "bar",
+          context: {},
+          partials: {},
+          error: false,
+          strict: false,
+        },
+        {
           name: "missing argument",
           template: "{{ false | default }}",
           want: "",
@@ -1513,9 +1680,36 @@ const data = {
           strict: false,
         },
         {
+          name: "true keyword argument before positional",
+          template: '{{ false | default: allow_false: true, "bar" }}',
+          want: "false",
+          context: {},
+          partials: {},
+          error: false,
+          strict: false,
+        },
+        {
           name: "undefined left value",
           template: '{{ nosuchthing | default: "bar" }}',
           want: "bar",
+          context: {},
+          partials: {},
+          error: false,
+          strict: false,
+        },
+        {
+          name: "zero is not falsy",
+          template: '{{ 0 | default: "bar" }}',
+          want: "0",
+          context: {},
+          partials: {},
+          error: false,
+          strict: false,
+        },
+        {
+          name: "zero is not falsy with allow_false",
+          template: '{{ 0 | default: "bar", allow_false: true }}',
+          want: "0",
           context: {},
           partials: {},
           error: false,
@@ -2263,6 +2457,16 @@ const data = {
           strict: false,
         },
         {
+          name: "comma separated arguments",
+          template:
+            "{% for i in (1..6), limit: 4, offset: 2 %}{{ i }} {% endfor %}",
+          want: "3 4 5 6 ",
+          context: {},
+          partials: {},
+          error: false,
+          strict: false,
+        },
+        {
           name: "continue",
           template:
             "{% for tag in product.tags %}{% if tag == 'sports' %}{% continue %}{% else %}{{ tag }} {% endif %}{% else %}no images{% endfor %}",
@@ -2606,6 +2810,35 @@ const data = {
           strict: false,
         },
         {
+          name: "limit is a non-number string",
+          template: "{% for i in (1..4) limit: 'foo' %}{{ i }} {% endfor %}",
+          want: "",
+          context: {},
+          partials: {},
+          error: true,
+          strict: false,
+        },
+        {
+          name: "limit is a string",
+          template: "{% for i in (1..4) limit: '2' %}{{ i }} {% endfor %}",
+          want: "1 2 ",
+          context: {},
+          partials: {},
+          error: false,
+          strict: false,
+        },
+        {
+          name: "limit is not a string or number",
+          template: "{% for i in (1..4) limit: foo %}{{ i }} {% endfor %}",
+          want: "",
+          context: {
+            foo: [1, 2, 3],
+          },
+          partials: {},
+          error: true,
+          strict: false,
+        },
+        {
           name: "lookup a filter from an outer context",
           template:
             "{% for tag in product.tags %}{{ tag | upcase }} {% endfor %}",
@@ -2614,6 +2847,26 @@ const data = {
             product: {
               tags: ["sports", "garden"],
             },
+          },
+          partials: {},
+          error: false,
+          strict: false,
+        },
+        {
+          name: "loop over a string literal",
+          template: "{% for i in 'hello' %}{{ i }} {% endfor %}",
+          want: "hello ",
+          context: {},
+          partials: {},
+          error: false,
+          strict: false,
+        },
+        {
+          name: "loop over a string variable",
+          template: "{% for i in foo %}{{ i }} {% endfor %}",
+          want: "hello ",
+          context: {
+            foo: "hello",
           },
           partials: {},
           error: false,
@@ -2794,6 +3047,35 @@ const data = {
           strict: false,
         },
         {
+          name: "offset is a non-number string",
+          template: "{% for i in (1..4) offset: 'foo' %}{{ i }} {% endfor %}",
+          want: "",
+          context: {},
+          partials: {},
+          error: true,
+          strict: false,
+        },
+        {
+          name: "offset is a string",
+          template: "{% for i in (1..4) offset: '2' %}{{ i }} {% endfor %}",
+          want: "3 4 ",
+          context: {},
+          partials: {},
+          error: false,
+          strict: false,
+        },
+        {
+          name: "offset is not a string or number",
+          template: "{% for i in (1..4) offset: foo %}{{ i }} {% endfor %}",
+          want: "",
+          context: {
+            foo: [1, 2, 3],
+          },
+          partials: {},
+          error: true,
+          strict: false,
+        },
+        {
           name: "parent's parentloop",
           template:
             "{% for i in (1..2) %}{% for j in (1..2) %}{% for k in (1..2) %}i={{ forloop.parentloop.parentloop.index }} j={{ forloop.parentloop.index }} k={{ forloop.index }} {% endfor %}{% endfor %}{% endfor %}",
@@ -2834,6 +3116,24 @@ const data = {
               end_range: 1,
             },
           },
+          partials: {},
+          error: false,
+          strict: false,
+        },
+        {
+          name: "range start and stop are the same",
+          template: "{% for i in (1..1) %}{{ i }} {% endfor %}",
+          want: "1 ",
+          context: {},
+          partials: {},
+          error: false,
+          strict: false,
+        },
+        {
+          name: "range start and stop are zero",
+          template: "{% for i in (0..0) %}{{ i }} {% endfor %}",
+          want: "0 ",
+          context: {},
           partials: {},
           error: false,
           strict: false,
@@ -2885,11 +3185,333 @@ const data = {
           error: false,
           strict: false,
         },
+        {
+          name: "some comma separated arguments",
+          template:
+            "{% for i in (1..6) limit: 4, offset: 2, %}{{ i }} {% endfor %}",
+          want: "3 4 5 6 ",
+          context: {},
+          partials: {},
+          error: false,
+          strict: false,
+        },
+      ],
+    },
+    {
+      name: "liquid.golden.identifiers",
+      tests: [
+        {
+          name: "ascii lowercase",
+          template: "{% assign foo = 'hello' %}{{ foo }} {{ bar }}",
+          want: "hello goodbye",
+          context: {
+            bar: "goodbye",
+          },
+          partials: {},
+          error: false,
+          strict: true,
+        },
+        {
+          name: "ascii uppercase",
+          template: "{% assign FOO = 'hello' %}{{ FOO }} {{ BAR }}",
+          want: "hello goodbye",
+          context: {
+            BAR: "goodbye",
+          },
+          partials: {},
+          error: false,
+          strict: true,
+        },
+        {
+          name: "at sign",
+          template: "{{ @foo }}",
+          want: "hello",
+          context: {
+            "@foo": "hello",
+          },
+          partials: {},
+          error: true,
+          strict: true,
+        },
+        {
+          name: "capture ascii lowercase",
+          template: "{% capture foo %}hello{% endcapture %}{{ foo }}",
+          want: "hello",
+          context: {},
+          partials: {},
+          error: false,
+          strict: true,
+        },
+        {
+          name: "capture ascii uppercase",
+          template: "{% capture FOO %}hello{% endcapture %}{{ FOO }}",
+          want: "hello",
+          context: {},
+          partials: {},
+          error: false,
+          strict: true,
+        },
+        {
+          name: "capture digits",
+          template: "{% capture foo1 %}hello{% endcapture %}{{ foo1 }}",
+          want: "hello",
+          context: {},
+          partials: {},
+          error: false,
+          strict: true,
+        },
+        {
+          name: "capture hyphens",
+          template:
+            "{% capture foo-a %}hello {{ bar-b }}{% endcapture %}{{ foo-a }}",
+          want: "hello goodbye",
+          context: {
+            "bar-b": "goodbye",
+          },
+          partials: {},
+          error: false,
+          strict: true,
+        },
+        {
+          name: "capture leading hyphen",
+          template:
+            "{% capture -foo %}hello {{ -bar }}{% endcapture %}{{ -foo }}",
+          want: "hello goodbye",
+          context: {
+            "-bar": "goodbye",
+          },
+          partials: {},
+          error: true,
+          strict: true,
+        },
+        {
+          name: "capture leading underscore",
+          template:
+            "{% capture _foo %}hello {{ _bar }}{% endcapture %}{{ _foo }}",
+          want: "hello goodbye",
+          context: {
+            _bar: "goodbye",
+          },
+          partials: {},
+          error: false,
+          strict: true,
+        },
+        {
+          name: "capture only digits",
+          template: "{% capture 123 %}hello{% endcapture %}{{ 123 }}",
+          want: "123",
+          context: {},
+          partials: {},
+          error: false,
+          strict: true,
+        },
+        {
+          name: "capture only underscore",
+          template: "{% capture _ %}hello {{ __ }}{% endcapture %}{{ _ }}",
+          want: "hello goodbye",
+          context: {
+            __: "goodbye",
+          },
+          partials: {},
+          error: false,
+          strict: true,
+        },
+        {
+          name: "capture underscore",
+          template:
+            "{% capture foo_a %}hello {{ bar_b }}{% endcapture %}{{ foo_a }}",
+          want: "hello goodbye",
+          context: {
+            bar_b: "goodbye",
+          },
+          partials: {},
+          error: false,
+          strict: true,
+        },
+        {
+          name: "decrement with a hyphen",
+          template: "{% decrement f-oo %}{% decrement f-oo %}",
+          want: "-1-2",
+          context: {},
+          partials: {},
+          error: false,
+          strict: true,
+        },
+        {
+          name: "digits",
+          template: "{% assign foo1 = 'hello' %}{{ foo1 }} {{ bar2 }}",
+          want: "hello goodbye",
+          context: {
+            bar2: "goodbye",
+          },
+          partials: {},
+          error: false,
+          strict: true,
+        },
+        {
+          name: "hyphen in for loop target",
+          template: "{% for x in f-oo %}{{ x }}{% endfor %}",
+          want: "123",
+          context: {
+            "f-oo": [1, 2, 3],
+          },
+          partials: {},
+          error: false,
+          strict: true,
+        },
+        {
+          name: "hyphen in for loop variable",
+          template: "{% for x-y in foo %}{{ x-y }}{% endfor %}",
+          want: "123",
+          context: {
+            foo: [1, 2, 3],
+          },
+          partials: {},
+          error: false,
+          strict: true,
+        },
+        {
+          name: "hyphens",
+          template: "{% assign foo-a = 'hello' %}{{ foo-a }} {{ bar-b }}",
+          want: "hello goodbye",
+          context: {
+            "bar-b": "goodbye",
+          },
+          partials: {},
+          error: false,
+          strict: true,
+        },
+        {
+          name: "increment with a hyphen",
+          template: "{% increment f-oo %}{% increment f-oo %}",
+          want: "01",
+          context: {},
+          partials: {},
+          error: false,
+          strict: true,
+        },
+        {
+          name: "leading hyphen",
+          template: "{% assign -foo = 'hello' %}{{ -foo }} {{ -bar }}",
+          want: "hello goodbye",
+          context: {
+            "-bar": "goodbye",
+          },
+          partials: {},
+          error: true,
+          strict: true,
+        },
+        {
+          name: "leading hyphen in for loop target",
+          template: "{% for x in -foo %}{{ x }}{% endfor %}",
+          want: "123",
+          context: {
+            "-foo": [1, 2, 3],
+          },
+          partials: {},
+          error: true,
+          strict: true,
+        },
+        {
+          name: "leading underscore",
+          template: "{% assign _foo = 'hello' %}{{ _foo }} {{ _bar }}",
+          want: "hello goodbye",
+          context: {
+            _bar: "goodbye",
+          },
+          partials: {},
+          error: false,
+          strict: true,
+        },
+        {
+          name: "only digits",
+          template: "{% assign 123 = 'hello' %}{{ 123 }} {{ 456 }}",
+          want: "123 456",
+          context: {
+            456: "goodbye",
+          },
+          partials: {},
+          error: false,
+          strict: true,
+        },
+        {
+          name: "only underscore",
+          template: "{% assign _ = 'hello' %}{{ _ }} {{ __ }}",
+          want: "hello goodbye",
+          context: {
+            __: "goodbye",
+          },
+          partials: {},
+          error: false,
+          strict: true,
+        },
+        {
+          name: "trailing question mark assign",
+          template: "{% assign foo? = 'hello' %}{{ foo? }}",
+          want: "hello",
+          context: {},
+          partials: {},
+          error: true,
+          strict: true,
+        },
+        {
+          name: "trailing question mark in for loop target",
+          template: "{% for x in foo? %}{{ x }}{% endfor %}",
+          want: "123",
+          context: {
+            "foo?": [1, 2, 3],
+          },
+          partials: {},
+          error: false,
+          strict: true,
+        },
+        {
+          name: "trailing question mark in for loop variable",
+          template: "{% for x? in foo %}{{ x? }}{% endfor %}",
+          want: "123",
+          context: {
+            foo: [1, 2, 3],
+          },
+          partials: {},
+          error: false,
+          strict: true,
+        },
+        {
+          name: "trailing question mark output",
+          template: "{{ bar? }}",
+          want: "goodbye",
+          context: {
+            "bar?": "goodbye",
+          },
+          partials: {},
+          error: false,
+          strict: true,
+        },
+        {
+          name: "underscore",
+          template: "{% assign foo_a = 'hello' %}{{ foo_a }} {{ bar_b }}",
+          want: "hello goodbye",
+          context: {
+            bar_b: "goodbye",
+          },
+          partials: {},
+          error: false,
+          strict: true,
+        },
       ],
     },
     {
       name: "liquid.golden.if_tag",
       tests: [
+        {
+          name: "0.0 is truthy",
+          template: "{% if 0.0 %}Hello{% else %}Goodbye{% endif %}",
+          want: "Hello",
+          context: {},
+          partials: {},
+          error: false,
+          strict: false,
+        },
         {
           name: "alternate not equal condition",
           template: "{% if product.title <> 'foo' %}baz{% endif %}",
@@ -3084,6 +3706,15 @@ const data = {
           strict: false,
         },
         {
+          name: "one is not equal to true",
+          template: "{% if 1 == true %}Hello{% else %}Goodbye{% endif %}",
+          want: "Goodbye",
+          context: {},
+          partials: {},
+          error: false,
+          strict: false,
+        },
+        {
           name: "range equals range",
           template:
             "{% assign foo = (1..3) %}{% if foo == (1..3) %}true{% else %}false{% endif %}",
@@ -3097,6 +3728,24 @@ const data = {
           name: "undefined variables are falsy",
           template: "{% if nosuchthing %}bar{% else %}foo{% endif %}",
           want: "foo",
+          context: {},
+          partials: {},
+          error: false,
+          strict: false,
+        },
+        {
+          name: "zero is not equal to false",
+          template: "{% if 0 == false %}Hello{% else %}Goodbye{% endif %}",
+          want: "Goodbye",
+          context: {},
+          partials: {},
+          error: false,
+          strict: false,
+        },
+        {
+          name: "zero is truthy",
+          template: "{% if 0 %}Hello{% else %}Goodbye{% endif %}",
+          want: "Hello",
           context: {},
           partials: {},
           error: false,
@@ -3213,6 +3862,17 @@ const data = {
           partials: {
             "assign-outer-scope":
               "Hello, {{ customer.first_name }}{% assign last_name = 'Smith' %}",
+          },
+          error: false,
+          strict: false,
+        },
+        {
+          name: "assign to a keyword argument",
+          template: "{% include 'product-args', foo: 'hello' %} {{ foo }}",
+          want: "hello hello goodbye",
+          context: {},
+          partials: {
+            "product-args": "{{ foo }}{% assign foo = 'goodbye' %} {{ foo }}",
           },
           error: false,
           strict: false,
@@ -3495,6 +4155,114 @@ const data = {
           template:
             "{% increment foo %} {% increment foo %} {% if foo > 0 %}{{ foo }}{% endif %}",
           want: "0 1 2",
+          context: {},
+          partials: {},
+          error: false,
+          strict: false,
+        },
+      ],
+    },
+    {
+      name: "liquid.golden.inline_comment_tag",
+      tests: [
+        {
+          name: "can't comment tags",
+          template: "{%- # {% echo 'hello world' %} -%}",
+          want: " -%}",
+          context: {},
+          partials: {},
+          error: false,
+          strict: false,
+        },
+        {
+          name: "empty",
+          template: "{%#%}",
+          want: "",
+          context: {},
+          partials: {},
+          error: false,
+          strict: false,
+        },
+        {
+          name: "enforce leading hash",
+          template:
+            "{%-\n  # spread inline comments\n  over multiple lines\n-%}",
+          want: "",
+          context: {},
+          partials: {},
+          error: true,
+          strict: false,
+        },
+        {
+          name: "liquid tag",
+          template:
+            "{% liquid \n  # first comment line\n  # second comment line\n\n  # another comment line\n  echo 'Hello '\n\n  # more comments\n  echo 'goodbye'\n-%}",
+          want: "Hello goodbye",
+          context: {},
+          partials: {},
+          error: false,
+          strict: false,
+        },
+        {
+          name: "lots of hashes in a liquid tag",
+          template:
+            "{% liquid\n  ##########################\n  # spread inline comments #\n  ##########################\n-%}",
+          want: "",
+          context: {},
+          partials: {},
+          error: false,
+          strict: false,
+        },
+        {
+          name: "multiple lines",
+          template:
+            "{%-\n  # spread inline comments\n  # over multiple lines\n-%}",
+          want: "",
+          context: {},
+          partials: {},
+          error: false,
+          strict: false,
+        },
+        {
+          name: "no padding after the hash",
+          template: "{%#some comment %}",
+          want: "",
+          context: {},
+          partials: {},
+          error: false,
+          strict: false,
+        },
+        {
+          name: "no whitespace control no padding",
+          template: "{%# some comment %}",
+          want: "",
+          context: {},
+          partials: {},
+          error: false,
+          strict: false,
+        },
+        {
+          name: "no whitespace control with padding",
+          template: "{% # some comment %}",
+          want: "",
+          context: {},
+          partials: {},
+          error: false,
+          strict: false,
+        },
+        {
+          name: "with whitespace control and padding",
+          template: "{%- # some comment -%}",
+          want: "",
+          context: {},
+          partials: {},
+          error: false,
+          strict: false,
+        },
+        {
+          name: "with whitespace control no padding",
+          template: "{%-# some comment -%}",
+          want: "",
           context: {},
           partials: {},
           error: false,
@@ -5118,6 +5886,17 @@ const data = {
       name: "liquid.golden.render_tag",
       tests: [
         {
+          name: "assign to keyword argument",
+          template: "{% render 'product-args', foo: 'hello' %}{{ foo }}",
+          want: "hello goodbye",
+          context: {},
+          partials: {
+            "product-args": "{{ foo }}{% assign foo='goodbye' %} {{ foo }}",
+          },
+          error: false,
+          strict: false,
+        },
+        {
           name: "assigned variables do not leak into outer scope",
           template:
             "{% render 'assign-outer-scope', customer: customer %} {{ last_name }}",
@@ -5730,6 +6509,60 @@ const data = {
       name: "liquid.golden.round_filter",
       tests: [
         {
+          name: "argument is a float",
+          template: "{{ 5.666 | round: 1.2 }}",
+          want: "5.7",
+          context: {},
+          partials: {},
+          error: false,
+          strict: false,
+        },
+        {
+          name: "argument is a negative",
+          template: "{{ 5.666 | round: -2 }}",
+          want: "0",
+          context: {},
+          partials: {},
+          error: false,
+          strict: false,
+        },
+        {
+          name: "argument is a string",
+          template: "{{ 5.666 | round: 'foo' }}",
+          want: "6",
+          context: {},
+          partials: {},
+          error: false,
+          strict: false,
+        },
+        {
+          name: "argument is a string representation of an integer",
+          template: "{{ 5.666 | round: '1' }}",
+          want: "5.7",
+          context: {},
+          partials: {},
+          error: false,
+          strict: false,
+        },
+        {
+          name: "argument is a string representation of zero",
+          template: "{{ 5.666 | round: '1' }}",
+          want: "5.7",
+          context: {},
+          partials: {},
+          error: false,
+          strict: false,
+        },
+        {
+          name: "argument is a zero",
+          template: "{{ 5.666 | round: 0 }}",
+          want: "6",
+          context: {},
+          partials: {},
+          error: false,
+          strict: false,
+        },
+        {
           name: "decimal places",
           template: '{{ "5.666666" | round: 2 }}',
           want: "5.67",
@@ -5795,7 +6628,7 @@ const data = {
         {
           name: "undefined argument",
           template: "{{ 5.666 | round: nosuchthing }}",
-          want: "6.0",
+          want: "6",
           context: {},
           partials: {},
           error: false,
@@ -6228,6 +7061,17 @@ const data = {
           },
           partials: {},
           error: false,
+          strict: false,
+        },
+        {
+          name: "incompatible types",
+          template: "{{ a | sort }}",
+          want: "",
+          context: {
+            a: [[], {}, 1, "4"],
+          },
+          partials: {},
+          error: true,
           strict: false,
         },
         {
@@ -6891,6 +7735,56 @@ const data = {
       name: "liquid.golden.tablerow_tag",
       tests: [
         {
+          name: "cols is a float",
+          template:
+            "{% tablerow i in (1..4) cols:2.6 %}{{ i }} {{ tablerowloop.col_first }}{% endtablerow %}",
+          want: '<tr class="row1">\n<td class="col1">1 true</td><td class="col2">2 false</td></tr>\n<tr class="row2"><td class="col1">3 true</td><td class="col2">4 false</td></tr>\n',
+          context: {},
+          partials: {},
+          error: false,
+          strict: false,
+        },
+        {
+          name: "cols is a string",
+          template:
+            "{% tablerow i in (1..4) cols:'2' %}{{ i }} {{ tablerowloop.col_first }}{% endtablerow %}",
+          want: '<tr class="row1">\n<td class="col1">1 true</td><td class="col2">2 false</td></tr>\n<tr class="row2"><td class="col1">3 true</td><td class="col2">4 false</td></tr>\n',
+          context: {},
+          partials: {},
+          error: false,
+          strict: false,
+        },
+        {
+          name: "limit is a string",
+          template:
+            "{% tablerow i in (1..4) limit:'2' %}{{ i }} {{ tablerowloop.col_first }}{% endtablerow %}",
+          want: '<tr class="row1">\n<td class="col1">1 true</td><td class="col2">2 false</td></tr>\n',
+          context: {},
+          partials: {},
+          error: false,
+          strict: false,
+        },
+        {
+          name: "no cols param",
+          template:
+            "{% tablerow i in (1..2) %}\ncol: {{ tablerowloop.col }}\ncol0: {{ tablerowloop.col0 }}\ncol_first: {{ tablerowloop.col_first }}\ncol_last: {{ tablerowloop.col_last }}\nfirst: {{ tablerowloop.first }}\nindex: {{ tablerowloop.index }}\nindex0: {{ tablerowloop.index0 }}\nlast: {{ tablerowloop.last }}\nlength: {{ tablerowloop.length }}\nrindex: {{ tablerowloop.rindex }}\nrindex0: {{ tablerowloop.rindex0 }}\nrow: {{ tablerowloop.row }}\n{% endtablerow %}",
+          want: '<tr class="row1">\n<td class="col1">\ncol: 1\ncol0: 0\ncol_first: true\ncol_last: false\nfirst: true\nindex: 1\nindex0: 0\nlast: false\nlength: 2\nrindex: 2\nrindex0: 1\nrow: 1\n</td><td class="col2">\ncol: 2\ncol0: 1\ncol_first: false\ncol_last: true\nfirst: false\nindex: 2\nindex0: 1\nlast: true\nlength: 2\nrindex: 1\nrindex0: 0\nrow: 1\n</td></tr>\n',
+          context: {},
+          partials: {},
+          error: false,
+          strict: false,
+        },
+        {
+          name: "offset is a string",
+          template:
+            "{% tablerow i in (1..4) offset:'2' %}{{ i }} {{ tablerowloop.col_first }}{% endtablerow %}",
+          want: '<tr class="row1">\n<td class="col1">3 true</td><td class="col2">4 false</td></tr>\n',
+          context: {},
+          partials: {},
+          error: false,
+          strict: false,
+        },
+        {
           name: "one row",
           template:
             "{% tablerow tag in collection.tags %}{{ tag }}{% endtablerow %}",
@@ -6937,6 +7831,16 @@ const data = {
           template:
             "{% tablerow i in (1..5) cols:2 %}{{ i }} {{ tablerowloop.col_first }}{% endtablerow %}",
           want: '<tr class="row1">\n<td class="col1">1 true</td><td class="col2">2 false</td></tr>\n<tr class="row2"><td class="col1">3 true</td><td class="col2">4 false</td></tr>\n<tr class="row3"><td class="col1">5 true</td></tr>\n',
+          context: {},
+          partials: {},
+          error: false,
+          strict: false,
+        },
+        {
+          name: "two column odd range row numbers",
+          template:
+            "{% tablerow i in (1..5) cols:2 %}{{ i }} {{ tablerowloop.row }}{% endtablerow %}",
+          want: '<tr class="row1">\n<td class="col1">1 1</td><td class="col2">2 1</td></tr>\n<tr class="row2"><td class="col1">3 2</td><td class="col2">4 2</td></tr>\n<tr class="row3"><td class="col1">5 3</td></tr>\n',
           context: {},
           partials: {},
           error: false,
@@ -7157,6 +8061,15 @@ const data = {
       name: "liquid.golden.truncatewords_filter",
       tests: [
         {
+          name: "all whitespace is clobbered",
+          template: '{{ "    one    two three    four  " | truncatewords: 2 }}',
+          want: "one two...",
+          context: {},
+          partials: {},
+          error: false,
+          strict: false,
+        },
+        {
           name: "custom end",
           template:
             '{{ "Ground control to Major Tom." | truncatewords: 3, "--" }}',
@@ -7290,15 +8203,6 @@ const data = {
           template:
             '{{ "one two three four" | truncatewords: 2, nosuchthing }}',
           want: "one two",
-          context: {},
-          partials: {},
-          error: false,
-          strict: false,
-        },
-        {
-          name: "very big argument",
-          template: '{{ "" | truncatewords: 100000000000000 }}',
-          want: "",
           context: {},
           partials: {},
           error: false,
@@ -7495,6 +8399,35 @@ const data = {
           name: "literal true condition",
           template: "{% unless true %}foo{% endunless %}",
           want: "",
+          context: {},
+          partials: {},
+          error: false,
+          strict: false,
+        },
+        {
+          name: "one is not equal to true",
+          template:
+            "{% unless 1 == true %}Hello{% else %}Goodbye{% endunless %}",
+          want: "Hello",
+          context: {},
+          partials: {},
+          error: false,
+          strict: false,
+        },
+        {
+          name: "zero is not equal to false",
+          template:
+            "{% unless 0 == false %}Hello{% else %}Goodbye{% endunless %}",
+          want: "Hello",
+          context: {},
+          partials: {},
+          error: false,
+          strict: false,
+        },
+        {
+          name: "zero is truthy",
+          template: "{% unless 0 %}Hello{% else %}Goodbye{% endunless %}",
+          want: "Goodbye",
           context: {},
           partials: {},
           error: false,
@@ -7779,6 +8712,28 @@ const data = {
           strict: false,
         },
         {
+          name: "second argument is undefined",
+          template:
+            "{% assign x = a | where: 'title', nosuchthing %}{% for obj in x %}{% for i in obj %}({{ i[0] }},{{ i[1] }}){% endfor %}{% endfor %}",
+          want: "(title,foo)(title,bar)",
+          context: {
+            a: [
+              {
+                title: "foo",
+              },
+              {
+                title: "bar",
+              },
+              {
+                title: null,
+              },
+            ],
+          },
+          partials: {},
+          error: false,
+          strict: false,
+        },
+        {
           name: "too many arguments",
           template: "{{ a | where: 'title', 'foo', 'bar' }}",
           want: "",
@@ -7797,6 +8752,50 @@ const data = {
           },
           partials: {},
           error: true,
+          strict: false,
+        },
+        {
+          name: "value is explicit nil",
+          template:
+            "{% assign x =  a | where: 'b', nil %}{% for obj in x %}{% for i in obj %}({{ i[0] }},{{ i[1] }}){% endfor %}{% endfor %}",
+          want: "(b,bar)",
+          context: {
+            a: [
+              {
+                b: false,
+              },
+              {
+                b: "bar",
+              },
+              {
+                b: null,
+              },
+            ],
+          },
+          partials: {},
+          error: false,
+          strict: false,
+        },
+        {
+          name: "value is false",
+          template:
+            "{% assign x =  a | where: 'b', false %}{% for obj in x %}{% for i in obj %}({{ i[0] }},{{ i[1] }}){% endfor %}{% endfor %}",
+          want: "(b,false)",
+          context: {
+            a: [
+              {
+                b: false,
+              },
+              {
+                b: "bar",
+              },
+              {
+                b: null,
+              },
+            ],
+          },
+          partials: {},
+          error: false,
           strict: false,
         },
       ],

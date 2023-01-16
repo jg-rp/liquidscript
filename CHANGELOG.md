@@ -5,7 +5,7 @@
 **Fixes**
 
 - Fixed the string representation of variable paths that contain bracketed string elements with a dot. Previously `foo["x.y"].bar` would be represented as `foo.x.y.bar`. Now we retain the quoted property name `foo["x.y"].bar`. It is this string representation that is exposed in the results of `Template.analyze()`. See [#9](https://github.com/jg-rp/liquidscript/issues/9).
-- Fixed named `{% cycle %}` tag behavior. See [Python Liquid/#43](https://github.com/jg-rp/liquid/issues/43).
+- Fixed `{% cycle %}` tag behavior when given a cycle group name. See [Python Liquid/#43](https://github.com/jg-rp/liquid/issues/43).
 - Fixed the `round` filter when given non-integer arguments. See [Shopify/liquid#1590](https://github.com/Shopify/liquid/issues/1590).
 - Allow string literals to be used as a `{% for %}` tag iterable. See [Python Liquid/#102](https://github.com/jg-rp/liquid/issues/102).
 
