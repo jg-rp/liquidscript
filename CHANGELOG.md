@@ -1,5 +1,11 @@
 # LiquidScript Change Log
 
+## Version 1.7.0 (unreleased)
+
+**Features**
+
+- Allow customization of local namespace limits by overriding `RenderContext.assignScore`. See [#5](https://github.com/jg-rp/liquidscript/issues/5).
+
 ## Version 1.6.0
 
 **Fixes**

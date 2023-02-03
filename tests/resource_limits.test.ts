@@ -1,6 +1,7 @@
 import { ObjectLoader } from "../src/builtin/loaders";
-import { assignScore, RenderContext } from "../src/context";
+import { _assignScore, RenderContext } from "../src/context";
 import { Environment } from "../src/environment";
+import { Template } from "../src/template";
 import {
   ContextDepthError,
   LocalNamespaceLimitError,
@@ -10,35 +11,35 @@ import {
 import { Float, Integer } from "../src/number";
 import { Range } from "../src/range";
 
-describe("calculate assignment score", () => {
+describe("calculate default assignment score", () => {
   test("number", () => {
-    expect(assignScore(1)).toBe(1);
+    expect(_assignScore(1)).toBe(1);
   });
   test("integer", () => {
-    expect(assignScore(new Integer(1))).toBeGreaterThan(1);
+    expect(_assignScore(new Integer(1))).toBeGreaterThan(1);
   });
   test("float", () => {
-    expect(assignScore(new Float(1.1))).toBeGreaterThan(1);
+    expect(_assignScore(new Float(1.1))).toBeGreaterThan(1);
   });
   test("string", () => {
-    expect(assignScore("hello")).toBe(10);
+    expect(_assignScore("hello")).toBe(10);
   });
   test("array of strings", () => {
-    expect(assignScore(["a", "abc"])).toBe(8);
+    expect(_assignScore(["a", "abc"])).toBe(8);
   });
   test("set of strings", () => {
-    expect(assignScore(new Set(["a", "abc"]))).toBe(8);
+    expect(_assignScore(new Set(["a", "abc"]))).toBe(8);
   });
   test("map of strings to numbers", () => {
     const obj = new Map<string, number>([
       ["a", 1],
       ["b", 2],
     ]);
-    expect(assignScore(obj)).toBe(6);
+    expect(_assignScore(obj)).toBe(6);
   });
   test("iterable", () => {
     const obj = new Range(0, 3);
-    expect(assignScore(obj)).toBe(4);
+    expect(_assignScore(obj)).toBe(4);
   });
 });
 
@@ -65,6 +66,31 @@ describe("local namespace limit", () => {
     template.renderWithContextSync(ctx, env.renderStreamFactory());
     expect(ctx.localsScore).toBe(10);
     env.localNamespaceLimit = 23;
+    expect(() => template.renderSync()).toThrow(LocalNamespaceLimitError);
+  });
+});
+
+describe("custom assign score", () => {
+  class MyRenderContext extends RenderContext {
+    public assignScore(): number {
+      return 1;
+    }
+  }
+
+  class MyTemplate extends Template {
+    protected renderContextClass = MyRenderContext;
+  }
+
+  class MyEnvironment extends Environment {
+    protected templateClass = MyTemplate;
+  }
+  test("count items in the local namespace", () => {
+    const env = new MyEnvironment({ localNamespaceLimit: 1 });
+    // One assignment is OK.
+    let template = env.fromString("{% assign foo = 'bar' %}{{ foo }}");
+    expect(template.renderSync()).toBe("bar");
+    // Two assignments is not OK.
+    template = env.fromString("{% assign foo = 'bar' %}{% assign x = 1 %}");
     expect(() => template.renderSync()).toThrow(LocalNamespaceLimitError);
   });
 });

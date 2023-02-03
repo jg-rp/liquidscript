@@ -178,12 +178,21 @@ export class RenderContext {
    */
   public assign(key: string, value: unknown): void {
     if (this.environment.localNamespaceLimit > -1) {
-      this.localsScore += assignScore(value);
+      this.localsScore += this.assignScore(key, value);
       if (this.localsScore > this.environment.localNamespaceLimit) {
         throw new MaxLocalNamespaceLimitError("local namespace limit reached");
       }
     }
     this.locals[key] = value;
+  }
+
+  /**
+   * Return a size or score for the key and/or value to contribute to the local
+   * namespace score. Override this to control how the local namespace score is
+   * calculated.
+   */
+  public assignScore(key: string, value: unknown): number {
+    return _assignScore(value);
   }
 
   /**
@@ -616,30 +625,30 @@ function _toLiquid(value: unknown, context: RenderContext): unknown {
   return isLiquidable(value) ? value[toLiquid](context) : value;
 }
 
-export function assignScore(obj: unknown): number {
+export function _assignScore(obj: unknown): number {
   // TODO: drop protocol override?
   if (isString(obj)) return obj.length * 2;
   if (isArray(obj)) {
-    return obj.reduce((a: number, b: unknown) => a + assignScore(b), 0);
+    return obj.reduce((a: number, b: unknown) => a + _assignScore(b), 0);
   }
   if (obj instanceof Set) {
     let sum = 0;
     for (const val of obj.keys()) {
-      sum += assignScore(val);
+      sum += _assignScore(val);
     }
     return sum;
   }
   if (obj instanceof Map) {
     let sum = 0;
     for (const val of obj.entries()) {
-      sum += assignScore(val);
+      sum += _assignScore(val);
     }
     return sum;
   }
   if (isIterable(obj)) {
     let sum = 0;
     for (const val of obj) {
-      sum += assignScore(val);
+      sum += _assignScore(val);
     }
     return sum;
   }
@@ -654,12 +663,12 @@ export function assignScore(obj: unknown): number {
         if (!seen.has(val)) {
           seen.add(val);
           for (const [key, val] of Object.entries(obj)) {
-            sum += assignScore(key);
+            sum += _assignScore(key);
             stack.push(val);
           }
         }
       } else {
-        sum += assignScore(val);
+        sum += _assignScore(val);
       }
     }
 
