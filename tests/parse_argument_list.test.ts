@@ -9,7 +9,11 @@ import {
   StringLiteral,
   TRUE,
 } from "../src/expression";
-import { parse } from "../src/expressions/arguments/parse";
+import {
+  parse,
+  parseCallArguments,
+  parseMacroArguments,
+} from "../src/expressions/arguments/parse";
 import { TOKEN_ASSIGN } from "../src/expressions/tokens";
 import { Float, Integer } from "../src/number";
 
@@ -109,5 +113,81 @@ describe("parse argument list", () => {
   test("too many colons", () => {
     expect(() => parse("val:: 'hello'")).toThrow(LiquidSyntaxError);
     expect(() => parse("val:: 'hello'")).toThrow("unexpected ':' (<string>:1)");
+  });
+});
+
+describe("parse macro argument list", () => {
+  test("no default values", () => {
+    expect(parseMacroArguments("'foo' x, y, z")).toStrictEqual([
+      "foo",
+      [
+        ["x", NIL],
+        ["y", NIL],
+        ["z", NIL],
+      ],
+    ]);
+  });
+  test("with default values", () => {
+    expect(parseMacroArguments("'foo' x:1, y:2, z:3")).toStrictEqual([
+      "foo",
+      [
+        ["x", new IntegerLiteral(new Integer(1))],
+        ["y", new IntegerLiteral(new Integer(2))],
+        ["z", new IntegerLiteral(new Integer(3))],
+      ],
+    ]);
+  });
+  test("mix positional and keyword arguments", () => {
+    expect(parseMacroArguments("'foo' x, y:2, z")).toStrictEqual([
+      "foo",
+      [
+        ["x", NIL],
+        ["y", new IntegerLiteral(new Integer(2))],
+        ["z", NIL],
+      ],
+    ]);
+  });
+  test("leading comma", () => {
+    expect(parseMacroArguments("'foo', x, y, z")).toStrictEqual([
+      "foo",
+      [
+        ["x", NIL],
+        ["y", NIL],
+        ["z", NIL],
+      ],
+    ]);
+  });
+});
+
+describe("parse call argument list", () => {
+  test("positional values only", () => {
+    expect(parseCallArguments("'foo' 1, 2, 3")).toStrictEqual([
+      "foo",
+      [
+        ["", new IntegerLiteral(new Integer(1))],
+        ["", new IntegerLiteral(new Integer(2))],
+        ["", new IntegerLiteral(new Integer(3))],
+      ],
+    ]);
+  });
+  test("keyword arguments", () => {
+    expect(parseCallArguments("'foo' x:1, y:2, z:3")).toStrictEqual([
+      "foo",
+      [
+        ["x", new IntegerLiteral(new Integer(1))],
+        ["y", new IntegerLiteral(new Integer(2))],
+        ["z", new IntegerLiteral(new Integer(3))],
+      ],
+    ]);
+  });
+  test("mix positional and keyword arguments", () => {
+    expect(parseCallArguments("'foo' 1, y:2, 3")).toStrictEqual([
+      "foo",
+      [
+        ["", new IntegerLiteral(new Integer(1))],
+        ["y", new IntegerLiteral(new Integer(2))],
+        ["", new IntegerLiteral(new Integer(3))],
+      ],
+    ]);
   });
 });

@@ -51,8 +51,9 @@ export function makeParseArguments(
 
     while (stream.current.kind !== TOKEN_EOF) {
       args.push(argumentParser(stream, separatorTokenKind));
+      stream.next();
       // Catch missing comma
-      if (stream.peek.kind !== TOKEN_EOF) stream.expect(TOKEN_COMMA);
+      if (stream.current.kind !== TOKEN_EOF) stream.expect(TOKEN_COMMA);
       // Eat comma. Trailing commas are OK
       if (stream.current.kind === TOKEN_COMMA) stream.next();
     }
@@ -210,7 +211,7 @@ export function parseMacroArguments(
   const stream = new ExpressionTokenStream(tokenize(expr, startIndex));
   const name = parseStringLiteral(stream).toString();
   stream.next();
-  return [name, _parseMacroArguments(stream)]; // TODO: change to an object
+  return [name, _parseMacroArguments(stream)];
 }
 
 /**
@@ -227,5 +228,5 @@ export function parseCallArguments(
   const stream = new ExpressionTokenStream(tokenize(expr, startIndex));
   const name = parseStringLiteral(stream).toString();
   stream.next();
-  return [name, _parseCallArguments(stream)]; // TODO: change to an object
+  return [name, _parseCallArguments(stream)];
 }
