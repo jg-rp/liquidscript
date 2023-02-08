@@ -12,7 +12,7 @@ import {
   TOKEN_TRUE,
 } from "../../expressions";
 import { parseObject } from "../../expressions/filtered/parse";
-import { RenderStream } from "../../liquidscript";
+import { RenderStream } from "../../io/output_stream";
 import { Tag } from "../../tag";
 import { Token, TokenStream, TOKEN_EOF, TOKEN_EXPRESSION } from "../../token";
 import { RE, makeTokenizer } from "../../expressions/include";

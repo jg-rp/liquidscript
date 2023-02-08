@@ -6,16 +6,13 @@ import {
   parseCallArguments,
   parseMacroArguments,
 } from "../../expressions/arguments";
-import {
-  chainObjects,
-  Expression,
-  NIL,
-  RenderStream,
-  Undefined,
-} from "../../liquidscript";
+import { chainObjects } from "../../chain_object";
+import { Expression, NIL } from "../../expression";
+import { RenderStream } from "../../io/output_stream";
 import { Tag } from "../../tag";
 import { Token, TokenStream, TOKEN_EXPRESSION } from "../../token";
 import { isUndefined } from "../../types";
+import { Undefined } from "../../undefined";
 
 const TAG_ENDMACRO = "endmacro";
 const END_MACRO_BLOCK = new Set([TAG_ENDMACRO]);
