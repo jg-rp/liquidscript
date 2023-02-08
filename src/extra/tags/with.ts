@@ -104,6 +104,7 @@ export class WithNode implements Node {
   }
 
   children(): ChildNode[] {
+    // FIXME: block scoped variables
     return [{ token: this.token, node: this.block }];
   }
 }
