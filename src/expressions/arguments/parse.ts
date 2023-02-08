@@ -1,3 +1,4 @@
+import { LiquidSyntaxError } from "../../errors";
 import { Expression, NIL } from "../../expression";
 import { parseStringLiteral, parseUnchainedIdentifier } from "../common";
 import { parseObject } from "../filtered/parse";
@@ -7,6 +8,8 @@ import {
   TOKEN_COLON,
   TOKEN_COMMA,
   TOKEN_EOF,
+  TOKEN_IDENT,
+  TOKEN_STRING,
 } from "../tokens";
 import { tokenize } from "./lex";
 
@@ -197,6 +200,20 @@ export function parse(
   );
 }
 
+function parseMacroName(stream: ExpressionTokenStream): string {
+  if (
+    stream.current.kind === TOKEN_IDENT ||
+    stream.current.kind === TOKEN_STRING
+  ) {
+    return stream.current.value;
+  }
+
+  throw new LiquidSyntaxError(
+    `invalid macro name '${stream.current.value}'`,
+    stream.current
+  );
+}
+
 /**
  * Parse a macro tag argument list.
  * @param expr - A macro tag expression.
@@ -209,7 +226,7 @@ export function parseMacroArguments(
   startIndex: number = 1
 ): [string, ArgumentList] {
   const stream = new ExpressionTokenStream(tokenize(expr, startIndex));
-  const name = parseStringLiteral(stream).toString();
+  const name = parseMacroName(stream);
   stream.next();
   return [name, _parseMacroArguments(stream)];
 }
@@ -226,7 +243,7 @@ export function parseCallArguments(
   startIndex: number = 1
 ): [string, ArgumentList] {
   const stream = new ExpressionTokenStream(tokenize(expr, startIndex));
-  const name = parseStringLiteral(stream).toString();
+  const name = parseMacroName(stream);
   stream.next();
   return [name, _parseCallArguments(stream)];
 }

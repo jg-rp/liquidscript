@@ -24,6 +24,14 @@ describe("call a macro", () => {
     expect(template.render()).resolves.toBe("Hello, World!");
   });
 
+  test("unquoted macro names are ok", () => {
+    const template = env.fromString(
+      "{% macro func %}Hello, World!{% endmacro %}{% call func %}"
+    );
+    expect(template.renderSync()).toBe("Hello, World!");
+    expect(template.render()).resolves.toBe("Hello, World!");
+  });
+
   test("call basic macro multiple times", () => {
     const template = env.fromString(
       "{% macro 'func' %}Hello, World!{% endmacro %}" +
