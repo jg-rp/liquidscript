@@ -37,6 +37,90 @@ This implementation of `if` maintains that right associativity so that any stand
 {% endif %}
 ```
 
+## macro / call
+
+**_New in version 1.7.0_**
+
+```plain
+{% macro <identifier,string> [[,] [ <object>, ... ] [ <identifier>: <object>, ... ]] %}
+```
+
+```plain
+{% call <identifier,string> [[,] [ <object>, ... ] [ <identifier>: <object>, ... ]] %}
+```
+
+Define parameterized Liquid snippets using the `macro` tag and call them using the `call` tag.
+
+Using the `macro` tag is like defining a function. Its parameter list defines arguments, possibly with default values. A `macro` tag's block has its own scope including its arguments and template global variables, just like the `render` tag.
+
+Note that argument defaults are bound late. They are evaluated when a `call` expression is evaluated, not when the macro is defined.
+
+Register and instance `liquidscript.extra.tags.CallTag` and `liquidscript.extra.tags.MacroTag` with an [`Environment`](../api/classes/Environment.md) to make them available to templates rendered from that environment.
+
+```javascript
+import { Environment, extra } from "liquidscript";
+
+const env = new Environment();
+env.addTag("call", new extra.tags.CallTag());
+env.addTag("macro", new extra.tags.MacroTag());
+```
+
+This example defines a `price` macro, then calls it twice with different arguments.
+
+```liquid
+{% macro 'price' product, on_sale: false %}
+  <div class="price-wrapper">
+  {% if on_sale %}
+    <p>Was {{ product.regular_price | prepend: '$' }}</p>
+    <p>Now {{ product.price | prepend: '$' }}</p>
+  {% else %}
+    <p>{{ product.price | prepend: '$' }}</p>
+  {% endif %}
+  </div>
+{% endmacro %}
+
+{% call 'price' products[0], on_sale: true %}
+{% call 'price' products[1] %}
+```
+
+```html title="output"
+<div class="price-wrapper">
+  <p>Was $5.99</p>
+  <p>Now $4.99</p>
+</div>
+
+<div class="price-wrapper">
+  <p>$12.00</p>
+</div>
+```
+
+### Excess Arguments
+
+Excess arguments passed to `call` are collected into `args` and `kwargs`.
+
+```liquid title="template"
+{% macro 'foo' %}
+  {% for arg in args %}
+    - {{ arg }}
+  {% endfor %}
+
+  {% for arg in kwargs %}
+    - {{ arg.0 }} => {{ arg.1 }}
+  {% endfor %}
+{% endmacro %}
+
+{% call 'foo' 42, 43, 99, a: 3.14, b: 2.71828 %}
+```
+
+```plain title="output"
+- 42
+- 43
+- 99
+
+- a => 3.14
+- b => 2.71828
+```
+
 ## with
 
 Extend the current scope for the duration of the `with` block. Useful for aliasing long or nested variable names. Also useful for caching the result of a drop's methods, if the drop does not perform its own caching.
