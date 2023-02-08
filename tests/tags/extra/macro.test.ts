@@ -1,6 +1,7 @@
 import { Environment } from "../../../src/environment";
+import { LiquidUndefinedError } from "../../../src/errors";
 import { CallTag, MacroTag } from "../../../src/extra/tags";
-import { LaxUndefined } from "../../../src/undefined";
+import { LaxUndefined, StrictUndefined } from "../../../src/undefined";
 
 describe("call a macro", () => {
   const env = new Environment({ undefinedFactory: LaxUndefined.from });
@@ -132,5 +133,23 @@ describe("call a macro", () => {
   });
 });
 
-// TODO: Test strict variables
-// TODO: Test analyze macro and call
+describe("call a macro with strict variables", () => {
+  const env = new Environment({ undefinedFactory: StrictUndefined.from });
+  env.addTag("call", new CallTag());
+  env.addTag("macro", new MacroTag());
+
+  test("missing argument", () => {
+    const template = env.fromString(
+      "{% macro 'func', foo %}" +
+        "{{ foo }}" +
+        "{% endmacro %}" +
+        "{% call 'func' %}"
+    );
+    expect(() => template.renderSync()).toThrow(LiquidUndefinedError);
+  });
+
+  test("undefined macro", () => {
+    const template = env.fromString("{% call 'func' %}");
+    expect(() => template.renderSync()).toThrow(LiquidUndefinedError);
+  });
+});

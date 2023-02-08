@@ -9,6 +9,7 @@ import { Tag } from "../src/tag";
 import { TemplateTraversalError } from "../src/errors";
 import { Token, TokenStream } from "../src/token";
 import { VariableRefs, Template } from "../src/template";
+import { CallTag, MacroTag } from "../src/extra/tags";
 
 class MockExpression implements Expression {
   async evaluate(): Promise<unknown> {
@@ -913,5 +914,34 @@ describe("static template analysis", () => {
     expect(async () =>
       _test(template, {}, {}, {}, expectedFailedVisits, {}, true)
     ).rejects.toThrow(TemplateTraversalError);
+  });
+
+  test("macro and call", async () => {
+    const _env = new Environment();
+    _env.addTag("call", new CallTag());
+    _env.addTag("macro", new MacroTag());
+
+    const template = _env.fromString(
+      "{% macro 'foo', you: 'World', arg: n %}" +
+        "Hello, {{ you }}!" +
+        "{% endmacro %}" +
+        "{% call 'foo' %}" +
+        "{% assign x = 'you' %}" +
+        "{% call 'foo', you: x %}"
+    );
+
+    const expectedGlobals: VariableRefs = {
+      n: [{ templateName: "<string>", lineNumber: 1 }],
+    };
+    const expectedLocals: VariableRefs = {
+      x: [{ templateName: "<string>", lineNumber: 1 }],
+    };
+    const expectedVariables: VariableRefs = {
+      n: [{ templateName: "<string>", lineNumber: 1 }],
+      you: [{ templateName: "<string>", lineNumber: 1 }],
+      x: [{ templateName: "<string>", lineNumber: 1 }],
+    };
+
+    await _test(template, expectedVariables, expectedLocals, expectedGlobals);
   });
 });
