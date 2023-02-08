@@ -5,6 +5,7 @@
 **Features**
 
 - Allow customization of local namespace limits by overriding `RenderContext.assignScore`. See [#5](https://github.com/jg-rp/liquidscript/issues/5).
+- New `macro` and `call` tags. Define parameterized Liquid snippets with the `macro` tag and call them using the `call` tag. `macro` and `call` are optional extra tags that need to be explicitly registered with a `liquidscript.Environment`.
 
 ## Version 1.6.0
 
