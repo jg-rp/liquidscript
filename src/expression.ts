@@ -420,12 +420,13 @@ export class FilteredExpression implements Expression {
     return this.expression.toString();
   }
 
-  public async evaluate(context: RenderContext): Promise<unknown> {
-    let result =
-      this.expression instanceof Literal
-        ? this.expression.evaluateSync(context)
-        : await this.expression.evaluate(context);
-    for (const filter of this.filters) {
+  protected async applyFilters(
+    left: unknown,
+    filters: ExpressionFilter[],
+    context: RenderContext
+  ): Promise<unknown> {
+    let result = left;
+    for (const filter of filters) {
       const _filter = context.environment.filters[filter.name];
       if (_filter === undefined) {
         if (context.environment.strictFilters)
@@ -448,9 +449,13 @@ export class FilteredExpression implements Expression {
     return result;
   }
 
-  public evaluateSync(context: RenderContext): unknown {
-    let result = this.expression.evaluateSync(context);
-    for (const filter of this.filters) {
+  protected applyFiltersSync(
+    left: unknown,
+    filters: ExpressionFilter[],
+    context: RenderContext
+  ): unknown {
+    let result = left;
+    for (const filter of filters) {
       const _filter = context.environment.filters[filter.name];
       if (_filter === undefined) {
         if (context.environment.strictFilters)
@@ -473,8 +478,115 @@ export class FilteredExpression implements Expression {
     return result;
   }
 
+  public async evaluate(context: RenderContext): Promise<unknown> {
+    const left =
+      this.expression instanceof Literal
+        ? this.expression.evaluateSync(context)
+        : await this.expression.evaluate(context);
+    return await this.applyFilters(left, this.filters, context);
+  }
+
+  public evaluateSync(context: RenderContext): unknown {
+    const left = this.expression.evaluateSync(context);
+    return this.applyFiltersSync(left, this.filters, context);
+  }
+
   public children(): Expression[] {
     const _children = [this.expression];
+    for (const fltr of this.filters) {
+      for (const arg of fltr.args) {
+        _children.push(arg);
+      }
+      for (const arg of fltr.kwargs.values()) {
+        _children.push(arg);
+      }
+    }
+    return _children;
+  }
+}
+
+export class ConditionalExpression extends FilteredExpression {
+  constructor(
+    readonly expression: Expression,
+    readonly filters: ExpressionFilter[] = [],
+    readonly condition: Expression = NIL,
+    readonly alternative: Expression = NIL
+  ) {
+    super(expression, filters);
+  }
+
+  public equals(other: unknown): boolean {
+    return (
+      other instanceof ConditionalExpression &&
+      this.expression.equals(other.expression) &&
+      this.condition.equals(other.condition) &&
+      this.alternative.equals(other.alternative) &&
+      this.filters === other.filters
+    );
+  }
+
+  public toString(): string {
+    const buf: string[] = [this.expression.toString()];
+
+    if (!this.condition.equals(NIL)) {
+      buf.push("if", this.condition.toString());
+    }
+
+    if (!this.alternative.equals(NIL)) {
+      buf.push("else", this.condition.toString());
+    }
+
+    if (this.filters.length > 0) {
+      buf.push("|");
+      buf.push(this.filters.map(String).join(" | "));
+    }
+
+    return buf.join(" | ");
+  }
+
+  public async evaluate(context: RenderContext): Promise<unknown> {
+    let left: unknown;
+    if (this.condition.equals(NIL)) {
+      left = await this.expression.evaluate(context);
+    } else {
+      if (isLiquidTruthy(await this.condition.evaluate(context))) {
+        left = await this.expression.evaluate(context);
+      } else if (this.alternative.equals(NIL)) {
+        left = context.environment.undefinedFactory("");
+      } else {
+        left = await this.alternative.evaluate(context);
+      }
+    }
+    return await this.applyFilters(left, this.filters, context);
+  }
+
+  public evaluateSync(context: RenderContext): unknown {
+    let left: unknown;
+    if (this.condition.equals(NIL)) {
+      left = this.expression.evaluateSync(context);
+    } else {
+      if (isLiquidTruthy(this.condition.evaluateSync(context))) {
+        left = this.expression.evaluateSync(context);
+      } else if (this.alternative.equals(NIL)) {
+        left = context.environment.undefinedFactory("");
+      } else {
+        left = this.alternative.evaluateSync(context);
+      }
+    }
+    return this.applyFiltersSync(left, this.filters, context);
+  }
+
+  public children(): Expression[] {
+    const _children = [this.expression];
+
+    if (!this.condition.equals(NIL)) {
+      _children.push(this.condition);
+    }
+
+    if (!this.alternative.equals(NIL)) {
+      _children.push(this.alternative);
+    }
+
     for (const fltr of this.filters) {
       for (const arg of fltr.args) {
         _children.push(arg);

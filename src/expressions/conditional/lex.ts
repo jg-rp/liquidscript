@@ -13,14 +13,19 @@ import {
   OPERATORS,
   TOKEN_AND,
   TOKEN_BLANK,
+  TOKEN_COLON,
+  TOKEN_COMMA,
   TOKEN_CONTAINS,
   TOKEN_DOT,
+  TOKEN_DPIPE,
+  TOKEN_ELSE,
   TOKEN_EMPTY,
   TOKEN_FALSE,
   TOKEN_FLOAT,
   TOKEN_IDENT_INDEX,
   TOKEN_IDENT_STRING,
   TOKEN_IDENT,
+  TOKEN_IF,
   TOKEN_ILLEGAL,
   TOKEN_INTEGER,
   TOKEN_LBRACKET,
@@ -31,20 +36,20 @@ import {
   TOKEN_NULL,
   TOKEN_OP,
   TOKEN_OR,
+  TOKEN_PIPE,
+  TOKEN_RANGE_LPAREN,
   TOKEN_RANGE,
   TOKEN_RBRACKET,
   TOKEN_RPAREN,
   TOKEN_SKIP,
   TOKEN_STRING,
   TOKEN_TRUE,
-  TOKEN_RANGE_LPAREN,
 } from "../tokens";
 
 const RULES = [
   [TOKEN_IDENT_INDEX, IDENT_INDEX_PATTERN],
   [TOKEN_IDENT_STRING, IDENT_STRING_PATTERN],
   [TOKEN_STRING, STRING_PATTERN],
-  [TOKEN_RANGE_LPAREN, "\\((?=.+?\\.\\.)"],
   [TOKEN_RANGE, "\\.\\."],
   [TOKEN_FLOAT, "-?\\d+\\.(?!\\.)\\d*"],
   [TOKEN_INTEGER, "-?\\d+\\b"],
@@ -54,6 +59,10 @@ const RULES = [
   [TOKEN_RPAREN, "\\)"],
   [TOKEN_LBRACKET, "\\["],
   [TOKEN_RBRACKET, "]"],
+  [TOKEN_COMMA, ","],
+  [TOKEN_COLON, ":"],
+  [TOKEN_DPIPE, "\\|\\|"],
+  [TOKEN_PIPE, "\\|"],
   [TOKEN_NEWLINE, "\\n"],
   [TOKEN_OP, "[!=<>]{1,2}"],
   [TOKEN_SKIP, "[ \\t\\r]+"],
@@ -64,16 +73,24 @@ const KEYWORDS = new Set<string>([
   TOKEN_AND,
   TOKEN_BLANK,
   TOKEN_CONTAINS,
+  TOKEN_ELSE,
   TOKEN_EMPTY,
   TOKEN_FALSE,
+  TOKEN_IF,
   TOKEN_NIL,
-  TOKEN_NOT,
   TOKEN_NULL,
   TOKEN_OR,
   TOKEN_TRUE,
 ]);
 
+const EXTENDED_RULES = [[TOKEN_RANGE_LPAREN, "\\((?=.+?\\.\\.)"], ...RULES];
+const EXTENDED_KEYWORDS = new Set<string>([...KEYWORDS, TOKEN_NOT]);
+
 const RE = new RegExp(RULES.map(([n, p]) => `(?<${n}>${p})`).join("|"), "gs");
+const EXTENDED_RE = new RegExp(
+  EXTENDED_RULES.map(([n, p]) => `(?<${n}>${p})`).join("|"),
+  "gs"
+);
 
 interface IdentIndexMatch {
   TOKEN_IDENT_INDEX: string;
@@ -130,6 +147,22 @@ interface RBracketMatch {
   TOKEN_RBRACKET: string;
 }
 
+interface CommaMatch {
+  TOKEN_COMMA: string;
+}
+
+interface ColonMatch {
+  TOKEN_COLON: string;
+}
+
+interface PipeMatch {
+  TOKEN_PIPE: string;
+}
+
+interface DoublePipeMatch {
+  TOKEN_DPIPE: string;
+}
+
 interface NewlineMatch {
   TOKEN_NEWLINE: string;
 }
@@ -161,6 +194,10 @@ type MatchGroups = Readonly<
       RParenMatch &
       LBracketMatch &
       RBracketMatch &
+      CommaMatch &
+      ColonMatch &
+      PipeMatch &
+      DoublePipeMatch &
       NewlineMatch &
       OpMatch &
       SkipMatch &
@@ -218,6 +255,22 @@ function isLBracketMatch(match: MatchGroups): match is LBracketMatch {
 
 function isRBracketMatch(match: MatchGroups): match is RBracketMatch {
   return match.TOKEN_RBRACKET === undefined ? false : true;
+}
+
+function isCommaMatch(match: MatchGroups): match is CommaMatch {
+  return match.TOKEN_COMMA === undefined ? false : true;
+}
+
+function isColonMatch(match: MatchGroups): match is ColonMatch {
+  return match.TOKEN_COLON === undefined ? false : true;
+}
+
+function isPipeMatch(match: MatchGroups): match is PipeMatch {
+  return match.TOKEN_PIPE === undefined ? false : true;
+}
+
+function isDoublePipeMatch(match: MatchGroups): match is DoublePipeMatch {
+  return match.TOKEN_DPIPE === undefined ? false : true;
 }
 
 function isNewlineMatch(match: MatchGroups): match is NewlineMatch {
@@ -343,6 +396,34 @@ export function makeTokenizer(re: RegExp, keywords: Set<string>): Tokenizer {
           <number>match.index + startIndex,
           source
         );
+      else if (isCommaMatch(groups))
+        yield new Token(
+          TOKEN_COMMA,
+          groups.TOKEN_COMMA,
+          <number>match.index + startIndex,
+          source
+        );
+      else if (isColonMatch(groups))
+        yield new Token(
+          TOKEN_COLON,
+          groups.TOKEN_COLON,
+          <number>match.index + startIndex,
+          source
+        );
+      else if (isPipeMatch(groups))
+        yield new Token(
+          TOKEN_PIPE,
+          groups.TOKEN_PIPE,
+          <number>match.index + startIndex,
+          source
+        );
+      else if (isDoublePipeMatch(groups))
+        yield new Token(
+          TOKEN_PIPE,
+          groups.TOKEN_DPIPE,
+          <number>match.index + startIndex,
+          source
+        );
       else if (isOpMatch(groups)) {
         const op = OPERATORS.get(groups.TOKEN_OP);
         if (op === undefined)
@@ -376,3 +457,4 @@ export function makeTokenizer(re: RegExp, keywords: Set<string>): Tokenizer {
 }
 
 export const tokenize = makeTokenizer(RE, KEYWORDS);
+export const tokenizeWithParens = makeTokenizer(EXTENDED_RE, EXTENDED_KEYWORDS);

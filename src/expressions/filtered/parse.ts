@@ -62,11 +62,6 @@ export function parseObject(stream: ExpressionTokenStream): Expression {
 
 TOKEN_MAP.set(TOKEN_LPAREN, makeParseRange(parseObject));
 
-/**
- *
- * @param tokens
- * @returns
- */
 function* splitAtFirstPipe(
   tokens: IterableIterator<Token>
 ): Generator<Token[]> {
@@ -95,7 +90,7 @@ function* splitAtPipe(tokens: IterableIterator<Token>): Generator<Token[]> {
   yield buf;
 }
 
-function parseFilter(tokens: Token[]): ExpressionFilter {
+export function parseFilter(tokens: Token[]): ExpressionFilter {
   const stream = new ExpressionTokenStream(tokens.values());
 
   stream.expect(TOKEN_IDENT);
@@ -135,11 +130,9 @@ function parseFilter(tokens: Token[]): ExpressionFilter {
   return new ExpressionFilter(name, args, kwargs);
 }
 
-export function parse(
-  expr: string,
-  lineNumber: number = 1
+export function parseFromTokens(
+  tokens: IterableIterator<Token>
 ): FilteredExpression {
-  const tokens = tokenize(expr, lineNumber);
   const parts = Array.from(splitAtFirstPipe(tokens));
 
   if (parts.length === 1) {
@@ -152,4 +145,11 @@ export function parse(
     parseObject(new ExpressionTokenStream(parts[0].values())),
     Array.from(splitAtPipe(parts[1].values())).map(parseFilter)
   );
+}
+
+export function parse(
+  expr: string,
+  startIndex: number = 0
+): FilteredExpression {
+  return parseFromTokens(tokenize(expr, startIndex));
 }
