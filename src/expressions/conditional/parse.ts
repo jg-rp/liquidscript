@@ -2,6 +2,7 @@ import {
   BooleanExpression,
   ConditionalExpression,
   Expression,
+  ExpressionFilter,
   FALSE,
   FilteredExpression,
   NIL,
@@ -36,6 +37,7 @@ function splitAtFirst(
       buf.push(token);
     }
     yield buf;
+    yield [];
   }
   return _splitAtFirst;
 }
@@ -77,15 +79,13 @@ export function parse(
     _conditionalTokens[Symbol.iterator]()
   );
 
-  let condition: BooleanExpression;
+  let condition: Expression;
   if (conditionalTokens.length === 0) {
     // An `if` with nothing after it.
-    condition = new BooleanExpression(FALSE);
+    condition = FALSE;
   } else {
-    condition = new BooleanExpression(
-      parseBooleanObject(
-        new ExpressionTokenStream(conditionalTokens[Symbol.iterator]())
-      )
+    condition = parseBooleanObject(
+      new ExpressionTokenStream(conditionalTokens[Symbol.iterator]())
     );
   }
 
@@ -96,9 +96,14 @@ export function parse(
     alternative = parseStandardFiltered(alternativeTokens[Symbol.iterator]());
   }
 
-  const tailFilters = Array.from(
-    splitAtPipe(tailFilterTokens[Symbol.iterator]())
-  ).map(parseFilter);
+  let tailFilters: ExpressionFilter[];
+  if (tailFilterTokens.length > 0) {
+    tailFilters = Array.from(
+      splitAtPipe(tailFilterTokens[Symbol.iterator]())
+    ).map(parseFilter);
+  } else {
+    tailFilters = [];
+  }
 
   return new ConditionalExpression(_expr, tailFilters, condition, alternative);
 }
@@ -123,15 +128,13 @@ export function parseWithParens(
     _conditionalTokens[Symbol.iterator]()
   );
 
-  let condition: BooleanExpression;
+  let condition: Expression;
   if (conditionalTokens.length === 0) {
     // An `if` with nothing after it.
-    condition = new BooleanExpression(FALSE);
+    condition = FALSE;
   } else {
-    condition = new BooleanExpression(
-      parseBooleanObjectWithParens(
-        new ExpressionTokenStream(conditionalTokens[Symbol.iterator]())
-      )
+    condition = parseBooleanObjectWithParens(
+      new ExpressionTokenStream(conditionalTokens[Symbol.iterator]())
     );
   }
 
@@ -142,9 +145,14 @@ export function parseWithParens(
     alternative = parseStandardFiltered(alternativeTokens[Symbol.iterator]());
   }
 
-  const tailFilters = Array.from(
-    splitAtPipe(tailFilterTokens[Symbol.iterator]())
-  ).map(parseFilter);
+  let tailFilters: ExpressionFilter[];
+  if (tailFilterTokens.length > 0) {
+    tailFilters = Array.from(
+      splitAtPipe(tailFilterTokens[Symbol.iterator]())
+    ).map(parseFilter);
+  } else {
+    tailFilters = [];
+  }
 
   return new ConditionalExpression(_expr, tailFilters, condition, alternative);
 }
