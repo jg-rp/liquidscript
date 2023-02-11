@@ -493,11 +493,11 @@ export class FilteredExpression implements Expression {
 
   public children(): Expression[] {
     const _children = [this.expression];
-    for (const fltr of this.filters) {
-      for (const arg of fltr.args) {
+    for (const filter of this.filters) {
+      for (const arg of filter.args) {
         _children.push(arg);
       }
-      for (const arg of fltr.kwargs.values()) {
+      for (const arg of filter.kwargs.values()) {
         _children.push(arg);
       }
     }
@@ -587,11 +587,11 @@ export class ConditionalExpression extends FilteredExpression {
       _children.push(this.alternative);
     }
 
-    for (const fltr of this.filters) {
-      for (const arg of fltr.args) {
+    for (const filter of this.filters) {
+      for (const arg of filter.args) {
         _children.push(arg);
       }
-      for (const arg of fltr.kwargs.values()) {
+      for (const arg of filter.kwargs.values()) {
         _children.push(arg);
       }
     }

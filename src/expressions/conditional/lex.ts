@@ -419,7 +419,7 @@ export function makeTokenizer(re: RegExp, keywords: Set<string>): Tokenizer {
         );
       else if (isDoublePipeMatch(groups))
         yield new Token(
-          TOKEN_PIPE,
+          TOKEN_DPIPE,
           groups.TOKEN_DPIPE,
           <number>match.index + startIndex,
           source
