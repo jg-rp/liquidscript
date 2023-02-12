@@ -14,7 +14,7 @@ export class OutputStatement implements Tag {
   readonly name: string = "statement";
   protected nodeClass = OutputStatementNode;
 
-  parse(stream: TokenStream): Node {
+  public parse(stream: TokenStream): Node {
     return new this.nodeClass(
       stream.current,
       parse(stream.current.value, stream.current.index)

@@ -24,25 +24,18 @@ import { parseObject as parseBooleanObjectWithParens } from "../boolean_not";
 
 type TokenSplit = [Token[], Token[] | undefined];
 
-// TODO: Refactor to remove messy combination of working iterators and arrays.
-
-function splitAtFirst(
-  kind: string
-): (tokens: IterableIterator<Token>) => TokenSplit {
-  function _splitAtFirst(tokens: IterableIterator<Token>): TokenSplit {
-    const buf: Token[] = [];
-    for (const token of tokens) {
-      if (token.kind === kind) {
-        return [buf, Array.from(tokens)];
-      }
-      buf.push(token);
+function makeSplitAtFirst(tokenKind: string): (tokens: Token[]) => TokenSplit {
+  function _splitAtFirst(tokens: Token[]): TokenSplit {
+    const index = tokens.findIndex((t) => t.kind === tokenKind);
+    if (index === -1) {
+      return [tokens, undefined];
     }
-    return [buf, undefined];
+    return [tokens.slice(0, index), tokens.slice(index + 1)];
   }
   return _splitAtFirst;
 }
 
-function* splitAtPipe(tokens: IterableIterator<Token>): Generator<Token[]> {
+function* splitAtPipe(tokens: Iterable<Token>): Generator<Token[]> {
   let buf: Token[] = [];
   for (const token of tokens) {
     if (token.kind === TOKEN_PIPE) {
@@ -55,29 +48,28 @@ function* splitAtPipe(tokens: IterableIterator<Token>): Generator<Token[]> {
   yield buf;
 }
 
-const splitAtFirstDoublePipe = splitAtFirst(TOKEN_DPIPE);
-const splitAtFirstIf = splitAtFirst(TOKEN_IF);
-const splitAtFirstElse = splitAtFirst(TOKEN_ELSE);
+const splitAtFirstDoublePipe = makeSplitAtFirst(TOKEN_DPIPE);
+const splitAtFirstIf = makeSplitAtFirst(TOKEN_IF);
+const splitAtFirstElse = makeSplitAtFirst(TOKEN_ELSE);
 
 export function parse(
   expr: string,
   startIndex: number = 0
 ): FilteredExpression {
-  const tokens = tokenize(expr, startIndex);
-  const [standardTokens, extendedTokens] = splitAtFirstIf(tokens);
+  const [standardTokens, extendedTokens] = splitAtFirstIf(
+    Array.from(tokenize(expr, startIndex))
+  );
   const _expr = parseStandardFiltered(standardTokens[Symbol.iterator]());
 
   if (extendedTokens === undefined) {
     return _expr;
   }
 
-  const [_conditionalTokens, tailFilterTokens] = splitAtFirstDoublePipe(
-    extendedTokens[Symbol.iterator]()
-  );
+  const [_conditionalTokens, tailFilterTokens] =
+    splitAtFirstDoublePipe(extendedTokens);
 
-  const [conditionalTokens, alternativeTokens] = splitAtFirstElse(
-    _conditionalTokens[Symbol.iterator]()
-  );
+  const [conditionalTokens, alternativeTokens] =
+    splitAtFirstElse(_conditionalTokens);
 
   let condition: Expression;
   if (conditionalTokens.length === 0) {
@@ -100,9 +92,7 @@ export function parse(
   if (tailFilterTokens === undefined) {
     tailFilters = [];
   } else {
-    tailFilters = Array.from(
-      splitAtPipe(tailFilterTokens[Symbol.iterator]())
-    ).map(parseFilter);
+    tailFilters = Array.from(splitAtPipe(tailFilterTokens)).map(parseFilter);
   }
 
   return new ConditionalExpression(_expr, tailFilters, condition, alternative);
@@ -112,21 +102,20 @@ export function parseWithParens(
   expr: string,
   startIndex: number = 0
 ): FilteredExpression {
-  const tokens = tokenizeWithParens(expr, startIndex);
-  const [standardTokens, extendedTokens] = splitAtFirstIf(tokens);
+  const [standardTokens, extendedTokens] = splitAtFirstIf(
+    Array.from(tokenizeWithParens(expr, startIndex))
+  );
   const _expr = parseStandardFiltered(standardTokens[Symbol.iterator]());
 
   if (extendedTokens === undefined) {
     return _expr;
   }
 
-  const [_conditionalTokens, tailFilterTokens] = splitAtFirstDoublePipe(
-    extendedTokens[Symbol.iterator]()
-  );
+  const [_conditionalTokens, tailFilterTokens] =
+    splitAtFirstDoublePipe(extendedTokens);
 
-  const [conditionalTokens, alternativeTokens] = splitAtFirstElse(
-    _conditionalTokens[Symbol.iterator]()
-  );
+  const [conditionalTokens, alternativeTokens] =
+    splitAtFirstElse(_conditionalTokens);
 
   let condition: Expression;
   if (conditionalTokens.length === 0) {
@@ -149,9 +138,7 @@ export function parseWithParens(
   if (tailFilterTokens === undefined) {
     tailFilters = [];
   } else {
-    tailFilters = Array.from(
-      splitAtPipe(tailFilterTokens[Symbol.iterator]())
-    ).map(parseFilter);
+    tailFilters = Array.from(splitAtPipe(tailFilterTokens)).map(parseFilter);
   }
 
   return new ConditionalExpression(_expr, tailFilters, condition, alternative);

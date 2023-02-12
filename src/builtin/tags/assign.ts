@@ -17,6 +17,10 @@ export class AssignTag implements Tag {
   readonly name: string = "assign";
   protected nodeClass = AssignNode;
 
+  protected parseExpression(value: string, startIndex: number): Expression {
+    return parse(value, startIndex);
+  }
+
   public parse(stream: TokenStream): Node {
     const token = stream.next();
     stream.expect(TOKEN_EXPRESSION);
@@ -29,7 +33,11 @@ export class AssignTag implements Tag {
       );
 
     const [, name, expr] = match;
-    return new this.nodeClass(token, name, parse(expr));
+    return new this.nodeClass(
+      token,
+      name,
+      this.parseExpression(expr, stream.current.index)
+    );
   }
 }
 
