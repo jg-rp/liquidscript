@@ -1,5 +1,4 @@
 import {
-  BooleanExpression,
   ConditionalExpression,
   Expression,
   ExpressionFilter,
@@ -23,21 +22,22 @@ import {
 import { parseObject as parseBooleanObject } from "../boolean";
 import { parseObject as parseBooleanObjectWithParens } from "../boolean_not";
 
+type TokenSplit = [Token[], Token[] | undefined];
+
+// TODO: Refactor to remove messy combination of working iterators and arrays.
+
 function splitAtFirst(
   kind: string
-): (tokens: IterableIterator<Token>) => Generator<Token[]> {
-  function* _splitAtFirst(tokens: IterableIterator<Token>): Generator<Token[]> {
+): (tokens: IterableIterator<Token>) => TokenSplit {
+  function _splitAtFirst(tokens: IterableIterator<Token>): TokenSplit {
     const buf: Token[] = [];
     for (const token of tokens) {
       if (token.kind === kind) {
-        yield buf;
-        yield Array.from(tokens);
-        return;
+        return [buf, Array.from(tokens)];
       }
       buf.push(token);
     }
-    yield buf;
-    yield [];
+    return [buf, undefined];
   }
   return _splitAtFirst;
 }
@@ -67,7 +67,7 @@ export function parse(
   const [standardTokens, extendedTokens] = splitAtFirstIf(tokens);
   const _expr = parseStandardFiltered(standardTokens[Symbol.iterator]());
 
-  if (extendedTokens.length === 0) {
+  if (extendedTokens === undefined) {
     return _expr;
   }
 
@@ -90,19 +90,19 @@ export function parse(
   }
 
   let alternative: Expression;
-  if (alternativeTokens.length === 0) {
+  if (alternativeTokens === undefined || alternativeTokens.length === 0) {
     alternative = NIL;
   } else {
     alternative = parseStandardFiltered(alternativeTokens[Symbol.iterator]());
   }
 
   let tailFilters: ExpressionFilter[];
-  if (tailFilterTokens.length > 0) {
+  if (tailFilterTokens === undefined) {
+    tailFilters = [];
+  } else {
     tailFilters = Array.from(
       splitAtPipe(tailFilterTokens[Symbol.iterator]())
     ).map(parseFilter);
-  } else {
-    tailFilters = [];
   }
 
   return new ConditionalExpression(_expr, tailFilters, condition, alternative);
@@ -116,7 +116,7 @@ export function parseWithParens(
   const [standardTokens, extendedTokens] = splitAtFirstIf(tokens);
   const _expr = parseStandardFiltered(standardTokens[Symbol.iterator]());
 
-  if (extendedTokens.length === 0) {
+  if (extendedTokens === undefined) {
     return _expr;
   }
 
@@ -139,19 +139,19 @@ export function parseWithParens(
   }
 
   let alternative: Expression;
-  if (alternativeTokens.length === 0) {
+  if (alternativeTokens === undefined || alternativeTokens.length === 0) {
     alternative = NIL;
   } else {
     alternative = parseStandardFiltered(alternativeTokens[Symbol.iterator]());
   }
 
   let tailFilters: ExpressionFilter[];
-  if (tailFilterTokens.length > 0) {
+  if (tailFilterTokens === undefined) {
+    tailFilters = [];
+  } else {
     tailFilters = Array.from(
       splitAtPipe(tailFilterTokens[Symbol.iterator]())
     ).map(parseFilter);
-  } else {
-    tailFilters = [];
   }
 
   return new ConditionalExpression(_expr, tailFilters, condition, alternative);

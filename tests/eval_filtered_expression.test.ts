@@ -304,13 +304,12 @@ const conditionalExpressionTestCases: Case[] = [
     expression: "'foo' | upcase if false else 'bar'",
     want: "bar",
   },
-  // FIXME:
-  // {
-  //   description: "missing condition",
-  //   globals: {},
-  //   expression: "'foo' if",
-  //   want: null,
-  // },
+  {
+    description: "missing condition",
+    globals: {},
+    expression: "'foo' if",
+    want: null,
+  },
   {
     description: "missing alternative",
     globals: {},
@@ -329,20 +328,20 @@ const notConditionalExpressionTestCases: Case[] = [
   {
     description: "string literal with true condition",
     globals: {},
-    expression: "'foo' if true",
-    want: "foo",
+    expression: "'foo' if not true",
+    want: null,
   },
   {
     description: "string literal with false condition",
     globals: {},
-    expression: "'foo' if false",
-    want: null,
+    expression: "'foo' if not false",
+    want: "foo",
   },
   {
     description: "string literal with false condition and alternative",
     globals: {},
-    expression: "'foo' if false else 'bar'",
-    want: "bar",
+    expression: "'foo' if not false else 'bar'",
+    want: "foo",
   },
   {
     description: "object and condition from context",
@@ -352,8 +351,8 @@ const notConditionalExpressionTestCases: Case[] = [
       },
       greeting: "hello",
     },
-    expression: "greeting if settings.foo else 'bar'",
-    want: "hello",
+    expression: "greeting if not settings.foo else 'bar'",
+    want: "bar",
   },
   {
     description: "object and condition from context with tail filter",
@@ -363,20 +362,20 @@ const notConditionalExpressionTestCases: Case[] = [
       },
       greeting: "hello",
     },
-    expression: "greeting if settings.foo else 'bar' || upcase",
-    want: "HELLO",
+    expression: "greeting if not settings.foo else 'bar' || upcase",
+    want: "BAR",
   },
   {
     description: "object filter with true condition",
     globals: {},
-    expression: "'foo' | upcase if true else 'bar'",
-    want: "FOO",
+    expression: "'foo' | upcase if not true else 'bar'",
+    want: "bar",
   },
   {
     description: "object filter with false condition",
     globals: {},
-    expression: "'foo' | upcase if false else 'bar'",
-    want: "bar",
+    expression: "'foo' | upcase if not false else 'bar'",
+    want: "FOO",
   },
 ];
 

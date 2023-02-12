@@ -7,3 +7,4 @@ export * as loop from "./loop";
 export * as boolean_not from "./boolean_not";
 export * as arguments from "./arguments";
 export * as standard from "./standard";
+export * as conditional from "./conditional";
