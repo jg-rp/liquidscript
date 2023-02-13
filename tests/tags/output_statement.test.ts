@@ -96,6 +96,25 @@ describe("output statements", () => {
       },
       want: "good evening",
     },
+    {
+      description: "bracketed variable resolves to a string",
+      source: "{{ foo[something] }}",
+      globals: { foo: { hello: "goodbye" }, something: "hello" },
+      want: "goodbye",
+    },
+    {
+      description:
+        "bracketed variable resolves to a string without leading identifier",
+      source: "{{ [something] }}",
+      globals: { something: "hello", hello: "goodbye" },
+      want: "goodbye",
+    },
+    {
+      description: "nested bracketed variable resolving to a string",
+      source: "{{ [list[settings.zero]] }}",
+      globals: { list: ["foo"], settings: { zero: 0 }, foo: "bar" },
+      want: "bar",
+    },
   ];
 
   describe("async", () => {

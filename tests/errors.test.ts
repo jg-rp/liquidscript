@@ -155,9 +155,7 @@ describe("syntax errors", () => {
     ).toThrowError(LiquidSyntaxError);
     expect(() =>
       env.fromString(source, undefined, { name: "some.liquid" })
-    ).toThrowError(
-      "expected 'TOKEN_IDENT', found 'TOKEN_FLOAT' (some.liquid:1)"
-    );
+    ).toThrowError("expected an identifier, found '1.2' (some.liquid:1)");
   });
 
   test("unknown infix operator", () => {

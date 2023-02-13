@@ -29,6 +29,7 @@ import {
   TOKEN_GT,
   TOKEN_IDENT,
   TOKEN_INTEGER,
+  TOKEN_LBRACKET,
   TOKEN_LE,
   TOKEN_LG,
   TOKEN_LPAREN,
@@ -76,6 +77,7 @@ export const TOKEN_MAP = new Map<string, parseFunc>([
   [TOKEN_INTEGER, parseIntegerLiteral],
   [TOKEN_FLOAT, parseFloatLiteral],
   [TOKEN_IDENT, parseIdentifier],
+  [TOKEN_LBRACKET, parseIdentifier],
   [TOKEN_LPAREN, makeParseRange(parseObject)],
 ]);
 

@@ -28,6 +28,7 @@ import {
   TOKEN_IDENT,
   TOKEN_IN,
   TOKEN_INTEGER,
+  TOKEN_LBRACKET,
   TOKEN_LIMIT,
   TOKEN_LPAREN,
   TOKEN_OFFSET,
@@ -64,6 +65,7 @@ function parseStringArgument(stream: ExpressionTokenStream): LoopArgument {
 
 export const TOKEN_MAP = new Map<string, parseFunc>([
   [TOKEN_IDENT, parseIdentifier],
+  [TOKEN_LBRACKET, parseIdentifier],
   [TOKEN_INTEGER, parseIntegerLiteral],
   [TOKEN_FLOAT, parseFloatLiteral],
   [TOKEN_CONTINUE, parseContinue],
@@ -120,6 +122,7 @@ export function parse(expr: string, lineNumber = 0): LoopExpression {
 
   switch (stream.current.kind) {
     case TOKEN_IDENT:
+    case TOKEN_LBRACKET:
       expression = parseIdentifier(stream);
       break;
     case TOKEN_LPAREN:

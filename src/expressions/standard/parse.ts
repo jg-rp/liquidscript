@@ -39,14 +39,25 @@ import {
 type parseFunc = (stream: ExpressionTokenStream) => Expression;
 
 function parseIdentifier(stream: ExpressionTokenStream): Identifier {
-  stream.expect(TOKEN_IDENT);
-
   if (!IDENT_TOKENS.has(stream.peek.kind)) {
     return new Identifier(stream.current.value, []);
   }
 
-  const root = stream.next().value;
   const path: IdentifierPath = [];
+  const kind = stream.current.kind;
+  let root: string | null;
+
+  if (kind === TOKEN_LBRACKET) {
+    root = null;
+  } else if (kind === TOKEN_IDENT) {
+    root = stream.current.value;
+    stream.next();
+  } else {
+    throw new LiquidSyntaxError(
+      `expected an identifier, found '${stream.current.value}'`,
+      stream.current
+    );
+  }
 
   for (;;) {
     switch (stream.current.kind) {
@@ -78,6 +89,7 @@ function parseIdentifier(stream: ExpressionTokenStream): Identifier {
 
 const LITERAL_OR_IDENT_MAP = new Map<string, parseFunc>([
   [TOKEN_IDENT, parseIdentifier],
+  [TOKEN_LBRACKET, parseIdentifier],
   [TOKEN_STRING, parseStringLiteral],
   [TOKEN_INTEGER, parseIntegerLiteral],
   [TOKEN_FLOAT, parseFloatLiteral],

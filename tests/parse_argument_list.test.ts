@@ -99,7 +99,7 @@ describe("parse argument list", () => {
   test("too many commas", () => {
     expect(() => parse("a: 'hello',, b: 'goodbye'")).toThrow(LiquidSyntaxError);
     expect(() => parse("a: 'hello',, b: 'goodbye'")).toThrow(
-      "expected 'TOKEN_IDENT', found ',' (<string>:1)"
+      "expected an identifier, found ',' (<string>:1)"
     );
   });
 

@@ -172,7 +172,7 @@ export abstract class Literal<T> implements Expression {
 
 export class BooleanLiteral extends Literal<boolean> {
   public equals(other: unknown): boolean {
-    return other instanceof BooleanLiteral && this.value == other.value;
+    return other instanceof BooleanLiteral && this.value === other.value;
   }
 }
 
@@ -193,13 +193,13 @@ export class StringLiteral extends Literal<string | Markup> {
   }
 
   public equals(other: unknown): boolean {
-    return other instanceof StringLiteral && this.value == other.value;
+    return other instanceof StringLiteral && this.value === other.value;
   }
 }
 
 export class IntegerLiteral extends Literal<Integer> {
   public equals(other: unknown): boolean {
-    return other instanceof IntegerLiteral && this.value == other.value;
+    return other instanceof IntegerLiteral && this.value === other.value;
   }
 
   public toString(): string {
@@ -249,8 +249,8 @@ export class RangeLiteral implements Expression {
   public equals(other: unknown): boolean {
     return (
       other instanceof RangeLiteral &&
-      this.start == other.start &&
-      this.stop == other.stop
+      this.start === other.start &&
+      this.stop === other.stop
     );
   }
 
@@ -265,21 +265,29 @@ export class RangeLiteral implements Expression {
 
 export class IdentifierPathElement extends Literal<number | string> {
   public equals(other: unknown): boolean {
-    return other instanceof IdentifierPathElement && this.value == other.value;
+    return other instanceof IdentifierPathElement && this.value === other.value;
   }
 }
 
 export type IdentifierPath = Array<IdentifierPathElement | Identifier>;
 
 export class Identifier implements Expression {
-  constructor(readonly root: string, readonly path: IdentifierPath) {}
+  constructor(readonly root: string | null, readonly path: IdentifierPath) {}
 
   public equals(other: unknown): boolean {
-    return other instanceof Identifier && this.path == other.path;
+    return (
+      other instanceof Identifier &&
+      this.root === other.root &&
+      this.path === other.path
+    );
   }
 
   public toString(): string {
-    const buf: string[] = [this.root];
+    const buf: string[] = [];
+    if (this.root !== null) {
+      buf.push(this.root);
+    }
+
     let part: string;
     for (const e of this.path) {
       if (e instanceof Identifier) {
@@ -316,7 +324,10 @@ export class Identifier implements Expression {
         throw new InternalKeyError(`can't access property with '${prop}'`);
       }
     }
-    return context.get(this.root, path);
+    if (this.root === null) {
+      return await context.get(path[0].toString(), path.slice(1));
+    }
+    return await context.get(this.root, path);
   }
 
   public evaluateSync(context: RenderContext): unknown {
@@ -335,6 +346,9 @@ export class Identifier implements Expression {
       } else {
         throw new InternalKeyError(`can't access property with '${prop}'`);
       }
+    }
+    if (this.root === null) {
+      return context.getSync(path[0].toString(), path.slice(1));
     }
     return context.getSync(this.root, path);
   }

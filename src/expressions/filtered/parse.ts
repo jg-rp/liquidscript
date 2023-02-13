@@ -27,6 +27,7 @@ import {
   TOKEN_FLOAT,
   TOKEN_IDENT,
   TOKEN_INTEGER,
+  TOKEN_LBRACKET,
   TOKEN_LPAREN,
   TOKEN_NIL,
   TOKEN_NULL,
@@ -49,6 +50,7 @@ export const TOKEN_MAP = new Map<string, parseFunc>([
   [TOKEN_INTEGER, parseIntegerLiteral],
   [TOKEN_FLOAT, parseFloatLiteral],
   [TOKEN_IDENT, parseIdentifier],
+  [TOKEN_LBRACKET, parseIdentifier],
 ]);
 
 export function parseObject(stream: ExpressionTokenStream): Expression {

@@ -111,10 +111,21 @@ export const IDENT_TOKENS = new Set<string>([
 ]);
 
 export function parseIdentifier(stream: ExpressionTokenStream): Identifier {
-  stream.expect(TOKEN_IDENT);
-  const root = stream.current.value;
-  stream.next();
   const path: IdentifierPath = [];
+  const kind = stream.current.kind;
+  let root: string | null;
+
+  if (kind === TOKEN_LBRACKET) {
+    root = null;
+  } else if (kind === TOKEN_IDENT) {
+    root = stream.current.value;
+    stream.next();
+  } else {
+    throw new LiquidSyntaxError(
+      `expected an identifier, found '${stream.current.value}'`,
+      stream.current
+    );
+  }
 
   for (;;) {
     switch (stream.current.kind) {
@@ -157,6 +168,7 @@ export function parseStringOrIdentifier(
   let expression: StringLiteral | Identifier;
   switch (stream.current.kind) {
     case TOKEN_IDENT:
+    case TOKEN_LBRACKET:
       expression = parseIdentifier(stream);
       break;
     case TOKEN_STRING:

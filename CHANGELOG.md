@@ -8,6 +8,11 @@
 - New `macro` and `call` tags. Define parameterized Liquid snippets with the `macro` tag and call them using the `call` tag. `macro` and `call` are optional extra tags that need to be explicitly registered with a `liquidscript.Environment`.
 - New drop-in replacements for the standard output statement (`{{ output }}`), `assign` tag and `echo` tag that support inline conditional expressions, optionally including a logical `not` operator and grouping terms with parentheses.
 
+**Compatibility**
+
+- Allow whitespace control from `raw` tags. See [Shopify/liquid #1683](https://github.com/Shopify/liquid/pull/1683>).
+- Support bracketed variables without a leading identifier. See [Shopify/liquid 1680](https://github.com/Shopify/liquid/pull/1680>).
+
 ## Version 1.6.0
 
 **Fixes**
