@@ -37,6 +37,74 @@ This implementation of `if` maintains that right associativity so that any stand
 {% endif %}
 ```
 
+## inline if / else
+
+**_New in version 1.7.0_**
+
+Drop-in replacements for the standard output statement, [`assign`](../language/tags.md#assign) tag, and [`echo`](../language/tags.md#echo) tag that support inline `if`/`else` expressions. You can find a BNF-like description of the inline conditional expression in [this gist](https://gist.github.com/jg-rp/e2dc4da9e5033e087e46016008a9d91c#file-inline_if_expression-bnf).
+
+Register one or more of `ConditionalOutputStatement`, `ConditionalAssignTag` amd `ConditionalEchoTag` from `liquidscript.extra.tags` with an [`Environment`](../api/classes/Environment.md) to make them available to templates rendered from that environment.
+
+```javascript
+import { Environment, extra } from "liquidscript";
+
+const env = new Environment();
+env.addTag("statement", new extra.tags.ConditionalOutputStatement());
+env.addTag("assign", new extra.tags.ConditionalAssignTag());
+env.addTag("echo", new extra.tags.ConditionalEchoTag());
+```
+
+Inline `if`/`else` expressions are designed to be backwards compatible with standard filtered expressions. As long as there are no template variables called `if` or `else` within a filtered expression, standard output statements, `assign` tags and `echo` tags will behave the same.
+
+In this example, if `user.logged_in` is false or undefined (see [Falsy Undefined](../introduction/undefined.md#falsy-undefined)), `please log in` will be output.
+
+```liquid
+{{ user.name if user.logged_in else 'please log in' }}
+```
+
+The `else` part of an inline expression is optional, defaulting to [undefined](../introduction/undefined.md).
+
+```liquid title="template"
+{{ 'hello user' if user.logged_in }}!
+```
+
+```plain title="output"
+!
+```
+
+Inline conditional expressions are evaluated lazily. If the condition is falsy, the leading object is not evaluated. Equally, if the condition is truthy, any expression following `else` will not be evaluated.
+
+### With Filters
+
+Filters can appear before an inline `if` expression.
+
+```liquid title="template"
+{{ 'hello user' | capitalize if user.logged_in else 'please log in' }}
+```
+
+Or after an inline `if` expression. In which case filters will only be applied to the `else` clause.
+
+```liquid title="template"
+{% assign param = 'hello user' if user.logged_in else 'please log in' | url_encode %}
+```
+
+Or both.
+
+```liquid title="template"
+{{% assign param = 'hello user' | capitalize if user.logged_in else 'please log in' | url_encode %}
+```
+
+Use a double pipe (`||`) to start any filters you want to apply regardless of which branch is taken. Subsequent "tail filters" should be separated by a single pipe (`|`).
+
+```liquid title="template"
+{{% assign name =
+  user.nickname | downcase
+  if user.has_nickname
+  else user.last_name | capitalize
+  || prepend: user.title | strip
+%}
+```
+
 ## macro / call
 
 **_New in version 1.7.0_**

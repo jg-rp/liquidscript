@@ -17,6 +17,7 @@ export const TOKEN_FLOAT = "TOKEN_FLOAT";
 export const TOKEN_LPAREN = "TOKEN_LPAREN";
 export const TOKEN_RPAREN = "TOKEN_RPAREN";
 export const TOKEN_RANGE = "TOKEN_RANGE";
+export const TOKEN_RANGE_LPAREN = "TOKEN_RANGE_LPAREN";
 export const TOKEN_STRING = "TOKEN_STRING";
 export const TOKEN_EOF = "TOKEN_EOF";
 export const TOKEN_NEWLINE = "TOKEN_NEWLINE";
@@ -36,12 +37,17 @@ export const TOKEN_REVERSED = "reversed";
 export const TOKEN_CONTINUE = "continue";
 export const TOKEN_COLS = "cols";
 
+export const TOKEN_DPIPE = "TOKEN_DPIPE";
 export const TOKEN_PIPE = "TOKEN_PIPE";
 export const TOKEN_COLON = "TOKEN_COLON";
 export const TOKEN_COMMA = "TOKEN_COMMA";
 
 // Assignment as used by `assign` and `capture` tags.
 export const TOKEN_ASSIGN = "TOKEN_ASSIGN";
+
+// Inline conditional tokens
+export const TOKEN_IF = "if";
+export const TOKEN_ELSE = "else";
 
 // Logical operators
 export const TOKEN_AND = "and";

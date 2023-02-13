@@ -3,12 +3,16 @@ import { Tag } from "../../tag";
 import { TokenStream, TOKEN_EOF, TOKEN_EXPRESSION } from "../../token";
 import { parse } from "../../expressions/filtered/parse";
 import { OutputStatementNode } from "./statement";
-import { NIL } from "../../expression";
+import { Expression, NIL } from "../../expression";
 
 export class EchoTag implements Tag {
   readonly block = false;
   readonly name: string = "echo";
   protected nodeClass = EchoNode;
+
+  protected parseExpression(value: string, startIndex: number): Expression {
+    return parse(value, startIndex);
+  }
 
   parse(stream: TokenStream): Node {
     const token = stream.next();
@@ -19,7 +23,7 @@ export class EchoTag implements Tag {
     stream.expect(TOKEN_EXPRESSION);
     return new this.nodeClass(
       token,
-      parse(stream.current.value, stream.current.index)
+      this.parseExpression(stream.current.value, stream.current.index)
     );
   }
 }

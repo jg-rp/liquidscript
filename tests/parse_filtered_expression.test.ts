@@ -8,8 +8,13 @@ import {
   RangeLiteral,
   StringLiteral,
   TRUE,
+  ConditionalExpression,
+  NIL,
+  PrefixExpression,
 } from "../src/expression";
 import { parse } from "../src/expressions/filtered/parse";
+import { parse as parseConditionalExpression } from "../src/expressions/conditional/parse";
+import { parseWithParens as parseConditionalExpressionWithParens } from "../src/expressions/conditional/parse";
 import { Float, Integer } from "../src/number";
 
 describe("parse filtered expression", () => {
@@ -88,6 +93,45 @@ describe("parse filtered expression", () => {
           new Map<string, Expression>([["allow_false", TRUE]])
         ),
       ])
+    );
+  });
+});
+
+describe("parse conditional expression", () => {
+  test("true condition", () => {
+    const expr = parseConditionalExpression("'foo' if true");
+    expect(expr).toStrictEqual(
+      new ConditionalExpression(
+        new FilteredExpression(new StringLiteral("foo"), []),
+        [],
+        TRUE,
+        NIL
+      )
+    );
+  });
+  test("missing condition", () => {
+    const expr = parseConditionalExpression("'foo' if");
+    expect(expr).toStrictEqual(
+      new ConditionalExpression(
+        new FilteredExpression(new StringLiteral("foo"), []),
+        [],
+        FALSE,
+        NIL
+      )
+    );
+  });
+});
+
+describe("parse conditional expression with not", () => {
+  test("simple negation", () => {
+    const expr = parseConditionalExpressionWithParens("'foo' if not true");
+    expect(expr).toStrictEqual(
+      new ConditionalExpression(
+        new FilteredExpression(new StringLiteral("foo"), []),
+        [],
+        new PrefixExpression("not", TRUE),
+        NIL
+      )
     );
   });
 });

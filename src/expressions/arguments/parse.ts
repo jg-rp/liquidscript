@@ -1,6 +1,6 @@
 import { LiquidSyntaxError } from "../../errors";
 import { Expression, NIL } from "../../expression";
-import { parseStringLiteral, parseUnchainedIdentifier } from "../common";
+import { parseUnchainedIdentifier } from "../common";
 import { parseObject } from "../filtered/parse";
 import {
   ExpressionTokenStream,

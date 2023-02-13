@@ -39,11 +39,12 @@ import {
   TOKEN_NOT,
   TOKEN_NULL,
   TOKEN_OR,
+  TOKEN_RANGE_LPAREN,
   TOKEN_RPAREN,
   TOKEN_STRING,
   TOKEN_TRUE,
 } from "../tokens";
-import { tokenize, TOKEN_RANGE_LPAREN } from "./lex";
+import { tokenize } from "./lex";
 
 const PRECEDENCE_LOWEST = 1;
 const PRECEDENCE_LOGICAL_RIGHT = 3;
@@ -172,8 +173,8 @@ TOKEN_MAP.set(TOKEN_LPAREN, parse_grouped_expression);
  * Parse an expression that follows Liquid `if` tag semantics plus a
  * logical `not` operator and grouping with parentheses.
  */
-export function parse(expr: string, lineNumber: number = 1): BooleanExpression {
-  const stream = new ExpressionTokenStream(tokenize(expr, lineNumber));
+export function parse(expr: string, startIndex: number = 0): BooleanExpression {
+  const stream = new ExpressionTokenStream(tokenize(expr, startIndex));
   const booleanExpression = new BooleanExpression(parseObject(stream));
   if (stream.peek.kind === TOKEN_RPAREN) {
     throw new LiquidSyntaxError("unmatched ')'", stream.peek);

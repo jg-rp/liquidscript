@@ -65,8 +65,10 @@ export class CycleNode implements Node {
       key = args.toString();
     } else if (isUndefined(groupName)) {
       key = UndefinedCycleGroup;
+    } else if (groupName === null) {
+      key = "";
     } else {
-      key = groupName?.toString() || "";
+      key = groupName.toString();
     }
 
     let index = <number>(cycles.has(key) ? cycles.get(key) : 0);
