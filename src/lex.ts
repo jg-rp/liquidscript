@@ -13,6 +13,8 @@ const enum MatchGroup {
   RSS = "rightStripStatement",
   RST = "rightStripTag",
   RSL = "rightStripLiteral",
+  RSR = "rightStripRaw",
+  RSE = "rightStripEndRaw",
   TAG = "tagName",
   EXP = "tagExpression",
   PRE = "tagPreamble",
@@ -35,7 +37,8 @@ export function compileRules(
   const se = escapeRegExp(statementEnd);
 
   const rules = [
-    `${ts}\\s*raw\\s*${te}(?<${MatchGroup.RAW}>.*?)${ts}\\s*endraw\\s*${te}`,
+    `${ts}-?\\s*raw\\s*(?<${MatchGroup.RSR}>-?)${te}(?<${MatchGroup.RAW}>.*?)` +
+      `${ts}-?\\s*endraw\\s*(?<${MatchGroup.RSE}>-?)${te}`,
     `${ss}-?\\s*(?<${MatchGroup.STA}>.*?)\\s*(?<${MatchGroup.RSS}>-?)${se}`,
     `(?<${MatchGroup.PRE}>${ts}-?\\s*(?<${MatchGroup.TAG}>#|\\w*)\\s*)` +
       `(?<${MatchGroup.EXP}>.*?)\\s*(?<${MatchGroup.RST}>-?)${te}`,
@@ -64,6 +67,7 @@ interface LiteralMatch {
 
 interface RawMatch {
   raw: string;
+  rightStripEndRaw: string;
 }
 
 type MatchGroups = Readonly<
@@ -143,6 +147,7 @@ export function tokenizerFor(
 
         yield new Token(TOKEN_LITERAL, value, <number>match.index, source);
       } else if (isRaw(groups)) {
+        leftStrip = !!groups.rightStripEndRaw;
         yield new Token(TOKEN_LITERAL, groups.raw, <number>match.index, source);
       } else {
         throw Error(`unexpected token kind: ${match}`);

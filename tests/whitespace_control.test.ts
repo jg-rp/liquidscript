@@ -33,4 +33,12 @@ describe("built-in comment tag", () => {
     const result = await template.render();
     expect(result).toBe("0");
   });
+  test("strip whitespace around raw tags", async () => {
+    const template = env.fromString(
+      "! {% raw %}{{ hello }}{% endraw %} !\n" +
+        "! {%- raw -%}{{ hello }}{%- endraw -%} !"
+    );
+    const result = await template.render();
+    expect(result).toBe("! {{ hello }} !\n!{{ hello }}!");
+  });
 });
