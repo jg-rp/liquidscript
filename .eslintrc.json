@@ -4,13 +4,15 @@
   "plugins": [
     "@typescript-eslint",
     "eslint-plugin-tsdoc",
-    "eslint-plugin-github"
+    "eslint-plugin-github",
+    "eslint-plugin-sonarjs"
   ],
   "extends": [
     "eslint:recommended",
     "plugin:@typescript-eslint/recommended",
     "plugin:github/recommended",
-    "plugin:github/typescript"
+    "plugin:github/typescript",
+    "plugin:sonarjs/recommended"
   ],
   "rules": {
     "@typescript-eslint/no-unused-vars": [
