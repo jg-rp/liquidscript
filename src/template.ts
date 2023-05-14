@@ -329,7 +329,7 @@ export type VariableLocation = { templateName: string; lineNumber: number };
 /**
  * An array of template variable locations.
  */
-export type VariableLocations = Array<VariableLocation>;
+export type VariableLocations = VariableLocation[];
 
 /**
  * A mapping of template variable names to their locations.
@@ -732,7 +732,7 @@ class TemplateVariableCounter {
 
       const refs = new TemplateVariableCounter(template, {
         followPartials: this.followPartials,
-        scope: scope,
+        scope,
         partials: this.partials,
       });
 
@@ -771,7 +771,7 @@ class TemplateVariableCounter {
 
       const refs = new TemplateVariableCounter(template, {
         followPartials: this.followPartials,
-        scope: scope,
+        scope,
         partials: this.partials,
       });
 

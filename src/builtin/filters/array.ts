@@ -124,7 +124,7 @@ export function compact(
  * @param this - An object containing a reference to the active render context
  * and any keyword/named arguments.
  * @param left -
- * @param arg
+ * @param arg -
  * @returns
  */
 export function concat(
@@ -145,7 +145,7 @@ export function concat(
  * @param this - An object containing a reference to the active render context
  * and any keyword/named arguments.
  * @param left -
- * @param key
+ * @param key -
  * @returns
  */
 export function map(
@@ -177,7 +177,7 @@ export function reverse(this: FilterContext, left: unknown): unknown[] {
  * @param this - An object containing a reference to the active render context
  * and any keyword/named arguments.
  * @param left -
- * @param key
+ * @param key -
  * @returns
  */
 export function sort(
@@ -200,7 +200,7 @@ export function sort(
  * @param this - An object containing a reference to the active render context
  * and any keyword/named arguments.
  * @param left -
- * @param key
+ * @param key -
  * @returns
  */
 export function sortNatural(
@@ -223,7 +223,7 @@ export function sortNatural(
  * @param this - An object containing a reference to the active render context
  * and any keyword/named arguments.
  * @param left -
- * @param prop
+ * @param prop -
  * @returns
  */
 export function uniq(
@@ -232,26 +232,26 @@ export function uniq(
   prop?: unknown
 ): unknown[] {
   checkArguments(arguments.length, 1);
-  const map = new Map<unknown, unknown>();
+  const _map = new Map<unknown, unknown>();
   let key: unknown;
 
   if (prop === undefined) {
     for (const obj of inputArray(left)) {
       key = JSON.stringify(obj);
-      if (!map.has(key)) {
-        map.set(key, obj);
+      if (!_map.has(key)) {
+        _map.set(key, obj);
       }
     }
   } else {
     for (const obj of inputArray(left)) {
       key = JSON.stringify(getItem(obj, prop));
-      if (!map.has(key)) {
-        map.set(key, obj);
+      if (!_map.has(key)) {
+        _map.set(key, obj);
       }
     }
   }
 
-  return Array.from(map.values());
+  return Array.from(_map.values());
 }
 
 /**
@@ -259,8 +259,8 @@ export function uniq(
  * @param this - An object containing a reference to the active render context
  * and any keyword/named arguments.
  * @param left -
- * @param prop
- * @param value
+ * @param prop -
+ * @param value -
  * @returns
  */
 export function where(
@@ -278,7 +278,7 @@ export function where(
 
 /**
  * Coerce an unknown array filter input to an iterable.
- * @param value
+ * @param value -
  * @returns
  */
 function inputArray(value: unknown): unknown[] {
@@ -294,8 +294,8 @@ function inputArray(value: unknown): unknown[] {
 
 /**
  *
- * @param obj
- * @param key
+ * @param obj -
+ * @param key -
  * @returns
  */
 function getItem(obj: unknown, key: unknown): unknown {

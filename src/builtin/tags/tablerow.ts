@@ -62,7 +62,7 @@ export class TableRowNode implements Node {
     }
 
     const tablerowloop = new TableRowLoopDrop(name, it, length, cols as number);
-    const namespace: ContextScope = { tablerowloop: tablerowloop };
+    const namespace: ContextScope = { tablerowloop };
     context.raiseForLoopLimit(tablerowloop.length);
 
     await context.extend(namespace, async () => {
@@ -99,7 +99,7 @@ export class TableRowNode implements Node {
     }
 
     const tablerowloop = new TableRowLoopDrop(name, it, length, cols as number);
-    const namespace: ContextScope = { tablerowloop: tablerowloop };
+    const namespace: ContextScope = { tablerowloop };
     context.raiseForLoopLimit(tablerowloop.length);
 
     context.extendSync(namespace, () => {

@@ -127,13 +127,13 @@ export type ChildNode = {
    * namespace. For example, the built-in `assign`, `capture`, `increment`
    * and `decrement` tags all add names to the template local scope.
    */
-  templateScope?: Array<string>;
+  templateScope?: string[];
 
   /**
    * An array of names the parent node adds to its block. For example, the
    * `for` tag adds the name "forloop" for the duration of its block.
    */
-  blockScope?: Array<string>;
+  blockScope?: string[];
 
   /**
    * If given, indicates that the associated expression should be used to

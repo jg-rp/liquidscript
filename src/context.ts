@@ -384,7 +384,7 @@ export class RenderContext {
         disabledTags: new Set(disabledTags),
         copyDepth: this.copyDepth + 1,
         localsScoreCarry: this.localsScore,
-        loopIterationCarry: loopIterationCarry,
+        loopIterationCarry,
       }
     );
   }
@@ -600,7 +600,7 @@ function getFirst(obj: unknown): unknown {
   // XXX: Object.entries does not guarantee insertion order.
   if (isObject(obj)) {
     const val = Object.entries(obj).entries().next().value;
-    return val === undefined ? null : (val as unknown as Array<unknown>)[1];
+    return val === undefined ? null : (val as unknown as unknown[])[1];
   }
   return null;
 }
@@ -662,9 +662,9 @@ export function _assignScore(obj: unknown): number {
       if (typeof val === "object") {
         if (!seen.has(val)) {
           seen.add(val);
-          for (const [key, val] of Object.entries(obj)) {
-            sum += _assignScore(key);
-            stack.push(val);
+          for (const [k, v] of Object.entries(obj)) {
+            sum += _assignScore(k);
+            stack.push(v);
           }
         }
       } else {

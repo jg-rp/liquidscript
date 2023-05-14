@@ -170,7 +170,7 @@ export class IfNode implements Node {
   }
 
   children(): ChildNode[] {
-    const _children: Array<ChildNode> = [
+    const _children: ChildNode[] = [
       { token: this.token, node: this.consequence, expression: this.condition },
       ...this.conditionalAlternatives.map(
         (alt: ConditionalAlternative): ChildNode => ({

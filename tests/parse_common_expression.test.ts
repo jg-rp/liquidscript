@@ -1,10 +1,21 @@
-import { tokenize } from "../src/expressions/standard";
-import { parse } from "../src/expressions/standard";
+import { tokenize, parse } from "../src/expressions/standard";
 
 import {
   ExpressionTokenStream,
   TOKEN_IN,
   TOKEN_LPAREN,
+  TOKEN_BLANK,
+  TOKEN_EMPTY,
+  TOKEN_FALSE,
+  TOKEN_TRUE,
+  TOKEN_FLOAT,
+  TOKEN_INTEGER,
+  TOKEN_NIL,
+  TOKEN_RPAREN,
+  TOKEN_STRING,
+  TOKEN_IDENT,
+  TOKEN_IDENT_INDEX,
+  TOKEN_RBRACKET,
 } from "../src/expressions/tokens";
 
 import {
@@ -20,21 +31,6 @@ import {
   FALSE,
   NIL,
 } from "../src/expression";
-
-import {
-  TOKEN_BLANK,
-  TOKEN_EMPTY,
-  TOKEN_FALSE,
-  TOKEN_TRUE,
-  TOKEN_FLOAT,
-  TOKEN_INTEGER,
-  TOKEN_NIL,
-  TOKEN_RPAREN,
-  TOKEN_STRING,
-  TOKEN_IDENT,
-  TOKEN_IDENT_INDEX,
-  TOKEN_RBRACKET,
-} from "../src/expressions/tokens";
 
 import { Float, Integer } from "../src/number";
 import { Token } from "../src/token";

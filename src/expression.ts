@@ -209,7 +209,7 @@ export class IntegerLiteral extends Literal<Integer> {
 
 export class FloatLiteral extends Literal<Float> {
   public equals(other: unknown): boolean {
-    return other instanceof FloatLiteral && this.value == other.value;
+    return other instanceof FloatLiteral && this.value === other.value;
   }
 
   public toString(): string {

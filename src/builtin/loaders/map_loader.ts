@@ -4,7 +4,7 @@ import { Loader, TemplateSource } from "../../loader";
 /**
  * A loader that uses a Map of strings to store template source Text.
  */
- export class MapLoader extends Loader {
+export class MapLoader extends Loader {
   #templateMap: Map<string, string>;
 
   constructor(map?: Map<string, string>) {

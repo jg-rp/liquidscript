@@ -58,7 +58,7 @@ describe("local namespace limit", () => {
     const loader = new ObjectLoader({
       foo: "{% assign bar = 'goodbye' %}",
     });
-    const env = new Environment({ loader: loader, localNamespaceLimit: 24 });
+    const env = new Environment({ loader, localNamespaceLimit: 24 });
     const template = env.fromString(
       "{% assign greeting = 'hello' %}{% render 'foo' %}"
     );
@@ -101,7 +101,7 @@ describe("render context depth limit", () => {
       foo: "{% render 'bar' %}",
       bar: "{% render 'foo' %}",
     });
-    const env = new Environment({ loader: loader });
+    const env = new Environment({ loader });
     const template = env.fromString("{% render 'foo' %}");
     expect(() => template.renderSync()).toThrow(ContextDepthError);
     expect(async () => await template.render()).rejects.toThrowError(
@@ -113,7 +113,7 @@ describe("render context depth limit", () => {
       foo: "{% include 'bar' %}",
       bar: "{% include 'foo' %}",
     });
-    const env = new Environment({ loader: loader });
+    const env = new Environment({ loader });
     const template = env.fromString("{% include 'foo' %}");
     expect(() => template.renderSync()).toThrow(ContextDepthError);
     expect(async () => await template.render()).rejects.toThrowError(
@@ -129,7 +129,7 @@ describe("render context depth limit", () => {
       bar: "{% render 'baz' %}",
       baz: "Hello",
     });
-    const env = new Environment({ loader: loader });
+    const env = new Environment({ loader });
     const template = env.fromString("{% render 'foo' %}");
 
     expect(template.renderSync()).toBe("Hello");
@@ -151,7 +151,7 @@ describe("render context depth limit", () => {
       bar: "{% render 'baz' %}",
       baz: "Hello",
     });
-    const env = new Environment({ loader: loader });
+    const env = new Environment({ loader });
     const template = env.fromString("{% include 'foo' %}");
 
     expect(template.renderSync()).toBe("Hello");
@@ -224,7 +224,7 @@ describe("loop iteration limit", () => {
         "{% endfor %}",
       ].join(""),
     });
-    const env = new Environment({ loader: loader, loopIterationLimit: 3000 });
+    const env = new Environment({ loader, loopIterationLimit: 3000 });
     const template = env.fromString(
       "{% for i in (1..10) %}{% render 'foo' %}{% endfor %}"
     );
@@ -245,7 +245,7 @@ describe("loop iteration limit", () => {
         "{% endfor %}",
       ].join(""),
     });
-    const env = new Environment({ loader: loader, loopIterationLimit: 3000 });
+    const env = new Environment({ loader, loopIterationLimit: 3000 });
     const template = env.fromString(
       "{% for i in (1..10) %}{% include 'foo' %}{% endfor %}"
     );

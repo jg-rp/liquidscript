@@ -197,8 +197,8 @@ export class CachingNodeFileSystemLoader extends Loader {
 
   /**
    *
-   * @param templatePath
-   * @param mtime
+   * @param templatePath -
+   * @param mtime -
    * @returns
    */
   static upToDateSync(templatePath: string, mtime: number): boolean {
@@ -293,7 +293,7 @@ export class CachingNodeFileSystemLoader extends Loader {
 
   /**
    *
-   * @param name
+   * @param name -
    * @returns
    */
   protected withFileExtension(name: string): string {
@@ -304,7 +304,7 @@ export class CachingNodeFileSystemLoader extends Loader {
 
   /**
    *
-   * @param name
+   * @param name -
    * @returns
    */
   protected async resolve(name: string): Promise<[string, number]> {
@@ -325,7 +325,7 @@ export class CachingNodeFileSystemLoader extends Loader {
 
   /**
    *
-   * @param name
+   * @param name -
    * @returns
    */
   protected resolveSync(name: string): [string, number] {

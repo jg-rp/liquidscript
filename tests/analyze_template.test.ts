@@ -326,10 +326,10 @@ describe("static template analysis", () => {
   });
 
   test("analyze if (not) tag", async () => {
-    const env = new Environment();
-    env.addTag("if", new IfNotTag());
+    const _env = new Environment();
+    _env.addTag("if", new IfNotTag());
 
-    const template = env.fromString(
+    const template = _env.fromString(
       [
         "{% if not x %}",
         "  {{ a }}",
@@ -461,7 +461,7 @@ describe("static template analysis", () => {
 
   test("analyze include tag", async () => {
     const loader = new ObjectLoader({ some_name: "{{ y }}" });
-    const _env = new Environment({ loader: loader });
+    const _env = new Environment({ loader });
     const template = _env.fromString("{% include 'some_name' %}");
 
     const expectedGlobals: VariableRefs = {
@@ -477,7 +477,7 @@ describe("static template analysis", () => {
 
   test("analyze include tag with assign", async () => {
     const loader = new ObjectLoader({ some_name: "{{ y }}{% assign z = 4 %}" });
-    const _env = new Environment({ loader: loader });
+    const _env = new Environment({ loader });
     const template = _env.fromString("{% include 'some_name' %}{{ z }}");
 
     const expectedGlobals: VariableRefs = {
@@ -496,7 +496,7 @@ describe("static template analysis", () => {
 
   test("analyze include tag once", async () => {
     const loader = new ObjectLoader({ some_name: "{{ y }}" });
-    const _env = new Environment({ loader: loader });
+    const _env = new Environment({ loader });
     const template = _env.fromString(
       "{% include 'some_name' %}{% include 'some_name' %}"
     );
@@ -516,7 +516,7 @@ describe("static template analysis", () => {
     const loader = new ObjectLoader({
       some_name: "{{ y }}{% include 'some_name' %}",
     });
-    const _env = new Environment({ loader: loader });
+    const _env = new Environment({ loader });
     const template = _env.fromString("{% include 'some_name' %}");
 
     const expectedGlobals: VariableRefs = {
@@ -534,7 +534,7 @@ describe("static template analysis", () => {
     const loader = new ObjectLoader({
       some_name: "{{ y | append: x }}{{ some_name }}",
     });
-    const _env = new Environment({ loader: loader });
+    const _env = new Environment({ loader });
     const template = _env.fromString("{% include 'some_name' with foo %}");
 
     const expectedGlobals: VariableRefs = {
@@ -557,7 +557,7 @@ describe("static template analysis", () => {
     const loader = new ObjectLoader({
       some_name: "{{ y | append: x }}",
     });
-    const _env = new Environment({ loader: loader });
+    const _env = new Environment({ loader });
     const template = _env.fromString("{% include 'some_name' with foo as x %}");
 
     const expectedGlobals: VariableRefs = {
@@ -578,7 +578,7 @@ describe("static template analysis", () => {
     const loader = new ObjectLoader({
       some_name: "{{ y | append: x }}",
     });
-    const _env = new Environment({ loader: loader });
+    const _env = new Environment({ loader });
     const template = _env.fromString(
       "{% include 'some_name', x:y, z:'4' %}\n{{ x }}"
     );
@@ -685,7 +685,7 @@ describe("static template analysis", () => {
 
   test("analyze render tag", async () => {
     const loader = new ObjectLoader({ some_name: "{{ x }}{% assign y = z %}" });
-    const _env = new Environment({ loader: loader });
+    const _env = new Environment({ loader });
     const template = _env.fromString(
       "{% assign z = 1 %}{% render 'some_name' %}"
     );
@@ -707,7 +707,7 @@ describe("static template analysis", () => {
 
   test("analyze render tag once", async () => {
     const loader = new ObjectLoader({ some_name: "{{ x }}" });
-    const _env = new Environment({ loader: loader });
+    const _env = new Environment({ loader });
     const template = _env.fromString(
       "{% render 'some_name' %}{% render 'some_name' %}"
     );
@@ -727,7 +727,7 @@ describe("static template analysis", () => {
     const loader = new ObjectLoader({
       some_name: "{{ y }}{% render 'some_name' %}",
     });
-    const _env = new Environment({ loader: loader });
+    const _env = new Environment({ loader });
     const template = _env.fromString("{% render 'some_name' %}");
 
     const expectedGlobals: VariableRefs = {
@@ -745,7 +745,7 @@ describe("static template analysis", () => {
     const loader = new ObjectLoader({
       some_name: "{{ y | append: x }}{{ some_name }}",
     });
-    const _env = new Environment({ loader: loader });
+    const _env = new Environment({ loader });
     const template = _env.fromString("{% render 'some_name' with foo %}");
 
     const expectedGlobals: VariableRefs = {
@@ -768,7 +768,7 @@ describe("static template analysis", () => {
     const loader = new ObjectLoader({
       some_name: "{{ y | append: x }}",
     });
-    const _env = new Environment({ loader: loader });
+    const _env = new Environment({ loader });
     const template = _env.fromString("{% render 'some_name' with foo as x %}");
 
     const expectedGlobals: VariableRefs = {
@@ -789,7 +789,7 @@ describe("static template analysis", () => {
     const loader = new ObjectLoader({
       some_name: "{{ y | append: x }}",
     });
-    const _env = new Environment({ loader: loader });
+    const _env = new Environment({ loader });
     const template = _env.fromString(
       "{% render 'some_name', x:y, z:'4' %}\n{{ x }}"
     );
@@ -818,7 +818,7 @@ describe("static template analysis", () => {
 
   test("analyze render tag scope", async () => {
     const loader = new ObjectLoader({ some_name: "{{ x }}{% assign y = z %}" });
-    const _env = new Environment({ loader: loader });
+    const _env = new Environment({ loader });
     const template = _env.fromString(
       "{% assign z = 1 %}{% render 'some_name' %}{{ y }}"
     );

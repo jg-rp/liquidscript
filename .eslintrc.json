@@ -1,8 +1,17 @@
 {
   "root": true,
   "parser": "@typescript-eslint/parser",
-  "plugins": ["@typescript-eslint", "eslint-plugin-tsdoc"],
-  "extends": ["eslint:recommended", "plugin:@typescript-eslint/recommended"],
+  "plugins": [
+    "@typescript-eslint",
+    "eslint-plugin-tsdoc",
+    "eslint-plugin-github"
+  ],
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:github/recommended",
+    "plugin:github/typescript"
+  ],
   "rules": {
     "@typescript-eslint/no-unused-vars": [
       "warn",
@@ -11,7 +20,9 @@
       }
     ],
     "@typescript-eslint/no-inferrable-types": ["off"],
-    "tsdoc/syntax": "warn"
+    "tsdoc/syntax": "warn",
+    "filenames/match-regex": "off",
+    "i18n-text/no-en": "off"
   },
   "env": { "node": true }
 }

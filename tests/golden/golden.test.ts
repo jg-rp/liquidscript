@@ -32,7 +32,7 @@ describe.each<TestGroup>(golden.test_groups)(
       ({ template, want, context, partials, error }: Case) => {
         const loader = new MapLoader(new Map(Object.entries(partials)));
         const env = new Environment({
-          loader: loader,
+          loader,
           undefinedFactory: (n) => new LaxUndefined(n),
         });
 

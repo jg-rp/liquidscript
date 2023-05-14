@@ -98,7 +98,7 @@ export class MacroNode implements Node {
   public children(): ChildNode[] {
     const blockScope = this.args.map((arg) => arg[0]);
     const _children: ChildNode[] = [
-      { token: this.token, node: this.block, blockScope: blockScope },
+      { token: this.token, node: this.block, blockScope },
     ];
     for (const [_, v] of this.args) {
       if (v !== NIL) {

@@ -13,7 +13,7 @@ import { ContextScope } from "../../types";
 export class ChoiceLoader extends Loader {
   /**
    *
-   * @param loaders
+   * @param loaders -
    */
   constructor(readonly loaders: Loader[]) {
     super();

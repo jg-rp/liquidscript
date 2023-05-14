@@ -191,7 +191,7 @@ describe("built-in render tag", () => {
       async ({ source, globals, want, partials }: Case) => {
         const loader = new MapLoader(new Map(Object.entries(partials)));
         const env = new Environment({
-          loader: loader,
+          loader,
           undefinedFactory: (n) => new LaxUndefined(n),
         });
         const template = env.fromString(source);
@@ -207,7 +207,7 @@ describe("built-in render tag", () => {
       async ({ source, globals, want, partials }: Case) => {
         const loader = new MapLoader(new Map(Object.entries(partials)));
         const env = new Environment({
-          loader: loader,
+          loader,
           undefinedFactory: (n) => new LaxUndefined(n),
         });
         const template = env.fromString(source);

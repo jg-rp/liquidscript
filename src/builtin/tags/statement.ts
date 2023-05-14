@@ -51,7 +51,7 @@ export class OutputStatementNode implements Node {
   }
 
   toString(): string {
-    return "`" + this.expression.toString() + "`";
+    return `\`${this.expression.toString()}\``;
   }
 
   public children(): ChildNode[] {

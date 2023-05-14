@@ -13,8 +13,10 @@ import {
   PrefixExpression,
 } from "../src/expression";
 import { parse } from "../src/expressions/filtered/parse";
-import { parse as parseConditionalExpression } from "../src/expressions/conditional/parse";
-import { parseWithParens as parseConditionalExpressionWithParens } from "../src/expressions/conditional/parse";
+import {
+  parse as parseConditionalExpression,
+  parseWithParens as parseConditionalExpressionWithParens,
+} from "../src/expressions/conditional/parse";
 import { Float, Integer } from "../src/number";
 
 describe("parse filtered expression", () => {

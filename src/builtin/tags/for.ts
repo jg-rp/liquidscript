@@ -148,7 +148,7 @@ export class ForNode implements Node {
       );
 
       context.raiseForLoopLimit(forloop.length);
-      const namespace: ContextScope = { forloop: forloop };
+      const namespace: ContextScope = { forloop };
       context.forLoops.push(forloop);
       try {
         await context.extend(namespace, async () => {
@@ -198,7 +198,7 @@ export class ForNode implements Node {
       );
 
       context.raiseForLoopLimit(forloop.length);
-      const namespace: ContextScope = { forloop: forloop };
+      const namespace: ContextScope = { forloop };
       context.forLoops.push(forloop);
       try {
         context.extendSync(namespace, () => {
