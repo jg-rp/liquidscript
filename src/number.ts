@@ -121,7 +121,7 @@ export class Float extends LiquidNumber {
 
   public toString(): string {
     const s = this.n.toString();
-    return s.toString().indexOf(".") === -1 ? s + ".0" : s;
+    return s.toString().indexOf(".") === -1 ? `${s}.0` : s;
   }
 }
 

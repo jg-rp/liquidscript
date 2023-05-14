@@ -159,7 +159,7 @@ export function parseIdentifier(stream: ExpressionTokenStream): Identifier {
 
 /**
  *
- * @param stream
+ * @param stream -
  * @returns
  */
 export function parseStringOrIdentifier(
@@ -191,7 +191,7 @@ const RANGE_OBJ_TOKENS = new Set<string>([
 
 /**
  *
- * @param stream
+ * @param stream -
  * @returns
  */
 export function parseUnchainedIdentifier(
@@ -206,7 +206,7 @@ export function parseUnchainedIdentifier(
 
 /**
  *
- * @param parseObj
+ * @param parseObj -
  * @returns
  */
 export function makeParseRange(

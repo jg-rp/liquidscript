@@ -98,7 +98,7 @@ function parseLoopArguments(
       stream.next();
       args.set(tok.value, parseLoopArgument(stream));
       stream.next();
-    } else if (tok.kind == TOKEN_REVERSED) {
+    } else if (tok.kind === TOKEN_REVERSED) {
       stream.next();
       reversed = true;
     } else {

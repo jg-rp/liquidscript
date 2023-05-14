@@ -90,7 +90,7 @@ export class FetchLoader extends Loader {
   }
 
   async getSource(name: string): Promise<TemplateSource> {
-    const url = this.baseURL + "/" + name;
+    const url = `${this.baseURL}/${name}`;
     const request = new Request(url, this.#init);
     const response = await fetch(request);
     if (!response.ok)

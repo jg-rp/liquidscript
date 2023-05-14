@@ -225,7 +225,7 @@ export function round(
     return ZERO;
   }
 
-  if (_decimalPlaces == 0) {
+  if (_decimalPlaces === 0) {
     return parseNumberOrZero(left).round();
   }
 

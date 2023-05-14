@@ -248,6 +248,7 @@ function isIllegalMatch(match: MatchGroups): match is IllegalMatch {
  * using the given regular expression and keywords.
  */
 export function makeTokenizer(re: RegExp, keywords: Set<string>): Tokenizer {
+  // eslint-disable-next-line sonarjs/cognitive-complexity
   return function* tokenize(
     source: string,
     startIndex: number = 0

@@ -64,9 +64,10 @@ export class XMLHttpRequestLoader extends Loader {
   }
 
   protected url(name: string): string {
-    const url = this.baseURL + "/" + name;
+    const url = `${this.baseURL}/${name}`;
     if (this.bustBrowserCache) {
       return (
+        // eslint-disable-next-line prefer-template
         url +
         (url.indexOf("?") === -1 ? "?" : "&") +
         "s=" +

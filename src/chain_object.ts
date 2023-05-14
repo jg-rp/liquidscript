@@ -37,7 +37,7 @@ class ChainObject {
 }
 
 const chainObjectHandler = {
-  get: function (target: ChainObject, prop: string | symbol): unknown {
+  get(target: ChainObject, prop: string | symbol): unknown {
     if (
       prop === chainPush ||
       prop === chainPop ||
@@ -60,7 +60,7 @@ const chainObjectHandler = {
 
     return Missing;
   },
-  has: function (target: ChainObject, prop: string | symbol): boolean {
+  has(target: ChainObject, prop: string | symbol): boolean {
     for (let i = target[ChainObjects].length - 1; i >= 0; i--) {
       if (target[ChainObjects][i] instanceof ChainObject) {
         return prop in target[ChainObjects][i];
@@ -71,14 +71,14 @@ const chainObjectHandler = {
 
     return false;
   },
-  set: function () {
+  set() {
     throw new ReadOnlyObjectChainError("chains objects are read only");
   },
 };
 
 /**
  *
- * @param objects
+ * @param objects -
  * @returns
  */
 export function chainObjects(...objects: object[]): ObjectChain {

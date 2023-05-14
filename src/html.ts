@@ -34,7 +34,7 @@ const unescapeMap: { [index: string]: string } = {
 
 /**
  *
- * @param s
+ * @param s -
  * @returns
  */
 export function escape(s: string): string {
@@ -43,7 +43,7 @@ export function escape(s: string): string {
 
 /**
  *
- * @param s
+ * @param s -
  * @returns
  */
 export function unescape(s: string): string {

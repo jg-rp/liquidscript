@@ -223,7 +223,7 @@ export class RenderNode implements Node {
       {
         token: this.token,
         expression: this.templateName,
-        blockScope: blockScope,
+        blockScope,
         loadMode: "render",
         loadContext: { tag: "render" },
       },

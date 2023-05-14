@@ -283,14 +283,13 @@ export class Template {
       raiseForFailures,
     });
     const refs = await counter.analyze();
-    const res = {
+    return {
       variables: Object.fromEntries(refs.variables.entries()),
       localVariables: Object.fromEntries(refs.templateLocals.entries()),
       globalVariables: Object.fromEntries(refs.templateGlobals.entries()),
       failedVisits: Object.fromEntries(refs.failedVisits.entries()),
       unloadablePartials: Object.fromEntries(refs.unloadablePartials.entries()),
     };
-    return res;
   }
 
   /**
@@ -307,14 +306,13 @@ export class Template {
       raiseForFailures,
     });
     const refs = counter.analyzeSync();
-    const res = {
+    return {
       variables: Object.fromEntries(refs.variables.entries()),
       localVariables: Object.fromEntries(refs.templateLocals.entries()),
       globalVariables: Object.fromEntries(refs.templateGlobals.entries()),
       failedVisits: Object.fromEntries(refs.failedVisits.entries()),
       unloadablePartials: Object.fromEntries(refs.unloadablePartials.entries()),
     };
-    return res;
   }
 }
 
@@ -329,7 +327,7 @@ export type VariableLocation = { templateName: string; lineNumber: number };
 /**
  * An array of template variable locations.
  */
-export type VariableLocations = Array<VariableLocation>;
+export type VariableLocations = VariableLocation[];
 
 /**
  * A mapping of template variable names to their locations.
@@ -732,7 +730,7 @@ class TemplateVariableCounter {
 
       const refs = new TemplateVariableCounter(template, {
         followPartials: this.followPartials,
-        scope: scope,
+        scope,
         partials: this.partials,
       });
 
@@ -771,7 +769,7 @@ class TemplateVariableCounter {
 
       const refs = new TemplateVariableCounter(template, {
         followPartials: this.followPartials,
-        scope: scope,
+        scope,
         partials: this.partials,
       });
 

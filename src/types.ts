@@ -25,7 +25,7 @@ export function isSymbol(value: unknown): value is symbol {
  * @param value - Any value
  * @returns `true` if the value is an array.
  */
-export function isArray(value: unknown): value is Array<unknown> {
+export function isArray(value: unknown): value is unknown[] {
   return Array.isArray(value);
 }
 
@@ -127,7 +127,7 @@ export function isUndefined(value: unknown): value is Undefined {
   return value === undefined || value instanceof Undefined;
 }
 
-export type LiquidArrayLike = Array<unknown>; // XXX: iterables?
+export type LiquidArrayLike = unknown[]; // XXX: iterables?
 
 /**
  * A type predicate for objects that a considered array-like in Liquid.

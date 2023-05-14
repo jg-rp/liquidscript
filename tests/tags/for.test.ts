@@ -257,8 +257,7 @@ describe("built-in for tag", () => {
     },
     {
       description: "limit that is greater than length",
-      source:
-        "{% for item in array limit: 99 %}" + "a{{ item }} " + "{% endfor %}",
+      source: "{% for item in array limit: 99 %}a{{ item }} {% endfor %}",
       want: "a1 a2 a3 a4 a5 a6 ",
       globals: { array: [1, 2, 3, 4, 5, 6] },
     },

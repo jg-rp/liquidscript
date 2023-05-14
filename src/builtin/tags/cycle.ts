@@ -106,7 +106,7 @@ export class CycleNode implements Node {
   }
 
   public children(): ChildNode[] {
-    const _children: Array<ChildNode> = [];
+    const _children: ChildNode[] = [];
 
     if (this.group) {
       _children.push({
@@ -148,8 +148,7 @@ function* parseArgs(stream: ExpressionTokenStream): Generator<Expression> {
 
 /**
  *
- * @param tokens
- * @yields
+ * @param tokens -
  * @returns
  */
 function* splitAtFirstColon(

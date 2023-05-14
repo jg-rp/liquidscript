@@ -50,7 +50,7 @@ export class TableRowLoopDrop
 
   public step(): void {
     this._index += 1;
-    if (this._col == this.ncols) {
+    if (this._col === this.ncols) {
       this._col = 1;
       this._row += 1;
     } else {

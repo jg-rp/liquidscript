@@ -384,7 +384,7 @@ export class RenderContext {
         disabledTags: new Set(disabledTags),
         copyDepth: this.copyDepth + 1,
         localsScoreCarry: this.localsScore,
-        loopIterationCarry: loopIterationCarry,
+        loopIterationCarry,
       }
     );
   }
@@ -433,6 +433,7 @@ export class RenderContext {
  * @throws InternalKeyError if the item does not exist on the object or
  * is not allowed in Liquid.
  */
+// eslint-disable-next-line sonarjs/cognitive-complexity
 export function getItemSync(obj: unknown, item: unknown): unknown {
   if (obj === null) throw new InternalKeyError(`can't get property of null`);
   if (item === null) throw new InternalKeyError(`can't read null property`);
@@ -503,6 +504,7 @@ export function getItemSync(obj: unknown, item: unknown): unknown {
 /**
  * An asynchronous version of `getItemSync()`.
  */
+// eslint-disable-next-line sonarjs/cognitive-complexity
 async function getItem(obj: unknown, item: unknown): Promise<unknown> {
   if (obj === null) throw new InternalKeyError(`can't get property of null`);
   if (item === null) throw new InternalKeyError(`can't read null property`);
@@ -600,7 +602,7 @@ function getFirst(obj: unknown): unknown {
   // XXX: Object.entries does not guarantee insertion order.
   if (isObject(obj)) {
     const val = Object.entries(obj).entries().next().value;
-    return val === undefined ? null : (val as unknown as Array<unknown>)[1];
+    return val === undefined ? null : (val as unknown as unknown[])[1];
   }
   return null;
 }
@@ -625,6 +627,7 @@ function _toLiquid(value: unknown, context: RenderContext): unknown {
   return isLiquidable(value) ? value[toLiquid](context) : value;
 }
 
+// eslint-disable-next-line sonarjs/cognitive-complexity
 export function _assignScore(obj: unknown): number {
   // TODO: drop protocol override?
   if (isString(obj)) return obj.length * 2;
@@ -662,9 +665,9 @@ export function _assignScore(obj: unknown): number {
       if (typeof val === "object") {
         if (!seen.has(val)) {
           seen.add(val);
-          for (const [key, val] of Object.entries(obj)) {
-            sum += _assignScore(key);
-            stack.push(val);
+          for (const [k, v] of Object.entries(obj)) {
+            sum += _assignScore(k);
+            stack.push(v);
           }
         }
       } else {

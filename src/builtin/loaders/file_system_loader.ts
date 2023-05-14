@@ -197,8 +197,8 @@ export class CachingNodeFileSystemLoader extends Loader {
 
   /**
    *
-   * @param templatePath
-   * @param mtime
+   * @param templatePath -
+   * @param mtime -
    * @returns
    */
   static upToDateSync(templatePath: string, mtime: number): boolean {
@@ -293,9 +293,10 @@ export class CachingNodeFileSystemLoader extends Loader {
 
   /**
    *
-   * @param name
+   * @param name -
    * @returns
    */
+  // eslint-disable-next-line sonarjs/no-identical-functions
   protected withFileExtension(name: string): string {
     if (this.fileExtension.length)
       return path.extname(name) ? name : name + this.fileExtension;
@@ -304,7 +305,7 @@ export class CachingNodeFileSystemLoader extends Loader {
 
   /**
    *
-   * @param name
+   * @param name -
    * @returns
    */
   protected async resolve(name: string): Promise<[string, number]> {
@@ -325,7 +326,7 @@ export class CachingNodeFileSystemLoader extends Loader {
 
   /**
    *
-   * @param name
+   * @param name -
    * @returns
    */
   protected resolveSync(name: string): [string, number] {

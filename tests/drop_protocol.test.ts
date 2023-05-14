@@ -46,7 +46,7 @@ class MockDrop extends MockSuper {
 
   // A callable, whitelisted property.
   public greeting(): string {
-    return "hello " + this.#c;
+    return `hello ${this.#c}`;
   }
 
   // A method that should not be called by liquid.
@@ -152,7 +152,7 @@ describe("drop protocol", () => {
       source: "{{ f.length }}",
       want: "",
       globals: {
-        f: function () {
+        f() {
           return 0;
         },
       },

@@ -187,7 +187,7 @@ export class IncludeNode implements Node {
       {
         token: this.token,
         expression: this.templateName,
-        blockScope: blockScope,
+        blockScope,
         loadMode: "include",
         loadContext: { tag: "include" },
       },

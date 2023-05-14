@@ -67,9 +67,7 @@ import { CommentTag } from "./tags/comment";
 import { CycleTag } from "./tags/cycle";
 import { DecrementTag } from "./tags/decrement";
 import { EchoTag } from "./tags/echo";
-import { ForTag } from "./tags/for";
-import { ContinueTag } from "./tags/for";
-import { BreakTag } from "./tags/for";
+import { ForTag, ContinueTag, BreakTag } from "./tags/for";
 import { IfTag } from "./tags/if";
 import { IncrementTag } from "./tags/increment";
 import { IncludeTag } from "./tags/include";
@@ -84,7 +82,7 @@ import { IfChangedTag } from "./tags/ifchanged";
 
 /**
  *
- * @param env
+ * @param env -
  */
 export function registerBuiltin(env: Environment): void {
   env.tags["assign"] = new AssignTag();
