@@ -100,6 +100,7 @@ export function tokenizerFor(
   tagStart = "{%",
   tagEnd = "%}"
 ): (source: string) => Generator<Token> {
+  // eslint-disable-next-line sonarjs/cognitive-complexity
   function* _tokenize(source: string): Generator<Token> {
     let leftStrip = false;
     for (const match of source.matchAll(rules)) {

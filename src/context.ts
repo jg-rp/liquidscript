@@ -433,6 +433,7 @@ export class RenderContext {
  * @throws InternalKeyError if the item does not exist on the object or
  * is not allowed in Liquid.
  */
+// eslint-disable-next-line sonarjs/cognitive-complexity
 export function getItemSync(obj: unknown, item: unknown): unknown {
   if (obj === null) throw new InternalKeyError(`can't get property of null`);
   if (item === null) throw new InternalKeyError(`can't read null property`);
@@ -503,6 +504,7 @@ export function getItemSync(obj: unknown, item: unknown): unknown {
 /**
  * An asynchronous version of `getItemSync()`.
  */
+// eslint-disable-next-line sonarjs/cognitive-complexity
 async function getItem(obj: unknown, item: unknown): Promise<unknown> {
   if (obj === null) throw new InternalKeyError(`can't get property of null`);
   if (item === null) throw new InternalKeyError(`can't read null property`);
@@ -625,6 +627,7 @@ function _toLiquid(value: unknown, context: RenderContext): unknown {
   return isLiquidable(value) ? value[toLiquid](context) : value;
 }
 
+// eslint-disable-next-line sonarjs/cognitive-complexity
 export function _assignScore(obj: unknown): number {
   // TODO: drop protocol override?
   if (isString(obj)) return obj.length * 2;

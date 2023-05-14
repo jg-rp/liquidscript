@@ -24,7 +24,8 @@
     "@typescript-eslint/no-inferrable-types": ["off"],
     "tsdoc/syntax": "warn",
     "filenames/match-regex": "off",
-    "i18n-text/no-en": "off"
+    "i18n-text/no-en": "off",
+    "sonarjs/no-duplicate-string": "off"
   },
   "env": { "node": true }
 }

@@ -283,14 +283,13 @@ export class Template {
       raiseForFailures,
     });
     const refs = await counter.analyze();
-    const res = {
+    return {
       variables: Object.fromEntries(refs.variables.entries()),
       localVariables: Object.fromEntries(refs.templateLocals.entries()),
       globalVariables: Object.fromEntries(refs.templateGlobals.entries()),
       failedVisits: Object.fromEntries(refs.failedVisits.entries()),
       unloadablePartials: Object.fromEntries(refs.unloadablePartials.entries()),
     };
-    return res;
   }
 
   /**
@@ -307,14 +306,13 @@ export class Template {
       raiseForFailures,
     });
     const refs = counter.analyzeSync();
-    const res = {
+    return {
       variables: Object.fromEntries(refs.variables.entries()),
       localVariables: Object.fromEntries(refs.templateLocals.entries()),
       globalVariables: Object.fromEntries(refs.templateGlobals.entries()),
       failedVisits: Object.fromEntries(refs.failedVisits.entries()),
       unloadablePartials: Object.fromEntries(refs.unloadablePartials.entries()),
     };
-    return res;
   }
 }
 

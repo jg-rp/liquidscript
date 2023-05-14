@@ -53,14 +53,13 @@ export class TemplateTokenStream implements TokenStream {
 
   public expect(kind: string): void {
     if (this.current.kind !== kind) {
-      switch (kind) {
-        case TOKEN_EXPRESSION:
-          throw new LiquidSyntaxError(`missing tag expression`, this.current);
-        default:
-          throw new LiquidSyntaxError(
-            `expected '${kind}', found ${this.current.kind}`,
-            this.current
-          );
+      if (kind === TOKEN_EXPRESSION) {
+        throw new LiquidSyntaxError(`missing tag expression`, this.current);
+      } else {
+        throw new LiquidSyntaxError(
+          `expected '${kind}', found ${this.current.kind}`,
+          this.current
+        );
       }
     }
   }

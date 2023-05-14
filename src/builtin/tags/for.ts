@@ -124,6 +124,7 @@ export class ForNode implements Node {
     this.forceOutput = forcedOutput(this);
   }
 
+  // eslint-disable-next-line sonarjs/cognitive-complexity
   public async render(
     context: RenderContext,
     out: RenderStream
@@ -180,6 +181,7 @@ export class ForNode implements Node {
     }
   }
 
+  // eslint-disable-next-line sonarjs/cognitive-complexity
   public renderSync(context: RenderContext, out: RenderStream): void {
     const [it, length] = this.expression.evaluateSync(context);
     const buf = this.forceOutput

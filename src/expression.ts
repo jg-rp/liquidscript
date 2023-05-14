@@ -181,9 +181,7 @@ export const FALSE = new BooleanLiteral(false);
 
 export class StringLiteral extends Literal<string | Markup> {
   public async evaluate(context: RenderContext): Promise<string | Markup> {
-    return context.environment.autoEscape
-      ? Markup.from(this.value)
-      : this.value;
+    return this.evaluateSync(context);
   }
 
   public evaluateSync(context: RenderContext): string | Markup {
@@ -879,6 +877,7 @@ function isExpression(obj: unknown): obj is Expression {
   );
 }
 
+// eslint-disable-next-line sonarjs/cognitive-complexity
 function compare(left: unknown, operator: string, right: unknown): boolean {
   switch (operator) {
     case "and":

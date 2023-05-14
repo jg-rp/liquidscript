@@ -296,6 +296,7 @@ export class CachingNodeFileSystemLoader extends Loader {
    * @param name -
    * @returns
    */
+  // eslint-disable-next-line sonarjs/no-identical-functions
   protected withFileExtension(name: string): string {
     if (this.fileExtension.length)
       return path.extname(name) ? name : name + this.fileExtension;
