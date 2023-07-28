@@ -18,18 +18,21 @@ export class DecrementTag implements Tag {
     return new this.nodeClass(
       token,
       parseUnchainedIdentifier(
-        new ExpressionTokenStream(tokenize(stream.current.value))
-      ).toString()
+        new ExpressionTokenStream(tokenize(stream.current.value)),
+      ).toString(),
     );
   }
 }
 
 export class DecrementNode implements Node {
-  constructor(readonly token: Token, readonly identifier: string) {}
+  constructor(
+    readonly token: Token,
+    readonly identifier: string,
+  ) {}
 
   public async render(
     context: RenderContext,
-    out: RenderStream
+    out: RenderStream,
   ): Promise<void> {
     this.renderSync(context, out);
   }

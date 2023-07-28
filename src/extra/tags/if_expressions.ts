@@ -15,7 +15,7 @@ export class ConditionalOutputStatement extends OutputStatement {
   public parse(stream: TokenStream): Node {
     return new this.nodeClass(
       stream.current,
-      parseConditionalExpression(stream.current.value, stream.current.index)
+      parseConditionalExpression(stream.current.value, stream.current.index),
     );
   }
 }
@@ -51,8 +51,8 @@ export class ConditionalOutputStatementWithParens extends OutputStatement {
       stream.current,
       parseConditionalExpressionWithParens(
         stream.current.value,
-        stream.current.index
-      )
+        stream.current.index,
+      ),
     );
   }
 }

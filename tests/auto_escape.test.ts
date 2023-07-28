@@ -22,7 +22,7 @@ describe("HTML auto escape", () => {
     expect(
       Template.from("{{ name }}", undefined, { autoEscape: false }).renderSync({
         name: '<script>alert("XSS!");</script>',
-      })
+      }),
     ).toBe('<script>alert("XSS!");</script>');
   });
 
@@ -31,8 +31,8 @@ describe("HTML auto escape", () => {
       Template.from("{{ thing }}", undefined, { autoEscape: false }).renderSync(
         {
           thing: new MockDrop(),
-        }
-      )
+        },
+      ),
     ).toBe("not HTML");
   });
 
@@ -40,7 +40,7 @@ describe("HTML auto escape", () => {
     expect(
       Template.from("{{ thing }}", undefined, { autoEscape: true }).renderSync({
         thing: '<script>alert("XSS!");</script>',
-      })
+      }),
     ).toBe("&lt;script&gt;alert(&#34;XSS!&#34;);&lt;/script&gt;");
   });
 
@@ -50,7 +50,7 @@ describe("HTML auto escape", () => {
         autoEscape: true,
       }).renderSync({
         thing: '<script>alert("XSS!");</script>',
-      })
+      }),
     ).toBe("<br>&lt;script&gt;alert(&#34;XSS!&#34;);&lt;/script&gt;");
   });
 
@@ -58,7 +58,7 @@ describe("HTML auto escape", () => {
     expect(
       Template.from("{{ '<em>Hello</em>' }}", undefined, {
         autoEscape: true,
-      }).renderSync()
+      }).renderSync(),
     ).toBe("<em>Hello</em>");
   });
 
@@ -72,14 +72,14 @@ describe("HTML auto escape", () => {
           "{% endcapture %}" +
           "{{ foo }}",
         undefined,
-        { autoEscape: true }
+        { autoEscape: true },
       ).renderSync({
         thing: '<script>alert("XSS!");</script>',
-      })
+      }),
     ).toBe(
       '<p class="foo">' +
         "&lt;script&gt;alert(&#34;XSS!&#34;);&lt;/script&gt;" +
-        "</p>"
+        "</p>",
     );
   });
 
@@ -87,7 +87,7 @@ describe("HTML auto escape", () => {
     expect(
       Template.from("{{ thing }}", undefined, { autoEscape: true }).renderSync({
         thing: new MockDrop(),
-      })
+      }),
     ).toBe("<em>HELLO</em>");
   });
 });
@@ -474,7 +474,7 @@ describe("auto escape with string filters", () => {
         const template = env.fromString(source);
         const result = await template.render(globals);
         expect(result).toBe(want);
-      }
+      },
     );
   });
 
@@ -484,7 +484,7 @@ describe("auto escape with string filters", () => {
       async ({ source, globals, want }: Case) => {
         const template = env.fromString(source);
         expect(template.renderSync(globals)).toBe(want);
-      }
+      },
     );
   });
 });
@@ -548,7 +548,7 @@ describe("auto escape with array filters", () => {
         const template = env.fromString(source);
         const result = await template.render(globals);
         expect(result).toBe(want);
-      }
+      },
     );
   });
 
@@ -558,7 +558,7 @@ describe("auto escape with array filters", () => {
       async ({ source, globals, want }: Case) => {
         const template = env.fromString(source);
         expect(template.renderSync(globals)).toBe(want);
-      }
+      },
     );
   });
 });
@@ -647,7 +647,7 @@ describe("auto escape with the tablerow tag", () => {
         const template = env.fromString(source);
         const result = await template.render(globals);
         expect(result).toBe(want);
-      }
+      },
     );
   });
 
@@ -657,7 +657,7 @@ describe("auto escape with the tablerow tag", () => {
       async ({ source, globals, want }: Case) => {
         const template = env.fromString(source);
         expect(template.renderSync(globals)).toBe(want);
-      }
+      },
     );
   });
 });
@@ -692,7 +692,7 @@ describe("auto escape with the liquid tag", () => {
         const template = env.fromString(source);
         const result = await template.render(globals);
         expect(result).toBe(want);
-      }
+      },
     );
   });
 
@@ -702,7 +702,7 @@ describe("auto escape with the liquid tag", () => {
       async ({ source, globals, want }: Case) => {
         const template = env.fromString(source);
         expect(template.renderSync(globals)).toBe(want);
-      }
+      },
     );
   });
 });

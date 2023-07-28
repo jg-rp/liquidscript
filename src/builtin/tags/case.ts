@@ -60,7 +60,7 @@ export class CaseTag implements Tag {
     stream.expect(TOKEN_EXPRESSION);
     const _case = this.parse_case_expression(
       stream.current.value,
-      stream.current.index
+      stream.current.index,
     );
     stream.next();
 
@@ -81,22 +81,22 @@ export class CaseTag implements Tag {
 
       const whenExprs = this.parse_when_expression(
         stream.current.value,
-        stream.current.index
+        stream.current.index,
       ).map(
-        (expr) => new BooleanExpression(new InfixExpression(_case, "==", expr))
+        (expr) => new BooleanExpression(new InfixExpression(_case, "==", expr)),
       );
 
       const whenBlock = parser.parseBlock(
         stream,
         CaseTag.END_WHEN_BLOCK,
-        stream.next()
+        stream.next(),
       );
       whens.push(
         ...whenExprs.map((expr) => ({
           token: whenToken,
           condition: expr,
           block: whenBlock,
-        }))
+        })),
       );
     }
 
@@ -108,7 +108,7 @@ export class CaseTag implements Tag {
       return new this.nodeClass(
         token,
         whens,
-        parser.parseBlock(stream, CaseTag.END_CASE_BLOCK, stream.next())
+        parser.parseBlock(stream, CaseTag.END_CASE_BLOCK, stream.next()),
       );
     }
 
@@ -118,14 +118,14 @@ export class CaseTag implements Tag {
 
   protected parse_case_expression(
     expr: string,
-    startIndex: number
+    startIndex: number,
   ): Expression {
     return parse(new ExpressionTokenStream(tokenize(expr, startIndex)));
   }
 
   protected parse_when_expression(
     expr: string,
-    startIndex: number
+    startIndex: number,
   ): Expression[] {
     const expressions: Expression[] = [];
     const stream = new ExpressionTokenStream(tokenize(expr, startIndex));
@@ -149,14 +149,14 @@ export class CaseNode implements Node {
   constructor(
     readonly token: Token,
     readonly whens: ConditionalAlternative[],
-    readonly default_?: BlockNode
+    readonly default_?: BlockNode,
   ) {
     this.forceOutput = forcedOutput(this);
   }
 
   public async render(
     context: RenderContext,
-    out: RenderStream
+    out: RenderStream,
   ): Promise<void> {
     const buf = context.environment.renderStreamFactory(out);
     let rendered = false;
@@ -205,7 +205,7 @@ export class CaseNode implements Node {
         token: alt.token,
         node: alt.block,
         expression: alt.condition,
-      })
+      }),
     );
     if (this.default_ !== undefined)
       _children.push({ token: this.default_.token, node: this.default_ });

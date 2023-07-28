@@ -21,7 +21,7 @@ describe("example toLiquid", () => {
 
   test("lazy load object", async () => {
     const template = Template.from(
-      "Hello, {{ user.firstName }} {{ user.lastName }}!"
+      "Hello, {{ user.firstName }} {{ user.lastName }}!",
     );
     const result = await template.render({ user: new LazyUserDrop("abc123") });
     expect(result).toBe("Hello, John Smith!");
@@ -29,7 +29,7 @@ describe("example toLiquid", () => {
 
   test("assign lazy loaded object", async () => {
     const template = Template.from(
-      "{% assign some_user = user %}Hello, {{ some_user.firstName }} {{ some_user.lastName }}!"
+      "{% assign some_user = user %}Hello, {{ some_user.firstName }} {{ some_user.lastName }}!",
     );
     const result = await template.render({ user: new LazyUserDrop("abc123") });
     expect(result).toBe("Hello, John Smith!");

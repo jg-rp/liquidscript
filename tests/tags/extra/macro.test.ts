@@ -10,7 +10,7 @@ describe("call a macro", () => {
 
   test("basic macro", () => {
     const template = env.fromString(
-      "{% macro 'func' %}Hello, World!{% endmacro %}"
+      "{% macro 'func' %}Hello, World!{% endmacro %}",
     );
     expect(template.renderSync()).toBe("");
     expect(template.render()).resolves.toBe("");
@@ -18,7 +18,7 @@ describe("call a macro", () => {
 
   test("call basic macro", () => {
     const template = env.fromString(
-      "{% macro 'func' %}Hello, World!{% endmacro %}{% call 'func' %}"
+      "{% macro 'func' %}Hello, World!{% endmacro %}{% call 'func' %}",
     );
     expect(template.renderSync()).toBe("Hello, World!");
     expect(template.render()).resolves.toBe("Hello, World!");
@@ -26,7 +26,7 @@ describe("call a macro", () => {
 
   test("unquoted macro names are ok", () => {
     const template = env.fromString(
-      "{% macro func %}Hello, World!{% endmacro %}{% call func %}"
+      "{% macro func %}Hello, World!{% endmacro %}{% call func %}",
     );
     expect(template.renderSync()).toBe("Hello, World!");
     expect(template.render()).resolves.toBe("Hello, World!");
@@ -36,7 +36,7 @@ describe("call a macro", () => {
     const template = env.fromString(
       "{% macro 'func' %}Hello, World!{% endmacro %}" +
         "{% call 'func' %}" +
-        "{% call 'func' %}"
+        "{% call 'func' %}",
     );
     expect(template.renderSync()).toBe("Hello, World!Hello, World!");
     expect(template.render()).resolves.toBe("Hello, World!Hello, World!");
@@ -46,7 +46,7 @@ describe("call a macro", () => {
     const template = env.fromString(
       "{% macro 'func' you %}Hello, {{ you }}!{% endmacro %}" +
         "{% call 'func' 'you' %} " +
-        "{% call 'func' 'World' %}"
+        "{% call 'func' 'World' %}",
     );
     expect(template.renderSync()).toBe("Hello, you! Hello, World!");
     expect(template.render()).resolves.toBe("Hello, you! Hello, World!");
@@ -56,7 +56,7 @@ describe("call a macro", () => {
     const template = env.fromString(
       "{% macro 'func' you: 'brian' %}Hello, {{ you }}!{% endmacro %}" +
         "{% call 'func' %} " +
-        "{% call 'func' 'World' %}"
+        "{% call 'func' 'World' %}",
     );
     expect(template.renderSync()).toBe("Hello, brian! Hello, World!");
     expect(template.render()).resolves.toBe("Hello, brian! Hello, World!");
@@ -68,7 +68,7 @@ describe("call a macro", () => {
         "{% if foo %}Hello, World!{% endif %}" +
         "{% endmacro %}" +
         "{% call 'func' %}" +
-        "{% call 'func' foo: true %}"
+        "{% call 'func' foo: true %}",
     );
     expect(template.renderSync()).toBe("Hello, World!");
     expect(template.render()).resolves.toBe("Hello, World!");
@@ -80,7 +80,7 @@ describe("call a macro", () => {
         "{{ greeting }}, World!" +
         "{% endmacro %}" +
         "{% call 'func' %}" +
-        "{% call 'func' greeting: 'Goodbye' %}"
+        "{% call 'func' greeting: 'Goodbye' %}",
     );
     const data = { foo: { bar: "Hello" } };
     expect(template.renderSync(data)).toBe("Hello, World!Goodbye, World!");
@@ -92,7 +92,7 @@ describe("call a macro", () => {
       "{% macro 'func' %}" +
         "{{ args | join: '-' }}" +
         "{% endmacro %}" +
-        "{% call 'func' 1, 2 %}"
+        "{% call 'func' 1, 2 %}",
     );
     expect(template.renderSync()).toBe("1-2");
     expect(template.render()).resolves.toBe("1-2");
@@ -105,7 +105,7 @@ describe("call a macro", () => {
         "{{ arg[0] }} => {{ arg[1] }}, " +
         "{% endfor %}" +
         "{% endmacro %}" +
-        "{% call 'func', a: 1, b: 2 %}"
+        "{% call 'func', a: 1, b: 2 %}",
     );
     expect(template.renderSync()).toBe("a => 1, b => 2, ");
     expect(template.render()).resolves.toBe("a => 1, b => 2, ");
@@ -116,7 +116,7 @@ describe("call a macro", () => {
       "{% macro 'func', foo %}" +
         "{{ foo }}" +
         "{% endmacro %}" +
-        "{% call 'func' %}"
+        "{% call 'func' %}",
     );
     expect(template.renderSync()).toBe("");
     expect(template.render()).resolves.toBe("");
@@ -134,7 +134,7 @@ describe("call a macro", () => {
         "{{ greeting }}, {{ you }}!" +
         "{% endmacro %}" +
         "{% call 'func' %} " +
-        "{% call 'func' you: 'World', greeting: 'Goodbye' %}"
+        "{% call 'func' you: 'World', greeting: 'Goodbye' %}",
     );
     expect(template.renderSync()).toBe(", brian! Goodbye, World!");
     expect(template.render()).resolves.toBe(", brian! Goodbye, World!");
@@ -151,7 +151,7 @@ describe("call a macro with strict variables", () => {
       "{% macro 'func', foo %}" +
         "{{ foo }}" +
         "{% endmacro %}" +
-        "{% call 'func' %}"
+        "{% call 'func' %}",
     );
     expect(() => template.renderSync()).toThrow(LiquidUndefinedError);
   });

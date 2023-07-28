@@ -13,7 +13,7 @@ describe("add a filter", () => {
 
     // Before adding the filter
     expect(() => template.renderSync({ obj: { a: 1 } })).toThrow(
-      NoSuchFilterError
+      NoSuchFilterError,
     );
 
     // Add the filter

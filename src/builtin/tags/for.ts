@@ -52,7 +52,7 @@ export class ForTag implements Tag {
     const block = environment.parser.parseBlock(
       stream,
       ForTag.ENDFORBLOCK,
-      token
+      token,
     );
 
     let _default: BlockNode | undefined = undefined;
@@ -64,7 +64,7 @@ export class ForTag implements Tag {
       _default = environment.parser.parseBlock(
         stream,
         ForTag.ENDFORELSEBLOCK,
-        stream.next()
+        stream.next(),
       );
     }
 
@@ -119,7 +119,7 @@ export class ForNode implements Node {
     readonly token: Token,
     readonly expression: LoopExpression,
     readonly block: BlockNode,
-    readonly default_?: BlockNode
+    readonly default_?: BlockNode,
   ) {
     this.forceOutput = forcedOutput(this);
   }
@@ -127,7 +127,7 @@ export class ForNode implements Node {
   // eslint-disable-next-line sonarjs/cognitive-complexity
   public async render(
     context: RenderContext,
-    out: RenderStream
+    out: RenderStream,
   ): Promise<void> {
     const [it, length] = await this.expression.evaluate(context);
     // This intermediate buffer is used to detect and possibly
@@ -145,7 +145,7 @@ export class ForNode implements Node {
         length,
         context.forLoops.length
           ? context.forLoops[context.forLoops.length - 1]
-          : context.environment.undefinedFactory("parentloop")
+          : context.environment.undefinedFactory("parentloop"),
       );
 
       context.raiseForLoopLimit(forloop.length);
@@ -196,7 +196,7 @@ export class ForNode implements Node {
         length,
         context.forLoops.length
           ? context.forLoops[context.forLoops.length - 1]
-          : context.environment.undefinedFactory("parentloop")
+          : context.environment.undefinedFactory("parentloop"),
       );
 
       context.raiseForLoopLimit(forloop.length);

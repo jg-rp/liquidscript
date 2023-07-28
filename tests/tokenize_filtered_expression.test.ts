@@ -398,11 +398,11 @@ describe("standard filtered expression lexer", () => {
     "$description",
     ({ text, want }: Case) => {
       const _want = want.map(
-        (t) => new Token(t.kind, t.value, t.index || 0, text)
+        (t) => new Token(t.kind, t.value, t.index || 0, text),
       );
       const tokens = Array.from(tokenize(text));
       expect(tokens).toStrictEqual(_want);
-    }
+    },
   );
 });
 
@@ -414,7 +414,7 @@ describe("conditional filtered expression lexer", () => {
   ];
   test.each<Case>(testCases)("$description", ({ text, want }: Case) => {
     const _want = want.map(
-      (t) => new Token(t.kind, t.value, t.index || 0, text)
+      (t) => new Token(t.kind, t.value, t.index || 0, text),
     );
     const tokens = Array.from(tokenizeConditional(text));
     expect(tokens).toStrictEqual(_want);
@@ -431,7 +431,7 @@ describe("extended conditional filtered expression lexer", () => {
   ];
   test.each<Case>(testCases)("$description", ({ text, want }: Case) => {
     const _want = want.map(
-      (t) => new Token(t.kind, t.value, t.index || 0, text)
+      (t) => new Token(t.kind, t.value, t.index || 0, text),
     );
     const tokens = Array.from(tokenizeConditionalWithParens(text));
     const tokenKinds = new Set(want.map((t) => t.kind));

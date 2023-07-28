@@ -19,18 +19,21 @@ export class IfChangedTag implements Tag {
       environment.parser.parseBlock(
         stream,
         IfChangedTag.END_IFCHANGED_BLOCK,
-        token
-      )
+        token,
+      ),
     );
   }
 }
 
 export class IfChangedNode implements Node {
-  constructor(readonly token: Token, readonly block: BlockNode) {}
+  constructor(
+    readonly token: Token,
+    readonly block: BlockNode,
+  ) {}
 
   public async render(
     context: RenderContext,
-    out: RenderStream
+    out: RenderStream,
   ): Promise<void> {
     const buf = context.environment.renderStreamFactory(out);
     await this.block.render(context, buf);

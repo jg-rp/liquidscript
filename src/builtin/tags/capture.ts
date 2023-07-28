@@ -23,7 +23,7 @@ export class CaptureTag implements Tag {
     if (!CaptureTag.RE_CAPTURE.test(stream.current.value)) {
       throw new LiquidSyntaxError(
         `invalid capture identifier '${stream.current.value}'`,
-        token
+        token,
       );
     }
 
@@ -31,7 +31,11 @@ export class CaptureTag implements Tag {
     return new this.nodeClass(
       token,
       name,
-      environment.parser.parseBlock(stream, CaptureTag.END_CAPTURE_BLOCK, token)
+      environment.parser.parseBlock(
+        stream,
+        CaptureTag.END_CAPTURE_BLOCK,
+        token,
+      ),
     );
   }
 }
@@ -41,7 +45,7 @@ export class CaptureNode implements Node {
   constructor(
     readonly token: Token,
     readonly name: string,
-    readonly block: BlockNode
+    readonly block: BlockNode,
   ) {}
 
   protected assign(context: RenderContext, buffer: RenderStream): void {
@@ -52,7 +56,7 @@ export class CaptureNode implements Node {
 
   public async render(
     context: RenderContext,
-    out: RenderStream
+    out: RenderStream,
   ): Promise<void> {
     const buf = context.environment.renderStreamFactory(out);
     await this.block.render(context, buf);

@@ -66,14 +66,14 @@ describe("node file system loader", () => {
     const loader = new NodeFileSystemLoader("tests/fixtures/templates");
     const env = new Environment({ loader });
     expect(() => env.getTemplateSync("nosuchthing.liquid")).toThrow(
-      TemplateNotFoundError
+      TemplateNotFoundError,
     );
   });
   test("async template not found", async () => {
     const loader = new NodeFileSystemLoader("tests/fixtures/templates");
     const env = new Environment({ loader });
     expect(
-      async () => await env.getTemplate("nosuchthing.liquid")
+      async () => await env.getTemplate("nosuchthing.liquid"),
     ).rejects.toThrow(TemplateNotFoundError);
   });
   test("synchronously load a template with default file extension", () => {
@@ -98,27 +98,27 @@ describe("node file system loader", () => {
     const loader = new NodeFileSystemLoader("tests/fixtures/templates");
     const env = new Environment({ loader });
     expect(() => env.getTemplateSync("../private.liquid")).toThrow(
-      TemplateNotFoundError
+      TemplateNotFoundError,
     );
     expect(() => env.getTemplateSync("foo/../../private.liquid")).toThrow(
-      TemplateNotFoundError
+      TemplateNotFoundError,
     );
   });
   test("async don't escape template search path", async () => {
     const loader = new NodeFileSystemLoader("tests/fixtures/templates");
     const env = new Environment({ loader });
     expect(
-      async () => await env.getTemplate("../private.liquid")
+      async () => await env.getTemplate("../private.liquid"),
     ).rejects.toThrow(TemplateNotFoundError);
     expect(
-      async () => await env.getTemplate("foo../../private.liquid")
+      async () => await env.getTemplate("foo../../private.liquid"),
     ).rejects.toThrow(TemplateNotFoundError);
   });
   test("sync don't search absolute paths", () => {
     const loader = new NodeFileSystemLoader("tests/fixtures/templates");
     const env = new Environment({ loader });
     expect(() => env.getTemplateSync("/tmp/private.liquid")).toThrow(
-      TemplateNotFoundError
+      TemplateNotFoundError,
     );
   });
 });

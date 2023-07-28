@@ -216,18 +216,21 @@ export class FloatLiteral extends Literal<Float> {
 }
 
 export class RangeLiteral implements Expression {
-  constructor(readonly start: Expression, readonly stop: Expression) {}
+  constructor(
+    readonly start: Expression,
+    readonly stop: Expression,
+  ) {}
 
   public async evaluate(context: RenderContext): Promise<Range> {
     let start = Number(
       this.start instanceof Literal
         ? this.start.evaluateSync(context)
-        : await this.start.evaluate(context)
+        : await this.start.evaluate(context),
     );
     let stop = Number(
       this.stop instanceof Literal
         ? this.stop.evaluateSync(context)
-        : await this.stop.evaluate(context)
+        : await this.stop.evaluate(context),
     );
     if (isNaN(start.valueOf())) start = 0;
     if (isNaN(stop.valueOf())) stop = 0;
@@ -270,7 +273,10 @@ export class IdentifierPathElement extends Literal<number | string> {
 export type IdentifierPath = Array<IdentifierPathElement | Identifier>;
 
 export class Identifier implements Expression {
-  constructor(readonly root: string | null, readonly path: IdentifierPath) {}
+  constructor(
+    readonly root: string | null,
+    readonly path: IdentifierPath,
+  ) {}
 
   public equals(other: unknown): boolean {
     return (
@@ -360,7 +366,7 @@ export class ExpressionFilter {
   constructor(
     readonly name: string,
     readonly args: Expression[] = [],
-    readonly kwargs: Map<string, Expression> = new Map()
+    readonly kwargs: Map<string, Expression> = new Map(),
   ) {}
 
   public toString() {
@@ -379,13 +385,13 @@ export class ExpressionFilter {
       this.args.map(async (arg) =>
         arg instanceof Literal
           ? arg.evaluateSync(context)
-          : await arg.evaluate(context)
-      )
+          : await arg.evaluate(context),
+      ),
     );
   }
 
   public async evalKeywordArgs(
-    context: RenderContext
+    context: RenderContext,
   ): Promise<{ [index: string]: unknown }> {
     const kwargs: { [index: string]: unknown } = {};
     for (const [key, value] of this.kwargs.entries()) {
@@ -415,7 +421,7 @@ export class ExpressionFilter {
 export class FilteredExpression implements Expression {
   constructor(
     readonly expression: Expression,
-    readonly filters: ExpressionFilter[] = []
+    readonly filters: ExpressionFilter[] = [],
   ) {}
 
   public equals(other: unknown): boolean {
@@ -435,7 +441,7 @@ export class FilteredExpression implements Expression {
   protected async applyFilters(
     left: unknown,
     filters: ExpressionFilter[],
-    context: RenderContext
+    context: RenderContext,
   ): Promise<unknown> {
     let result = left;
     for (const filter of filters) {
@@ -448,7 +454,7 @@ export class FilteredExpression implements Expression {
       try {
         result = _filter.apply(
           { context, options: await filter.evalKeywordArgs(context) },
-          [result, ...(await filter.evalArgs(context))]
+          [result, ...(await filter.evalArgs(context))],
         );
       } catch (error) {
         if (error instanceof FilterValueError) continue;
@@ -464,7 +470,7 @@ export class FilteredExpression implements Expression {
   protected applyFiltersSync(
     left: unknown,
     filters: ExpressionFilter[],
-    context: RenderContext
+    context: RenderContext,
   ): unknown {
     let result = left;
     for (const filter of filters) {
@@ -477,7 +483,7 @@ export class FilteredExpression implements Expression {
       try {
         result = _filter.apply(
           { context, options: filter.evalKeywordArgsSync(context) },
-          [result, ...filter.evalArgsSync(context)]
+          [result, ...filter.evalArgsSync(context)],
         );
       } catch (error) {
         if (error instanceof FilterValueError) continue;
@@ -522,7 +528,7 @@ export class ConditionalExpression extends FilteredExpression {
     readonly expression: Expression,
     readonly filters: ExpressionFilter[] = [],
     readonly condition: Expression = NIL,
-    readonly alternative: Expression = NIL
+    readonly alternative: Expression = NIL,
   ) {
     super(expression, filters);
   }
@@ -612,7 +618,10 @@ export class ConditionalExpression extends FilteredExpression {
 }
 
 export class PrefixExpression implements Expression {
-  constructor(readonly operator: string, readonly right: Expression) {}
+  constructor(
+    readonly operator: string,
+    readonly right: Expression,
+  ) {}
 
   public equals(other: unknown): boolean {
     return (
@@ -651,7 +660,7 @@ export class InfixExpression implements Expression {
   constructor(
     readonly left: Expression,
     readonly operator: string,
-    readonly right: Expression
+    readonly right: Expression,
   ) {}
 
   public equals(other: unknown): boolean {
@@ -675,7 +684,7 @@ export class InfixExpression implements Expression {
       this.operator,
       this.right instanceof Literal
         ? this.right.evaluateSync(context)
-        : await this.right.evaluate(context)
+        : await this.right.evaluate(context),
     );
   }
 
@@ -683,7 +692,7 @@ export class InfixExpression implements Expression {
     return compare(
       this.left.evaluateSync(context),
       this.operator,
-      this.right.evaluateSync(context)
+      this.right.evaluateSync(context),
     );
   }
 
@@ -733,7 +742,7 @@ export class LoopExpression implements Expression {
     readonly limit?: LoopArgument,
     readonly offset?: LoopArgument | Continue,
     readonly cols?: LoopArgument,
-    readonly reversed: boolean = false
+    readonly reversed: boolean = false,
   ) {}
 
   public equals(other: unknown): boolean {
@@ -769,7 +778,7 @@ export class LoopExpression implements Expression {
     }
     throw new InternalTypeError(
       `expected an iterable object, at ${this.iterable}, ` +
-        `found ${typeof this.iterable}`
+        `found ${typeof this.iterable}`,
     );
   }
 
@@ -791,7 +800,7 @@ export class LoopExpression implements Expression {
     it: Iterable<unknown>,
     length: number,
     limit: unknown,
-    offset: unknown
+    offset: unknown,
   ): [Iterator<unknown>, number] {
     const offsets = context.getRegister(For);
     const _name = `${this.name}-${this.iterable}`;
@@ -810,7 +819,7 @@ export class LoopExpression implements Expression {
       _length -= offset.valueOf();
     } else if (offset !== undefined) {
       throw new InternalTypeError(
-        `loop offset must be an integer, found '${offset}'`
+        `loop offset must be an integer, found '${offset}'`,
       );
     }
 
@@ -822,7 +831,7 @@ export class LoopExpression implements Expression {
       _it = this.take(_it, _length);
     } else if (limit !== undefined) {
       throw new InternalTypeError(
-        `loop limit must be an integer, found '${limit}'`
+        `loop limit must be an integer, found '${limit}'`,
       );
     }
 
@@ -836,7 +845,7 @@ export class LoopExpression implements Expression {
   }
 
   public async evaluate(
-    context: RenderContext
+    context: RenderContext,
   ): Promise<[Iterator<unknown>, number]> {
     const [it, length] = this.toIter(await this.iterable.evaluate(context));
     return this.limitAndOffset(
@@ -844,7 +853,7 @@ export class LoopExpression implements Expression {
       this.reversed ? Array.from(it).reverse() : it,
       length,
       await this.limit?.evaluate(context),
-      await this.offset?.evaluate(context)
+      await this.offset?.evaluate(context),
     );
   }
 
@@ -855,7 +864,7 @@ export class LoopExpression implements Expression {
       this.reversed ? Array.from(it).reverse() : it,
       length,
       this.limit?.evaluateSync(context),
-      this.offset?.evaluateSync(context)
+      this.offset?.evaluateSync(context),
     );
   }
 
@@ -907,7 +916,7 @@ function compare(left: unknown, operator: string, right: unknown): boolean {
         return _left.gte(right);
     }
     throw new InternalTypeError(
-      `invalid operator '${left} ${operator} ${right}'`
+      `invalid operator '${left} ${operator} ${right}'`,
     );
   }
 
@@ -953,7 +962,7 @@ function compare(left: unknown, operator: string, right: unknown): boolean {
   if (left instanceof Undefined || right instanceof Undefined) return false;
 
   throw new InternalTypeError(
-    `invalid comparison operator '${left} ${operator} ${right}'`
+    `invalid comparison operator '${left} ${operator} ${right}'`,
   );
 }
 /**

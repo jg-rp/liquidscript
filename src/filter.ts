@@ -26,17 +26,17 @@ export function checkArguments(n: number, max: number, min?: number): void {
   if (n > max) {
     if (max === 0) {
       throw new FilterArgumentError(
-        `too many arguments, expected 0, but got ${n}`
+        `too many arguments, expected 0, but got ${n}`,
       );
     }
     throw new FilterArgumentError(
-      `too many arguments, expected at most ${max}, but got ${n}`
+      `too many arguments, expected at most ${max}, but got ${n}`,
     );
   }
 
   if (min !== undefined && n < min)
     throw new FilterArgumentError(
-      `missing argument, expected at least ${min}, but got ${n}`
+      `missing argument, expected at least ${min}, but got ${n}`,
     );
 }
 

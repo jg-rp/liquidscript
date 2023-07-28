@@ -64,7 +64,7 @@ describe("read only chain map", () => {
         ["x", 10],
         ["y", 9],
         ["a", 42],
-      ])
+      ]),
     );
 
     expect(chain["x"]).toBe(10);

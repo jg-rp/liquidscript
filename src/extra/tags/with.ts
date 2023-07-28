@@ -22,7 +22,7 @@ import { ContextScope } from "../../types";
 // Reuse the tokenizer from the built-in `include` tag, but with some different keywords.
 const tokenize = makeTokenizer(
   RE,
-  new Set([TOKEN_TRUE, TOKEN_FALSE, TOKEN_NIL, TOKEN_NULL])
+  new Set([TOKEN_TRUE, TOKEN_FALSE, TOKEN_NIL, TOKEN_NULL]),
 );
 
 const TAG_ENDWITH = "endwith";
@@ -52,7 +52,7 @@ export class WithTag implements Tag {
   protected parseExpression(expressionToken: Token): Arguments {
     const args: Arguments = {};
     const eStream = new ExpressionTokenStream(
-      tokenize(expressionToken.value, expressionToken.index)
+      tokenize(expressionToken.value, expressionToken.index),
     );
 
     while (eStream.current.kind !== TOKEN_EOF) {
@@ -66,7 +66,7 @@ export class WithTag implements Tag {
   }
 
   protected parseArgument(
-    eStream: ExpressionTokenStream
+    eStream: ExpressionTokenStream,
   ): [string, Expression] {
     const key = parseUnchainedIdentifier(eStream).toString();
     eStream.next();
@@ -82,7 +82,7 @@ export class WithNode implements Node {
   constructor(
     readonly token: Token,
     readonly args: Arguments,
-    readonly block: BlockNode
+    readonly block: BlockNode,
   ) {}
 
   async render(context: RenderContext, out: RenderStream): Promise<void> {
@@ -98,7 +98,7 @@ export class WithNode implements Node {
       Object.entries(this.args).map(([key, value]) => [
         key,
         value.evaluateSync(context),
-      ])
+      ]),
     );
     context.extendSync(scope, () => this.block.renderSync(context, out));
   }

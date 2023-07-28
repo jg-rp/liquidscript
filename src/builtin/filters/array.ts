@@ -39,14 +39,14 @@ import { Markup } from "../drops/markup";
 export function join(
   this: FilterContext,
   left: unknown,
-  separator?: unknown
+  separator?: unknown,
 ): string | Markup {
   checkArguments(arguments.length, 1);
   if (this.context.environment.autoEscape) {
     const _separator = separator === undefined ? new Markup(" ") : separator;
     if (_separator instanceof Markup)
       return new Markup(
-        inputArray(left).map(Markup.escape).join(_separator[toLiquidString]())
+        inputArray(left).map(Markup.escape).join(_separator[toLiquidString]()),
       );
   }
 
@@ -107,7 +107,7 @@ export function last(this: FilterContext, left: unknown): unknown {
 export function compact(
   this: FilterContext,
   left: unknown,
-  prop?: unknown
+  prop?: unknown,
 ): unknown[] {
   checkArguments(arguments.length, 1);
   if (prop === undefined)
@@ -130,7 +130,7 @@ export function compact(
 export function concat(
   this: FilterContext,
   left: unknown,
-  arg: unknown
+  arg: unknown,
 ): unknown[] {
   checkArguments(arguments.length, 1, 1);
   if (!isArray(arg))
@@ -151,7 +151,7 @@ export function concat(
 export function map(
   this: FilterContext,
   left: unknown,
-  key: unknown
+  key: unknown,
 ): unknown[] {
   checkArguments(arguments.length, 1, 1);
   if (!isIterable(left)) {
@@ -183,7 +183,7 @@ export function reverse(this: FilterContext, left: unknown): unknown[] {
 export function sort(
   this: FilterContext,
   left: unknown,
-  key?: unknown
+  key?: unknown,
 ): unknown[] {
   checkArguments(arguments.length, 1);
   if (isUndefined(key)) {
@@ -191,7 +191,7 @@ export function sort(
   }
 
   return Array.from(inputArray(left)).sort((a, b) =>
-    compare(getItem(a, key), getItem(b, key))
+    compare(getItem(a, key), getItem(b, key)),
   );
 }
 
@@ -206,7 +206,7 @@ export function sort(
 export function sortNatural(
   this: FilterContext,
   left: unknown,
-  key?: unknown
+  key?: unknown,
 ): unknown[] {
   checkArguments(arguments.length, 1);
   if (isUndefined(key)) {
@@ -214,7 +214,7 @@ export function sortNatural(
   }
 
   return Array.from(inputArray(left)).sort((a, b) =>
-    naturalCompare(getItem(a, key), getItem(b, key))
+    naturalCompare(getItem(a, key), getItem(b, key)),
   );
 }
 
@@ -229,7 +229,7 @@ export function sortNatural(
 export function uniq(
   this: FilterContext,
   left: unknown,
-  prop?: unknown
+  prop?: unknown,
 ): unknown[] {
   checkArguments(arguments.length, 1);
   const _map = new Map<unknown, unknown>();
@@ -267,7 +267,7 @@ export function where(
   this: FilterContext,
   left: unknown,
   prop: unknown,
-  value?: unknown
+  value?: unknown,
 ): unknown[] {
   checkArguments(arguments.length, 2, 1);
   if (value === null || NIL.equals(value) || isUndefined(value)) {
@@ -338,7 +338,7 @@ function compare(a: unknown, b: unknown): -1 | 0 | 1 {
 
   if (typeof a !== typeof b)
     throw new InternalTypeError(
-      `comparison with ${typeof a} and ${typeof b} failed`
+      `comparison with ${typeof a} and ${typeof b} failed`,
     );
 
   if (isComparable(a) && isComparable(b)) return a < b ? -1 : a > b ? 1 : 0;

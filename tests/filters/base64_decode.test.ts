@@ -29,19 +29,19 @@ describe("base64 encode filter", () => {
     expect(result).toBe(
       "abcdefghijklmnopqrstuvwxyz " +
         "ABCDEFGHIJKLMNOPQRSTUVWXYZ " +
-        "1234567890 !@#$%^&*()-=_+/?.:;[]{}\\|"
+        "1234567890 !@#$%^&*()-=_+/?.:;[]{}\\|",
     );
   });
 
   test("not a string", () => {
     expect(() => base64Decode.apply(filterContext, [5])).toThrow(
-      FilterArgumentError
+      FilterArgumentError,
     );
   });
 
   test("not base64", () => {
     expect(() => base64Decode.apply(filterContext, ["invalidbase64"])).toThrow(
-      FilterArgumentError
+      FilterArgumentError,
     );
   });
 });

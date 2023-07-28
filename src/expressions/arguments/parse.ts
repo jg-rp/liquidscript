@@ -18,7 +18,7 @@ export type Argument = [string, Expression];
 
 export type ArgumentParser = (
   stream: ExpressionTokenStream,
-  separator: string
+  separator: string,
 ) => Argument;
 
 /**
@@ -31,7 +31,7 @@ export type Arguments = {
 export type ArgumentList = Argument[];
 
 export type ArgumentListParser = (
-  stream: ExpressionTokenStream
+  stream: ExpressionTokenStream,
 ) => ArgumentList;
 
 /**
@@ -45,7 +45,7 @@ export type ArgumentListParser = (
  */
 export function makeParseArguments(
   argumentParser: ArgumentParser,
-  separatorTokenKind: string = TOKEN_COLON
+  separatorTokenKind: string = TOKEN_COLON,
 ): ArgumentListParser {
   function _parseArguments(stream: ExpressionTokenStream): ArgumentList {
     const args: ArgumentList = [];
@@ -69,7 +69,7 @@ export function makeParseArguments(
 
 function parseArgument(
   stream: ExpressionTokenStream,
-  separatorTokenKind: string
+  separatorTokenKind: string,
 ): Argument {
   const key = parseUnchainedIdentifier(stream).toString();
   stream.next();
@@ -101,7 +101,7 @@ function parseArgument(
  */
 export function parseArguments(
   stream: ExpressionTokenStream,
-  separatorTokenKind: string = TOKEN_COLON
+  separatorTokenKind: string = TOKEN_COLON,
 ): Arguments {
   const args: Arguments = {};
   // The first keyword argument might follow immediately or after a comma.
@@ -121,17 +121,17 @@ export function parseArguments(
 
 export const parseColonSeparatedArguments = makeParseArguments(
   parseArgument,
-  TOKEN_COLON
+  TOKEN_COLON,
 );
 
 export const parseEqualsSeparatedArguments = makeParseArguments(
   parseArgument,
-  TOKEN_ASSIGN
+  TOKEN_ASSIGN,
 );
 
 function parseMacroArgument(
   stream: ExpressionTokenStream,
-  separatorTokenKind: string
+  separatorTokenKind: string,
 ): Argument {
   const key = parseUnchainedIdentifier(stream).toString();
   let val: Expression;
@@ -149,7 +149,7 @@ function parseMacroArgument(
 
 function parseCallArgument(
   stream: ExpressionTokenStream,
-  separatorTokenKind: string
+  separatorTokenKind: string,
 ): Argument {
   let key: string;
   if (stream.peek.kind === separatorTokenKind) {
@@ -166,7 +166,7 @@ function parseCallArgument(
 
 const _parseMacroArguments = makeParseArguments(
   parseMacroArgument,
-  TOKEN_COLON
+  TOKEN_COLON,
 );
 const _parseCallArguments = makeParseArguments(parseCallArgument, TOKEN_COLON);
 
@@ -192,11 +192,11 @@ const _parseCallArguments = makeParseArguments(parseCallArgument, TOKEN_COLON);
 export function parse(
   expr: string,
   separatorTokenKind: string = TOKEN_COLON,
-  startIndex: number = 1
+  startIndex: number = 1,
 ): Arguments {
   return parseArguments(
     new ExpressionTokenStream(tokenize(expr, startIndex)),
-    separatorTokenKind
+    separatorTokenKind,
   );
 }
 
@@ -210,7 +210,7 @@ function parseMacroName(stream: ExpressionTokenStream): string {
 
   throw new LiquidSyntaxError(
     `invalid macro name '${stream.current.value}'`,
-    stream.current
+    stream.current,
   );
 }
 
@@ -223,7 +223,7 @@ function parseMacroName(stream: ExpressionTokenStream): string {
  */
 export function parseMacroArguments(
   expr: string,
-  startIndex: number = 1
+  startIndex: number = 1,
 ): [string, ArgumentList] {
   const stream = new ExpressionTokenStream(tokenize(expr, startIndex));
   const name = parseMacroName(stream);
@@ -240,7 +240,7 @@ export function parseMacroArguments(
  */
 export function parseCallArguments(
   expr: string,
-  startIndex: number = 1
+  startIndex: number = 1,
 ): [string, ArgumentList] {
   const stream = new ExpressionTokenStream(tokenize(expr, startIndex));
   const name = parseMacroName(stream);

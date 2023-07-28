@@ -7,7 +7,11 @@ import { Token } from "./token";
  * The base class for all user-facing Liquid errors.
  */
 export class LiquidError extends Error {
-  constructor(public message: string, token: Token, templateName?: string) {
+  constructor(
+    public message: string,
+    token: Token,
+    templateName?: string,
+  ) {
     super(message);
     Object.setPrototypeOf(this, LiquidError.prototype);
     if (Error.captureStackTrace) {
@@ -25,7 +29,11 @@ export class LiquidSyntaxError extends LiquidError {
   originalMessage: string;
   token: Token;
 
-  constructor(public message: string, token: Token, templateName?: string) {
+  constructor(
+    public message: string,
+    token: Token,
+    templateName?: string,
+  ) {
     super(message, token);
     Object.setPrototypeOf(this, LiquidSyntaxError.prototype);
 
@@ -42,7 +50,7 @@ export class LiquidSyntaxError extends LiquidError {
     return new LiquidSyntaxError(
       this.originalMessage,
       this.token,
-      templateName
+      templateName,
     );
   }
 }
@@ -51,7 +59,11 @@ export class LiquidSyntaxError extends LiquidError {
  * An error thrown when a tag or filter are given an argument of an unacceptable type.
  */
 export class LiquidTypeError extends LiquidError {
-  constructor(public message: string, token: Token, templateName?: string) {
+  constructor(
+    public message: string,
+    token: Token,
+    templateName?: string,
+  ) {
     super(message, token);
     Object.setPrototypeOf(this, LiquidTypeError.prototype);
 
@@ -67,7 +79,11 @@ export class LiquidTypeError extends LiquidError {
  * An error thrown when there's a problem with a filter's left value.
  */
 export class LiquidFilterValueError extends LiquidError {
-  constructor(public message: string, token: Token, templateName?: string) {
+  constructor(
+    public message: string,
+    token: Token,
+    templateName?: string,
+  ) {
     super(message, token, templateName);
     Object.setPrototypeOf(this, LiquidFilterValueError.prototype);
     if (Error.captureStackTrace) {
@@ -82,7 +98,11 @@ export class LiquidFilterValueError extends LiquidError {
  * An error thrown when there's a problem with one or more filter arguments.
  */
 export class LiquidFilterArgumentError extends LiquidError {
-  constructor(public message: string, token: Token, templateName?: string) {
+  constructor(
+    public message: string,
+    token: Token,
+    templateName?: string,
+  ) {
     super(message, token, templateName);
     Object.setPrototypeOf(this, LiquidFilterArgumentError.prototype);
     if (Error.captureStackTrace) {
@@ -97,7 +117,11 @@ export class LiquidFilterArgumentError extends LiquidError {
  * An error thrown when a template contains an unregistered tag.
  */
 export class NoSuchTagError extends LiquidError {
-  constructor(public message: string, token: Token, templateName?: string) {
+  constructor(
+    public message: string,
+    token: Token,
+    templateName?: string,
+  ) {
     super(message, token);
     Object.setPrototypeOf(this, NoSuchTagError.prototype);
     if (Error.captureStackTrace) {
@@ -112,7 +136,11 @@ export class NoSuchTagError extends LiquidError {
  * An error thrown when a template uses an unregistered filter.
  */
 export class NoSuchFilterError extends LiquidError {
-  constructor(public message: string, token: Token, templateName?: string) {
+  constructor(
+    public message: string,
+    token: Token,
+    templateName?: string,
+  ) {
     super(message, token);
     Object.setPrototypeOf(this, NoSuchFilterError.prototype);
     if (Error.captureStackTrace) {
@@ -127,7 +155,11 @@ export class NoSuchFilterError extends LiquidError {
  * An error thrown when a render context is copied or extended too many times.
  */
 export class ContextDepthError extends LiquidError {
-  constructor(public message: string, token: Token, templateName?: string) {
+  constructor(
+    public message: string,
+    token: Token,
+    templateName?: string,
+  ) {
     super(message, token);
     Object.setPrototypeOf(this, ContextDepthError.prototype);
     if (Error.captureStackTrace) {
@@ -142,7 +174,11 @@ export class ContextDepthError extends LiquidError {
  * An error thrown when a render context's local namespace limit is reached.
  */
 export class LocalNamespaceLimitError extends LiquidError {
-  constructor(public message: string, token: Token, templateName?: string) {
+  constructor(
+    public message: string,
+    token: Token,
+    templateName?: string,
+  ) {
     super(message, token);
     Object.setPrototypeOf(this, LocalNamespaceLimitError.prototype);
     if (Error.captureStackTrace) {
@@ -157,7 +193,11 @@ export class LocalNamespaceLimitError extends LiquidError {
  * An error thrown when the loop iteration limit is reached.
  */
 export class LoopIterationLimitError extends LiquidError {
-  constructor(public message: string, token: Token, templateName?: string) {
+  constructor(
+    public message: string,
+    token: Token,
+    templateName?: string,
+  ) {
     super(message, token);
     Object.setPrototypeOf(this, LoopIterationLimitError.prototype);
     if (Error.captureStackTrace) {
@@ -172,7 +212,11 @@ export class LoopIterationLimitError extends LiquidError {
  * An error thrown when the output stream limit is reached.
  */
 export class OutputStreamLimitError extends LiquidError {
-  constructor(public message: string, token: Token, templateName?: string) {
+  constructor(
+    public message: string,
+    token: Token,
+    templateName?: string,
+  ) {
     super(message, token);
     Object.setPrototypeOf(this, OutputStreamLimitError.prototype);
     if (Error.captureStackTrace) {
@@ -187,7 +231,11 @@ export class OutputStreamLimitError extends LiquidError {
  * An error thrown by the {@link StrictUndefined} class.
  */
 export class LiquidUndefinedError extends LiquidError {
-  constructor(public message: string, token: Token, templateName?: string) {
+  constructor(
+    public message: string,
+    token: Token,
+    templateName?: string,
+  ) {
     super(message, token);
     Object.setPrototypeOf(this, LiquidUndefinedError.prototype);
     if (Error.captureStackTrace) {
@@ -202,7 +250,11 @@ export class LiquidUndefinedError extends LiquidError {
  * An error thrown when a template loader can not locate a template.
  */
 export class NoSuchTemplateError extends LiquidError {
-  constructor(public message: string, token: Token, templateName?: string) {
+  constructor(
+    public message: string,
+    token: Token,
+    templateName?: string,
+  ) {
     super(message, token);
     Object.setPrototypeOf(this, NoSuchTemplateError.prototype);
     if (Error.captureStackTrace) {
@@ -217,7 +269,11 @@ export class NoSuchTemplateError extends LiquidError {
  * An error thrown when a `break` tag appears outside an `if` tag.
  */
 export class OrphanedBreakTagError extends LiquidError {
-  constructor(public message: string, token: Token, templateName?: string) {
+  constructor(
+    public message: string,
+    token: Token,
+    templateName?: string,
+  ) {
     super(message, token);
     Object.setPrototypeOf(this, OrphanedBreakTagError.prototype);
     if (Error.captureStackTrace) {
@@ -232,7 +288,11 @@ export class OrphanedBreakTagError extends LiquidError {
  * An error thrown when a `continue` tag appears outside an `if` tag.
  */
 export class OrphanedContinueTagError extends LiquidError {
-  constructor(public message: string, token: Token, templateName?: string) {
+  constructor(
+    public message: string,
+    token: Token,
+    templateName?: string,
+  ) {
     super(message, token);
     Object.setPrototypeOf(this, OrphanedContinueTagError.prototype);
     if (Error.captureStackTrace) {
@@ -248,7 +308,11 @@ export class OrphanedContinueTagError extends LiquidError {
  * disabled.
  */
 export class DisabledTagError extends LiquidError {
-  constructor(public message: string, token: Token, templateName?: string) {
+  constructor(
+    public message: string,
+    token: Token,
+    templateName?: string,
+  ) {
     super(message, token);
     Object.setPrototypeOf(this, DisabledTagError.prototype);
     if (Error.captureStackTrace) {
@@ -512,7 +576,7 @@ export class ContinueIteration extends LiquidInterrupt {
 function _message(
   message: string,
   token: Token,
-  templateName?: string
+  templateName?: string,
 ): string {
   return `${message} (${templateName || "<string>"}:${token.lineNumber()})`;
 }

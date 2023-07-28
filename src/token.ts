@@ -12,7 +12,7 @@ export class Token {
     readonly kind: string,
     readonly value: string,
     readonly index: number,
-    readonly input: string
+    readonly input: string,
   ) {}
 
   public toString(): string {
@@ -58,7 +58,7 @@ export class TemplateTokenStream implements TokenStream {
       } else {
         throw new LiquidSyntaxError(
           `expected '${kind}', found ${this.current.kind}`,
-          this.current
+          this.current,
         );
       }
     }
@@ -68,13 +68,13 @@ export class TemplateTokenStream implements TokenStream {
     if (this.current.kind !== TOKEN_TAG) {
       throw new LiquidSyntaxError(
         `expected tag '${name}', found '${this.current.kind}'`,
-        this.current
+        this.current,
       );
     }
     if (this.current.value !== name) {
       throw new LiquidSyntaxError(
         `expected '${name}', found '${this.current.value}'`,
-        this.current
+        this.current,
       );
     }
   }

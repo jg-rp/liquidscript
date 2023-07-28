@@ -90,7 +90,7 @@ export function isPrimitiveInteger(value: unknown): value is number {
 }
 
 export function isComparable(
-  value: unknown
+  value: unknown,
 ): value is number | NumberT | string {
   return isNumber(value) || isString(value);
 }

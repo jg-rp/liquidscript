@@ -66,7 +66,7 @@ export class IfTag implements Tag {
         consequence: parser.parseBlock(
           stream,
           IfTag.END_ELSEIF_BLOCK,
-          stream.next()
+          stream.next(),
         ),
       });
     }
@@ -80,7 +80,7 @@ export class IfTag implements Tag {
         condition,
         consequence,
         conditionalAlternatives,
-        parser.parseBlock(stream, IfTag.END_ELSE_BLOCK, stream.next())
+        parser.parseBlock(stream, IfTag.END_ELSE_BLOCK, stream.next()),
       );
     }
 
@@ -88,7 +88,7 @@ export class IfTag implements Tag {
       token,
       condition,
       consequence,
-      conditionalAlternatives
+      conditionalAlternatives,
     );
   }
 }
@@ -100,14 +100,14 @@ export class IfNode implements Node {
     private condition: BooleanExpression,
     private consequence: BlockNode,
     private conditionalAlternatives: ConditionalAlternative[],
-    private alternative?: BlockNode
+    private alternative?: BlockNode,
   ) {
     this.forceOutput = forcedOutput(this);
   }
 
   public async render(
     context: RenderContext,
-    out: RenderStream
+    out: RenderStream,
   ): Promise<void> {
     // This intermediate buffer is used to detect and possibly
     // suppress blocks that, when rendered, contain only whitespace.
@@ -177,7 +177,7 @@ export class IfNode implements Node {
           token: alt.token,
           node: alt.consequence,
           expression: alt.condition,
-        })
+        }),
       ),
     ];
     if (this.alternative !== undefined)

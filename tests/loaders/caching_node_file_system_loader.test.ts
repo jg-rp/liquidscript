@@ -69,14 +69,14 @@ describe("caching node file system loader", () => {
     const loader = new CachingNodeFileSystemLoader("tests/fixtures/templates");
     const env = new Environment({ loader });
     expect(() => env.getTemplateSync("nosuchthing.liquid")).toThrow(
-      TemplateNotFoundError
+      TemplateNotFoundError,
     );
   });
   test("async template not found", async () => {
     const loader = new CachingNodeFileSystemLoader("tests/fixtures/templates");
     const env = new Environment({ loader });
     expect(
-      async () => await env.getTemplate("nosuchthing.liquid")
+      async () => await env.getTemplate("nosuchthing.liquid"),
     ).rejects.toThrow(TemplateNotFoundError);
   });
   test("synchronously load a template with default file extension", () => {
@@ -84,7 +84,7 @@ describe("caching node file system loader", () => {
       "tests/fixtures/templates/",
       {
         fileExtension: ".liquid",
-      }
+      },
     );
     const env = new Environment({ loader });
     const template = env.getTemplateSync("some");
@@ -96,7 +96,7 @@ describe("caching node file system loader", () => {
       "tests/fixtures/templates/",
       {
         fileExtension: ".liquid",
-      }
+      },
     );
     const env = new Environment({ loader });
     const template = await env.getTemplate("some");
@@ -107,14 +107,14 @@ describe("caching node file system loader", () => {
     const loader = new CachingNodeFileSystemLoader("tests/fixtures/templates");
     const env = new Environment({ loader });
     expect(() => env.getTemplateSync("../private.liquid")).toThrow(
-      TemplateNotFoundError
+      TemplateNotFoundError,
     );
   });
   test("async don't escape template search path", async () => {
     const loader = new CachingNodeFileSystemLoader("tests/fixtures/templates");
     const env = new Environment({ loader });
     expect(
-      async () => await env.getTemplate("../private.liquid")
+      async () => await env.getTemplate("../private.liquid"),
     ).rejects.toThrow(TemplateNotFoundError);
   });
   test("cached template", () => {

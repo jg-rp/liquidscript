@@ -55,11 +55,14 @@ export class Root {
  * A block of abstract syntax tree nodes.
  */
 export class BlockNode implements Node {
-  constructor(readonly token: Token, public nodes: Node[] = []) {}
+  constructor(
+    readonly token: Token,
+    public nodes: Node[] = [],
+  ) {}
 
   public async render(
     context: RenderContext,
-    out: RenderStream
+    out: RenderStream,
   ): Promise<void> {
     for (const node of this.nodes) {
       throwForDisabledTag(node, context);
@@ -97,7 +100,7 @@ export class BlockNode implements Node {
       (n): ChildNode => ({
         token: this.token,
         node: n,
-      })
+      }),
     );
   }
 }
@@ -185,7 +188,7 @@ export function forcedOutput(root: Node): boolean {
 export function throwForDisabledTag(
   node: Node,
   context: RenderContext,
-  templateName?: string
+  templateName?: string,
 ): void {
   if (
     !!context.disabledTags.size &&
@@ -195,6 +198,6 @@ export function throwForDisabledTag(
     throw new DisabledTagError(
       `'${node.token.value}' is not allowed in this context`,
       node.token,
-      templateName
+      templateName,
     );
 }

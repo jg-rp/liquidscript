@@ -245,7 +245,7 @@ export class Environment {
       this.statementStartString,
       this.statementEndString,
       this.tagStartString,
-      this.tagEndString
+      this.tagEndString,
     );
 
     this.#tokenize = tokenizerFor(
@@ -253,7 +253,7 @@ export class Environment {
       this.statementStartString,
       this.statementEndString,
       this.tagStartString,
-      this.tagEndString
+      this.tagEndString,
     );
 
     this.#parser = new TemplateParser(this);
@@ -296,7 +296,7 @@ export class Environment {
     name: string,
     globals?: ContextScope,
     context?: RenderContext,
-    loaderContext?: { [index: string]: unknown }
+    loaderContext?: { [index: string]: unknown },
   ): Promise<Template> {
     return this.loader.load(name, this, context, globals, loaderContext);
   }
@@ -309,7 +309,7 @@ export class Environment {
     name: string,
     globals?: ContextScope,
     context?: RenderContext,
-    loaderContext?: { [index: string]: unknown }
+    loaderContext?: { [index: string]: unknown },
   ): Template {
     return this.loader.loadSync(name, this, context, globals, loaderContext);
   }
@@ -328,13 +328,13 @@ export class Environment {
   public fromString(
     source: string,
     globals?: ContextScope,
-    templateContext: TemplateContext = {}
+    templateContext: TemplateContext = {},
   ): Template {
     return new this.templateClass(
       this,
       this.parse(source, templateContext?.name),
       this.makeGlobals(globals),
-      templateContext
+      templateContext,
     );
   }
 
@@ -397,13 +397,13 @@ export class Environment {
     // Update the render stream factory with the new limit.
     this._outputStreamLimit = value;
     this.renderStreamFactory = _makeRenderStreamFactory(
-      this._outputStreamLimit
+      this._outputStreamLimit,
     );
   }
 }
 
 function _makeRenderStreamFactory(
-  limit: number
+  limit: number,
 ): (buf?: RenderStream) => RenderStream {
   return limit > -1
     ? (buf?: RenderStream) => new LimitedRenderStream(limit - (buf?.size ?? 0))

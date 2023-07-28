@@ -11,7 +11,7 @@ describe("parse loop expression", () => {
   test("identifier", () => {
     const expr = parse("product in products");
     expect(expr).toStrictEqual(
-      new LoopExpression("product", new Identifier("products", []))
+      new LoopExpression("product", new Identifier("products", [])),
     );
   });
   test("identifier with literal limit", () => {
@@ -20,8 +20,8 @@ describe("parse loop expression", () => {
       new LoopExpression(
         "product",
         new Identifier("products", []),
-        new IntegerLiteral(new Integer(2))
-      )
+        new IntegerLiteral(new Integer(2)),
+      ),
     );
   });
   test("identifier with variable limit", () => {
@@ -30,8 +30,8 @@ describe("parse loop expression", () => {
       new LoopExpression(
         "product",
         new Identifier("products", []),
-        new Identifier("max", [])
-      )
+        new Identifier("max", []),
+      ),
     );
   });
   test("identifier with literal offset", () => {
@@ -41,8 +41,8 @@ describe("parse loop expression", () => {
         "product",
         new Identifier("products", []),
         undefined,
-        new IntegerLiteral(new Integer(2))
-      )
+        new IntegerLiteral(new Integer(2)),
+      ),
     );
   });
   test("identifier with variable offset", () => {
@@ -52,8 +52,8 @@ describe("parse loop expression", () => {
         "product",
         new Identifier("products", []),
         undefined,
-        new Identifier("skip", [])
-      )
+        new Identifier("skip", []),
+      ),
     );
   });
   test("identifier with offset and limit", () => {
@@ -63,8 +63,8 @@ describe("parse loop expression", () => {
         "product",
         new Identifier("products", []),
         new IntegerLiteral(new Integer(2)),
-        new Identifier("skip", [])
-      )
+        new Identifier("skip", []),
+      ),
     );
   });
   test("reversed", () => {
@@ -76,8 +76,8 @@ describe("parse loop expression", () => {
         undefined,
         undefined,
         undefined,
-        true
-      )
+        true,
+      ),
     );
   });
   test("range literal with literal start and stop", () => {
@@ -87,9 +87,9 @@ describe("parse loop expression", () => {
         "i",
         new RangeLiteral(
           new IntegerLiteral(new Integer(1)),
-          new IntegerLiteral(new Integer(3))
-        )
-      )
+          new IntegerLiteral(new Integer(3)),
+        ),
+      ),
     );
   });
   test("comma separated arguments", () => {
@@ -99,8 +99,8 @@ describe("parse loop expression", () => {
         "i",
         new Identifier("array", []),
         new IntegerLiteral(new Integer(4)),
-        new IntegerLiteral(new Integer(2))
-      )
+        new IntegerLiteral(new Integer(2)),
+      ),
     );
   });
 });

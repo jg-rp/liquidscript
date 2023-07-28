@@ -97,7 +97,7 @@ describe("lax undefined", () => {
         const template = env.fromString(source);
         const result = await template.render(globals);
         expect(result).toBe(want);
-      }
+      },
     );
   });
 
@@ -107,7 +107,7 @@ describe("lax undefined", () => {
       async ({ source, globals, want }: Case) => {
         const template = env.fromString(source);
         expect(template.renderSync(globals)).toBe(want);
-      }
+      },
     );
   });
 });
@@ -199,7 +199,7 @@ describe("strict undefined", () => {
     test.each<Case>(cases)("$description", ({ source, globals }: Case) => {
       const template = env.fromString(source);
       expect(async () => await template.render(globals)).rejects.toThrow(
-        LiquidUndefinedError
+        LiquidUndefinedError,
       );
     });
   });
@@ -210,9 +210,9 @@ describe("strict undefined", () => {
       async ({ source, globals }: Case) => {
         const template = env.fromString(source);
         expect(() => template.renderSync(globals)).toThrow(
-          LiquidUndefinedError
+          LiquidUndefinedError,
         );
-      }
+      },
     );
   });
 });
@@ -274,7 +274,7 @@ describe("strict falsy undefined", () => {
     test.each<Case>(cases)("$description", ({ source, globals }: Case) => {
       const template = env.fromString(source);
       expect(async () => await template.render(globals)).rejects.toThrow(
-        LiquidUndefinedError
+        LiquidUndefinedError,
       );
     });
   });
@@ -285,15 +285,15 @@ describe("strict falsy undefined", () => {
       async ({ source, globals }: Case) => {
         const template = env.fromString(source);
         expect(() => template.renderSync(globals)).toThrow(
-          LiquidUndefinedError
+          LiquidUndefinedError,
         );
-      }
+      },
     );
   });
 
   test("falsy boolean expression", async () => {
     const template = env.fromString(
-      "{% if nosuchthing %}true{% else %}false{% endif %}"
+      "{% if nosuchthing %}true{% else %}false{% endif %}",
     );
     const result = await template.render();
     expect(result).toBe("false");
@@ -302,7 +302,7 @@ describe("strict falsy undefined", () => {
 
   test("boolean comparison", async () => {
     const template = env.fromString(
-      "{% if nosuchthing == 'hello' %}true{% else %}false{% endif %}"
+      "{% if nosuchthing == 'hello' %}true{% else %}false{% endif %}",
     );
     const result = await template.render();
     expect(result).toBe("false");
@@ -311,7 +311,7 @@ describe("strict falsy undefined", () => {
 
   test("boolean contains", async () => {
     const template = env.fromString(
-      "{% if nosuchthing contains 'hello' %}true{% else %}false{% endif %}"
+      "{% if nosuchthing contains 'hello' %}true{% else %}false{% endif %}",
     );
     const result = await template.render();
     expect(result).toBe("false");
@@ -320,7 +320,7 @@ describe("strict falsy undefined", () => {
 
   test("undefined equals undefined", async () => {
     const template = env.fromString(
-      "{% if nosuchthing == noway %}true{% else %}false{% endif %}"
+      "{% if nosuchthing == noway %}true{% else %}false{% endif %}",
     );
     const result = await template.render();
     expect(result).toBe("true");
@@ -336,7 +336,7 @@ describe("strict falsy undefined", () => {
 
   test("undefined default is not false", async () => {
     const template = env.fromString(
-      "{{ nosuchthing | default: 'hello', allow_false: true }}"
+      "{{ nosuchthing | default: 'hello', allow_false: true }}",
     );
     const result = await template.render();
     expect(result).toBe("hello");

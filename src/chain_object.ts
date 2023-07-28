@@ -84,6 +84,6 @@ const chainObjectHandler = {
 export function chainObjects(...objects: object[]): ObjectChain {
   return new Proxy(
     new ChainObject(...objects),
-    chainObjectHandler
+    chainObjectHandler,
   ) as unknown as ObjectChain;
 }

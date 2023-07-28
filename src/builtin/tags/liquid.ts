@@ -45,7 +45,7 @@ type MatchGroups = Readonly<
 >;
 
 function isLiquidExpressionMatch(
-  match: MatchGroups
+  match: MatchGroups,
 ): match is LiquidExpressionMatch {
   return match.LIQUID_EXPR === undefined ? false : true;
 }
@@ -61,7 +61,7 @@ function isIllegalMatch(match: MatchGroups): match is IllegalMatch {
 function* tokenize(
   expr: string,
   startIndex: number = 1,
-  input: string
+  input: string,
 ): Generator<Token> {
   for (const match of expr.matchAll(RE)) {
     const groups = match.groups as MatchGroups;
@@ -70,7 +70,7 @@ function* tokenize(
         TOKEN_TAG,
         groups.name,
         <number>match.index + startIndex,
-        input
+        input,
       );
 
       if (groups.expr)
@@ -78,7 +78,7 @@ function* tokenize(
           TOKEN_EXPRESSION,
           groups.expr,
           <number>match.index + startIndex + groups.preamble.length,
-          input
+          input,
         );
     } else if (isSkipMatch(groups)) {
       continue;
@@ -89,8 +89,8 @@ function* tokenize(
           TOKEN_ILLEGAL,
           groups.TOKEN_ILLEGAL,
           <number>match.index + startIndex,
-          input
-        )
+          input,
+        ),
       );
   }
 }
@@ -110,7 +110,11 @@ export class LiquidTag implements Tag {
 
     stream.expect(TOKEN_EXPRESSION);
     const exprStream = new TemplateTokenStream(
-      tokenize(stream.current.value, stream.current.index, stream.current.input)
+      tokenize(
+        stream.current.value,
+        stream.current.index,
+        stream.current.input,
+      ),
     );
 
     const block = environment.parser.parseLiquid(exprStream);
@@ -119,11 +123,14 @@ export class LiquidTag implements Tag {
 }
 
 export class LiquidNode implements Node {
-  constructor(readonly token: Token, readonly block: BlockNode) {}
+  constructor(
+    readonly token: Token,
+    readonly block: BlockNode,
+  ) {}
 
   public async render(
     context: RenderContext,
-    out: RenderStream
+    out: RenderStream,
   ): Promise<void> {
     await this.block.render(context, out);
   }

@@ -5,7 +5,7 @@ export class DefaultMap<K, V> extends Map<K, V> {
 
   constructor(
     defaultFactory: V | DefaultFactory<V>,
-    entries?: Iterable<[K, V]>
+    entries?: Iterable<[K, V]>,
   ) {
     if (entries !== undefined) {
       super(entries);

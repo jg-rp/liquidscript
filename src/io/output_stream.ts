@@ -36,7 +36,10 @@ export class BufferedRenderStream implements RenderStream {
  */
 export class LimitedRenderStream implements RenderStream {
   public size: number = 0;
-  constructor(private limit: number, private buffer: string[] = []) {}
+  constructor(
+    private limit: number,
+    private buffer: string[] = [],
+  ) {}
 
   write(value: string): void {
     if (value.length) {

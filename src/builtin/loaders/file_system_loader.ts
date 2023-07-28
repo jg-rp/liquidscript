@@ -64,7 +64,7 @@ export class NodeFileSystemLoader extends Loader {
    */
   constructor(
     searchPath: string | string[],
-    { encoding = "utf8", fileExtension = "" }: NodeFileSystemLoaderOptions = {}
+    { encoding = "utf8", fileExtension = "" }: NodeFileSystemLoaderOptions = {},
   ) {
     super();
     this.searchPath = isArray(searchPath) ? searchPath : [searchPath];
@@ -169,7 +169,7 @@ export class CachingNodeFileSystemLoader extends Loader {
       cacheSize = 300,
       encoding = "utf8",
       fileExtension = "",
-    }: CachingNodeFileSystemLoaderOptions = {}
+    }: CachingNodeFileSystemLoaderOptions = {},
   ) {
     super();
     this.searchPath = isArray(searchPath) ? searchPath : [searchPath];
@@ -211,7 +211,7 @@ export class CachingNodeFileSystemLoader extends Loader {
 
   public async getSource(name: string): Promise<TemplateSource> {
     const [templatePath, mtime] = await this.resolve(
-      this.withFileExtension(name)
+      this.withFileExtension(name),
     );
     const source = await fs.readFile(templatePath, { encoding: this.encoding });
 
@@ -226,7 +226,7 @@ export class CachingNodeFileSystemLoader extends Loader {
 
   public getSourceSync(name: string): TemplateSource {
     const [templatePath, mtime] = this.resolveSync(
-      this.withFileExtension(name)
+      this.withFileExtension(name),
     );
     const source = fsCallback.readFileSync(templatePath, {
       encoding: this.encoding,
@@ -238,7 +238,7 @@ export class CachingNodeFileSystemLoader extends Loader {
         templatePath,
         undefined,
         undefined,
-        () => CachingNodeFileSystemLoader.upToDateSync(templatePath, mtime)
+        () => CachingNodeFileSystemLoader.upToDateSync(templatePath, mtime),
       );
     } else {
       return new TemplateSource(source, templatePath);
@@ -250,7 +250,7 @@ export class CachingNodeFileSystemLoader extends Loader {
     environment: Environment,
     context?: RenderContext,
     globals?: ContextScope,
-    loaderContext?: ContextScope
+    loaderContext?: ContextScope,
   ): Promise<Template> {
     const cached = this.#cache.get(name);
     if (!cached || (this.autoReload && !(await cached.isUpToDate()))) {
@@ -273,7 +273,7 @@ export class CachingNodeFileSystemLoader extends Loader {
     environment: Environment,
     context?: RenderContext,
     globals?: ContextScope,
-    loaderContext?: ContextScope
+    loaderContext?: ContextScope,
   ): Template {
     const cached = this.#cache.get(name);
     if (!cached || (this.autoReload && !cached.isUpToDateSync())) {

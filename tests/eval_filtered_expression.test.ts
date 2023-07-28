@@ -393,7 +393,7 @@ describe("eval standard filtered expression", () => {
         expect(expr.evaluateSync(context)).toStrictEqual(want);
         expect(expr.evaluate(context)).resolves.toStrictEqual(want);
       }
-    }
+    },
   );
 });
 
@@ -415,7 +415,7 @@ describe("eval conditional filtered expression", () => {
         expect(expr.evaluateSync(context)).toStrictEqual(want);
         expect(expr.evaluate(context)).resolves.toStrictEqual(want);
       }
-    }
+    },
   );
 });
 
@@ -438,6 +438,6 @@ describe("eval extended conditional filtered expression", () => {
         expect(expr.evaluateSync(context)).toStrictEqual(want);
         expect(expr.evaluate(context)).resolves.toStrictEqual(want);
       }
-    }
+    },
   );
 });

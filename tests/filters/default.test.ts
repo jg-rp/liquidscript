@@ -11,7 +11,7 @@ describe("default filter", () => {
     Object.fromEntries([
       ["a", true],
       ["b", false],
-    ])
+    ]),
   );
   const filterContext: FilterContext = { context: ctx, options: {} };
 

@@ -17,7 +17,7 @@ export abstract class Undefined {
   constructor(
     readonly name: string,
     readonly object?: unknown,
-    readonly hint?: string
+    readonly hint?: string,
   ) {}
 
   public toString(): string {

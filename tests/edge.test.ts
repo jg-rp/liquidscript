@@ -45,7 +45,7 @@ describe("some edge cases", () => {
 
   test("assign a range", () => {
     const template = env.fromString(
-      "{% assign x = (1..3) %}{{ x | join: '#' }}"
+      "{% assign x = (1..3) %}{{ x | join: '#' }}",
     );
     expect(template.renderSync()).toBe("1#2#3");
   });

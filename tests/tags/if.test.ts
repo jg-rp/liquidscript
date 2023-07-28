@@ -125,7 +125,7 @@ describe("built-in if tag", () => {
         const template = env.fromString(source);
         const result = await template.render(globals);
         expect(result).toBe(want);
-      }
+      },
     );
   });
 
@@ -135,7 +135,7 @@ describe("built-in if tag", () => {
       async ({ source, globals, want }: Case) => {
         const template = env.fromString(source);
         expect(template.renderSync(globals)).toBe(want);
-      }
+      },
     );
   });
 });

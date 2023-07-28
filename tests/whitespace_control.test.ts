@@ -36,7 +36,7 @@ describe("built-in comment tag", () => {
   test("strip whitespace around raw tags", async () => {
     const template = env.fromString(
       "! {% raw %}{{ hello }}{% endraw %} !\n" +
-        "! {%- raw -%}{{ hello }}{%- endraw -%} !"
+        "! {%- raw -%}{{ hello }}{%- endraw -%} !",
     );
     const result = await template.render();
     expect(result).toBe("! {{ hello }} !\n!{{ hello }}!");

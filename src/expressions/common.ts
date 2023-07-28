@@ -47,7 +47,7 @@ const enum MatchGroup {
 
 export type Tokenizer = (
   expression: string,
-  startIndex?: number
+  startIndex?: number,
 ) => Generator<Token>;
 
 // Optional trailing question mark.
@@ -88,13 +88,13 @@ export function parseBlank(): Blank {
 }
 
 export function parseStringLiteral(
-  stream: ExpressionTokenStream
+  stream: ExpressionTokenStream,
 ): StringLiteral {
   return new StringLiteral(stream.current.value);
 }
 
 export function parseIntegerLiteral(
-  stream: ExpressionTokenStream
+  stream: ExpressionTokenStream,
 ): IntegerLiteral {
   return new IntegerLiteral(new Integer(Number(stream.current.value)));
 }
@@ -123,7 +123,7 @@ export function parseIdentifier(stream: ExpressionTokenStream): Identifier {
   } else {
     throw new LiquidSyntaxError(
       `expected an identifier, found '${stream.current.value}'`,
-      stream.current
+      stream.current,
     );
   }
 
@@ -145,7 +145,7 @@ export function parseIdentifier(stream: ExpressionTokenStream): Identifier {
       case TOKEN_FLOAT:
         throw new LiquidSyntaxError(
           `expected an identifier, found ${stream.current.value}`,
-          stream.current
+          stream.current,
         );
       case TOKEN_DOT:
         break;
@@ -163,7 +163,7 @@ export function parseIdentifier(stream: ExpressionTokenStream): Identifier {
  * @returns
  */
 export function parseStringOrIdentifier(
-  stream: ExpressionTokenStream
+  stream: ExpressionTokenStream,
 ): StringLiteral | Identifier {
   let expression: StringLiteral | Identifier;
   switch (stream.current.kind) {
@@ -177,7 +177,7 @@ export function parseStringOrIdentifier(
     default:
       throw new LiquidSyntaxError(
         `expected identifier or string, found '${String(stream.current.kind)}'`,
-        stream.current
+        stream.current,
       );
   }
   return expression;
@@ -195,7 +195,7 @@ const RANGE_OBJ_TOKENS = new Set<string>([
  * @returns
  */
 export function parseUnchainedIdentifier(
-  stream: ExpressionTokenStream
+  stream: ExpressionTokenStream,
 ): Identifier {
   const token = stream.current;
   const identifier = parseIdentifier(stream);
@@ -211,7 +211,7 @@ export function parseUnchainedIdentifier(
  */
 export function makeParseRange(
   parseObj: (stream: ExpressionTokenStream) => Expression,
-  expectToken: string = TOKEN_LPAREN
+  expectToken: string = TOKEN_LPAREN,
 ): (stream: ExpressionTokenStream) => RangeLiteral {
   function _parseRangeLiteral(stream: ExpressionTokenStream): RangeLiteral {
     // Eat open parenthesis
@@ -222,7 +222,7 @@ export function makeParseRange(
     if (!RANGE_OBJ_TOKENS.has(stream.current.kind))
       throw new LiquidSyntaxError(
         `unexpected '${stream.current.value}' in range expression`,
-        stream.current
+        stream.current,
       );
 
     const start = parseObj(stream);
@@ -236,7 +236,7 @@ export function makeParseRange(
     if (!RANGE_OBJ_TOKENS.has(stream.current.kind))
       throw new LiquidSyntaxError(
         `unexpected '${stream.current.value}' in range expression`,
-        stream.current
+        stream.current,
       );
 
     const stop = parseObj(stream);

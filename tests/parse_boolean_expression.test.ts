@@ -78,8 +78,8 @@ describe("parse standard boolean expressions", () => {
       new InfixExpression(
         new Identifier("user", [new IdentifierPathElement("age")]),
         ">",
-        new IntegerLiteral(new Integer(21))
-      )
+        new IntegerLiteral(new Integer(21)),
+      ),
     );
     expect(parseBoolean(expr)).toStrictEqual(want);
     expect(parseBooleanNot(expr)).toStrictEqual(want);
@@ -105,8 +105,8 @@ describe("parse standard boolean expressions", () => {
       new InfixExpression(
         new Identifier("product", [new IdentifierPathElement("tags")]),
         "contains",
-        new StringLiteral("sale")
-      )
+        new StringLiteral("sale"),
+      ),
     );
     expect(parseBoolean(expr)).toStrictEqual(want);
     expect(parseBooleanNot(expr)).toStrictEqual(want);
@@ -120,9 +120,9 @@ describe("parse standard boolean expressions", () => {
         "==",
         new RangeLiteral(
           new IntegerLiteral(new Integer(1)),
-          new IntegerLiteral(new Integer(3))
-        )
-      )
+          new IntegerLiteral(new Integer(3)),
+        ),
+      ),
     );
     expect(parseBoolean(expr)).toStrictEqual(want);
     expect(parseBooleanNot(expr)).toStrictEqual(want);
@@ -134,7 +134,7 @@ describe("parse standard boolean expressions", () => {
       new Identifier("users", [
         new IdentifierPathElement(0),
         new IdentifierPathElement("age"),
-      ])
+      ]),
     );
     expect(parseBoolean(expr)).toStrictEqual(want);
     expect(parseBooleanNot(expr)).toStrictEqual(want);
@@ -149,9 +149,9 @@ describe("parse standard boolean expressions", () => {
         new InfixExpression(
           FALSE,
           "and",
-          new InfixExpression(FALSE, "or", TRUE)
-        )
-      )
+          new InfixExpression(FALSE, "or", TRUE),
+        ),
+      ),
     );
     expect(parseBoolean(expr)).toStrictEqual(want);
     expect(parseBooleanNot(expr)).toStrictEqual(want);
@@ -172,11 +172,11 @@ describe("parse boolean expressions including 'not' and parentheses", () => {
         new InfixExpression(
           TRUE,
           "and",
-          new InfixExpression(FALSE, "and", FALSE)
+          new InfixExpression(FALSE, "and", FALSE),
         ),
         "or",
-        TRUE
-      )
+        TRUE,
+      ),
     );
     expect(parseBooleanNot(expr)).toStrictEqual(want);
   });

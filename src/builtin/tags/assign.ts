@@ -10,7 +10,7 @@ import { Token, TokenStream, TOKEN_EXPRESSION } from "../../token";
 export class AssignTag implements Tag {
   protected static RE_ASSIGN = new RegExp(
     `^(${ASSIGN_IDENTIFIER_PATTERN})\\s*=\\s*(.+)$`,
-    "s"
+    "s",
   );
 
   readonly block = false;
@@ -29,14 +29,14 @@ export class AssignTag implements Tag {
     if (!match)
       throw new LiquidSyntaxError(
         `invalid assignment expression '${stream.current.value}'`,
-        token
+        token,
       );
 
     const [, name, expr] = match;
     return new this.nodeClass(
       token,
       name,
-      this.parseExpression(expr, stream.current.index)
+      this.parseExpression(expr, stream.current.index),
     );
   }
 }
@@ -45,7 +45,7 @@ export class AssignNode implements Node {
   constructor(
     readonly token: Token,
     readonly name: string,
-    readonly expression: Expression
+    readonly expression: Expression,
   ) {}
 
   public async render(context: RenderContext): Promise<void> {
@@ -53,7 +53,7 @@ export class AssignNode implements Node {
       this.name,
       this.expression instanceof Literal
         ? this.expression.evaluateSync(context)
-        : await this.expression.evaluate(context)
+        : await this.expression.evaluate(context),
     );
   }
 

@@ -21,7 +21,7 @@ type TestGroup = {
 };
 
 const golden = JSON.parse(
-  fs.readFileSync("tests/golden/golden_liquid.json", "utf-8")
+  fs.readFileSync("tests/golden/golden_liquid.json", "utf-8"),
 );
 
 describe.each<TestGroup>(golden.test_groups)(
@@ -38,13 +38,13 @@ describe.each<TestGroup>(golden.test_groups)(
 
         if (error) {
           expect(() => env.fromString(template).renderSync(context)).toThrow(
-            LiquidError
+            LiquidError,
           );
         } else {
           const result = env.fromString(template).renderSync(context);
           expect(result).toBe(want);
         }
-      }
+      },
     );
-  }
+  },
 );

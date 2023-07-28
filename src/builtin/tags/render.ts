@@ -49,7 +49,7 @@ export class RenderTag implements Tag {
     const token = stream.next();
     stream.expect(TOKEN_EXPRESSION);
     const exprStream = new ExpressionTokenStream(
-      tokenize(stream.current.value, stream.current.index)
+      tokenize(stream.current.value, stream.current.index),
     );
 
     // The name of a template to include.
@@ -105,7 +105,7 @@ export class RenderTag implements Tag {
         throw new LiquidSyntaxError(
           "expected a comma separated list of arguments, " +
             `found ${exprStream.current.kind}`,
-          token
+          token,
         );
       }
     }
@@ -116,7 +116,7 @@ export class RenderTag implements Tag {
       bindLoop,
       bindName,
       alias,
-      args
+      args,
     );
   }
 }
@@ -130,12 +130,12 @@ export class RenderNode implements Node {
     readonly bindLoop: boolean,
     readonly bindName?: Identifier,
     readonly alias?: string,
-    readonly args: { [index: string]: Expression } = {}
+    readonly args: { [index: string]: Expression } = {},
   ) {}
 
   public async render(
     context: RenderContext,
-    out: RenderStream
+    out: RenderStream,
   ): Promise<void> {
     const templateName = `${await this.templateName.evaluate(context)}`;
     const template = await context.getTemplate(templateName, { tag: this.tag });
@@ -158,7 +158,7 @@ export class RenderNode implements Node {
           bindKey,
           bindValue.values(),
           bindValue.length,
-          context.environment.undefinedFactory("parentloop")
+          context.environment.undefinedFactory("parentloop"),
         );
 
         scope.forloop = forloop;
@@ -183,7 +183,7 @@ export class RenderNode implements Node {
       Object.entries(this.args).map(([key, value]) => [
         key,
         value.evaluateSync(context),
-      ])
+      ]),
     );
 
     // Disable include tags in this context.
@@ -199,7 +199,7 @@ export class RenderNode implements Node {
           bindKey,
           bindValue.values(),
           bindValue.length,
-          context.environment.undefinedFactory("parentloop")
+          context.environment.undefinedFactory("parentloop"),
         );
 
         scope.forloop = forloop;

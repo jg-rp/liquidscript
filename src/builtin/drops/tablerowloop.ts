@@ -27,7 +27,7 @@ export class TableRowLoopDrop
     readonly name: string,
     readonly it: Iterator<unknown>,
     readonly length: number,
-    readonly ncols: number
+    readonly ncols: number,
   ) {}
 
   *[Symbol.iterator](): Iterator<unknown> {

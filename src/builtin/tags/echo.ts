@@ -23,7 +23,7 @@ export class EchoTag implements Tag {
     stream.expect(TOKEN_EXPRESSION);
     return new this.nodeClass(
       token,
-      this.parseExpression(stream.current.value, stream.current.index)
+      this.parseExpression(stream.current.value, stream.current.index),
     );
   }
 }

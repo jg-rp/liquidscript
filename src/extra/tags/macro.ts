@@ -43,7 +43,7 @@ export class MacroTag implements Tag {
     stream.expect(TOKEN_EXPRESSION);
     const [name, args] = parseMacroArguments(
       stream.current.value,
-      stream.current.index
+      stream.current.index,
     );
     stream.next();
     const block = environment.parser.parseBlock(stream, END_MACRO_BLOCK, token);
@@ -60,7 +60,7 @@ export class CallTag implements Tag {
     stream.expect(TOKEN_EXPRESSION);
     const [name, _args] = parseCallArguments(
       stream.current.value,
-      stream.current.index
+      stream.current.index,
     );
 
     const args: Expression[] = [];
@@ -83,7 +83,7 @@ export class MacroNode implements Node {
     readonly token: Token,
     readonly name: string,
     readonly args: ArgumentList,
-    readonly block: BlockNode
+    readonly block: BlockNode,
   ) {}
 
   public async render(context: RenderContext): Promise<void> {
@@ -116,12 +116,12 @@ export class CallNode implements Node {
     readonly token: Token,
     readonly name: string,
     readonly args: Expression[],
-    readonly kwargs: ArgumentList
+    readonly kwargs: ArgumentList,
   ) {}
 
   public async render(
     context: RenderContext,
-    out: RenderStream
+    out: RenderStream,
   ): Promise<void> {
     const macro = this.getMacro(context);
     if (isUndefined(macro)) {
@@ -187,7 +187,7 @@ export class CallNode implements Node {
 
   protected async makeContext(
     context: RenderContext,
-    macro: Macro
+    macro: Macro,
   ): Promise<RenderContext> {
     const { args, excessArgs, excessKeywordArgs } = this.bindArgs(macro);
 
@@ -216,13 +216,13 @@ export class CallNode implements Node {
     return context.copy(
       chainObjects(boundArgs, excess),
       this.disabledTags,
-      true
+      true,
     );
   }
 
   protected makeContextSync(
     context: RenderContext,
-    macro: Macro
+    macro: Macro,
   ): RenderContext {
     const { args, excessArgs, excessKeywordArgs } = this.bindArgs(macro);
 
@@ -251,7 +251,7 @@ export class CallNode implements Node {
     return context.copy(
       chainObjects(boundArgs, excess),
       this.disabledTags,
-      true
+      true,
     );
   }
 

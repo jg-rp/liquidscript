@@ -20,7 +20,7 @@ describe("concat filter", () => {
 
   test("missing argument", () => {
     expect(() =>
-      concat.apply(filterContext, [["1", "2", "3"], undefined])
+      concat.apply(filterContext, [["1", "2", "3"], undefined]),
     ).toThrow(FilterArgumentError);
   });
 

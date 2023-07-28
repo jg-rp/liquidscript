@@ -21,7 +21,7 @@ export class ForLoopDrop implements LiquidDispatchableSync, Iterable<unknown> {
     readonly name: string,
     readonly it: Iterator<unknown>,
     readonly length: number,
-    readonly parentloop: ForLoopDrop | Undefined
+    readonly parentloop: ForLoopDrop | Undefined,
   ) {}
 
   *[Symbol.iterator](): Iterator<unknown> {

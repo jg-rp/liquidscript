@@ -29,7 +29,7 @@ export class TableRowTag implements Tag {
     return new this.nodeClass(
       token,
       expr,
-      environment.parser.parseBlock(stream, TableRowTag.END_TAGBLOCK, token)
+      environment.parser.parseBlock(stream, TableRowTag.END_TAGBLOCK, token),
     );
   }
 }
@@ -38,12 +38,12 @@ export class TableRowNode implements Node {
   constructor(
     readonly token: Token,
     readonly expression: LoopExpression,
-    readonly block: BlockNode
+    readonly block: BlockNode,
   ) {}
 
   public async render(
     context: RenderContext,
-    out: RenderStream
+    out: RenderStream,
   ): Promise<void> {
     const name = this.expression.name;
     const [it, length] = await this.expression.evaluate(context);
@@ -57,7 +57,7 @@ export class TableRowNode implements Node {
       cols = Math.trunc(parseNumberT(cols).valueOf());
     } else {
       throw new InternalTypeError(
-        `tablerow cols must be an integer, found '${cols}'`
+        `tablerow cols must be an integer, found '${cols}'`,
       );
     }
 
@@ -94,7 +94,7 @@ export class TableRowNode implements Node {
       cols = Math.trunc(parseNumberT(cols).valueOf());
     } else {
       throw new InternalTypeError(
-        `tablerow cols must be an integer, found '${cols}'`
+        `tablerow cols must be an integer, found '${cols}'`,
       );
     }
 

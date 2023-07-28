@@ -17,17 +17,17 @@ describe("parse identifier", () => {
   });
   test("chained identifier", () => {
     expect(_parse("product.colors")).toStrictEqual(
-      new Identifier("product", [new IdentifierPathElement("colors")])
+      new Identifier("product", [new IdentifierPathElement("colors")]),
     );
   });
   test("chained identifier with bracketed quoted key", () => {
     expect(_parse("collection['products']")).toStrictEqual(
-      new Identifier("collection", [new IdentifierPathElement("products")])
+      new Identifier("collection", [new IdentifierPathElement("products")]),
     );
   });
   test("identifier with integer index", () => {
     expect(_parse("products[0]")).toStrictEqual(
-      new Identifier("products", [new IdentifierPathElement(0)])
+      new Identifier("products", [new IdentifierPathElement(0)]),
     );
   });
   test("chained identifier following a bracketed key", () => {
@@ -35,12 +35,12 @@ describe("parse identifier", () => {
       new Identifier("collection", [
         new IdentifierPathElement("products"),
         new IdentifierPathElement("first"),
-      ])
+      ]),
     );
   });
   test("identifier bracketed identifier key", () => {
     expect(_parse("collection[name]")).toStrictEqual(
-      new Identifier("collection", [new Identifier("name", [])])
+      new Identifier("collection", [new Identifier("name", [])]),
     );
   });
   test("chained identifier inside brackets", () => {
@@ -50,7 +50,7 @@ describe("parse identifier", () => {
           new IdentifierPathElement("settings"),
           new IdentifierPathElement("menu"),
         ]),
-      ])
+      ]),
     );
   });
   test("chained bracketed identifier inside brackets", () => {
@@ -61,7 +61,7 @@ describe("parse identifier", () => {
           new IdentifierPathElement("object"),
           new IdentifierPathElement("count"),
         ]),
-      ])
+      ]),
     );
   });
 });

@@ -27,7 +27,10 @@ export class CommentTag implements Tag {
 }
 
 export class CommentNode implements Node {
-  constructor(readonly token: Token, readonly text: string) {}
+  constructor(
+    readonly token: Token,
+    readonly text: string,
+  ) {}
 
   public async render(): Promise<void> {
     return;

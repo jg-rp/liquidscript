@@ -54,10 +54,10 @@ const splitAtFirstElse = makeSplitAtFirst(TOKEN_ELSE);
 
 export function parse(
   expr: string,
-  startIndex: number = 0
+  startIndex: number = 0,
 ): FilteredExpression {
   const [standardTokens, extendedTokens] = splitAtFirstIf(
-    Array.from(tokenize(expr, startIndex))
+    Array.from(tokenize(expr, startIndex)),
   );
   const _expr = parseStandardFiltered(standardTokens[Symbol.iterator]());
 
@@ -77,7 +77,7 @@ export function parse(
     condition = FALSE;
   } else {
     condition = parseBooleanObject(
-      new ExpressionTokenStream(conditionalTokens[Symbol.iterator]())
+      new ExpressionTokenStream(conditionalTokens[Symbol.iterator]()),
     );
   }
 
@@ -100,10 +100,10 @@ export function parse(
 
 export function parseWithParens(
   expr: string,
-  startIndex: number = 0
+  startIndex: number = 0,
 ): FilteredExpression {
   const [standardTokens, extendedTokens] = splitAtFirstIf(
-    Array.from(tokenizeWithParens(expr, startIndex))
+    Array.from(tokenizeWithParens(expr, startIndex)),
   );
   const _expr = parseStandardFiltered(standardTokens[Symbol.iterator]());
 
@@ -123,7 +123,7 @@ export function parseWithParens(
     condition = FALSE;
   } else {
     condition = parseBooleanObjectWithParens(
-      new ExpressionTokenStream(conditionalTokens[Symbol.iterator]())
+      new ExpressionTokenStream(conditionalTokens[Symbol.iterator]()),
     );
   }
 

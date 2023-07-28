@@ -33,7 +33,7 @@ export class TemplateSource {
      * A function that returns `true` if the template is up to date, or
      * `false` if it needs to be loaded again.
      */
-    readonly upToDateSync?: () => boolean
+    readonly upToDateSync?: () => boolean,
   ) {}
 }
 
@@ -56,7 +56,7 @@ export abstract class Loader {
   abstract getSource(
     name: string,
     renderContext?: RenderContext,
-    loaderContext?: { [index: string]: unknown }
+    loaderContext?: { [index: string]: unknown },
   ): Promise<TemplateSource>;
 
   /**
@@ -66,7 +66,7 @@ export abstract class Loader {
   abstract getSourceSync(
     name: string,
     renderContext?: RenderContext,
-    loaderContext?: { [index: string]: unknown }
+    loaderContext?: { [index: string]: unknown },
   ): TemplateSource;
 
   /**
@@ -78,7 +78,7 @@ export abstract class Loader {
     environment: Environment,
     context?: RenderContext,
     globals?: ContextScope,
-    loaderContext?: { [index: string]: unknown }
+    loaderContext?: { [index: string]: unknown },
   ): Promise<Template> {
     const source = await this.getSource(name, context, loaderContext);
     return environment.fromString(source.source, globals, {
@@ -99,7 +99,7 @@ export abstract class Loader {
     environment: Environment,
     context?: RenderContext,
     globals?: ContextScope,
-    loaderContext?: { [index: string]: unknown }
+    loaderContext?: { [index: string]: unknown },
   ): Template {
     const source = this.getSourceSync(name, context, loaderContext);
     return environment.fromString(source.source, globals, {

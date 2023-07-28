@@ -70,7 +70,7 @@ const KEYWORDS = new Set<string>([
  */
 export const RE = new RegExp(
   RULES.map(([n, p]) => `(?<${n}>${p})`).join("|"),
-  "gs"
+  "gs",
 );
 
 interface IdentIndexMatch {
@@ -251,7 +251,7 @@ export function makeTokenizer(re: RegExp, keywords: Set<string>): Tokenizer {
   // eslint-disable-next-line sonarjs/cognitive-complexity
   return function* tokenize(
     source: string,
-    startIndex: number = 0
+    startIndex: number = 0,
   ): Generator<Token> {
     for (const match of source.matchAll(re)) {
       const groups = match.groups as MatchGroups;
@@ -261,35 +261,35 @@ export function makeTokenizer(re: RegExp, keywords: Set<string>): Tokenizer {
             match[0],
             match[0],
             <number>match.index + startIndex,
-            source
+            source,
           );
         else
           yield new Token(
             TOKEN_IDENT,
             groups.TOKEN_IDENT,
             <number>match.index + startIndex,
-            source
+            source,
           );
       } else if (isIdentIndexMatch(groups))
         yield new Token(
           TOKEN_IDENT_INDEX,
           groups.identIndex,
           <number>match.index + startIndex,
-          source
+          source,
         );
       else if (isIdentStringMatch(groups))
         yield new Token(
           TOKEN_IDENT,
           groups.identQuoted,
           <number>match.index + startIndex,
-          source
+          source,
         );
       else if (isStringMatch(groups))
         yield new Token(
           TOKEN_STRING,
           groups.quoted,
           <number>match.index + startIndex,
-          source
+          source,
         );
       else if (isNewlineMatch(groups) || isSkipMatch(groups)) continue;
       else if (isRangeMatch(groups))
@@ -297,77 +297,77 @@ export function makeTokenizer(re: RegExp, keywords: Set<string>): Tokenizer {
           TOKEN_RANGE,
           groups.TOKEN_RANGE,
           <number>match.index + startIndex,
-          source
+          source,
         );
       else if (isFloatMatch(groups))
         yield new Token(
           TOKEN_FLOAT,
           groups.TOKEN_FLOAT,
           <number>match.index + startIndex,
-          source
+          source,
         );
       else if (isIntegerMatch(groups))
         yield new Token(
           TOKEN_INTEGER,
           groups.TOKEN_INTEGER,
           <number>match.index + startIndex,
-          source
+          source,
         );
       else if (isDotMatch(groups))
         yield new Token(
           TOKEN_DOT,
           groups.TOKEN_DOT,
           <number>match.index + startIndex,
-          source
+          source,
         );
       else if (isLParenMatch(groups))
         yield new Token(
           TOKEN_LPAREN,
           groups.TOKEN_LPAREN,
           <number>match.index + startIndex,
-          source
+          source,
         );
       else if (isRParenMatch(groups))
         yield new Token(
           TOKEN_RPAREN,
           groups.TOKEN_RPAREN,
           <number>match.index + startIndex,
-          source
+          source,
         );
       else if (isLBracketMatch(groups))
         yield new Token(
           TOKEN_LBRACKET,
           groups.TOKEN_LBRACKET,
           <number>match.index + startIndex,
-          source
+          source,
         );
       else if (isRBracketMatch(groups))
         yield new Token(
           TOKEN_RBRACKET,
           groups.TOKEN_RBRACKET,
           <number>match.index + startIndex,
-          source
+          source,
         );
       else if (isCommaMatch(groups))
         yield new Token(
           TOKEN_COMMA,
           groups.TOKEN_COMMA,
           <number>match.index + startIndex,
-          source
+          source,
         );
       else if (isColonMatch(groups))
         yield new Token(
           TOKEN_COLON,
           groups.TOKEN_COLON,
           <number>match.index + startIndex,
-          source
+          source,
         );
       else if (isAssignMatch(groups))
         yield new Token(
           TOKEN_ASSIGN,
           groups.TOKEN_ASSIGN,
           <number>match.index + startIndex,
-          source
+          source,
         );
       else if (isIllegalMatch(groups))
         throw new LiquidSyntaxError(
@@ -376,8 +376,8 @@ export function makeTokenizer(re: RegExp, keywords: Set<string>): Tokenizer {
             TOKEN_ILLEGAL,
             groups.TOKEN_ILLEGAL,
             <number>match.index + startIndex,
-            source
-          )
+            source,
+          ),
         );
     }
   };

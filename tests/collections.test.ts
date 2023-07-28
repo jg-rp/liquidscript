@@ -24,7 +24,7 @@ describe("default map", () => {
   test("default factory function", () => {
     const factory = () => new DefaultMap<string, number>(5);
     const m: DefaultMap<string, DefaultMap<string, number>> = new DefaultMap(
-      factory
+      factory,
     );
     expect(m.get("foo").get("bar")).toBe(5);
   });

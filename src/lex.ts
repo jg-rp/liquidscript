@@ -29,7 +29,7 @@ export function compileRules(
   statementStart = "{{",
   statementEnd = "}}",
   tagStart = "{%",
-  tagEnd = "%}"
+  tagEnd = "%}",
 ): RegExp {
   const ts = escapeRegExp(tagStart);
   const te = escapeRegExp(tagEnd);
@@ -98,7 +98,7 @@ export function tokenizerFor(
   statementStart = "{{",
   statementEnd = "}}",
   tagStart = "{%",
-  tagEnd = "%}"
+  tagEnd = "%}",
 ): (source: string) => Generator<Token> {
   // eslint-disable-next-line sonarjs/cognitive-complexity
   function* _tokenize(source: string): Generator<Token> {
@@ -111,7 +111,7 @@ export function tokenizerFor(
           TOKEN_STATEMENT,
           groups.statement,
           <number>match.index,
-          source
+          source,
         );
       } else if (isTag(groups)) {
         leftStrip = !!groups.rightStripTag;
@@ -121,7 +121,7 @@ export function tokenizerFor(
             TOKEN_EXPRESSION,
             groups.tagExpression,
             <number>match.index + groups.tagPreamble.length,
-            source
+            source,
           );
       } else if (isLiteral(groups)) {
         let value = groups.literal;
@@ -138,12 +138,12 @@ export function tokenizerFor(
         if (value.startsWith(statementStart))
           throw new LiquidSyntaxError(
             `expected '${statementEnd}', found 'eof'`,
-            new Token(TOKEN_LITERAL, value, <number>match.index, source)
+            new Token(TOKEN_LITERAL, value, <number>match.index, source),
           );
         if (value.startsWith(tagStart))
           throw new LiquidSyntaxError(
             `expected '${tagEnd}', found 'eof'`,
-            new Token(TOKEN_LITERAL, value, <number>match.index, source)
+            new Token(TOKEN_LITERAL, value, <number>match.index, source),
           );
 
         yield new Token(TOKEN_LITERAL, value, <number>match.index, source);

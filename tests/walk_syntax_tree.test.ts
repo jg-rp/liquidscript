@@ -14,11 +14,11 @@ describe("walk a syntax tree", () => {
         "{{ x }}{{ y }}{{ z }}" +
         "{% endfor %}" +
         "{% endfor %}" +
-        "{% endfor %}"
+        "{% endfor %}",
     );
 
     const tokenKinds = Array.from(walk(template.tree.nodes[0])).map(
-      (n) => n.node?.token.kind
+      (n) => n.node?.token.kind,
     );
 
     expect(tokenKinds).toStrictEqual([

@@ -77,14 +77,14 @@ export class Template {
   static fromString(
     source: string,
     templateGlobals?: ContextScope,
-    options: EnvironmentOptions = {}
+    options: EnvironmentOptions = {},
   ): Template {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { loader, ...opts } = options;
     return Environment.getImplicitEnvironment(opts).fromString(
       source,
       templateGlobals,
-      { name: "<string>" }
+      { name: "<string>" },
     );
   }
 
@@ -103,7 +103,7 @@ export class Template {
   static from(
     source: string,
     templateGlobals?: ContextScope,
-    options: EnvironmentOptions = {}
+    options: EnvironmentOptions = {},
   ): Template {
     return Template.fromString(source, templateGlobals, options);
   }
@@ -125,7 +125,7 @@ export class Template {
     environment: Environment,
     tree: Root,
     globals?: ContextScope,
-    templateContext: TemplateContext = {}
+    templateContext: TemplateContext = {},
   ) {
     this.environment = environment;
     this.tree = tree;
@@ -147,7 +147,7 @@ export class Template {
     const context = new this.renderContextClass(
       this.environment,
       this.makeGlobals(globals),
-      { templateName: this.name, loaderContext: this.loaderContext }
+      { templateName: this.name, loaderContext: this.loaderContext },
     );
     const outputStream = this.environment.renderStreamFactory();
     await this.renderWithContext(context, outputStream);
@@ -162,7 +162,7 @@ export class Template {
     const context = new this.renderContextClass(
       this.environment,
       this.makeGlobals(globals),
-      { templateName: this.name, loaderContext: this.loaderContext }
+      { templateName: this.name, loaderContext: this.loaderContext },
     );
     const outputStream = this.environment.renderStreamFactory();
     this.renderWithContextSync(context, outputStream);
@@ -173,7 +173,7 @@ export class Template {
     error: unknown,
     node: Node,
     blockScope: boolean,
-    partial: boolean
+    partial: boolean,
   ): void {
     if (error instanceof LiquidInterrupt) {
       if (!partial || blockScope) {
@@ -181,8 +181,8 @@ export class Template {
           new LiquidSyntaxError(
             `unexpected '${error.message}'`,
             node.token,
-            this.name
-          )
+            this.name,
+          ),
         );
       } else {
         throw error;
@@ -204,7 +204,7 @@ export class Template {
     context: RenderContext,
     outputStream: RenderStream,
     blockScope: boolean = false,
-    partial: boolean = false
+    partial: boolean = false,
   ): Promise<void> {
     for (const node of this.tree.nodes) {
       throwForDisabledTag(node, context, this.name);
@@ -228,7 +228,7 @@ export class Template {
     context: RenderContext,
     outputStream: RenderStream,
     blockScope: boolean = false,
-    partial: boolean = false
+    partial: boolean = false,
   ): void {
     for (const node of this.tree.nodes) {
       throwForDisabledTag(node, context, this.name);
@@ -416,7 +416,7 @@ class TemplateVariableCounter {
       scope,
       templateLocals,
       partials,
-    }: TemplateVariableCounterOptions
+    }: TemplateVariableCounterOptions,
   ) {
     this.templateName = this.template.name;
     this.followPartials = followPartials ?? true;
@@ -465,7 +465,7 @@ class TemplateVariableCounter {
 
       if (child.blockScope) {
         this.scope[chainPush](
-          Object.fromEntries(child.blockScope.map((val) => [val, undefined]))
+          Object.fromEntries(child.blockScope.map((val) => [val, undefined])),
         );
       }
 
@@ -481,7 +481,7 @@ class TemplateVariableCounter {
             break;
           default:
             throw new TemplateTraversalError(
-              `unknown load mode '${child.loadMode}'`
+              `unknown load mode '${child.loadMode}'`,
             );
         }
       }
@@ -513,7 +513,7 @@ class TemplateVariableCounter {
 
       if (child.blockScope) {
         this.scope[chainPush](
-          Object.fromEntries(child.blockScope.map((val) => [val, undefined]))
+          Object.fromEntries(child.blockScope.map((val) => [val, undefined])),
         );
       }
 
@@ -529,7 +529,7 @@ class TemplateVariableCounter {
             break;
           default:
             throw new TemplateTraversalError(
-              `unknown load mode '${child.loadMode}'`
+              `unknown load mode '${child.loadMode}'`,
             );
         }
       }
@@ -618,7 +618,7 @@ class TemplateVariableCounter {
         templateName,
         undefined,
         undefined,
-        loadContext
+        loadContext,
       );
 
       const refs = new TemplateVariableCounter(template, {
@@ -650,7 +650,7 @@ class TemplateVariableCounter {
         templateName,
         undefined,
         undefined,
-        loadContext
+        loadContext,
       );
 
       const refs = new TemplateVariableCounter(template, {
@@ -715,7 +715,7 @@ class TemplateVariableCounter {
         templateName,
         undefined,
         undefined,
-        loadContext
+        loadContext,
       );
 
       // Partial templates rendered in "render" mode do not share the parent template
@@ -724,7 +724,7 @@ class TemplateVariableCounter {
       const scope = chainObjects();
       if (child.blockScope) {
         scope[chainPush](
-          Object.fromEntries(child.blockScope.map((val) => [val, undefined]))
+          Object.fromEntries(child.blockScope.map((val) => [val, undefined])),
         );
       }
 
@@ -754,7 +754,7 @@ class TemplateVariableCounter {
         templateName,
         undefined,
         undefined,
-        loadContext
+        loadContext,
       );
 
       // Partial templates rendered in "render" mode do not share the parent template
@@ -763,7 +763,7 @@ class TemplateVariableCounter {
       const scope = chainObjects();
       if (child.blockScope) {
         scope[chainPush](
-          Object.fromEntries(child.blockScope.map((val) => [val, undefined]))
+          Object.fromEntries(child.blockScope.map((val) => [val, undefined])),
         );
       }
 

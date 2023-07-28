@@ -48,7 +48,7 @@ describe("modulo filter", () => {
   });
   test("argument is not a number", () => {
     expect(() => modulo.apply(filterContext, [10, "foo"])).toThrow(
-      FilterArgumentError
+      FilterArgumentError,
     );
   });
   test("undefined left value", () => {

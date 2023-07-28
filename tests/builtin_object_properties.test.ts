@@ -79,7 +79,7 @@ describe("special object properties", () => {
         const template = env.fromString(source);
         const result = await template.render(globals);
         expect(result).toBe(want);
-      }
+      },
     );
   });
 
@@ -89,7 +89,7 @@ describe("special object properties", () => {
       async ({ source, globals, want }: Case) => {
         const template = env.fromString(source);
         expect(template.renderSync(globals)).toBe(want);
-      }
+      },
     );
   });
 });

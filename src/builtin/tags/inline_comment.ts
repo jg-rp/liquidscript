@@ -16,12 +16,12 @@ export class InlineCommentTag implements Tag {
       stream.next();
       if (
         stream.current.value.search(
-          InlineCommentTag.RE_INVALID_INLINE_COMMENT
+          InlineCommentTag.RE_INVALID_INLINE_COMMENT,
         ) !== -1
       ) {
         throw new LiquidSyntaxError(
           "every line of an inline comment must start with a '#' character",
-          stream.current
+          stream.current,
         );
       }
     }

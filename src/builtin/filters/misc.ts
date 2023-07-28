@@ -45,7 +45,7 @@ export function size(this: FilterContext, left: unknown): number {
 export function default_(
   this: FilterContext,
   left: unknown,
-  _default: unknown = ""
+  _default: unknown = "",
 ): unknown {
   checkArguments(arguments.length, 1);
   const _left = isLiquidPrimitive(left) ? left[toLiquidPrimitive]() : left;
@@ -82,7 +82,7 @@ const FORMAT_TOKENS = new DefaultMap<string, string>("", [
 
 const RE_DATE_FORMAT = new RegExp(
   ["%%", ...FORMAT_TOKENS.keys()].join("|"),
-  "g"
+  "g",
 );
 
 function replaceDateFormat(format: string): string {
@@ -126,7 +126,7 @@ function parseDateString(s: string): DateTime {
 export function date(
   this: FilterContext,
   left: unknown,
-  format: unknown
+  format: unknown,
 ): string {
   checkArguments(arguments.length, 1, 1);
   if (isUndefined(left)) return "";
@@ -170,12 +170,12 @@ export function slice(
   this: FilterContext,
   left: unknown,
   offset: unknown,
-  length?: unknown
+  length?: unknown,
 ): string | unknown[] | Markup {
   checkArguments(arguments.length, 2, 1);
   const _offset = _clamp_slice_arg(parseIntegerOrThrow(offset, "offset"));
   const _length = _clamp_slice_arg(
-    isUndefined(length) ? 1 : parseIntegerOrThrow(length, "length")
+    isUndefined(length) ? 1 : parseIntegerOrThrow(length, "length"),
   );
 
   // Arrays and strings only.
@@ -190,7 +190,7 @@ function parseIntegerOrThrow(value: unknown, name: string): number {
     if (isInteger(num)) return num.valueOf();
   }
   throw new FilterArgumentError(
-    `expected an integer ${name}, found '${value}'`
+    `expected an integer ${name}, found '${value}'`,
   );
 }
 

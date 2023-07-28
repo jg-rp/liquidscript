@@ -17,18 +17,21 @@ export class OutputStatement implements Tag {
   public parse(stream: TokenStream): Node {
     return new this.nodeClass(
       stream.current,
-      parse(stream.current.value, stream.current.index)
+      parse(stream.current.value, stream.current.index),
     );
   }
 }
 
 export class OutputStatementNode implements Node {
   readonly forceOutput = true;
-  constructor(readonly token: Token, readonly expression: Expression) {}
+  constructor(
+    readonly token: Token,
+    readonly expression: Expression,
+  ) {}
 
   public async render(
     context: RenderContext,
-    out: RenderStream
+    out: RenderStream,
   ): Promise<void> {
     const result = await this.expression.evaluate(context);
     if (context.environment.autoEscape) {

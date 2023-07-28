@@ -8,7 +8,7 @@ describe("tokenize a 'with' tag expression", () => {
 
   test("block scoped variable", async () => {
     const template = env.fromString(
-      "{{ x }}{% with x: 'foo' %}{{ x }}{% endwith %}{{ x }}"
+      "{{ x }}{% with x: 'foo' %}{{ x }}{% endwith %}{{ x }}",
     );
     expect(template.renderSync()).toBe("foo");
     expect(template.render()).resolves.toBe("foo");
@@ -20,7 +20,7 @@ describe("tokenize a 'with' tag expression", () => {
         "{{ p.title }}" +
         "{% endwith %}" +
         "{{ p.title }}" +
-        "{{ collection.products.first.title }}"
+        "{{ collection.products.first.title }}",
     );
     const data = { collection: { products: [{ title: "A Shoe" }] } };
     expect(template.renderSync(data)).toBe("A ShoeA Shoe");
@@ -31,7 +31,7 @@ describe("tokenize a 'with' tag expression", () => {
     const template = env.fromString(
       "{% with a: 1, b: 3.4 %}" +
         "{{ a }} + {{ b }} = {{ a | plus: b }}" +
-        "{% endwith %}"
+        "{% endwith %}",
     );
     expect(template.renderSync()).toBe("1 + 3.4 = 4.4");
     expect(template.render()).resolves.toBe("1 + 3.4 = 4.4");
@@ -46,7 +46,7 @@ describe("tokenize a 'with' tag expression", () => {
         "{{ a | upcase }}" +
         "{% endwith %}" +
         "{% endfor %}" +
-        "{{ a | upcase }}"
+        "{{ a | upcase }}",
     );
     expect(template.renderSync()).toBe("hello");
     expect(template.render()).resolves.toBe("hello");

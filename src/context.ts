@@ -153,7 +153,7 @@ export class RenderContext {
       loaderContext,
       localsScoreCarry,
       loopIterationCarry,
-    }: RenderContextOptions = {}
+    }: RenderContextOptions = {},
   ) {
     this.disabledTags = disabledTags ?? new Set();
     this.templateName = templateName ?? "<string>";
@@ -166,7 +166,7 @@ export class RenderContext {
       this.locals,
       this.globals,
       BuiltIn,
-      this.counters
+      this.counters,
     );
   }
 
@@ -229,7 +229,7 @@ export class RenderContext {
   public async get(
     name: string,
     path?: ContextPath,
-    missing: unknown = Missing
+    missing: unknown = Missing,
   ): Promise<unknown> {
     let obj = await this.resolve(name);
     if (!path || !path.length) return obj;
@@ -257,7 +257,7 @@ export class RenderContext {
   public getSync(
     name: string,
     path?: ContextPath,
-    missing: unknown = Missing
+    missing: unknown = Missing,
   ): unknown {
     let obj = this.resolveSync(name);
     if (!path || !path.length) return obj;
@@ -289,13 +289,13 @@ export class RenderContext {
    */
   public async getTemplate(
     name: string,
-    loaderContext: { [index: string]: unknown }
+    loaderContext: { [index: string]: unknown },
   ): Promise<Template> {
     return this.environment.getTemplate(
       name,
       undefined,
       this,
-      this.makeLoaderContext(loaderContext)
+      this.makeLoaderContext(loaderContext),
     );
   }
 
@@ -305,13 +305,13 @@ export class RenderContext {
    */
   public getTemplateSync(
     name: string,
-    loaderContext: { [index: string]: unknown } = {}
+    loaderContext: { [index: string]: unknown } = {},
   ): Template {
     return this.environment.getTemplateSync(
       name,
       undefined,
       this,
-      this.makeLoaderContext(loaderContext)
+      this.makeLoaderContext(loaderContext),
     );
   }
 
@@ -363,11 +363,11 @@ export class RenderContext {
   public copy(
     scope: ContextScope,
     disabledTags: Iterable<string>,
-    carryLoopIterations: boolean = false
+    carryLoopIterations: boolean = false,
   ): RenderContext {
     if (this.copyDepth + 1 > this.environment.maxContextDepth)
       throw new MaxContextDepthError(
-        "maximum context depth reached, possible recursive render"
+        "maximum context depth reached, possible recursive render",
       );
 
     const loopIterationCarry = carryLoopIterations
@@ -385,7 +385,7 @@ export class RenderContext {
         copyDepth: this.copyDepth + 1,
         localsScoreCarry: this.localsScore,
         loopIterationCarry,
-      }
+      },
     );
   }
 
@@ -465,7 +465,7 @@ export function getItemSync(obj: unknown, item: unknown): unknown {
     }
 
     throw new InternalKeyError(
-      `can't read non-enumerable property '${String(item)}' of Array`
+      `can't read non-enumerable property '${String(item)}' of Array`,
     );
   }
 
@@ -486,7 +486,7 @@ export function getItemSync(obj: unknown, item: unknown): unknown {
 
         // Pretend the function does not exist.
         throw new InternalKeyError(
-          `function '${String(item)}' is not liquid callable`
+          `function '${String(item)}' is not liquid callable`,
         );
       }
       return result;
@@ -536,7 +536,7 @@ async function getItem(obj: unknown, item: unknown): Promise<unknown> {
     }
 
     throw new InternalKeyError(
-      `can't read non-enumerable property '${String(item)}' of Array`
+      `can't read non-enumerable property '${String(item)}' of Array`,
     );
   }
 
@@ -557,7 +557,7 @@ async function getItem(obj: unknown, item: unknown): Promise<unknown> {
 
         // Pretend the function does not exist.
         throw new InternalKeyError(
-          `function '${String(item)}' is not liquid callable`
+          `function '${String(item)}' is not liquid callable`,
         );
       }
       return result;

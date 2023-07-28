@@ -35,7 +35,7 @@ export class ChoiceLoader extends Loader {
     environment: Environment,
     context?: RenderContext,
     globals?: ContextScope,
-    loaderContext?: { [index: string]: unknown }
+    loaderContext?: { [index: string]: unknown },
   ): Promise<Template> {
     for (const loader of this.loaders) {
       try {
@@ -44,7 +44,7 @@ export class ChoiceLoader extends Loader {
           environment,
           context,
           globals,
-          loaderContext
+          loaderContext,
         );
       } catch (err) {
         if (err instanceof TemplateNotFoundError) {
@@ -60,7 +60,7 @@ export class ChoiceLoader extends Loader {
     environment: Environment,
     context?: RenderContext,
     globals?: ContextScope,
-    loaderContext?: { [index: string]: unknown }
+    loaderContext?: { [index: string]: unknown },
   ): Template {
     for (const loader of this.loaders) {
       try {
@@ -69,7 +69,7 @@ export class ChoiceLoader extends Loader {
           environment,
           context,
           globals,
-          loaderContext
+          loaderContext,
         );
       } catch (err) {
         if (err instanceof TemplateNotFoundError) {

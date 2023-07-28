@@ -124,7 +124,7 @@ describe("output statements", () => {
         const template = env.fromString(source);
         const result = await template.render(globals);
         expect(result).toBe(want);
-      }
+      },
     );
   });
 
@@ -134,7 +134,7 @@ describe("output statements", () => {
       async ({ source, globals, want }: Case) => {
         const template = env.fromString(source);
         expect(template.renderSync(globals)).toBe(want);
-      }
+      },
     );
   });
 });

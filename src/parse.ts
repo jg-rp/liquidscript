@@ -55,7 +55,7 @@ export class TemplateParser implements Parser {
   public parseBlock(
     stream: TokenStream,
     end: Set<string>,
-    token?: Token
+    token?: Token,
   ): BlockNode {
     const block = new BlockNode(token ?? stream.current);
     while (
@@ -64,7 +64,7 @@ export class TemplateParser implements Parser {
       if (stream.current.kind === TOKEN_EOF)
         throw new LiquidSyntaxError(
           `missing end tag, expected ${Array.from(end.values()).join(", ")}`,
-          stream.current
+          stream.current,
         );
       block.nodes.push(this.parseStatement(stream));
       stream.next();
@@ -94,7 +94,7 @@ export class TemplateParser implements Parser {
       case TOKEN_STATEMENT:
         node = this.environment.tags["statement"].parse(
           stream,
-          this.environment
+          this.environment,
         );
         break;
       case TOKEN_TAG:
@@ -106,7 +106,7 @@ export class TemplateParser implements Parser {
       default:
         throw new LiquidSyntaxError(
           `unexpected token ${stream.current.kind}`,
-          stream.current
+          stream.current,
         );
     }
     return node;

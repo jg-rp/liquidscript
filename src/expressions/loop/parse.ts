@@ -58,7 +58,7 @@ function parseStringArgument(stream: ExpressionTokenStream): LoopArgument {
   } catch (error) {
     throw new LiquidSyntaxError(
       `invalid integer argument '${stream.current.value}'`,
-      stream.current
+      stream.current,
     );
   }
 }
@@ -77,12 +77,12 @@ function parseLoopArgument(stream: ExpressionTokenStream): LoopArgument {
   if (pFunc !== undefined) return pFunc(stream);
   throw new LiquidSyntaxError(
     `unexpected '${stream.current.value}'`,
-    stream.current
+    stream.current,
   );
 }
 
 function parseLoopArguments(
-  stream: ExpressionTokenStream
+  stream: ExpressionTokenStream,
 ): [Map<string, LoopArgument>, boolean] {
   const args = new Map<string, LoopArgument>();
   let reversed = false;
@@ -143,6 +143,6 @@ export function parse(expr: string, lineNumber = 0): LoopExpression {
     args.get("limit"),
     args.get("offset"),
     args.get("cols"),
-    reversed
+    reversed,
   );
 }

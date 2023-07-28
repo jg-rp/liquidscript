@@ -13,10 +13,10 @@ describe("template from string", () => {
       autoEscape: true,
     });
     expect(Object.is(template.environment, anotherTemplate.environment)).toBe(
-      true
+      true,
     );
     expect(
-      Object.is(template.environment, yetAnotherTemplate.environment)
+      Object.is(template.environment, yetAnotherTemplate.environment),
     ).toBe(false);
   });
 });

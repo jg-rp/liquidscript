@@ -85,7 +85,7 @@ export const OPERATORS = new Map([
 ]);
 
 export const REVERSE_OPERATORS = new Map(
-  Array.from(OPERATORS.entries()).map(([k, v]) => [v, k])
+  Array.from(OPERATORS.entries()).map(([k, v]) => [v, k]),
 );
 
 const EOF = new Token(TOKEN_EOF, "EOF", -1, "");
@@ -136,9 +136,9 @@ export class ExpressionTokenStream implements TokenStream {
     if (this.current.kind !== kind)
       throw new LiquidSyntaxError(
         `expected '${reverseOperatorLookup(
-          kind
+          kind,
         )}', found '${reverseOperatorLookup(this.current.kind)}'`,
-        this.current
+        this.current,
       );
   }
 
@@ -146,9 +146,9 @@ export class ExpressionTokenStream implements TokenStream {
     if (this.peek.kind !== kind)
       throw new LiquidSyntaxError(
         `expected '${reverseOperatorLookup(
-          kind
+          kind,
         )}', found '${reverseOperatorLookup(this.peek.kind)}'`,
-        this.peek
+        this.peek,
       );
   }
 

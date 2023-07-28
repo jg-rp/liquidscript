@@ -65,7 +65,7 @@ describe("static template analysis", () => {
     globals: VariableRefs,
     failedVisits?: VariableRefs,
     unloadablePartials?: VariableRefs,
-    raiseForFailures: boolean = true
+    raiseForFailures: boolean = true,
   ) {
     failedVisits = failedVisits ?? {};
     unloadablePartials = unloadablePartials ?? {};
@@ -167,7 +167,7 @@ describe("static template analysis", () => {
 
   test("analyze capture tag", async () => {
     const template = env.fromString(
-      "{% capture x %}{% if y %}z{% endif %}{% endcapture %}"
+      "{% capture x %}{% if y %}z{% endif %}{% endcapture %}",
     );
 
     const expectedGlobals: VariableRefs = {
@@ -192,7 +192,7 @@ describe("static template analysis", () => {
         "{% when z %}",
         "  {{ b }}",
         "{% endcase %}",
-      ].join("\n")
+      ].join("\n"),
     );
 
     const expectedGlobals: VariableRefs = {
@@ -252,7 +252,7 @@ describe("static template analysis", () => {
 
   test("analyze echo tag", async () => {
     const template = env.fromString(
-      "{% echo x | default: y, allow_false: z %}"
+      "{% echo x | default: y, allow_false: z %}",
     );
 
     const expectedGlobals: VariableRefs = {
@@ -280,7 +280,7 @@ describe("static template analysis", () => {
         "  {{ z }}",
         "  {% continue %}",
         "{% endfor %}",
-      ].join("\n")
+      ].join("\n"),
     );
 
     const expectedGlobals: VariableRefs = {
@@ -305,7 +305,7 @@ describe("static template analysis", () => {
         "{% elsif y %}",
         "  {{ b }}",
         "{% endif %}",
-      ].join("\n")
+      ].join("\n"),
     );
 
     const expectedGlobals: VariableRefs = {
@@ -336,7 +336,7 @@ describe("static template analysis", () => {
         "{% elsif y %}",
         "  {{ b }}",
         "{% endif %}",
-      ].join("\n")
+      ].join("\n"),
     );
 
     const expectedGlobals: VariableRefs = {
@@ -395,7 +395,7 @@ describe("static template analysis", () => {
         "for i in (0..5)",
         "   echo i",
         "endfor %}",
-      ].join("\n")
+      ].join("\n"),
     );
 
     const expectedGlobals: VariableRefs = {
@@ -414,7 +414,7 @@ describe("static template analysis", () => {
 
   test("analyze tablerow tag", async () => {
     const template = env.fromString(
-      "{% tablerow x in y.z %}{{ x | append: a }}{% endtablerow %}"
+      "{% tablerow x in y.z %}{{ x | append: a }}{% endtablerow %}",
     );
 
     const expectedGlobals: VariableRefs = {
@@ -439,7 +439,7 @@ describe("static template analysis", () => {
         "{% elsif y %}",
         "  {{ b }}",
         "{% endunless %}",
-      ].join("\n")
+      ].join("\n"),
     );
 
     const expectedGlobals: VariableRefs = {
@@ -498,7 +498,7 @@ describe("static template analysis", () => {
     const loader = new ObjectLoader({ some_name: "{{ y }}" });
     const _env = new Environment({ loader });
     const template = _env.fromString(
-      "{% include 'some_name' %}{% include 'some_name' %}"
+      "{% include 'some_name' %}{% include 'some_name' %}",
     );
 
     const expectedGlobals: VariableRefs = {
@@ -580,7 +580,7 @@ describe("static template analysis", () => {
     });
     const _env = new Environment({ loader });
     const template = _env.fromString(
-      "{% include 'some_name', x:y, z:'4' %}\n{{ x }}"
+      "{% include 'some_name', x:y, z:'4' %}\n{{ x }}",
     );
 
     const expectedGlobals: VariableRefs = {
@@ -629,7 +629,7 @@ describe("static template analysis", () => {
       expectedGlobals,
       undefined,
       expectedUnloadablePartials,
-      false
+      false,
     );
 
     expect(async () =>
@@ -640,8 +640,8 @@ describe("static template analysis", () => {
         expectedGlobals,
         undefined,
         expectedUnloadablePartials,
-        true
-      )
+        true,
+      ),
     ).rejects.toThrow(TemplateTraversalError);
   });
 
@@ -667,7 +667,7 @@ describe("static template analysis", () => {
       expectedGlobals,
       undefined,
       expectedUnloadablePartials,
-      false
+      false,
     );
 
     expect(async () =>
@@ -678,8 +678,8 @@ describe("static template analysis", () => {
         expectedGlobals,
         undefined,
         expectedUnloadablePartials,
-        true
-      )
+        true,
+      ),
     ).rejects.toThrow(TemplateTraversalError);
   });
 
@@ -687,7 +687,7 @@ describe("static template analysis", () => {
     const loader = new ObjectLoader({ some_name: "{{ x }}{% assign y = z %}" });
     const _env = new Environment({ loader });
     const template = _env.fromString(
-      "{% assign z = 1 %}{% render 'some_name' %}"
+      "{% assign z = 1 %}{% render 'some_name' %}",
     );
 
     const expectedGlobals: VariableRefs = {
@@ -709,7 +709,7 @@ describe("static template analysis", () => {
     const loader = new ObjectLoader({ some_name: "{{ x }}" });
     const _env = new Environment({ loader });
     const template = _env.fromString(
-      "{% render 'some_name' %}{% render 'some_name' %}"
+      "{% render 'some_name' %}{% render 'some_name' %}",
     );
 
     const expectedGlobals: VariableRefs = {
@@ -791,7 +791,7 @@ describe("static template analysis", () => {
     });
     const _env = new Environment({ loader });
     const template = _env.fromString(
-      "{% render 'some_name', x:y, z:'4' %}\n{{ x }}"
+      "{% render 'some_name', x:y, z:'4' %}\n{{ x }}",
     );
 
     const expectedGlobals: VariableRefs = {
@@ -820,7 +820,7 @@ describe("static template analysis", () => {
     const loader = new ObjectLoader({ some_name: "{{ x }}{% assign y = z %}" });
     const _env = new Environment({ loader });
     const template = _env.fromString(
-      "{% assign z = 1 %}{% render 'some_name' %}{{ y }}"
+      "{% assign z = 1 %}{% render 'some_name' %}{{ y }}",
     );
 
     const expectedGlobals: VariableRefs = {
@@ -862,7 +862,7 @@ describe("static template analysis", () => {
       expectedGlobals,
       undefined,
       expectedUnloadablePartials,
-      false
+      false,
     );
 
     expect(async () =>
@@ -873,8 +873,8 @@ describe("static template analysis", () => {
         expectedGlobals,
         undefined,
         expectedUnloadablePartials,
-        true
-      )
+        true,
+      ),
     ).rejects.toThrow(TemplateTraversalError);
   });
 
@@ -893,7 +893,7 @@ describe("static template analysis", () => {
     await _test(template, {}, {}, {}, expectedFailedVisits, {}, false);
 
     expect(async () =>
-      _test(template, {}, {}, {}, expectedFailedVisits, {}, true)
+      _test(template, {}, {}, {}, expectedFailedVisits, {}, true),
     ).rejects.toThrow(TemplateTraversalError);
   });
 
@@ -912,7 +912,7 @@ describe("static template analysis", () => {
     await _test(template, {}, {}, {}, expectedFailedVisits, {}, false);
 
     expect(async () =>
-      _test(template, {}, {}, {}, expectedFailedVisits, {}, true)
+      _test(template, {}, {}, {}, expectedFailedVisits, {}, true),
     ).rejects.toThrow(TemplateTraversalError);
   });
 
@@ -927,7 +927,7 @@ describe("static template analysis", () => {
         "{% endmacro %}" +
         "{% call 'foo' %}" +
         "{% assign x = 'you' %}" +
-        "{% call 'foo', you: x %}"
+        "{% call 'foo', you: x %}",
     );
 
     const expectedGlobals: VariableRefs = {

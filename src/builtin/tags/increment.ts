@@ -18,14 +18,17 @@ export class IncrementTag implements Tag {
     return new this.nodeClass(
       token,
       parseUnchainedIdentifier(
-        new ExpressionTokenStream(tokenize(stream.current.value))
-      ).toString()
+        new ExpressionTokenStream(tokenize(stream.current.value)),
+      ).toString(),
     );
   }
 }
 
 export class IncrementNode implements Node {
-  constructor(readonly token: Token, readonly identifier: string) {}
+  constructor(
+    readonly token: Token,
+    readonly identifier: string,
+  ) {}
 
   async render(context: RenderContext, out: RenderStream): Promise<void> {
     return this.renderSync(context, out);

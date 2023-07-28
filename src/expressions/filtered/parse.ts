@@ -58,14 +58,14 @@ export function parseObject(stream: ExpressionTokenStream): Expression {
   if (func) return func(stream);
   throw new LiquidSyntaxError(
     `unexpected '${stream.current.value}'`,
-    stream.current
+    stream.current,
   );
 }
 
 TOKEN_MAP.set(TOKEN_LPAREN, makeParseRange(parseObject));
 
 function* splitAtFirstPipe(
-  tokens: IterableIterator<Token>
+  tokens: IterableIterator<Token>,
 ): Generator<Token[]> {
   const buf: Token[] = [];
   for (const token of tokens) {
@@ -133,25 +133,25 @@ export function parseFilter(tokens: Token[]): ExpressionFilter {
 }
 
 export function parseFromTokens(
-  tokens: IterableIterator<Token>
+  tokens: IterableIterator<Token>,
 ): FilteredExpression {
   const parts = Array.from(splitAtFirstPipe(tokens));
 
   if (parts.length === 1) {
     return new FilteredExpression(
-      parseObject(new ExpressionTokenStream(parts[0].values()))
+      parseObject(new ExpressionTokenStream(parts[0].values())),
     );
   }
 
   return new FilteredExpression(
     parseObject(new ExpressionTokenStream(parts[0].values())),
-    Array.from(splitAtPipe(parts[1].values())).map(parseFilter)
+    Array.from(splitAtPipe(parts[1].values())).map(parseFilter),
   );
 }
 
 export function parse(
   expr: string,
-  startIndex: number = 0
+  startIndex: number = 0,
 ): FilteredExpression {
   return parseFromTokens(tokenize(expr, startIndex));
 }

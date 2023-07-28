@@ -62,7 +62,7 @@ describe("parse argument list", () => {
   test("change argument separator", () => {
     const args = parse(
       "a='hello', b=false, c=true, d=nil, e=1, f=1.1",
-      TOKEN_ASSIGN
+      TOKEN_ASSIGN,
     );
     expect(args).toStrictEqual({
       a: new StringLiteral("hello"),
@@ -76,7 +76,7 @@ describe("parse argument list", () => {
 
   test("identifiers", () => {
     const args = parse(
-      "a: title, b: product.title, c: products[0], d: products[0].title"
+      "a: title, b: product.title, c: products[0], d: products[0].title",
     );
     expect(args).toStrictEqual({
       a: new Identifier("title", []),
@@ -92,21 +92,21 @@ describe("parse argument list", () => {
   test("missing comma", () => {
     expect(() => parse("a: 'hello' b: 'goodbye'")).toThrow(LiquidSyntaxError);
     expect(() => parse("a: 'hello' b: 'goodbye'")).toThrow(
-      "expected ',', found 'TOKEN_IDENT' (<string>:1)"
+      "expected ',', found 'TOKEN_IDENT' (<string>:1)",
     );
   });
 
   test("too many commas", () => {
     expect(() => parse("a: 'hello',, b: 'goodbye'")).toThrow(LiquidSyntaxError);
     expect(() => parse("a: 'hello',, b: 'goodbye'")).toThrow(
-      "expected an identifier, found ',' (<string>:1)"
+      "expected an identifier, found ',' (<string>:1)",
     );
   });
 
   test("missing colon", () => {
     expect(() => parse("val 'hello'")).toThrow(LiquidSyntaxError);
     expect(() => parse("val 'hello'")).toThrow(
-      "expected ':', found 'TOKEN_STRING' (<string>:1)"
+      "expected ':', found 'TOKEN_STRING' (<string>:1)",
     );
   });
 

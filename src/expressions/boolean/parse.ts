@@ -96,7 +96,7 @@ const BINARY_OPERATORS = new Set([
 
 export function parseInfixExpression(
   stream: ExpressionTokenStream,
-  left: Expression
+  left: Expression,
 ): InfixExpression {
   const token = stream.current;
   const precedence = PRECEDENCES.has(token.kind)
@@ -106,19 +106,19 @@ export function parseInfixExpression(
   return new InfixExpression(
     left,
     token.value,
-    parseObject(stream, precedence)
+    parseObject(stream, precedence),
   );
 }
 
 export function parseObject(
   stream: ExpressionTokenStream,
-  precedence: number = PRECEDENCE_LOWEST
+  precedence: number = PRECEDENCE_LOWEST,
 ): Expression {
   const func = TOKEN_MAP.get(stream.current.kind);
   if (!func)
     throw new LiquidSyntaxError(
       `unexpected '${stream.current.value}'`,
-      stream.current
+      stream.current,
     );
 
   let left = func(stream);
@@ -140,6 +140,6 @@ export function parseObject(
 
 export function parse(expr: string, startIndex: number = 1): BooleanExpression {
   return new BooleanExpression(
-    parseObject(new ExpressionTokenStream(tokenize(expr, startIndex)))
+    parseObject(new ExpressionTokenStream(tokenize(expr, startIndex))),
   );
 }

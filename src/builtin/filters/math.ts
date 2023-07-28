@@ -37,7 +37,7 @@ export function abs(this: FilterContext, left: unknown): NumberT {
 export function atLeast(
   this: FilterContext,
   left: unknown,
-  arg: unknown
+  arg: unknown,
 ): NumberT {
   checkArguments(arguments.length, 1, 1);
   return parseNumberOrZero(left).max(parseNumberOrZero(arg));
@@ -62,7 +62,7 @@ export function atLeast(
 export function atMost(
   this: FilterContext,
   left: unknown,
-  arg: unknown
+  arg: unknown,
 ): NumberT {
   checkArguments(arguments.length, 1, 1);
   return parseNumberOrZero(left).min(parseNumberOrZero(arg));
@@ -100,7 +100,7 @@ export function ceil(this: FilterContext, left: unknown): NumberT {
 export function dividedBy(
   this: FilterContext,
   left: unknown,
-  divisor: unknown
+  divisor: unknown,
 ): NumberT {
   checkArguments(arguments.length, 1, 1);
   const _divisor = parseNumberOrZero(divisor);
@@ -139,7 +139,7 @@ export function floor(this: FilterContext, left: unknown): NumberT {
 export function minus(
   this: FilterContext,
   left: unknown,
-  right: unknown
+  right: unknown,
 ): NumberT {
   checkArguments(arguments.length, 1, 1);
   return parseNumberOrZero(left).minus(parseNumberOrZero(right));
@@ -163,7 +163,7 @@ export function minus(
 export function modulo(
   this: FilterContext,
   left: unknown,
-  right: unknown
+  right: unknown,
 ): NumberT {
   checkArguments(arguments.length, 1, 1);
   // undefined or invalid arguments get caught by "divide by zero" check.
@@ -188,7 +188,7 @@ export function modulo(
 export function plus(
   this: FilterContext,
   left: unknown,
-  right: unknown
+  right: unknown,
 ): NumberT {
   checkArguments(arguments.length, 1, 1);
   return parseNumberOrZero(left).plus(parseNumberOrZero(right));
@@ -208,7 +208,7 @@ export function plus(
 export function round(
   this: FilterContext,
   left: unknown,
-  decimalPlaces?: unknown
+  decimalPlaces?: unknown,
 ): NumberT {
   checkArguments(arguments.length, 1);
 
@@ -248,7 +248,7 @@ export function round(
 export function times(
   this: FilterContext,
   left: unknown,
-  right: unknown
+  right: unknown,
 ): NumberT {
   checkArguments(arguments.length, 1, 1);
   return parseNumberOrZero(left).times(parseNumberOrZero(right));

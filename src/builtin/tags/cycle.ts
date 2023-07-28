@@ -33,15 +33,15 @@ export class CycleTag implements Tag {
     const parts = Array.from(splitAtFirstColon(tokens));
     if (parts.length === 2)
       groupName = parseStringOrIdentifier(
-        new ExpressionTokenStream(parts[0].values())
+        new ExpressionTokenStream(parts[0].values()),
       );
 
     return new this.nodeClass(
       token,
       Array.from(
-        parseArgs(new ExpressionTokenStream(parts[parts.length - 1].values()))
+        parseArgs(new ExpressionTokenStream(parts[parts.length - 1].values())),
       ),
-      groupName
+      groupName,
     );
   }
 }
@@ -50,14 +50,14 @@ export class CycleNode implements Node {
   constructor(
     readonly token: Token,
     readonly args: Expression[],
-    readonly group?: Expression
+    readonly group?: Expression,
   ) {}
 
   protected cycle(
     context: RenderContext,
     out: RenderStream,
     groupName: unknown,
-    args: unknown[]
+    args: unknown[],
   ): void {
     const cycles = context.getRegister(Cycles);
     let key: symbol | string;
@@ -86,14 +86,14 @@ export class CycleNode implements Node {
 
   public async render(
     context: RenderContext,
-    out: RenderStream
+    out: RenderStream,
   ): Promise<void> {
     const groupName = this.group
       ? await this.group.evaluate(context)
       : undefined;
 
     const args = await Promise.all(
-      this.args.map((arg) => arg.evaluate(context))
+      this.args.map((arg) => arg.evaluate(context)),
     );
 
     this.cycle(context, out, groupName, args);
@@ -140,7 +140,7 @@ function* parseArgs(stream: ExpressionTokenStream): Generator<Expression> {
       default:
         throw new LiquidSyntaxError(
           `expected a comma separated list of arguments, found ${stream.current.kind}`,
-          stream.current
+          stream.current,
         );
     }
   }
@@ -152,7 +152,7 @@ function* parseArgs(stream: ExpressionTokenStream): Generator<Expression> {
  * @returns
  */
 function* splitAtFirstColon(
-  tokens: IterableIterator<Token>
+  tokens: IterableIterator<Token>,
 ): Generator<Token[]> {
   const buf: Token[] = [];
   for (const token of tokens) {

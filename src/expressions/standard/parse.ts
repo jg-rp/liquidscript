@@ -55,7 +55,7 @@ function parseIdentifier(stream: ExpressionTokenStream): Identifier {
   } else {
     throw new LiquidSyntaxError(
       `expected an identifier, found '${stream.current.value}'`,
-      stream.current
+      stream.current,
     );
   }
 
@@ -106,7 +106,7 @@ export function parse(stream: ExpressionTokenStream): Expression {
   if (!func)
     throw new LiquidSyntaxError(
       `unexpected '${stream.current.value}'`,
-      stream.current
+      stream.current,
     );
 
   return func(stream);

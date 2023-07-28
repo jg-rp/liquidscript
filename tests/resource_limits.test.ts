@@ -60,7 +60,7 @@ describe("local namespace limit", () => {
     });
     const env = new Environment({ loader, localNamespaceLimit: 24 });
     const template = env.fromString(
-      "{% assign greeting = 'hello' %}{% render 'foo' %}"
+      "{% assign greeting = 'hello' %}{% render 'foo' %}",
     );
     const ctx = new RenderContext(env, {});
     template.renderWithContextSync(ctx, env.renderStreamFactory());
@@ -105,7 +105,7 @@ describe("render context depth limit", () => {
     const template = env.fromString("{% render 'foo' %}");
     expect(() => template.renderSync()).toThrow(ContextDepthError);
     expect(async () => await template.render()).rejects.toThrowError(
-      ContextDepthError
+      ContextDepthError,
     );
   });
   test("recursive include", () => {
@@ -117,10 +117,10 @@ describe("render context depth limit", () => {
     const template = env.fromString("{% include 'foo' %}");
     expect(() => template.renderSync()).toThrow(ContextDepthError);
     expect(async () => await template.render()).rejects.toThrowError(
-      ContextDepthError
+      ContextDepthError,
     );
     expect(async () => await template.render()).rejects.toThrowError(
-      "maximum context depth reached"
+      "maximum context depth reached",
     );
   });
   test("set context depth limit", async () => {
@@ -139,10 +139,10 @@ describe("render context depth limit", () => {
     env.maxContextDepth = 2;
     expect(() => template.renderSync()).toThrow(ContextDepthError);
     expect(async () => await template.render()).rejects.toThrowError(
-      ContextDepthError
+      ContextDepthError,
     );
     expect(async () => await template.render()).rejects.toThrowError(
-      "maximum context depth reached"
+      "maximum context depth reached",
     );
   });
   test("set context depth limit include", async () => {
@@ -161,10 +161,10 @@ describe("render context depth limit", () => {
     env.maxContextDepth = 2;
     expect(() => template.renderSync()).toThrow(ContextDepthError);
     expect(async () => await template.render()).rejects.toThrowError(
-      ContextDepthError
+      ContextDepthError,
     );
     expect(async () => await template.render()).rejects.toThrowError(
-      "maximum context depth reached"
+      "maximum context depth reached",
     );
   });
 });
@@ -179,7 +179,7 @@ describe("loop iteration limit", () => {
         "x",
         "{% endfor %}",
         "{% endfor %}",
-      ].join("")
+      ].join(""),
     );
     template.renderSync();
     await template.render();
@@ -194,7 +194,7 @@ describe("loop iteration limit", () => {
         "x",
         "{% endfor %}",
         "{% endfor %}",
-      ].join("")
+      ].join(""),
     );
     template.renderSync();
     await template.render();
@@ -206,11 +206,11 @@ describe("loop iteration limit", () => {
         "x",
         "{% endfor %}",
         "{% endfor %}",
-      ].join("")
+      ].join(""),
     );
     expect(() => template.renderSync()).toThrowError(LoopIterationLimitError);
     expect(async () => await template.render()).rejects.toThrowError(
-      LoopIterationLimitError
+      LoopIterationLimitError,
     );
   });
 
@@ -226,12 +226,12 @@ describe("loop iteration limit", () => {
     });
     const env = new Environment({ loader, loopIterationLimit: 3000 });
     const template = env.fromString(
-      "{% for i in (1..10) %}{% render 'foo' %}{% endfor %}"
+      "{% for i in (1..10) %}{% render 'foo' %}{% endfor %}",
     );
 
     expect(() => template.renderSync()).toThrowError(LoopIterationLimitError);
     expect(async () => await template.render()).rejects.toThrowError(
-      LoopIterationLimitError
+      LoopIterationLimitError,
     );
   });
 
@@ -247,12 +247,12 @@ describe("loop iteration limit", () => {
     });
     const env = new Environment({ loader, loopIterationLimit: 3000 });
     const template = env.fromString(
-      "{% for i in (1..10) %}{% include 'foo' %}{% endfor %}"
+      "{% for i in (1..10) %}{% include 'foo' %}{% endfor %}",
     );
 
     expect(() => template.renderSync()).toThrowError(LoopIterationLimitError);
     expect(async () => await template.render()).rejects.toThrowError(
-      LoopIterationLimitError
+      LoopIterationLimitError,
     );
   });
 
@@ -265,12 +265,12 @@ describe("loop iteration limit", () => {
         "{{ i }}",
         "{% endtablerow %}",
         "{% endfor %}",
-      ].join("")
+      ].join(""),
     );
 
     expect(() => template.renderSync()).toThrowError(LoopIterationLimitError);
     expect(async () => await template.render()).rejects.toThrowError(
-      LoopIterationLimitError
+      LoopIterationLimitError,
     );
   });
 });
@@ -279,16 +279,16 @@ describe("output stream limit", () => {
   test("set output stream limit with constructor", async () => {
     const env = new Environment({ outputStreamLimit: 5 });
     let template = env.fromString(
-      "{% if false %}some literal that is longer then the limit{% endif %}hello"
+      "{% if false %}some literal that is longer then the limit{% endif %}hello",
     );
     expect(template.renderSync()).toBe("hello");
 
     template = env.fromString(
-      "{% if true %}some literal that is longer then the limit{% endif %}hello"
+      "{% if true %}some literal that is longer then the limit{% endif %}hello",
     );
     expect(() => template.renderSync()).toThrowError(OutputStreamLimitError);
     expect(async () => await template.render()).rejects.toThrowError(
-      OutputStreamLimitError
+      OutputStreamLimitError,
     );
   });
 
@@ -296,16 +296,16 @@ describe("output stream limit", () => {
     const env = new Environment();
     env.outputStreamLimit = 5;
     let template = env.fromString(
-      "{% if false %}some literal that is longer then the limit{% endif %}hello"
+      "{% if false %}some literal that is longer then the limit{% endif %}hello",
     );
     expect(template.renderSync()).toBe("hello");
 
     template = env.fromString(
-      "{% if true %}some literal that is longer then the limit{% endif %}hello"
+      "{% if true %}some literal that is longer then the limit{% endif %}hello",
     );
     expect(() => template.renderSync()).toThrowError(OutputStreamLimitError);
     expect(async () => await template.render()).rejects.toThrowError(
-      OutputStreamLimitError
+      OutputStreamLimitError,
     );
   });
 });

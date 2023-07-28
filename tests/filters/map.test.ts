@@ -28,7 +28,7 @@ describe("map filter", () => {
 
   test("left value is not iterable", () => {
     expect(() => map.apply(filterContext, [123, "title"])).toThrow(
-      FilterArgumentError
+      FilterArgumentError,
     );
   });
 

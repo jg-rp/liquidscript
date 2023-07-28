@@ -23,19 +23,19 @@ describe("parse filtered expression", () => {
   test("string literal", () => {
     const expr = parse("'hello'");
     expect(expr).toStrictEqual(
-      new FilteredExpression(new StringLiteral("hello"))
+      new FilteredExpression(new StringLiteral("hello")),
     );
   });
   test("integer literal", () => {
     const expr = parse("1");
     expect(expr).toStrictEqual(
-      new FilteredExpression(new IntegerLiteral(new Integer(1)))
+      new FilteredExpression(new IntegerLiteral(new Integer(1))),
     );
   });
   test("float literal", () => {
     const expr = parse("1.1");
     expect(expr).toStrictEqual(
-      new FilteredExpression(new FloatLiteral(new Float(1.1)))
+      new FilteredExpression(new FloatLiteral(new Float(1.1))),
     );
   });
   test("true literal", () => {
@@ -52,9 +52,9 @@ describe("parse filtered expression", () => {
       new FilteredExpression(
         new RangeLiteral(
           new IntegerLiteral(new Integer(1)),
-          new IntegerLiteral(new Integer(3))
-        )
-      )
+          new IntegerLiteral(new Integer(3)),
+        ),
+      ),
     );
   });
   test("one filter with no args", () => {
@@ -62,7 +62,7 @@ describe("parse filtered expression", () => {
     expect(expr).toStrictEqual(
       new FilteredExpression(new StringLiteral("hello"), [
         new ExpressionFilter("upcase"),
-      ])
+      ]),
     );
   });
   test("two filters with no args", () => {
@@ -71,7 +71,7 @@ describe("parse filtered expression", () => {
       new FilteredExpression(new StringLiteral("hello"), [
         new ExpressionFilter("upcase"),
         new ExpressionFilter("downcase"),
-      ])
+      ]),
     );
   });
   test("one filter with positional args", () => {
@@ -82,7 +82,7 @@ describe("parse filtered expression", () => {
           new IntegerLiteral(new Integer(2)),
           new IntegerLiteral(new Integer(4)),
         ]),
-      ])
+      ]),
     );
   });
   test("one filter with positional and keyword args", () => {
@@ -92,9 +92,9 @@ describe("parse filtered expression", () => {
         new ExpressionFilter(
           "default",
           [new IntegerLiteral(new Integer(2))],
-          new Map<string, Expression>([["allow_false", TRUE]])
+          new Map<string, Expression>([["allow_false", TRUE]]),
         ),
-      ])
+      ]),
     );
   });
 });
@@ -107,8 +107,8 @@ describe("parse conditional expression", () => {
         new FilteredExpression(new StringLiteral("foo"), []),
         [],
         TRUE,
-        NIL
-      )
+        NIL,
+      ),
     );
   });
   test("missing condition", () => {
@@ -118,8 +118,8 @@ describe("parse conditional expression", () => {
         new FilteredExpression(new StringLiteral("foo"), []),
         [],
         FALSE,
-        NIL
-      )
+        NIL,
+      ),
     );
   });
 });
@@ -132,8 +132,8 @@ describe("parse conditional expression with not", () => {
         new FilteredExpression(new StringLiteral("foo"), []),
         [],
         new PrefixExpression("not", TRUE),
-        NIL
-      )
+        NIL,
+      ),
     );
   });
 });

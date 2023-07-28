@@ -42,7 +42,7 @@ describe("parse common liquid expressions", () => {
     const result = parse(stream);
     expect(result).toStrictEqual(new IntegerLiteral(new Integer(42)));
     expect(stream.current).toStrictEqual(
-      new Token(TOKEN_INTEGER, "42", 0, expr)
+      new Token(TOKEN_INTEGER, "42", 0, expr),
     );
   });
   test("parse literal float", () => {
@@ -51,7 +51,7 @@ describe("parse common liquid expressions", () => {
     const result = parse(stream);
     expect(result).toStrictEqual(new FloatLiteral(new Float(42.2)));
     expect(stream.current).toStrictEqual(
-      new Token(TOKEN_FLOAT, "42.2", 0, expr)
+      new Token(TOKEN_FLOAT, "42.2", 0, expr),
     );
   });
   test("parse literal string", () => {
@@ -60,7 +60,7 @@ describe("parse common liquid expressions", () => {
     const result = parse(stream);
     expect(result).toStrictEqual(new StringLiteral("42.2"));
     expect(stream.current).toStrictEqual(
-      new Token(TOKEN_STRING, "42.2", 0, expr)
+      new Token(TOKEN_STRING, "42.2", 0, expr),
     );
   });
   test("parse literal range", () => {
@@ -70,8 +70,8 @@ describe("parse common liquid expressions", () => {
     expect(result).toStrictEqual(
       new RangeLiteral(
         new IntegerLiteral(new Integer(1)),
-        new IntegerLiteral(new Integer(5))
-      )
+        new IntegerLiteral(new Integer(5)),
+      ),
     );
     expect(stream.current).toStrictEqual(new Token(TOKEN_RPAREN, ")", 5, expr));
   });
@@ -81,7 +81,7 @@ describe("parse common liquid expressions", () => {
     const result = parse(stream);
     expect(result).toStrictEqual(BLANK);
     expect(stream.current).toStrictEqual(
-      new Token(TOKEN_BLANK, "blank", 0, expr)
+      new Token(TOKEN_BLANK, "blank", 0, expr),
     );
   });
   test("parse empty", () => {
@@ -90,7 +90,7 @@ describe("parse common liquid expressions", () => {
     const result = parse(stream);
     expect(result).toStrictEqual(EMPTY);
     expect(stream.current).toStrictEqual(
-      new Token(TOKEN_EMPTY, "empty", 0, expr)
+      new Token(TOKEN_EMPTY, "empty", 0, expr),
     );
   });
   test("parse nil", () => {
@@ -106,7 +106,7 @@ describe("parse common liquid expressions", () => {
     const result = parse(stream);
     expect(result).toStrictEqual(TRUE);
     expect(stream.current).toStrictEqual(
-      new Token(TOKEN_TRUE, "true", 0, expr)
+      new Token(TOKEN_TRUE, "true", 0, expr),
     );
   });
   test("parse false", () => {
@@ -115,7 +115,7 @@ describe("parse common liquid expressions", () => {
     const result = parse(stream);
     expect(result).toStrictEqual(FALSE);
     expect(stream.current).toStrictEqual(
-      new Token(TOKEN_FALSE, "false", 0, expr)
+      new Token(TOKEN_FALSE, "false", 0, expr),
     );
   });
   test("parse identifier", () => {
@@ -128,10 +128,10 @@ describe("parse common liquid expressions", () => {
         new IdentifierPathElement(1),
         new IdentifierPathElement("c"),
         new IdentifierPathElement("foo"),
-      ])
+      ]),
     );
     expect(stream.current).toStrictEqual(
-      new Token(TOKEN_IDENT, "foo", 8, expr)
+      new Token(TOKEN_IDENT, "foo", 8, expr),
     );
   });
   test("parse nested identifiers", () => {
@@ -145,10 +145,10 @@ describe("parse common liquid expressions", () => {
           new IdentifierPathElement("d"),
           new IdentifierPathElement(1),
         ]),
-      ])
+      ]),
     );
     expect(stream.current).toStrictEqual(
-      new Token(TOKEN_RBRACKET, "]", 10, expr)
+      new Token(TOKEN_RBRACKET, "]", 10, expr),
     );
   });
   test("parse identifier followed by a comma", () => {
@@ -159,10 +159,10 @@ describe("parse common liquid expressions", () => {
       new Identifier("a", [
         new IdentifierPathElement("b"),
         new IdentifierPathElement(1),
-      ])
+      ]),
     );
     expect(stream.current).toStrictEqual(
-      new Token(TOKEN_IDENT_INDEX, "1", 3, expr)
+      new Token(TOKEN_IDENT_INDEX, "1", 3, expr),
     );
   });
   test("parse up to comma", () => {

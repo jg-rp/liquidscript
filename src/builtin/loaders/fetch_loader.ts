@@ -100,7 +100,7 @@ export class FetchLoader extends Loader {
 
   getSourceSync(): TemplateSource {
     throw new Error(
-      "synchronous loading is not available when using FetchLoader"
+      "synchronous loading is not available when using FetchLoader",
     );
   }
 }

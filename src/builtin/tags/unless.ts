@@ -57,7 +57,7 @@ export class UnlessTag implements Tag {
     const consequence = parser.parseBlock(
       stream,
       UnlessTag.END_IF_BLOCK,
-      token
+      token,
     );
     const conditionalAlternatives: ConditionalAlternative[] = [];
 
@@ -74,7 +74,7 @@ export class UnlessTag implements Tag {
         consequence: parser.parseBlock(
           stream,
           UnlessTag.END_ELSEIF_BLOCK,
-          stream.next()
+          stream.next(),
         ),
       });
     }
@@ -88,7 +88,7 @@ export class UnlessTag implements Tag {
         condition,
         consequence,
         conditionalAlternatives,
-        parser.parseBlock(stream, UnlessTag.END_ELSE_BLOCK, stream.next())
+        parser.parseBlock(stream, UnlessTag.END_ELSE_BLOCK, stream.next()),
       );
     }
 
@@ -96,7 +96,7 @@ export class UnlessTag implements Tag {
       token,
       condition,
       consequence,
-      conditionalAlternatives
+      conditionalAlternatives,
     );
   }
 }
@@ -108,14 +108,14 @@ export class UnlessNode implements Node {
     private condition: Expression,
     private consequence: BlockNode,
     private conditionalAlternatives: ConditionalAlternative[],
-    private alternative?: BlockNode
+    private alternative?: BlockNode,
   ) {
     this.forceOutput = forcedOutput(this);
   }
 
   public async render(
     context: RenderContext,
-    out: RenderStream
+    out: RenderStream,
   ): Promise<void> {
     const buf = this.forceOutput
       ? out
@@ -186,7 +186,7 @@ export class UnlessNode implements Node {
           token: alt.token,
           node: alt.consequence,
           expression: alt.condition,
-        })
+        }),
       ),
     ];
     if (this.alternative !== undefined)

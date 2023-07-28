@@ -108,7 +108,7 @@ describe("built-in inline comment tag", () => {
           "  # spread inline comments",
           "  over multiple lines",
           "-%}",
-        ].join("\n")
+        ].join("\n"),
       );
     }).toThrow(LiquidSyntaxError);
   });

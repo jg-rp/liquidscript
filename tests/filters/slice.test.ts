@@ -47,25 +47,25 @@ describe("slice filter", () => {
 
   test("offset not a number", () => {
     expect(() => slice.apply(filterContext, ["hello", "foo"])).toThrow(
-      FilterArgumentError
+      FilterArgumentError,
     );
   });
 
   test("offset is a float", () => {
     expect(() => slice.apply(filterContext, ["hello", 1.1])).toThrow(
-      FilterArgumentError
+      FilterArgumentError,
     );
   });
 
   test("length not a number", () => {
     expect(() => slice.apply(filterContext, ["hello", 1, "foo"])).toThrow(
-      FilterArgumentError
+      FilterArgumentError,
     );
   });
 
   test("length is a float", () => {
     expect(() => slice.apply(filterContext, ["hello", 1, 2.2])).toThrow(
-      FilterArgumentError
+      FilterArgumentError,
     );
   });
 

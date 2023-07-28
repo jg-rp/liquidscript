@@ -20,18 +20,18 @@ import { toLiquidString } from "../../drop";
 export function append(
   this: FilterContext,
   left: unknown,
-  other: unknown
+  other: unknown,
 ): string | Markup {
   checkArguments(arguments.length, 1, 1);
 
   if (left instanceof Markup)
     return new Markup(
-      left[toLiquidString]() + Markup.escape(other)[toLiquidString]()
+      left[toLiquidString]() + Markup.escape(other)[toLiquidString](),
     );
 
   if (other instanceof Markup) {
     return new Markup(
-      Markup.escape(left)[toLiquidString]() + other[toLiquidString]()
+      Markup.escape(left)[toLiquidString]() + other[toLiquidString](),
     );
   }
 
@@ -50,13 +50,13 @@ export function append(
  */
 export function capitalize(
   this: FilterContext,
-  left: unknown
+  left: unknown,
 ): string | Markup {
   checkArguments(arguments.length, 0);
   if (left instanceof Markup) {
     const s = left[toLiquidString]();
     return new Markup(
-      s.charAt(0).toLocaleUpperCase() + s.slice(1).toLocaleLowerCase()
+      s.charAt(0).toLocaleUpperCase() + s.slice(1).toLocaleLowerCase(),
     );
   }
   const s = liquidStringify(left);
@@ -106,7 +106,7 @@ export function escape(this: FilterContext, left: unknown): string | Markup {
  */
 export function escapeOnce(
   this: FilterContext,
-  left: unknown
+  left: unknown,
 ): string | Markup {
   checkArguments(arguments.length, 0);
   if (this.context.environment.autoEscape)
@@ -139,12 +139,12 @@ export function lstrip(this: FilterContext, left: unknown): string | Markup {
  */
 export function newlineToBr(
   this: FilterContext,
-  left: unknown
+  left: unknown,
 ): string | Markup {
   checkArguments(arguments.length, 0);
   if (this.context.environment.autoEscape)
     return new Markup(
-      Markup.escape(left)[toLiquidString]().replace(/\r?\n/g, "<br />\n")
+      Markup.escape(left)[toLiquidString]().replace(/\r?\n/g, "<br />\n"),
     );
   return liquidStringify(left).replace(/\r?\n/g, "<br />\n");
 }
@@ -161,18 +161,18 @@ export function newlineToBr(
 export function prepend(
   this: FilterContext,
   left: unknown,
-  other: unknown
+  other: unknown,
 ): string | Markup {
   checkArguments(arguments.length, 1, 1);
 
   if (left instanceof Markup)
     return new Markup(
-      Markup.escape(other)[toLiquidString]() + left[toLiquidString]()
+      Markup.escape(other)[toLiquidString]() + left[toLiquidString](),
     );
 
   if (other instanceof Markup) {
     return new Markup(
-      other[toLiquidString]() + Markup.escape(left)[toLiquidString]()
+      other[toLiquidString]() + Markup.escape(left)[toLiquidString](),
     );
   }
 
@@ -194,7 +194,7 @@ export function prepend(
 export function remove(
   this: FilterContext,
   left: unknown,
-  subString: unknown
+  subString: unknown,
 ): string | Markup {
   checkArguments(arguments.length, 1, 1);
 
@@ -202,13 +202,13 @@ export function remove(
     return new Markup(
       left[toLiquidString]().replace(
         new RegExp(Markup.escape(subString)[toLiquidString](), "g"),
-        ""
-      )
+        "",
+      ),
     );
 
   return liquidStringify(left).replace(
     new RegExp(liquidStringify(subString), "g"),
-    ""
+    "",
   );
 }
 
@@ -227,7 +227,7 @@ export function remove(
 export function removeFirst(
   this: FilterContext,
   left: unknown,
-  subString: unknown
+  subString: unknown,
 ): string | Markup {
   checkArguments(arguments.length, 1, 1);
 
@@ -235,8 +235,8 @@ export function removeFirst(
     return new Markup(
       left[toLiquidString]().replace(
         Markup.escape(subString)[toLiquidString](),
-        ""
-      )
+        "",
+      ),
     );
 
   return liquidStringify(left).replace(liquidStringify(subString), "");
@@ -256,7 +256,7 @@ export function removeFirst(
 export function removeLast(
   this: FilterContext,
   left: unknown,
-  arg: unknown
+  arg: unknown,
 ): string | Markup {
   checkArguments(arguments.length, 1, 1);
 
@@ -268,7 +268,7 @@ export function removeLast(
     if (startIndex === -1) return left;
     return new Markup(
       _left.substring(0, startIndex) +
-        _left.substring(startIndex + _arg.length + 1)
+        _left.substring(startIndex + _arg.length + 1),
     );
   }
 
@@ -301,19 +301,19 @@ export function replace(
   this: FilterContext,
   left: unknown,
   subString: unknown,
-  newSubString?: unknown
+  newSubString?: unknown,
 ): string | Markup {
   checkArguments(arguments.length, 2, 1);
   if (left instanceof Markup)
     return new Markup(
       left[toLiquidString]().replace(
         new RegExp(Markup.escape(subString)[toLiquidString](), "g"),
-        Markup.escape(newSubString)[toLiquidString]()
-      )
+        Markup.escape(newSubString)[toLiquidString](),
+      ),
     );
   return liquidStringify(left).replace(
     new RegExp(liquidStringify(subString), "g"),
-    liquidStringify(newSubString)
+    liquidStringify(newSubString),
   );
 }
 
@@ -335,19 +335,19 @@ export function replaceFirst(
   this: FilterContext,
   left: unknown,
   subString: unknown,
-  newSubString?: unknown
+  newSubString?: unknown,
 ): string | Markup {
   checkArguments(arguments.length, 2, 1);
   if (left instanceof Markup)
     return new Markup(
       left[toLiquidString]().replace(
         Markup.escape(subString)[toLiquidString](),
-        Markup.escape(newSubString)[toLiquidString]()
-      )
+        Markup.escape(newSubString)[toLiquidString](),
+      ),
     );
   return liquidStringify(left).replace(
     liquidStringify(subString),
-    liquidStringify(newSubString)
+    liquidStringify(newSubString),
   );
 }
 
@@ -369,7 +369,7 @@ export function replaceLast(
   this: FilterContext,
   left: unknown,
   subString: unknown,
-  newSubString: unknown
+  newSubString: unknown,
 ): string | Markup {
   checkArguments(arguments.length, 2, 2);
 
@@ -385,7 +385,7 @@ export function replaceLast(
     return new Markup(
       _left.substring(0, startIndex) +
         _newSub +
-        _left.substring(startIndex + _sub.length)
+        _left.substring(startIndex + _sub.length),
     );
   }
 
@@ -434,7 +434,7 @@ export function upcase(this: FilterContext, left: unknown): string | Markup {
 export function split(
   this: FilterContext,
   left: unknown,
-  subString: unknown
+  subString: unknown,
 ): string[] | Markup[] {
   checkArguments(arguments.length, 1, 1);
   return liquidStringify(left).split(liquidStringify(subString));
@@ -473,7 +473,7 @@ export function rstrip(this: FilterContext, left: unknown): string | Markup {
 // rather than correctness.
 const STRIP_HTML_BLOCKS = new RegExp(
   "<script.*?</script>|<!--.*?-->|<style.*?</style>",
-  "gs"
+  "gs",
 );
 
 const STRIP_HTML_TAGS = new RegExp("<.*?>", "gs");
@@ -503,7 +503,7 @@ export function stripHtml(this: FilterContext, left: unknown): string {
  */
 export function stripNewlines(
   this: FilterContext,
-  left: unknown
+  left: unknown,
 ): string | Markup {
   checkArguments(arguments.length, 0);
   if (left instanceof Markup)
@@ -532,14 +532,14 @@ export function truncate(
   this: FilterContext,
   left: unknown,
   length: unknown = 50,
-  end: unknown = "..."
+  end: unknown = "...",
 ): string {
   checkArguments(arguments.length, 2);
   const _left = liquidStringify(left);
   const _length = Number(length);
   if (isUndefined(length) || !Number.isInteger(_length))
     throw new FilterArgumentError(
-      `expected an integer length, found ${length}`
+      `expected an integer length, found ${length}`,
     );
 
   if (_left.length <= _length) return _left;
@@ -572,14 +572,14 @@ export function truncateWords(
   this: FilterContext,
   left: unknown,
   wordCount: unknown = 15,
-  end: unknown = "..."
+  end: unknown = "...",
 ): string {
   checkArguments(arguments.length, 2);
   const _left = liquidStringify(left);
   let _wordCount = Number(wordCount);
   if (isUndefined(wordCount) || !Number.isInteger(_wordCount))
     throw new FilterArgumentError(
-      `expected an integer length, found ${wordCount}`
+      `expected an integer length, found ${wordCount}`,
     );
 
   if (_wordCount <= 0) _wordCount = 1;

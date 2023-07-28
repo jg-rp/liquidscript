@@ -128,7 +128,7 @@ describe("built-in liquid tag", () => {
     {
       description: "reference test #4",
       source: ["{%- liquid echo 'a' -%}", "b", "{%- liquid echo 'c' -%}"].join(
-        "\n"
+        "\n",
       ),
       globals: {},
       want: "abc",
@@ -154,7 +154,7 @@ describe("built-in liquid tag", () => {
         const template = env.fromString(source);
         const result = await template.render(globals);
         expect(result).toBe(want);
-      }
+      },
     );
   });
 
@@ -164,7 +164,7 @@ describe("built-in liquid tag", () => {
       async ({ source, globals, want }: Case) => {
         const template = env.fromString(source);
         expect(template.renderSync(globals)).toBe(want);
-      }
+      },
     );
   });
 });

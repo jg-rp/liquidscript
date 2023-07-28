@@ -196,7 +196,7 @@ describe("render conditional output statement", () => {
       const template = env.fromString(text);
       expect(template.renderSync(globals)).toStrictEqual(want);
       expect(template.render(globals)).resolves.toStrictEqual(want);
-    }
+    },
   );
 });
 
@@ -210,7 +210,7 @@ describe("render conditional assign tag", () => {
       const template = env.fromString(text);
       expect(template.renderSync(globals)).toStrictEqual(want);
       expect(template.render(globals)).resolves.toStrictEqual(want);
-    }
+    },
   );
 });
 
@@ -224,7 +224,7 @@ describe("render conditional echo tag", () => {
       const template = env.fromString(text);
       expect(template.renderSync(globals)).toStrictEqual(want);
       expect(template.render(globals)).resolves.toStrictEqual(want);
-    }
+    },
   );
 });
 

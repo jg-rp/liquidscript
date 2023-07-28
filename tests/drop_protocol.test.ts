@@ -182,7 +182,7 @@ describe("drop protocol", () => {
         const template = env.fromString(source);
         const result = await template.render(globals);
         expect(result).toBe(want);
-      }
+      },
     );
   });
 
@@ -192,7 +192,7 @@ describe("drop protocol", () => {
       async ({ source, want, globals }: Case) => {
         const template = env.fromString(source);
         expect(template.renderSync(globals)).toBe(want);
-      }
+      },
     );
   });
 });

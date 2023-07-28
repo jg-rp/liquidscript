@@ -159,7 +159,7 @@ export interface LiquidDispatchable {
  * `false` otherwise.
  */
 export function isLiquidDispatchable(
-  value: unknown
+  value: unknown,
 ): value is LiquidDispatchable {
   return isObject(value) && liquidDispatch in value;
 }
@@ -171,7 +171,7 @@ export interface LiquidDispatchableSync {
 }
 
 export function isLiquidDispatchableSync(
-  value: unknown
+  value: unknown,
 ): value is LiquidDispatchableSync {
   return isObject(value) && liquidDispatchSync in value;
 }

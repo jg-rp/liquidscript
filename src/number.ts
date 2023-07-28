@@ -95,7 +95,7 @@ export abstract class LiquidNumber {
     return decimalPlaces === undefined || this.n.eq(0)
       ? new Integer(this.n.toDecimalPlaces(0, Decimal.ROUND_HALF_CEIL))
       : new Float(
-          this.n.toDecimalPlaces(decimalPlaces, Decimal.ROUND_HALF_CEIL)
+          this.n.toDecimalPlaces(decimalPlaces, Decimal.ROUND_HALF_CEIL),
         );
   }
 

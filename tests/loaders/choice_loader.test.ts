@@ -6,7 +6,7 @@ import { Environment } from "../../src/environment";
 describe("choice template loader", () => {
   test("chose from one of multiple template loaders synchronously", () => {
     const mapLoader = new MapLoader(
-      new Map([["layout", "Page Title\n{% include 'some.liquid' %}"]])
+      new Map([["layout", "Page Title\n{% include 'some.liquid' %}"]]),
     );
     const fsLoader = new NodeFileSystemLoader("tests/fixtures/templates/");
     const loader = new ChoiceLoader([mapLoader, fsLoader]);
@@ -16,7 +16,7 @@ describe("choice template loader", () => {
   });
   test("chose from one of multiple template loaders asynchronously", async () => {
     const mapLoader = new MapLoader(
-      new Map([["layout", "Page Title\n{% include 'some.liquid' %}"]])
+      new Map([["layout", "Page Title\n{% include 'some.liquid' %}"]]),
     );
     const fsLoader = new NodeFileSystemLoader("tests/fixtures/templates/");
     const loader = new ChoiceLoader([mapLoader, fsLoader]);

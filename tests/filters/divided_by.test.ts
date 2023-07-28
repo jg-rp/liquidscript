@@ -50,7 +50,7 @@ describe("divide by filter", () => {
   });
   test("argument is not a number", () => {
     expect(() => dividedBy.apply(filterContext, [10, "foo"])).toThrow(
-      FilterArgumentError
+      FilterArgumentError,
     );
   });
   test("undefined left value", () => {
@@ -60,7 +60,7 @@ describe("divide by filter", () => {
   });
   test("divide by zero", () => {
     expect(() => dividedBy.apply(filterContext, [10, 0])).toThrow(
-      FilterArgumentError
+      FilterArgumentError,
     );
   });
   test("left value defaults to zero", () => {
@@ -70,7 +70,7 @@ describe("divide by filter", () => {
   });
   test("divisor defaults to zero", () => {
     expect(() => dividedBy.apply(filterContext, [10, "foo"])).toThrow(
-      FilterArgumentError
+      FilterArgumentError,
     );
   });
 });
