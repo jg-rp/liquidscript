@@ -19,6 +19,8 @@ import {
 } from "../../types";
 import { Undefined } from "../../undefined";
 import { Markup } from "../drops/markup";
+import { parseNumberOrZero } from "./math";
+import { NumberT, ZERO } from "../../number";
 
 /**
  * Concatenate items in an array-like object into a single string, separated by
@@ -274,6 +276,30 @@ export function where(
     return inputArray(left).filter((v) => isLiquidTruthy(getItem(v, prop)));
   }
   return inputArray(left).filter((v) => getItem(v, prop) === value);
+}
+
+/**
+ * Return the sum of all numeric items in _left_.
+ *
+ * @param this - An object containing a reference to the active render context
+ * and any keyword/named arguments.
+ * @param left -
+ * @param prop -
+ * @returns
+ */
+export function sum(
+  this: FilterContext,
+  left: unknown,
+  prop?: unknown,
+): NumberT {
+  if (prop === null || NIL.equals(prop) || isUndefined(prop)) {
+    return inputArray(left)
+      .map(parseNumberOrZero)
+      .reduce((a, b) => a.plus(b), ZERO);
+  }
+  return inputArray(left)
+    .map((e) => parseNumberOrZero(getItem(e, prop)))
+    .reduce((a, b) => a.plus(b), ZERO);
 }
 
 /**

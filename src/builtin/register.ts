@@ -9,6 +9,7 @@ import {
   reverse,
   sort,
   sortNatural,
+  sum,
   uniq,
   where,
 } from "./filters/array";
@@ -161,4 +162,5 @@ export function registerBuiltin(env: Environment): void {
   env.filters["size"] = size;
   env.filters["default"] = default_;
   env.filters["date"] = date;
+  env.filters["sum"] = sum;
 }
