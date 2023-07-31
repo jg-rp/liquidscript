@@ -1,5 +1,11 @@
 # LiquidScript Change Log
 
+## Version 1.8.0 (unreleased)
+
+**Features**
+
+- Added the standard `sum` filter, which returns the sum of any numeric values in its input array.
+
 ## Version 1.7.0
 
 **Features**

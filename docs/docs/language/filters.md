@@ -1226,12 +1226,30 @@ there
 Hellothere
 ```
 
+## sum
+
+`<array> | sum[: <string>]`
+
+**_New in LiquidScript version 1.8.0_**
+
+Return the sum of all numeric elements in an array.
+
+```liquid
+{% assign array = '1,2,3' | split: ',' -%}
+{{ array | sum }}
+```
+
+```plain title="output"
+6
+```
+
+If the optional string argument is given, it is assumed that array items are hash/mapping-like, and the argument should be the name of a property/key. The values at `array[property]` will be summed.
+
 ## times
 
 `<number> | times: <number>`
 
-Return the product of the input number and the argument number. If either the input or argument are
-not a number, Liquid will try to convert them to a number. If that conversion fails, `0` is used
+Return the product of the input number and the argument number. If either the input or argument are not a number, Liquid will try to convert them to a number. If that conversion fails, `0` is used
 instead.
 
 ```liquid
