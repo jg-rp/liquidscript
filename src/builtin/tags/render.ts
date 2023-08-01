@@ -146,7 +146,7 @@ export class RenderNode implements Node {
     }
 
     // Disable include tags in this context.
-    const ctx = context.copy(scope, ["include"], true);
+    const ctx = context.copy(scope, ["include"], true, false, template);
 
     if (this.bindName) {
       const bindValue = await this.bindName.evaluate(context);
@@ -187,7 +187,7 @@ export class RenderNode implements Node {
     );
 
     // Disable include tags in this context.
-    const ctx = context.copy(scope, ["include"], true);
+    const ctx = context.copy(scope, ["include"], true, false, template);
 
     if (this.bindName) {
       const bindValue = this.bindName.evaluateSync(context);

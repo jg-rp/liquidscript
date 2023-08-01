@@ -129,25 +129,29 @@ export class IncludeNode implements Node {
       scope[key] = await value.evaluate(context);
     }
 
-    await context.extend(scope, async () => {
-      if (this.bindName) {
-        const bindValue = await this.bindName.evaluate(context);
-        const bindKey = this.alias || template.name.split(".", 1)[0];
+    await context.extend(
+      scope,
+      async () => {
+        if (this.bindName) {
+          const bindValue = await this.bindName.evaluate(context);
+          const bindKey = this.alias || template.name.split(".", 1)[0];
 
-        if (isLiquidArrayLike(bindValue)) {
-          // Render the template once for each item in an array.
-          for (const item of bindValue) {
-            scope[bindKey] = item;
+          if (isLiquidArrayLike(bindValue)) {
+            // Render the template once for each item in an array.
+            for (const item of bindValue) {
+              scope[bindKey] = item;
+              await template.renderWithContext(context, out, false, true);
+            }
+          } else {
+            scope[bindKey] = bindValue;
             await template.renderWithContext(context, out, false, true);
           }
         } else {
-          scope[bindKey] = bindValue;
           await template.renderWithContext(context, out, false, true);
         }
-      } else {
-        await template.renderWithContext(context, out, false, true);
-      }
-    });
+      },
+      template,
+    );
   }
 
   public renderSync(context: RenderContext, out: RenderStream): void {
@@ -160,25 +164,29 @@ export class IncludeNode implements Node {
       ]),
     );
 
-    context.extendSync(scope, () => {
-      if (this.bindName) {
-        const bindValue = this.bindName.evaluateSync(context);
-        const bindKey = this.alias || template.name.split(".", 1)[0];
+    context.extendSync(
+      scope,
+      () => {
+        if (this.bindName) {
+          const bindValue = this.bindName.evaluateSync(context);
+          const bindKey = this.alias || template.name.split(".", 1)[0];
 
-        if (isLiquidArrayLike(bindValue)) {
-          // Render the template once for each item in an array.
-          for (const item of bindValue) {
-            scope[bindKey] = item;
+          if (isLiquidArrayLike(bindValue)) {
+            // Render the template once for each item in an array.
+            for (const item of bindValue) {
+              scope[bindKey] = item;
+              template.renderWithContextSync(context, out, false, true);
+            }
+          } else {
+            scope[bindKey] = bindValue;
             template.renderWithContextSync(context, out, false, true);
           }
         } else {
-          scope[bindKey] = bindValue;
           template.renderWithContextSync(context, out, false, true);
         }
-      } else {
-        template.renderWithContextSync(context, out, false, true);
-      }
-    });
+      },
+      template,
+    );
   }
 
   public children(): ChildNode[] {

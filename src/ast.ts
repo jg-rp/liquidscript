@@ -146,7 +146,7 @@ export type ChildNode = {
    * template local scope and the parent's scope can be updated by the partial
    * template too.
    */
-  loadMode?: "render" | "include";
+  loadMode?: "render" | "include" | "extends";
 
   /**
    * Meta data a template loader might need to find the source of a partial

@@ -19,6 +19,7 @@ import {
   LiquidError,
   LiquidInterrupt,
   LiquidSyntaxError,
+  StopRender,
   TemplateTraversalError,
 } from "./errors";
 import { Expression, Identifier, Literal, StringLiteral } from "./expression";
@@ -147,7 +148,11 @@ export class Template {
     const context = new this.renderContextClass(
       this.environment,
       this.makeGlobals(globals),
-      { templateName: this.name, loaderContext: this.loaderContext },
+      {
+        templateName: this.name,
+        loaderContext: this.loaderContext,
+        template: this,
+      },
     );
     const outputStream = this.environment.renderStreamFactory();
     await this.renderWithContext(context, outputStream);
@@ -162,7 +167,11 @@ export class Template {
     const context = new this.renderContextClass(
       this.environment,
       this.makeGlobals(globals),
-      { templateName: this.name, loaderContext: this.loaderContext },
+      {
+        templateName: this.name,
+        loaderContext: this.loaderContext,
+        template: this,
+      },
     );
     const outputStream = this.environment.renderStreamFactory();
     this.renderWithContextSync(context, outputStream);
@@ -215,6 +224,9 @@ export class Template {
           await node.render(context, outputStream);
         }
       } catch (error) {
+        if (error instanceof StopRender) {
+          break;
+        }
         this.handleError(error, node, blockScope, partial);
       }
     }
@@ -235,6 +247,9 @@ export class Template {
       try {
         node.renderSync(context, outputStream);
       } catch (error) {
+        if (error instanceof StopRender) {
+          break;
+        }
         this.handleError(error, node, blockScope, partial);
       }
     }
