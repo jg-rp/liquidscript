@@ -269,7 +269,7 @@ export class ExtendsNode implements Node {
       throw new LiquidEnvironmentError(msg, this.token);
     }
 
-    const baseTemplate = buildBlockStacks(
+    const baseTemplate = await buildBlockStacks(
       context,
       context.template,
       liquidStringify(this.name.evaluateSync(context)),
@@ -289,7 +289,7 @@ export class ExtendsNode implements Node {
       throw new LiquidEnvironmentError(msg, this.token);
     }
 
-    const baseTemplate = buildBlockStacks(
+    const baseTemplate = buildBlockStacksSync(
       context,
       context.template,
       liquidStringify(this.name.evaluateSync(context)),
@@ -313,8 +313,6 @@ export class ExtendsNode implements Node {
   }
 }
 
-// TODO: buildBlockStacks async for loading templates.
-
 /**
  * Build a stack for each `{% block %}` in the inheritance chain.
  *
@@ -323,7 +321,69 @@ export class ExtendsNode implements Node {
  * @param parentName - The name of the immediate parent template.
  * @param tag - The name of the "extends" tag, if it is overridden.
  */
-function buildBlockStacks(
+async function buildBlockStacks(
+  context: RenderContext,
+  template: Template,
+  parentName: string,
+  tag: string = TAG_EXTENDS,
+): Promise<Template> {
+  context.registers.set(
+    EXTENDS_REGISTER,
+    new DefaultMap<string, BlockStackItem[]>(Array),
+  );
+
+  // Guard against recursive _extends_.
+  const seen = new Set<string>();
+
+  let stacked = stackBlocks(context, template);
+  let parent = await context.getTemplate(parentName, { tag });
+
+  if (stacked.extendsNode === undefined) {
+    throw new InternalSyntaxError(
+      `expected an '${tag}' node (${parentName}, ${template.name})`,
+    );
+  }
+
+  seen.add(liquidStringify(stacked.extendsNode.name.evaluateSync(context)));
+  stacked = stackBlocks(context, parent);
+
+  let parentTemplateName: string | undefined = undefined;
+  if (stacked.extendsNode) {
+    parentTemplateName = liquidStringify(
+      stacked.extendsNode.name.evaluateSync(context),
+    );
+    if (seen.has(parentTemplateName)) {
+      throw new TemplateInheritanceError(
+        `circular extends '${parentTemplateName}'`,
+        stacked.extendsNode.token,
+      );
+    }
+    seen.add(parentTemplateName);
+  }
+
+  while (parentTemplateName) {
+    parent = await context.getTemplate(parentTemplateName, { tag });
+    stacked = stackBlocks(context, parent);
+    if (stacked.extendsNode) {
+      parentTemplateName = liquidStringify(
+        stacked.extendsNode.name.evaluateSync(context),
+      );
+      if (seen.has(parentTemplateName)) {
+        throw new TemplateInheritanceError(
+          `circular extends '${parentTemplateName}'`,
+          stacked.extendsNode.token,
+        );
+      }
+      seen.add(parentTemplateName);
+    } else {
+      parentTemplateName = undefined;
+    }
+  }
+
+  return parent;
+}
+
+function buildBlockStacksSync(
   context: RenderContext,
   template: Template,
   parentName: string,
