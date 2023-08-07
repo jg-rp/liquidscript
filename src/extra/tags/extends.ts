@@ -34,7 +34,7 @@ const TAG_END_BLOCK = "endblock";
 const END_BLOCK = new Set([TAG_END_BLOCK, TOKEN_EOF]);
 const EXTENDS_REGISTER = Symbol.for("liquid.tags.extends");
 
-type BlockStackItem = {
+export type BlockStackItem = {
   block: BlockNode;
   required: boolean;
   sourceName: string;
@@ -401,9 +401,7 @@ function buildBlockStacksSync(
   let parent = context.getTemplateSync(parentName, { tag });
 
   if (stacked.extendsNode === undefined) {
-    throw new InternalSyntaxError(
-      `expected an '${tag}' node (${parentName}, ${template.name})`,
-    );
+    throw new InternalSyntaxError(`expected an '${tag}' node`);
   }
 
   seen.add(liquidStringify(stacked.extendsNode.name.evaluateSync(context)));

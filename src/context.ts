@@ -43,7 +43,7 @@ import {
   isString,
 } from "./types";
 
-const EXTENDS_REGISTER = Symbol.for("liquid.tags.extends");
+export const EXTENDS_REGISTER = Symbol.for("liquid.tags.extends");
 
 export type ContextPath = Array<number | string | LiquidPrimitive>;
 

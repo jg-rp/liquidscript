@@ -8,8 +8,9 @@ import { RenderStream } from "../src/io/output_stream";
 import { Tag } from "../src/tag";
 import { TemplateTraversalError } from "../src/errors";
 import { Token, TokenStream } from "../src/token";
-import { VariableRefs, Template } from "../src/template";
+import { VariableRefs, Template, TemplateAnalysis } from "../src/template";
 import { CallTag, MacroTag } from "../src/extra/tags";
+import { registerInheritanceTags } from "../src/extra/register";
 
 class MockExpression implements Expression {
   async evaluate(): Promise<unknown> {
@@ -70,19 +71,16 @@ describe("static template analysis", () => {
     failedVisits = failedVisits ?? {};
     unloadablePartials = unloadablePartials ?? {};
 
-    let refs = await template.analyze({ raiseForFailures });
-    expect(refs.variables).toStrictEqual(variables);
-    expect(refs.localVariables).toStrictEqual(locals);
-    expect(refs.globalVariables).toStrictEqual(globals);
-    expect(refs.failedVisits).toStrictEqual(failedVisits);
-    expect(refs.unloadablePartials).toStrictEqual(unloadablePartials);
+    const expectRefs = (refs: TemplateAnalysis) => {
+      expect(refs.failedVisits).toStrictEqual(failedVisits);
+      expect(refs.unloadablePartials).toStrictEqual(unloadablePartials);
+      expect(refs.localVariables).toStrictEqual(locals);
+      expect(refs.globalVariables).toStrictEqual(globals);
+      expect(refs.variables).toStrictEqual(variables);
+    };
 
-    refs = template.analyzeSync({ raiseForFailures });
-    expect(refs.variables).toStrictEqual(variables);
-    expect(refs.localVariables).toStrictEqual(locals);
-    expect(refs.globalVariables).toStrictEqual(globals);
-    expect(refs.failedVisits).toStrictEqual(failedVisits);
-    expect(refs.unloadablePartials).toStrictEqual(unloadablePartials);
+    expectRefs(await template.analyze({ raiseForFailures }));
+    expectRefs(template.analyzeSync({ raiseForFailures }));
   }
 
   test("analyze output statement", async () => {
@@ -940,6 +938,37 @@ describe("static template analysis", () => {
       n: [{ templateName: "<string>", lineNumber: 1 }],
       you: [{ templateName: "<string>", lineNumber: 1 }],
       x: [{ templateName: "<string>", lineNumber: 1 }],
+    };
+
+    await _test(template, expectedVariables, expectedLocals, expectedGlobals);
+  });
+
+  test("analyze inheritance chain", async () => {
+    const loader = new ObjectLoader({
+      base:
+        "Hello, " +
+        "{% assign x = 'foo' %}" +
+        "{% block content %}{{ x | upcase }}{% endblock %}!" +
+        "{% block foo %}{% endblock %}!",
+      other:
+        "{% extends 'base' %}" +
+        "{% block content %}{{ x | downcase }}{% endblock %}" +
+        "{% block foo %}{% assign z = 7 %}{% endblock %}",
+      some:
+        "{% extends 'other' %}{{ y | append: x }}" +
+        "{% block foo %}{% endblock %}",
+    });
+
+    const _env = new Environment({ loader });
+    registerInheritanceTags(_env);
+    const template = _env.getTemplateSync("some");
+
+    const expectedGlobals: VariableRefs = {};
+    const expectedLocals: VariableRefs = {
+      x: [{ templateName: "base", lineNumber: 1 }],
+    };
+    const expectedVariables: VariableRefs = {
+      x: [{ templateName: "other", lineNumber: 1 }],
     };
 
     await _test(template, expectedVariables, expectedLocals, expectedGlobals);

@@ -20,7 +20,7 @@ export type {
   VariableRefs,
   VariableLocation,
   VariableLocations,
-} from "./template";
+} from "./static_analysis";
 export {
   Undefined,
   LaxUndefined,
