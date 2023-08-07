@@ -6,7 +6,10 @@ import { ObjectLoader } from "../src/builtin/loaders";
 import { RenderContext } from "../src/context";
 import { RenderStream } from "../src/io/output_stream";
 import { Tag } from "../src/tag";
-import { TemplateTraversalError } from "../src/errors";
+import {
+  TemplateInheritanceError,
+  TemplateTraversalError,
+} from "../src/errors";
 import { Token, TokenStream } from "../src/token";
 import { VariableRefs, Template, TemplateAnalysis } from "../src/template";
 import { CallTag, MacroTag } from "../src/extra/tags";
@@ -969,6 +972,45 @@ describe("static template analysis", () => {
     };
     const expectedVariables: VariableRefs = {
       x: [{ templateName: "other", lineNumber: 1 }],
+    };
+
+    await _test(template, expectedVariables, expectedLocals, expectedGlobals);
+  });
+
+  test("analyze recursive extends", async () => {
+    const loader = new ObjectLoader({
+      other: "{% extends 'some' %}",
+      some: "{% extends 'other' %}",
+    });
+
+    const _env = new Environment({ loader });
+    registerInheritanceTags(_env);
+    const template = _env.getTemplateSync("some");
+    expect(() => template.analyzeSync()).toThrow(TemplateInheritanceError);
+    expect(async () => await template.analyze()).rejects.toThrow(
+      TemplateInheritanceError,
+    );
+  });
+
+  test("analyze super block", async () => {
+    const loader = new ObjectLoader({
+      base: "Hello, {% block content %}{{ foo | upcase }}{% endblock %}!",
+      some:
+        "{% extends 'base' %}" +
+        "{% block content %}{{ block.super }}!{% endblock %}",
+    });
+
+    const _env = new Environment({ loader });
+    registerInheritanceTags(_env);
+    const template = _env.getTemplateSync("some");
+
+    const expectedGlobals: VariableRefs = {
+      foo: [{ templateName: "base", lineNumber: 1 }],
+    };
+    const expectedLocals: VariableRefs = {};
+    const expectedVariables: VariableRefs = {
+      foo: [{ templateName: "base", lineNumber: 1 }],
+      "block.super": [{ templateName: "some", lineNumber: 1 }],
     };
 
     await _test(template, expectedVariables, expectedLocals, expectedGlobals);
