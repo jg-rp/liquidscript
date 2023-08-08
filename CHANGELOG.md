@@ -5,6 +5,7 @@
 **Features**
 
 - Added the standard `sum` filter, which returns the sum of any numeric values in its input array.
+- Added optional `{% extends %}` and `{% block %}` tags that add template inheritance features to Liquid templates.
 
 ## Version 1.7.0
 

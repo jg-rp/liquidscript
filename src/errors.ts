@@ -324,6 +324,44 @@ export class DisabledTagError extends LiquidError {
 }
 
 /**
+ * An error thrown when template inheritance tags are used incorrectly.
+ */
+export class TemplateInheritanceError extends LiquidError {
+  constructor(
+    public message: string,
+    token: Token,
+    templateName?: string,
+  ) {
+    super(message, token);
+    Object.setPrototypeOf(this, TemplateInheritanceError.prototype);
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, TemplateInheritanceError);
+    }
+    this.name = "TemplateInheritanceError";
+    this.message = _message(message, token, templateName);
+  }
+}
+
+/**
+ * An error thrown due to a misconfigured environment.
+ */
+export class LiquidEnvironmentError extends LiquidError {
+  constructor(
+    public message: string,
+    token: Token,
+    templateName?: string,
+  ) {
+    super(message, token);
+    Object.setPrototypeOf(this, LiquidEnvironmentError.prototype);
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, LiquidEnvironmentError);
+    }
+    this.name = "LiquidEnvironmentError";
+    this.message = _message(message, token, templateName);
+  }
+}
+
+/**
  * The base class for all internal Liquid errors.
  */
 export abstract class InternalLiquidError extends Error {
@@ -570,6 +608,13 @@ export class ContinueIteration extends LiquidInterrupt {
   }
   public withToken(token: Token, templateName?: string): LiquidError {
     return new OrphanedContinueTagError(this.message, token, templateName);
+  }
+}
+
+export class StopRender extends LiquidInterrupt {
+  constructor(public message: string) {
+    super(message);
+    Object.setPrototypeOf(this, StopRender.prototype);
   }
 }
 

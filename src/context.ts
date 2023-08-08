@@ -43,6 +43,8 @@ import {
   isString,
 } from "./types";
 
+export const EXTENDS_REGISTER = Symbol.for("liquid.tags.extends");
+
 export type ContextPath = Array<number | string | LiquidPrimitive>;
 
 export type RenderContextOptions = {
@@ -52,6 +54,7 @@ export type RenderContextOptions = {
   loaderContext?: ContextScope;
   localsScoreCarry?: number;
   loopIterationCarry?: number;
+  template?: Template;
 };
 
 /**
@@ -123,6 +126,11 @@ export class RenderContext {
   readonly templateName: string;
 
   /**
+   * The `Template` being rendered by this render context.
+   */
+  public template?: Template;
+
+  /**
    * The number of times this render context has been copied or
    * extended. This helps us guard against recursive use of `include`
    * or `render` tags.
@@ -153,10 +161,12 @@ export class RenderContext {
       loaderContext,
       localsScoreCarry,
       loopIterationCarry,
+      template,
     }: RenderContextOptions = {},
   ) {
     this.disabledTags = disabledTags ?? new Set();
     this.templateName = templateName ?? "<string>";
+    this.template = template;
     this.copyDepth = copyDepth ?? 0;
     this.localsScore = localsScoreCarry ?? 0;
     this.loaderContext = loaderContext ?? {};
@@ -353,17 +363,21 @@ export class RenderContext {
   }
 
   /**
-   * Create a new context by copying this one, without any local variables and
-   * registers, and extending the copy with the given scope.
+   * Create a new context by copying and extending this one with the given scope.
    * @param scope - A scope with which to extend the current context.
    * @param disabledTags - The names of any tags that should be disallowed in
    * the new context.
+   * @param carryLoopIterations - If true, carry the loop iteration counter.
+   * @param blockScope - If true, include context locals in the copy.
+   * @param template - Optionally attach a new template to the returned copy.
    * @returns An extended copy of this context.
    */
   public copy(
     scope: ContextScope,
     disabledTags: Iterable<string>,
     carryLoopIterations: boolean = false,
+    blockScope: boolean = false,
+    template?: Template,
   ): RenderContext {
     if (this.copyDepth + 1 > this.environment.maxContextDepth)
       throw new MaxContextDepthError(
@@ -376,17 +390,38 @@ export class RenderContext {
           .reduce((a, b) => a * b, this.loopIterationCarry)
       : 1;
 
-    return new RenderContext(
-      this.environment,
-      chainObjects(scope, this.globals),
-      {
-        templateName: this.templateName,
-        disabledTags: new Set(disabledTags),
-        copyDepth: this.copyDepth + 1,
-        localsScoreCarry: this.localsScore,
-        loopIterationCarry,
-      },
-    );
+    let ctx: RenderContext;
+
+    if (blockScope) {
+      ctx = new RenderContext(
+        this.environment,
+        chainObjects(scope, this.scope), // include locals
+        {
+          templateName: this.templateName,
+          disabledTags: new Set(disabledTags),
+          copyDepth: this.copyDepth + 1,
+          localsScoreCarry: this.localsScore,
+          loopIterationCarry,
+        },
+      );
+      // XXX: bit of a hack
+      ctx.registers.set(EXTENDS_REGISTER, this.getRegister(EXTENDS_REGISTER));
+    } else {
+      ctx = new RenderContext(
+        this.environment,
+        chainObjects(scope, this.globals),
+        {
+          templateName: this.templateName,
+          disabledTags: new Set(disabledTags),
+          copyDepth: this.copyDepth + 1,
+          localsScoreCarry: this.localsScore,
+          loopIterationCarry,
+        },
+      );
+    }
+
+    ctx.template = template || this.template;
+    return ctx;
   }
 
   /**
@@ -396,14 +431,22 @@ export class RenderContext {
    * @param callback - A function to call with the extended scope.
    * @returns The callback functions return value.
    */
-  public async extend<T>(scope: ContextScope, callback: () => T): Promise<T> {
+  public async extend<T>(
+    scope: ContextScope,
+    callback: () => T,
+    template?: Template,
+  ): Promise<T> {
     if (this.scope[chainSize]() > this.environment.maxContextDepth)
       throw new MaxContextDepthError("maximum context depth reached");
+
+    const _template = this.template;
+    if (template !== undefined) this.template = template;
 
     this.scope[chainPush](scope);
     try {
       return await callback();
     } finally {
+      if (template !== undefined) this.template = _template;
       this.scope[chainPop]();
     }
   }
@@ -411,14 +454,22 @@ export class RenderContext {
   /**
    * A synchronous version of {@link extend}.
    */
-  public extendSync<T>(scope: ContextScope, callback: () => T): T {
+  public extendSync<T>(
+    scope: ContextScope,
+    callback: () => T,
+    template?: Template,
+  ): T {
     if (this.scope[chainSize]() > this.environment.maxContextDepth)
       throw new MaxContextDepthError("maximum context depth reached");
+
+    const _template = this.template;
+    if (template !== undefined) this.template = template;
 
     this.scope[chainPush](scope);
     try {
       return callback();
     } finally {
+      if (template !== undefined) this.template = _template;
       this.scope[chainPop]();
     }
   }
