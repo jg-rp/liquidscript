@@ -288,6 +288,8 @@ export class Template {
       globalVariables: Object.fromEntries(refs.templateGlobals.entries()),
       failedVisits: Object.fromEntries(refs.failedVisits.entries()),
       unloadablePartials: Object.fromEntries(refs.unloadablePartials.entries()),
+      filters: Object.fromEntries(refs.filters.entries()),
+      tags: Object.fromEntries(refs.tags.entries()),
     };
   }
 
@@ -311,6 +313,8 @@ export class Template {
       globalVariables: Object.fromEntries(refs.templateGlobals.entries()),
       failedVisits: Object.fromEntries(refs.failedVisits.entries()),
       unloadablePartials: Object.fromEntries(refs.unloadablePartials.entries()),
+      filters: Object.fromEntries(refs.filters.entries()),
+      tags: Object.fromEntries(refs.tags.entries()),
     };
   }
 }

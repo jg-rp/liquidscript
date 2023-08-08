@@ -70,9 +70,13 @@ describe("static template analysis", () => {
     failedVisits?: VariableRefs,
     unloadablePartials?: VariableRefs,
     raiseForFailures: boolean = true,
+    filters?: VariableRefs,
+    tags?: VariableRefs,
   ) {
     failedVisits = failedVisits ?? {};
     unloadablePartials = unloadablePartials ?? {};
+    filters = filters ?? {};
+    tags = tags ?? {};
 
     const expectRefs = (refs: TemplateAnalysis) => {
       expect(refs.failedVisits).toStrictEqual(failedVisits);
@@ -80,6 +84,8 @@ describe("static template analysis", () => {
       expect(refs.localVariables).toStrictEqual(locals);
       expect(refs.globalVariables).toStrictEqual(globals);
       expect(refs.variables).toStrictEqual(variables);
+      expect(refs.filters).toStrictEqual(filters);
+      expect(refs.tags).toStrictEqual(tags);
     };
 
     expectRefs(await template.analyze({ raiseForFailures }));
@@ -100,8 +106,20 @@ describe("static template analysis", () => {
       y: [{ templateName: "<string>", lineNumber: 1 }],
       z: [{ templateName: "<string>", lineNumber: 1 }],
     };
+    const expectedFilters: VariableRefs = {
+      default: [{ templateName: "<string>", lineNumber: 1 }],
+    };
 
-    await _test(template, expectedVariables, expectedLocals, expectedGlobals);
+    await _test(
+      template,
+      expectedVariables,
+      expectedLocals,
+      expectedGlobals,
+      undefined,
+      undefined,
+      undefined,
+      expectedFilters,
+    );
   });
 
   test("analyze identifier with bracketed string literal", async () => {
@@ -162,8 +180,24 @@ describe("static template analysis", () => {
       y: [{ templateName: "<string>", lineNumber: 1 }],
       z: [{ templateName: "<string>", lineNumber: 1 }],
     };
+    const expectedFilters: VariableRefs = {
+      append: [{ templateName: "<string>", lineNumber: 1 }],
+    };
+    const expectedTags: VariableRefs = {
+      assign: [{ templateName: "<string>", lineNumber: 1 }],
+    };
 
-    await _test(template, expectedVariables, expectedLocals, expectedGlobals);
+    await _test(
+      template,
+      expectedVariables,
+      expectedLocals,
+      expectedGlobals,
+      undefined,
+      undefined,
+      undefined,
+      expectedFilters,
+      expectedTags,
+    );
   });
 
   test("analyze capture tag", async () => {
@@ -180,8 +214,22 @@ describe("static template analysis", () => {
     const expectedVariables: VariableRefs = {
       y: [{ templateName: "<string>", lineNumber: 1 }],
     };
+    const expectedTags: VariableRefs = {
+      capture: [{ templateName: "<string>", lineNumber: 1 }],
+      if: [{ templateName: "<string>", lineNumber: 1 }],
+    };
 
-    await _test(template, expectedVariables, expectedLocals, expectedGlobals);
+    await _test(
+      template,
+      expectedVariables,
+      expectedLocals,
+      expectedGlobals,
+      undefined,
+      undefined,
+      undefined,
+      {},
+      expectedTags,
+    );
   });
 
   test("analyze case tag", async () => {
@@ -217,8 +265,21 @@ describe("static template analysis", () => {
       z: [{ templateName: "<string>", lineNumber: 4 }],
       b: [{ templateName: "<string>", lineNumber: 5 }],
     };
+    const expectedTags: VariableRefs = {
+      case: [{ templateName: "<string>", lineNumber: 1 }],
+    };
 
-    await _test(template, expectedVariables, expectedLocals, expectedGlobals);
+    await _test(
+      template,
+      expectedVariables,
+      expectedLocals,
+      expectedGlobals,
+      undefined,
+      undefined,
+      undefined,
+      {},
+      expectedTags,
+    );
   });
 
   test("analyze cycle tag", async () => {
@@ -235,8 +296,21 @@ describe("static template analysis", () => {
       a: [{ templateName: "<string>", lineNumber: 1 }],
       b: [{ templateName: "<string>", lineNumber: 1 }],
     };
+    const expectedTags: VariableRefs = {
+      cycle: [{ templateName: "<string>", lineNumber: 1 }],
+    };
 
-    await _test(template, expectedVariables, expectedLocals, expectedGlobals);
+    await _test(
+      template,
+      expectedVariables,
+      expectedLocals,
+      expectedGlobals,
+      undefined,
+      undefined,
+      undefined,
+      {},
+      expectedTags,
+    );
   });
 
   test("analyze decrement tag", async () => {
@@ -247,8 +321,21 @@ describe("static template analysis", () => {
       x: [{ templateName: "<string>", lineNumber: 1 }],
     };
     const expectedVariables: VariableRefs = {};
+    const expectedTags: VariableRefs = {
+      decrement: [{ templateName: "<string>", lineNumber: 1 }],
+    };
 
-    await _test(template, expectedVariables, expectedLocals, expectedGlobals);
+    await _test(
+      template,
+      expectedVariables,
+      expectedLocals,
+      expectedGlobals,
+      undefined,
+      undefined,
+      undefined,
+      {},
+      expectedTags,
+    );
   });
 
   test("analyze echo tag", async () => {
@@ -267,8 +354,24 @@ describe("static template analysis", () => {
       y: [{ templateName: "<string>", lineNumber: 1 }],
       z: [{ templateName: "<string>", lineNumber: 1 }],
     };
+    const expectedFilters: VariableRefs = {
+      default: [{ templateName: "<string>", lineNumber: 1 }],
+    };
+    const expectedTags: VariableRefs = {
+      echo: [{ templateName: "<string>", lineNumber: 1 }],
+    };
 
-    await _test(template, expectedVariables, expectedLocals, expectedGlobals);
+    await _test(
+      template,
+      expectedVariables,
+      expectedLocals,
+      expectedGlobals,
+      undefined,
+      undefined,
+      undefined,
+      expectedFilters,
+      expectedTags,
+    );
   });
 
   test("analyze for tag", async () => {
@@ -294,8 +397,24 @@ describe("static template analysis", () => {
       y: [{ templateName: "<string>", lineNumber: 1 }],
       z: [{ templateName: "<string>", lineNumber: 5 }],
     };
+    const expectedFilters: VariableRefs = {};
+    const expectedTags: VariableRefs = {
+      break: [{ templateName: "<string>", lineNumber: 3 }],
+      continue: [{ templateName: "<string>", lineNumber: 6 }],
+      for: [{ templateName: "<string>", lineNumber: 1 }],
+    };
 
-    await _test(template, expectedVariables, expectedLocals, expectedGlobals);
+    await _test(
+      template,
+      expectedVariables,
+      expectedLocals,
+      expectedGlobals,
+      undefined,
+      undefined,
+      undefined,
+      expectedFilters,
+      expectedTags,
+    );
   });
 
   test("analyze if tag", async () => {
@@ -322,8 +441,22 @@ describe("static template analysis", () => {
       y: [{ templateName: "<string>", lineNumber: 3 }],
       b: [{ templateName: "<string>", lineNumber: 4 }],
     };
+    const expectedFilters: VariableRefs = {};
+    const expectedTags: VariableRefs = {
+      if: [{ templateName: "<string>", lineNumber: 1 }],
+    };
 
-    await _test(template, expectedVariables, expectedLocals, expectedGlobals);
+    await _test(
+      template,
+      expectedVariables,
+      expectedLocals,
+      expectedGlobals,
+      undefined,
+      undefined,
+      undefined,
+      expectedFilters,
+      expectedTags,
+    );
   });
 
   test("analyze if (not) tag", async () => {
@@ -353,8 +486,22 @@ describe("static template analysis", () => {
       y: [{ templateName: "<string>", lineNumber: 3 }],
       b: [{ templateName: "<string>", lineNumber: 4 }],
     };
+    const expectedFilters: VariableRefs = {};
+    const expectedTags: VariableRefs = {
+      if: [{ templateName: "<string>", lineNumber: 1 }],
+    };
 
-    await _test(template, expectedVariables, expectedLocals, expectedGlobals);
+    await _test(
+      template,
+      expectedVariables,
+      expectedLocals,
+      expectedGlobals,
+      undefined,
+      undefined,
+      undefined,
+      expectedFilters,
+      expectedTags,
+    );
   });
 
   test("analyze ifchanged tag", async () => {
@@ -367,8 +514,22 @@ describe("static template analysis", () => {
     const expectedVariables: VariableRefs = {
       x: [{ templateName: "<string>", lineNumber: 1 }],
     };
+    const expectedFilters: VariableRefs = {};
+    const expectedTags: VariableRefs = {
+      ifchanged: [{ templateName: "<string>", lineNumber: 1 }],
+    };
 
-    await _test(template, expectedVariables, expectedLocals, expectedGlobals);
+    await _test(
+      template,
+      expectedVariables,
+      expectedLocals,
+      expectedGlobals,
+      undefined,
+      undefined,
+      undefined,
+      expectedFilters,
+      expectedTags,
+    );
   });
 
   test("analyze increment tag", async () => {
@@ -379,8 +540,22 @@ describe("static template analysis", () => {
       x: [{ templateName: "<string>", lineNumber: 1 }],
     };
     const expectedVariables: VariableRefs = {};
+    const expectedFilters: VariableRefs = {};
+    const expectedTags: VariableRefs = {
+      increment: [{ templateName: "<string>", lineNumber: 1 }],
+    };
 
-    await _test(template, expectedVariables, expectedLocals, expectedGlobals);
+    await _test(
+      template,
+      expectedVariables,
+      expectedLocals,
+      expectedGlobals,
+      undefined,
+      undefined,
+      undefined,
+      expectedFilters,
+      expectedTags,
+    );
   });
 
   test("analyze liquid tag", async () => {
@@ -409,8 +584,34 @@ describe("static template analysis", () => {
       foo: [{ templateName: "<string>", lineNumber: 3 }],
       i: [{ templateName: "<string>", lineNumber: 9 }],
     };
+    const expectedFilters: VariableRefs = {
+      upcase: [
+        { templateName: "<string>", lineNumber: 3 },
+        { templateName: "<string>", lineNumber: 5 },
+      ],
+    };
+    const expectedTags: VariableRefs = {
+      echo: [
+        { templateName: "<string>", lineNumber: 3 },
+        { templateName: "<string>", lineNumber: 5 },
+        { templateName: "<string>", lineNumber: 9 },
+      ],
+      for: [{ templateName: "<string>", lineNumber: 8 }],
+      if: [{ templateName: "<string>", lineNumber: 2 }],
+      liquid: [{ templateName: "<string>", lineNumber: 1 }],
+    };
 
-    await _test(template, expectedVariables, expectedLocals, expectedGlobals);
+    await _test(
+      template,
+      expectedVariables,
+      expectedLocals,
+      expectedGlobals,
+      undefined,
+      undefined,
+      undefined,
+      expectedFilters,
+      expectedTags,
+    );
   });
 
   test("analyze tablerow tag", async () => {
@@ -428,8 +629,24 @@ describe("static template analysis", () => {
       x: [{ templateName: "<string>", lineNumber: 1 }],
       a: [{ templateName: "<string>", lineNumber: 1 }],
     };
+    const expectedFilters: VariableRefs = {
+      append: [{ templateName: "<string>", lineNumber: 1 }],
+    };
+    const expectedTags: VariableRefs = {
+      tablerow: [{ templateName: "<string>", lineNumber: 1 }],
+    };
 
-    await _test(template, expectedVariables, expectedLocals, expectedGlobals);
+    await _test(
+      template,
+      expectedVariables,
+      expectedLocals,
+      expectedGlobals,
+      undefined,
+      undefined,
+      undefined,
+      expectedFilters,
+      expectedTags,
+    );
   });
 
   test("analyze unless tag", async () => {
@@ -456,8 +673,22 @@ describe("static template analysis", () => {
       y: [{ templateName: "<string>", lineNumber: 3 }],
       b: [{ templateName: "<string>", lineNumber: 4 }],
     };
+    const expectedFilters: VariableRefs = {};
+    const expectedTags: VariableRefs = {
+      unless: [{ templateName: "<string>", lineNumber: 1 }],
+    };
 
-    await _test(template, expectedVariables, expectedLocals, expectedGlobals);
+    await _test(
+      template,
+      expectedVariables,
+      expectedLocals,
+      expectedGlobals,
+      undefined,
+      undefined,
+      undefined,
+      expectedFilters,
+      expectedTags,
+    );
   });
 
   test("analyze include tag", async () => {
@@ -472,8 +703,22 @@ describe("static template analysis", () => {
     const expectedVariables: VariableRefs = {
       y: [{ templateName: "some_name", lineNumber: 1 }],
     };
+    const expectedFilters: VariableRefs = {};
+    const expectedTags: VariableRefs = {
+      include: [{ templateName: "<string>", lineNumber: 1 }],
+    };
 
-    await _test(template, expectedVariables, expectedLocals, expectedGlobals);
+    await _test(
+      template,
+      expectedVariables,
+      expectedLocals,
+      expectedGlobals,
+      undefined,
+      undefined,
+      undefined,
+      expectedFilters,
+      expectedTags,
+    );
   });
 
   test("analyze include tag with assign", async () => {
@@ -491,8 +736,23 @@ describe("static template analysis", () => {
       y: [{ templateName: "some_name", lineNumber: 1 }],
       z: [{ templateName: "<string>", lineNumber: 1 }],
     };
+    const expectedFilters: VariableRefs = {};
+    const expectedTags: VariableRefs = {
+      assign: [{ templateName: "some_name", lineNumber: 1 }],
+      include: [{ templateName: "<string>", lineNumber: 1 }],
+    };
 
-    await _test(template, expectedVariables, expectedLocals, expectedGlobals);
+    await _test(
+      template,
+      expectedVariables,
+      expectedLocals,
+      expectedGlobals,
+      undefined,
+      undefined,
+      undefined,
+      expectedFilters,
+      expectedTags,
+    );
   });
 
   test("analyze include tag once", async () => {
@@ -509,8 +769,25 @@ describe("static template analysis", () => {
     const expectedVariables: VariableRefs = {
       y: [{ templateName: "some_name", lineNumber: 1 }],
     };
+    const expectedFilters: VariableRefs = {};
+    const expectedTags: VariableRefs = {
+      include: [
+        { templateName: "<string>", lineNumber: 1 },
+        { templateName: "<string>", lineNumber: 1 },
+      ],
+    };
 
-    await _test(template, expectedVariables, expectedLocals, expectedGlobals);
+    await _test(
+      template,
+      expectedVariables,
+      expectedLocals,
+      expectedGlobals,
+      undefined,
+      undefined,
+      undefined,
+      expectedFilters,
+      expectedTags,
+    );
   });
 
   test("analyze recursive include tag", async () => {
@@ -527,8 +804,25 @@ describe("static template analysis", () => {
     const expectedVariables: VariableRefs = {
       y: [{ templateName: "some_name", lineNumber: 1 }],
     };
+    const expectedFilters: VariableRefs = {};
+    const expectedTags: VariableRefs = {
+      include: [
+        { templateName: "<string>", lineNumber: 1 },
+        { templateName: "some_name", lineNumber: 1 },
+      ],
+    };
 
-    await _test(template, expectedVariables, expectedLocals, expectedGlobals);
+    await _test(
+      template,
+      expectedVariables,
+      expectedLocals,
+      expectedGlobals,
+      undefined,
+      undefined,
+      undefined,
+      expectedFilters,
+      expectedTags,
+    );
   });
 
   test("analyze include tag with bound variable", async () => {
@@ -550,8 +844,24 @@ describe("static template analysis", () => {
       x: [{ templateName: "some_name", lineNumber: 1 }],
       some_name: [{ templateName: "some_name", lineNumber: 1 }],
     };
+    const expectedFilters: VariableRefs = {
+      append: [{ templateName: "some_name", lineNumber: 1 }],
+    };
+    const expectedTags: VariableRefs = {
+      include: [{ templateName: "<string>", lineNumber: 1 }],
+    };
 
-    await _test(template, expectedVariables, expectedLocals, expectedGlobals);
+    await _test(
+      template,
+      expectedVariables,
+      expectedLocals,
+      expectedGlobals,
+      undefined,
+      undefined,
+      undefined,
+      expectedFilters,
+      expectedTags,
+    );
   });
 
   test("analyze include tag with alias", async () => {
@@ -571,8 +881,24 @@ describe("static template analysis", () => {
       foo: [{ templateName: "<string>", lineNumber: 1 }],
       x: [{ templateName: "some_name", lineNumber: 1 }],
     };
+    const expectedFilters: VariableRefs = {
+      append: [{ templateName: "some_name", lineNumber: 1 }],
+    };
+    const expectedTags: VariableRefs = {
+      include: [{ templateName: "<string>", lineNumber: 1 }],
+    };
 
-    await _test(template, expectedVariables, expectedLocals, expectedGlobals);
+    await _test(
+      template,
+      expectedVariables,
+      expectedLocals,
+      expectedGlobals,
+      undefined,
+      undefined,
+      undefined,
+      expectedFilters,
+      expectedTags,
+    );
   });
 
   test("analyze include tag with arguments", async () => {
@@ -602,8 +928,24 @@ describe("static template analysis", () => {
         { templateName: "<string>", lineNumber: 1 },
       ],
     };
+    const expectedFilters: VariableRefs = {
+      append: [{ templateName: "some_name", lineNumber: 1 }],
+    };
+    const expectedTags: VariableRefs = {
+      include: [{ templateName: "<string>", lineNumber: 1 }],
+    };
 
-    await _test(template, expectedVariables, expectedLocals, expectedGlobals);
+    await _test(
+      template,
+      expectedVariables,
+      expectedLocals,
+      expectedGlobals,
+      undefined,
+      undefined,
+      undefined,
+      expectedFilters,
+      expectedTags,
+    );
   });
 
   test("analyze include with variable name", async () => {
@@ -622,6 +964,10 @@ describe("static template analysis", () => {
     const expectedUnloadablePartials = {
       somevar: [{ templateName: "<string>", lineNumber: 1 }],
     };
+    const expectedFilters: VariableRefs = {};
+    const expectedTags: VariableRefs = {
+      include: [{ templateName: "<string>", lineNumber: 1 }],
+    };
 
     await _test(
       template,
@@ -631,6 +977,8 @@ describe("static template analysis", () => {
       undefined,
       expectedUnloadablePartials,
       false,
+      expectedFilters,
+      expectedTags,
     );
 
     expect(async () =>
@@ -660,6 +1008,10 @@ describe("static template analysis", () => {
     const expectedUnloadablePartials: VariableRefs = {
       nosuchtemplate: [{ templateName: "<string>", lineNumber: 1 }],
     };
+    const expectedFilters: VariableRefs = {};
+    const expectedTags: VariableRefs = {
+      include: [{ templateName: "<string>", lineNumber: 1 }],
+    };
 
     await _test(
       template,
@@ -669,6 +1021,8 @@ describe("static template analysis", () => {
       undefined,
       expectedUnloadablePartials,
       false,
+      expectedFilters,
+      expectedTags,
     );
 
     expect(async () =>
@@ -702,8 +1056,26 @@ describe("static template analysis", () => {
       x: [{ templateName: "some_name", lineNumber: 1 }],
       z: [{ templateName: "some_name", lineNumber: 1 }],
     };
+    const expectedFilters: VariableRefs = {};
+    const expectedTags: VariableRefs = {
+      assign: [
+        { templateName: "<string>", lineNumber: 1 },
+        { templateName: "some_name", lineNumber: 1 },
+      ],
+      render: [{ templateName: "<string>", lineNumber: 1 }],
+    };
 
-    await _test(template, expectedVariables, expectedLocals, expectedGlobals);
+    await _test(
+      template,
+      expectedVariables,
+      expectedLocals,
+      expectedGlobals,
+      undefined,
+      undefined,
+      undefined,
+      expectedFilters,
+      expectedTags,
+    );
   });
 
   test("analyze render tag once", async () => {
@@ -720,8 +1092,25 @@ describe("static template analysis", () => {
     const expectedVariables: VariableRefs = {
       x: [{ templateName: "some_name", lineNumber: 1 }],
     };
+    const expectedFilters: VariableRefs = {};
+    const expectedTags: VariableRefs = {
+      render: [
+        { templateName: "<string>", lineNumber: 1 },
+        { templateName: "<string>", lineNumber: 1 },
+      ],
+    };
 
-    await _test(template, expectedVariables, expectedLocals, expectedGlobals);
+    await _test(
+      template,
+      expectedVariables,
+      expectedLocals,
+      expectedGlobals,
+      undefined,
+      undefined,
+      undefined,
+      expectedFilters,
+      expectedTags,
+    );
   });
 
   test("analyze recursive render tag", async () => {
@@ -738,8 +1127,25 @@ describe("static template analysis", () => {
     const expectedVariables: VariableRefs = {
       y: [{ templateName: "some_name", lineNumber: 1 }],
     };
+    const expectedFilters: VariableRefs = {};
+    const expectedTags: VariableRefs = {
+      render: [
+        { templateName: "<string>", lineNumber: 1 },
+        { templateName: "some_name", lineNumber: 1 },
+      ],
+    };
 
-    await _test(template, expectedVariables, expectedLocals, expectedGlobals);
+    await _test(
+      template,
+      expectedVariables,
+      expectedLocals,
+      expectedGlobals,
+      undefined,
+      undefined,
+      undefined,
+      expectedFilters,
+      expectedTags,
+    );
   });
 
   test("analyze render tag with bound variable", async () => {
@@ -761,8 +1167,24 @@ describe("static template analysis", () => {
       x: [{ templateName: "some_name", lineNumber: 1 }],
       some_name: [{ templateName: "some_name", lineNumber: 1 }],
     };
+    const expectedFilters: VariableRefs = {
+      append: [{ templateName: "some_name", lineNumber: 1 }],
+    };
+    const expectedTags: VariableRefs = {
+      render: [{ templateName: "<string>", lineNumber: 1 }],
+    };
 
-    await _test(template, expectedVariables, expectedLocals, expectedGlobals);
+    await _test(
+      template,
+      expectedVariables,
+      expectedLocals,
+      expectedGlobals,
+      undefined,
+      undefined,
+      undefined,
+      expectedFilters,
+      expectedTags,
+    );
   });
 
   test("analyze render tag with alias", async () => {
@@ -782,8 +1204,24 @@ describe("static template analysis", () => {
       foo: [{ templateName: "<string>", lineNumber: 1 }],
       x: [{ templateName: "some_name", lineNumber: 1 }],
     };
+    const expectedFilters: VariableRefs = {
+      append: [{ templateName: "some_name", lineNumber: 1 }],
+    };
+    const expectedTags: VariableRefs = {
+      render: [{ templateName: "<string>", lineNumber: 1 }],
+    };
 
-    await _test(template, expectedVariables, expectedLocals, expectedGlobals);
+    await _test(
+      template,
+      expectedVariables,
+      expectedLocals,
+      expectedGlobals,
+      undefined,
+      undefined,
+      undefined,
+      expectedFilters,
+      expectedTags,
+    );
   });
 
   test("analyze render tag with arguments", async () => {
@@ -813,8 +1251,24 @@ describe("static template analysis", () => {
         { templateName: "<string>", lineNumber: 1 },
       ],
     };
+    const expectedFilters: VariableRefs = {
+      append: [{ templateName: "some_name", lineNumber: 1 }],
+    };
+    const expectedTags: VariableRefs = {
+      render: [{ templateName: "<string>", lineNumber: 1 }],
+    };
 
-    await _test(template, expectedVariables, expectedLocals, expectedGlobals);
+    await _test(
+      template,
+      expectedVariables,
+      expectedLocals,
+      expectedGlobals,
+      undefined,
+      undefined,
+      undefined,
+      expectedFilters,
+      expectedTags,
+    );
   });
 
   test("analyze render tag scope", async () => {
@@ -837,8 +1291,26 @@ describe("static template analysis", () => {
       z: [{ templateName: "some_name", lineNumber: 1 }],
       y: [{ templateName: "<string>", lineNumber: 1 }],
     };
+    const expectedFilters: VariableRefs = {};
+    const expectedTags: VariableRefs = {
+      assign: [
+        { templateName: "<string>", lineNumber: 1 },
+        { templateName: "some_name", lineNumber: 1 },
+      ],
+      render: [{ templateName: "<string>", lineNumber: 1 }],
+    };
 
-    await _test(template, expectedVariables, expectedLocals, expectedGlobals);
+    await _test(
+      template,
+      expectedVariables,
+      expectedLocals,
+      expectedGlobals,
+      undefined,
+      undefined,
+      undefined,
+      expectedFilters,
+      expectedTags,
+    );
   });
 
   test("analyze render tag template not found", async () => {
@@ -855,6 +1327,10 @@ describe("static template analysis", () => {
     const expectedUnloadablePartials: VariableRefs = {
       nosuchtemplate: [{ templateName: "<string>", lineNumber: 1 }],
     };
+    const expectedFilters: VariableRefs = {};
+    const expectedTags: VariableRefs = {
+      render: [{ templateName: "<string>", lineNumber: 1 }],
+    };
 
     await _test(
       template,
@@ -864,6 +1340,8 @@ describe("static template analysis", () => {
       undefined,
       expectedUnloadablePartials,
       false,
+      expectedFilters,
+      expectedTags,
     );
 
     expect(async () =>
@@ -890,8 +1368,24 @@ describe("static template analysis", () => {
         { templateName: "<string>", lineNumber: 2 },
       ],
     };
+    const expectedTags = {
+      mock: [
+        { templateName: "<string>", lineNumber: 1 },
+        { templateName: "<string>", lineNumber: 2 },
+      ],
+    };
 
-    await _test(template, {}, {}, {}, expectedFailedVisits, {}, false);
+    await _test(
+      template,
+      {},
+      {},
+      {},
+      expectedFailedVisits,
+      {},
+      false,
+      {},
+      expectedTags,
+    );
 
     expect(async () =>
       _test(template, {}, {}, {}, expectedFailedVisits, {}, true),
@@ -909,8 +1403,24 @@ describe("static template analysis", () => {
         { templateName: "<string>", lineNumber: 2 },
       ],
     };
+    const expectedTags = {
+      mock: [
+        { templateName: "<string>", lineNumber: 1 },
+        { templateName: "<string>", lineNumber: 2 },
+      ],
+    };
 
-    await _test(template, {}, {}, {}, expectedFailedVisits, {}, false);
+    await _test(
+      template,
+      {},
+      {},
+      {},
+      expectedFailedVisits,
+      {},
+      false,
+      {},
+      expectedTags,
+    );
 
     expect(async () =>
       _test(template, {}, {}, {}, expectedFailedVisits, {}, true),
@@ -942,8 +1452,26 @@ describe("static template analysis", () => {
       you: [{ templateName: "<string>", lineNumber: 1 }],
       x: [{ templateName: "<string>", lineNumber: 1 }],
     };
+    const expectedTags: VariableRefs = {
+      assign: [{ templateName: "<string>", lineNumber: 1 }],
+      macro: [{ templateName: "<string>", lineNumber: 1 }],
+      call: [
+        { templateName: "<string>", lineNumber: 1 },
+        { templateName: "<string>", lineNumber: 1 },
+      ],
+    };
 
-    await _test(template, expectedVariables, expectedLocals, expectedGlobals);
+    await _test(
+      template,
+      expectedVariables,
+      expectedLocals,
+      expectedGlobals,
+      undefined,
+      undefined,
+      undefined,
+      {},
+      expectedTags,
+    );
   });
 
   test("analyze inheritance chain", async () => {
@@ -973,8 +1501,35 @@ describe("static template analysis", () => {
     const expectedVariables: VariableRefs = {
       x: [{ templateName: "other", lineNumber: 1 }],
     };
+    const expectedFilters: VariableRefs = {
+      downcase: [{ templateName: "other", lineNumber: 1 }],
+    };
+    const expectedTags: VariableRefs = {
+      assign: [{ templateName: "base", lineNumber: 1 }],
+      extends: [
+        { templateName: "some", lineNumber: 1 },
+        { templateName: "other", lineNumber: 1 },
+      ],
+      block: [
+        { templateName: "some", lineNumber: 1 },
+        { templateName: "other", lineNumber: 1 },
+        { templateName: "other", lineNumber: 1 },
+        { templateName: "base", lineNumber: 1 },
+        { templateName: "base", lineNumber: 1 },
+      ],
+    };
 
-    await _test(template, expectedVariables, expectedLocals, expectedGlobals);
+    await _test(
+      template,
+      expectedVariables,
+      expectedLocals,
+      expectedGlobals,
+      undefined,
+      undefined,
+      undefined,
+      expectedFilters,
+      expectedTags,
+    );
   });
 
   test("analyze recursive extends", async () => {
@@ -1012,7 +1567,27 @@ describe("static template analysis", () => {
       foo: [{ templateName: "base", lineNumber: 1 }],
       "block.super": [{ templateName: "some", lineNumber: 1 }],
     };
+    const expectedFilters: VariableRefs = {
+      upcase: [{ templateName: "base", lineNumber: 1 }],
+    };
+    const expectedTags: VariableRefs = {
+      extends: [{ templateName: "some", lineNumber: 1 }],
+      block: [
+        { templateName: "some", lineNumber: 1 },
+        { templateName: "base", lineNumber: 1 },
+      ],
+    };
 
-    await _test(template, expectedVariables, expectedLocals, expectedGlobals);
+    await _test(
+      template,
+      expectedVariables,
+      expectedLocals,
+      expectedGlobals,
+      undefined,
+      undefined,
+      undefined,
+      expectedFilters,
+      expectedTags,
+    );
   });
 });

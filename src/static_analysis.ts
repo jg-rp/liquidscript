@@ -1,4 +1,4 @@
-import { ChildNode, Node, Root } from "./ast";
+import { BlockNode, ChildNode, Node, Root } from "./ast";
 import {
   chainObjects,
   chainPop,
@@ -30,6 +30,7 @@ import {
   stackBlocks,
   BlockNode as InheritanceBlockNode,
 } from "./extra/tags/extends";
+import { TOKEN_TAG } from "./token";
 
 /**
  * Options passed to `Template.analyze` and `Template.analyzeSync`.
@@ -71,6 +72,11 @@ export type VariableLocations = VariableLocation[];
 export type VariableRefs = { [index: string]: VariableLocations };
 
 /**
+ * A mapping of template, tag or filter names to their locations.
+ */
+export type RefMap = DefaultMap<string, VariableLocations>;
+
+/**
  * The result of statically analyzing a template's variables.
  *
  * Each of the following properties is an object mapping template variable names
@@ -110,12 +116,17 @@ export type TemplateAnalysis = {
    * loaded. This will be empty if `followPartials` is `false`.
    */
   unloadablePartials: VariableRefs;
-};
 
-/**
- *
- */
-export type RefMap = DefaultMap<string, VariableLocations>;
+  /**
+   * Filters found during static analysis.
+   */
+  filters: VariableRefs;
+
+  /**
+   * Tags found during static analysis.
+   */
+  tags: VariableRefs;
+};
 
 type PartialTemplateContext = {
   templateName: string;
@@ -130,6 +141,11 @@ type TemplateVariableCounterOptions = {
   partials?: Set<string>;
 };
 
+type ExpressionRefs = {
+  variables: string[];
+  filters: string[];
+};
+
 export class TemplateVariableCounter {
   readonly templateName: string;
   readonly followPartials: boolean;
@@ -142,6 +158,8 @@ export class TemplateVariableCounter {
   readonly failedVisits: RefMap;
   readonly unloadablePartials: RefMap;
   readonly emptyContext: RenderContext;
+  readonly filters: RefMap;
+  readonly tags: RefMap;
 
   protected static RE_SPLIT_IDENT = /(\.|\[)/;
 
@@ -169,6 +187,8 @@ export class TemplateVariableCounter {
     this.variables = new DefaultMap<string, VariableLocations>(Array);
     this.failedVisits = new DefaultMap<string, VariableLocations>(Array);
     this.unloadablePartials = new DefaultMap<string, VariableLocations>(Array);
+    this.filters = new DefaultMap<string, VariableLocations>(Array);
+    this.tags = new DefaultMap<string, VariableLocations>(Array);
   }
 
   public async analyze(): Promise<TemplateVariableCounter> {
@@ -202,6 +222,7 @@ export class TemplateVariableCounter {
   }
 
   protected async _analyze(root: Node): Promise<void> {
+    this.countTag(root);
     if (root.children === undefined) {
       // This node does not define a children method.
       const name = root.constructor.name;
@@ -255,6 +276,7 @@ export class TemplateVariableCounter {
   }
 
   protected _analyzeSync(root: Node): void {
+    this.countTag(root);
     if (root.children === undefined) {
       // This node does not define a children method.
       const name = root.constructor.name;
@@ -320,7 +342,7 @@ export class TemplateVariableCounter {
 
     const refs = this._updateExpressionRefs(child.expression);
 
-    for (const ref of refs) {
+    for (const ref of refs.variables) {
       this.variables.get(ref).push({
         templateName: this.templateName,
         lineNumber: child.token.lineNumber(),
@@ -330,7 +352,7 @@ export class TemplateVariableCounter {
     // Check refs that are not in scope or in the local namespace before
     // pushing the next block scope. This should highlight names that are
     // expected to be "global"
-    for (const ref of refs) {
+    for (const ref of refs.variables) {
       const _ref = ref.split(TemplateVariableCounter.RE_SPLIT_IDENT, 1)[0];
       if (this.scope[_ref] === Missing && !this.templateLocals.has(_ref)) {
         this.templateGlobals.get(ref).push({
@@ -338,6 +360,13 @@ export class TemplateVariableCounter {
           lineNumber: child.token.lineNumber(),
         });
       }
+    }
+
+    for (const ref of refs.filters) {
+      this.filters.get(ref).push({
+        templateName: this.templateName,
+        lineNumber: child.token.lineNumber(),
+      });
     }
   }
 
@@ -352,17 +381,19 @@ export class TemplateVariableCounter {
     }
   }
 
-  private _updateExpressionRefs(expression: Expression): string[] {
-    const refs: string[] = [];
+  private _updateExpressionRefs(expression: Expression): ExpressionRefs {
+    const refs: ExpressionRefs = { variables: [], filters: [] };
 
     if (expression instanceof Identifier) {
-      refs.push(expression.toString());
+      refs.variables.push(expression.toString());
+    } else if (expression instanceof FilteredExpression) {
+      refs.filters.push(...expression.filters.map((f) => f.name));
     }
 
     if (expression.children) {
       for (const expr of expression.children()) {
-        for (const child of this._updateExpressionRefs(expr)) {
-          refs.push(child);
+        for (const child of this._updateExpressionRefs(expr).variables) {
+          refs.variables.push(child);
         }
       }
     }
@@ -560,7 +591,7 @@ export class TemplateVariableCounter {
     const seen = new Set<string>();
 
     // Add blocks from the leaf template tot he stack context.
-    let stacked = this._stackBlocks(stackContext, template);
+    let stacked = this._stackBlocks(stackContext, template, false);
     if (stacked.extendsNode === undefined) {
       throw new InternalSyntaxError(`expected an 'extends' node`);
     }
@@ -634,7 +665,7 @@ export class TemplateVariableCounter {
     const seen = new Set<string>();
 
     // Add blocks from the leaf template tot he stack context.
-    let stacked = this._stackBlocks(stackContext, template);
+    let stacked = this._stackBlocks(stackContext, template, false);
     if (stacked.extendsNode === undefined) {
       throw new InternalSyntaxError(`expected an 'extends' node`);
     }
@@ -705,9 +736,24 @@ export class TemplateVariableCounter {
   private _stackBlocks(
     stackContext: RenderContext,
     template: Template,
+    countTags: boolean = true,
   ): StackedBlocks {
-    // TODO: count tags
-    return stackBlocks(stackContext, template);
+    const stacked = stackBlocks(stackContext, template);
+    if (countTags && stacked.extendsNode) {
+      const token = stacked.extendsNode.token;
+      this.tags
+        .get(token.value)
+        .push({ templateName: template.name, lineNumber: token.lineNumber() });
+    }
+
+    for (const node of stacked.blockNodes) {
+      const token = node.token;
+      this.tags
+        .get(token.value)
+        .push({ templateName: template.name, lineNumber: token.lineNumber() });
+    }
+
+    return stacked;
   }
 
   private async _getTemplate(
@@ -778,6 +824,16 @@ export class TemplateVariableCounter {
     return context;
   }
 
+  protected countTag(node: Node): void {
+    if (!(node instanceof BlockNode) && node.token.kind === TOKEN_TAG) {
+      this.tags.get(node.token.value).push({
+        templateName: this.templateName,
+        lineNumber: node.token.lineNumber(),
+      });
+    }
+  }
+
+  // eslint-disable-next-line sonarjs/cognitive-complexity
   protected _updateReferenceCounters(refs: TemplateVariableCounter): void {
     for (const [_name, _refs] of refs.variables.entries()) {
       for (const location of _refs) {
@@ -800,6 +856,18 @@ export class TemplateVariableCounter {
     for (const [_name, _refs] of refs.unloadablePartials.entries()) {
       for (const location of _refs) {
         this.unloadablePartials.get(_name).push(location);
+      }
+    }
+
+    for (const [_name, _refs] of refs.filters.entries()) {
+      for (const location of _refs) {
+        this.filters.get(_name).push(location);
+      }
+    }
+
+    for (const [_name, _refs] of refs.tags.entries()) {
+      for (const location of _refs) {
+        this.tags.get(_name).push(location);
       }
     }
   }
