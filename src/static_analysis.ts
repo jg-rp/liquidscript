@@ -234,9 +234,9 @@ export class TemplateVariableCounter {
     }
 
     for (const child of root.children()) {
-      this._analyzeExpression(child);
-      await this._expressionHook(child);
-      this._updateTemplateScope(child);
+      this.analyzeExpression(child);
+      await this.expressionHook(child);
+      this.updateTemplateScope(child);
 
       if (child.blockScope) {
         this.scope[chainPush](
@@ -247,13 +247,13 @@ export class TemplateVariableCounter {
       if (this.followPartials) {
         switch (child.loadMode) {
           case "include":
-            await this._analyzeInclude(child);
+            await this.analyzeInclude(child);
             break;
           case "render":
-            await this._analyzeRender(child);
+            await this.analyzeRender(child);
             break;
           case "extends":
-            await this._analyzeTemplateInheritanceChain(child, this.template);
+            await this.analyzeTemplateInheritanceChain(child, this.template);
             throw new StopRender("stop static analysis");
           case undefined:
             break;
@@ -288,9 +288,9 @@ export class TemplateVariableCounter {
     }
 
     for (const child of root.children()) {
-      this._analyzeExpression(child);
-      this._expressionHookSync(child);
-      this._updateTemplateScope(child);
+      this.analyzeExpression(child);
+      this.expressionHookSync(child);
+      this.updateTemplateScope(child);
 
       if (child.blockScope) {
         this.scope[chainPush](
@@ -301,13 +301,13 @@ export class TemplateVariableCounter {
       if (this.followPartials) {
         switch (child.loadMode) {
           case "include":
-            this._analyzeIncludeSync(child);
+            this.analyzeIncludeSync(child);
             break;
           case "render":
-            this._analyzeRenderSync(child);
+            this.analyzeRenderSync(child);
             break;
           case "extends":
-            this._analyzeTemplateInheritanceChainSync(child, this.template);
+            this.analyzeTemplateInheritanceChainSync(child, this.template);
             throw new StopRender("stop static analysis");
           case undefined:
             break;
@@ -329,7 +329,7 @@ export class TemplateVariableCounter {
     }
   }
 
-  private _analyzeExpression(child: ChildNode): void {
+  private analyzeExpression(child: ChildNode): void {
     if (!child.expression) return;
     if (!child.expression.children) {
       // This expression does not define a children method.
@@ -340,7 +340,7 @@ export class TemplateVariableCounter {
       });
     }
 
-    const refs = this._updateExpressionRefs(child.expression);
+    const refs = this.updateExpressionRefs(child.expression);
 
     for (const ref of refs.variables) {
       this.variables.get(ref).push({
@@ -370,7 +370,7 @@ export class TemplateVariableCounter {
     }
   }
 
-  private _updateTemplateScope(child: ChildNode): void {
+  private updateTemplateScope(child: ChildNode): void {
     if (child.templateScope) {
       for (const name of child.templateScope) {
         this.templateLocals.get(name).push({
@@ -381,7 +381,7 @@ export class TemplateVariableCounter {
     }
   }
 
-  private _updateExpressionRefs(expression: Expression): ExpressionRefs {
+  private updateExpressionRefs(expression: Expression): ExpressionRefs {
     const refs: ExpressionRefs = { variables: [], filters: [] };
 
     if (expression instanceof Identifier) {
@@ -392,7 +392,7 @@ export class TemplateVariableCounter {
 
     if (expression.children) {
       for (const expr of expression.children()) {
-        for (const child of this._updateExpressionRefs(expr).variables) {
+        for (const child of this.updateExpressionRefs(expr).variables) {
           refs.variables.push(child);
         }
       }
@@ -401,8 +401,8 @@ export class TemplateVariableCounter {
     return refs;
   }
 
-  private async _analyzeInclude(child: ChildNode): Promise<void> {
-    const { templateName, loadContext } = this._includeContext(child);
+  private async analyzeInclude(child: ChildNode): Promise<void> {
+    const { templateName, loadContext } = this.includeContext(child);
     if (templateName === undefined || loadContext === undefined) {
       return;
     }
@@ -410,7 +410,7 @@ export class TemplateVariableCounter {
     let template: Template;
 
     try {
-      template = await this._getTemplate(
+      template = await this.getTemplate(
         templateName,
         loadContext,
         this.templateName,
@@ -428,11 +428,11 @@ export class TemplateVariableCounter {
       partials: this.partials,
     }).analyze();
 
-    this._updateReferenceCounters(refs);
+    this.updateReferenceCounters(refs);
   }
 
-  private _analyzeIncludeSync(child: ChildNode): void {
-    const { templateName, loadContext } = this._includeContext(child);
+  private analyzeIncludeSync(child: ChildNode): void {
+    const { templateName, loadContext } = this.includeContext(child);
     if (templateName === undefined || loadContext === undefined) {
       return;
     }
@@ -440,7 +440,7 @@ export class TemplateVariableCounter {
     let template: Template;
 
     try {
-      template = this._getTemplateSync(
+      template = this.getTemplateSync(
         templateName,
         loadContext,
         this.templateName,
@@ -458,10 +458,10 @@ export class TemplateVariableCounter {
       partials: this.partials,
     }).analyzeSync();
 
-    this._updateReferenceCounters(refs);
+    this.updateReferenceCounters(refs);
   }
 
-  private _includeContext(child: ChildNode): Partial<PartialTemplateContext> {
+  private includeContext(child: ChildNode): Partial<PartialTemplateContext> {
     if (child.expression === undefined) {
       return {};
     }
@@ -494,8 +494,8 @@ export class TemplateVariableCounter {
     return context;
   }
 
-  private async _analyzeRender(child: ChildNode): Promise<void> {
-    const { templateName, loadContext } = this._renderContext(child);
+  private async analyzeRender(child: ChildNode): Promise<void> {
+    const { templateName, loadContext } = this.renderContext(child);
     if (templateName === undefined || loadContext === undefined) {
       return;
     }
@@ -503,7 +503,7 @@ export class TemplateVariableCounter {
     let template: Template;
 
     try {
-      template = await this._getTemplate(
+      template = await this.getTemplate(
         templateName,
         loadContext,
         this.templateName,
@@ -530,11 +530,11 @@ export class TemplateVariableCounter {
       partials: this.partials,
     }).analyze();
 
-    this._updateReferenceCounters(refs);
+    this.updateReferenceCounters(refs);
   }
 
-  private _analyzeRenderSync(child: ChildNode): void {
-    const { templateName, loadContext } = this._renderContext(child);
+  private analyzeRenderSync(child: ChildNode): void {
+    const { templateName, loadContext } = this.renderContext(child);
     if (templateName === undefined || loadContext === undefined) {
       return;
     }
@@ -542,7 +542,7 @@ export class TemplateVariableCounter {
     let template: Template;
 
     try {
-      template = this._getTemplateSync(
+      template = this.getTemplateSync(
         templateName,
         loadContext,
         this.templateName,
@@ -569,14 +569,14 @@ export class TemplateVariableCounter {
       partials: this.partials,
     }).analyzeSync();
 
-    this._updateReferenceCounters(refs);
+    this.updateReferenceCounters(refs);
   }
 
-  private async _analyzeTemplateInheritanceChain(
+  private async analyzeTemplateInheritanceChain(
     node: ChildNode,
     template: Template,
   ): Promise<void> {
-    const { templateName, loadContext } = this._renderContext(node);
+    const { templateName, loadContext } = this.renderContext(node);
     if (templateName === undefined || loadContext === undefined) {
       return;
     }
@@ -591,7 +591,7 @@ export class TemplateVariableCounter {
     const seen = new Set<string>();
 
     // Add blocks from the leaf template tot he stack context.
-    let stacked = this._stackBlocks(stackContext, template, false);
+    let stacked = this.stackBlocks(stackContext, template, false);
     if (stacked.extendsNode === undefined) {
       throw new InternalSyntaxError(`expected an 'extends' node`);
     }
@@ -600,7 +600,7 @@ export class TemplateVariableCounter {
     let parent: Template | undefined;
 
     try {
-      parent = await this._getTemplate(
+      parent = await this.getTemplate(
         templateName,
         loadContext,
         this.templateName,
@@ -611,12 +611,12 @@ export class TemplateVariableCounter {
       throw error;
     }
 
-    stacked = this._stackBlocks(stackContext, parent);
-    let parentTemplateName: string | undefined = this._extend(stacked, seen);
+    stacked = this.stackBlocks(stackContext, parent);
+    let parentTemplateName: string | undefined = this.extend(stacked, seen);
 
     while (parentTemplateName) {
       try {
-        parent = await this._getTemplate(
+        parent = await this.getTemplate(
           parentTemplateName,
           loadContext,
           this.templateName,
@@ -626,8 +626,8 @@ export class TemplateVariableCounter {
         if (error instanceof TemplateNotFoundError) return;
         throw error;
       }
-      stacked = this._stackBlocks(stackContext, parent);
-      parentTemplateName = this._extend(stacked, seen);
+      stacked = this.stackBlocks(stackContext, parent);
+      parentTemplateName = this.extend(stacked, seen);
     }
 
     const refs = await new InheritanceChainCounter(
@@ -643,14 +643,14 @@ export class TemplateVariableCounter {
       },
     ).analyze();
 
-    this._updateReferenceCounters(refs);
+    this.updateReferenceCounters(refs);
   }
 
-  private _analyzeTemplateInheritanceChainSync(
+  private analyzeTemplateInheritanceChainSync(
     node: ChildNode,
     template: Template,
   ): void {
-    const { templateName, loadContext } = this._renderContext(node);
+    const { templateName, loadContext } = this.renderContext(node);
     if (templateName === undefined || loadContext === undefined) {
       return;
     }
@@ -665,7 +665,7 @@ export class TemplateVariableCounter {
     const seen = new Set<string>();
 
     // Add blocks from the leaf template tot he stack context.
-    let stacked = this._stackBlocks(stackContext, template, false);
+    let stacked = this.stackBlocks(stackContext, template, false);
     if (stacked.extendsNode === undefined) {
       throw new InternalSyntaxError(`expected an 'extends' node`);
     }
@@ -674,7 +674,7 @@ export class TemplateVariableCounter {
     let parent: Template;
 
     try {
-      parent = this._getTemplateSync(
+      parent = this.getTemplateSync(
         templateName,
         loadContext,
         this.templateName,
@@ -685,12 +685,12 @@ export class TemplateVariableCounter {
       throw error;
     }
 
-    stacked = this._stackBlocks(stackContext, parent);
-    let parentTemplateName: string | undefined = this._extend(stacked, seen);
+    stacked = this.stackBlocks(stackContext, parent);
+    let parentTemplateName: string | undefined = this.extend(stacked, seen);
 
     while (parentTemplateName) {
       try {
-        parent = this._getTemplateSync(
+        parent = this.getTemplateSync(
           parentTemplateName,
           loadContext,
           this.templateName,
@@ -700,8 +700,8 @@ export class TemplateVariableCounter {
         if (error instanceof TemplateNotFoundError) return;
         throw error;
       }
-      stacked = this._stackBlocks(stackContext, parent);
-      parentTemplateName = this._extend(stacked, seen);
+      stacked = this.stackBlocks(stackContext, parent);
+      parentTemplateName = this.extend(stacked, seen);
     }
 
     const refs = new InheritanceChainCounter(parent, stackContext, undefined, {
@@ -712,10 +712,10 @@ export class TemplateVariableCounter {
       partials: this.partials,
     }).analyzeSync();
 
-    this._updateReferenceCounters(refs);
+    this.updateReferenceCounters(refs);
   }
 
-  private _extend(
+  private extend(
     _stacked: StackedBlocks,
     seen: Set<string>,
   ): string | undefined {
@@ -733,7 +733,7 @@ export class TemplateVariableCounter {
     return undefined;
   }
 
-  private _stackBlocks(
+  private stackBlocks(
     stackContext: RenderContext,
     template: Template,
     countTags: boolean = true,
@@ -756,7 +756,7 @@ export class TemplateVariableCounter {
     return stacked;
   }
 
-  private async _getTemplate(
+  private async getTemplate(
     name: string,
     loaderContext: { [index: string]: unknown },
     parentName: string,
@@ -775,7 +775,7 @@ export class TemplateVariableCounter {
     }
   }
 
-  private _getTemplateSync(
+  private getTemplateSync(
     name: string,
     loaderContext: { [index: string]: unknown },
     parentName: string,
@@ -794,7 +794,7 @@ export class TemplateVariableCounter {
     }
   }
 
-  private _renderContext(child: ChildNode): Partial<PartialTemplateContext> {
+  private renderContext(child: ChildNode): Partial<PartialTemplateContext> {
     if (child.expression === undefined) {
       return {};
     }
@@ -834,7 +834,7 @@ export class TemplateVariableCounter {
   }
 
   // eslint-disable-next-line sonarjs/cognitive-complexity
-  protected _updateReferenceCounters(refs: TemplateVariableCounter): void {
+  protected updateReferenceCounters(refs: TemplateVariableCounter): void {
     for (const [_name, _refs] of refs.variables.entries()) {
       for (const location of _refs) {
         this.variables.get(_name).push(location);
@@ -902,10 +902,10 @@ export class TemplateVariableCounter {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  protected async _expressionHook(child: ChildNode): Promise<void> {}
+  protected async expressionHook(child: ChildNode): Promise<void> {}
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  protected _expressionHookSync(child: ChildNode): void {}
+  protected expressionHookSync(child: ChildNode): void {}
 }
 
 class InheritanceChainCounter extends TemplateVariableCounter {
@@ -932,27 +932,27 @@ class InheritanceChainCounter extends TemplateVariableCounter {
 
   protected async _analyze(root: Node): Promise<void> {
     if (root instanceof InheritanceBlockNode) {
-      return await this._analyzeBlock(root);
+      return await this.analyzeBlock(root);
     }
     return await super._analyze(root);
   }
 
   protected _analyzeSync(root: Node): void {
     if (root instanceof InheritanceBlockNode) {
-      return this._analyzeBlockSync(root);
+      return this.analyzeBlockSync(root);
     }
     return super._analyzeSync(root);
   }
 
-  protected async _expressionHook(child: ChildNode): Promise<void> {
+  protected async expressionHook(child: ChildNode): Promise<void> {
     if (
       !child.expression ||
       !this.parentBlockStackItem ||
-      !this._containsSuper(child.expression)
+      !this.containsSuper(child.expression)
     )
       return;
 
-    const template = this._makeTemplate(this.parentBlockStackItem);
+    const template = this.makeTemplate(this.parentBlockStackItem);
     const scope = Object.fromEntries(
       Array.from(this.templateLocals.keys()).map((s) => [
         s.split(InheritanceChainCounter.RE_SPLIT_IDENT, 1)[0],
@@ -972,18 +972,18 @@ class InheritanceChainCounter extends TemplateVariableCounter {
       },
     ).analyze();
 
-    this._updateReferenceCounters(refs);
+    this.updateReferenceCounters(refs);
   }
 
-  protected _expressionHookSync(child: ChildNode): void {
+  protected expressionHookSync(child: ChildNode): void {
     if (
       !child.expression ||
       !this.parentBlockStackItem ||
-      !this._containsSuper(child.expression)
+      !this.containsSuper(child.expression)
     )
       return;
 
-    const template = this._makeTemplate(this.parentBlockStackItem);
+    const template = this.makeTemplate(this.parentBlockStackItem);
     const scope = Object.fromEntries(
       Array.from(this.templateLocals.keys()).map((s) => [
         s.split(InheritanceChainCounter.RE_SPLIT_IDENT, 1)[0],
@@ -1003,10 +1003,10 @@ class InheritanceChainCounter extends TemplateVariableCounter {
       },
     ).analyzeSync();
 
-    this._updateReferenceCounters(refs);
+    this.updateReferenceCounters(refs);
   }
 
-  private _containsSuper(expression: Expression): boolean {
+  private containsSuper(expression: Expression): boolean {
     if (
       expression instanceof Identifier &&
       expression.toString() === "block.super"
@@ -1022,14 +1022,14 @@ class InheritanceChainCounter extends TemplateVariableCounter {
 
     if (expression.children) {
       for (const expr of expression.children()) {
-        if (this._containsSuper(expr)) return true;
+        if (this.containsSuper(expr)) return true;
       }
     }
 
     return false;
   }
 
-  private async _analyzeBlock(block: InheritanceBlockNode): Promise<void> {
+  private async analyzeBlock(block: InheritanceBlockNode): Promise<void> {
     const blockStacks = this.stackContext.getRegister(EXTENDS_REGISTER) as Map<
       string,
       BlockStackItem[]
@@ -1038,7 +1038,7 @@ class InheritanceChainCounter extends TemplateVariableCounter {
     const _blockStackItems = blockStacks.get(block.name);
     if (!_blockStackItems) return;
     const blockStackItem = _blockStackItems[0];
-    const template = this._makeTemplate(blockStackItem);
+    const template = this.makeTemplate(blockStackItem);
     const scope = Object.fromEntries(
       Array.from(this.templateLocals.keys()).map((s) => [
         s.split(InheritanceChainCounter.RE_SPLIT_IDENT, 1)[0],
@@ -1058,10 +1058,10 @@ class InheritanceChainCounter extends TemplateVariableCounter {
       },
     ).analyze();
 
-    this._updateReferenceCounters(refs);
+    this.updateReferenceCounters(refs);
   }
 
-  private _analyzeBlockSync(block: InheritanceBlockNode): void {
+  private analyzeBlockSync(block: InheritanceBlockNode): void {
     const blockStacks = this.stackContext.getRegister(EXTENDS_REGISTER) as Map<
       string,
       BlockStackItem[]
@@ -1070,7 +1070,7 @@ class InheritanceChainCounter extends TemplateVariableCounter {
     const _blockStackItems = blockStacks.get(block.name);
     if (!_blockStackItems) return;
     const blockStackItem = _blockStackItems[0];
-    const template = this._makeTemplate(blockStackItem);
+    const template = this.makeTemplate(blockStackItem);
     const scope = Object.fromEntries(
       Array.from(this.templateLocals.keys()).map((s) => [
         s.split(InheritanceChainCounter.RE_SPLIT_IDENT, 1)[0],
@@ -1090,10 +1090,10 @@ class InheritanceChainCounter extends TemplateVariableCounter {
       },
     ).analyzeSync();
 
-    this._updateReferenceCounters(refs);
+    this.updateReferenceCounters(refs);
   }
 
-  private _makeTemplate(item: BlockStackItem): Template {
+  private makeTemplate(item: BlockStackItem): Template {
     const parseTree = new Root();
     parseTree.nodes.push(...item.block.block.nodes);
     return new Template(
