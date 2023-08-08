@@ -73,7 +73,7 @@ const template = Template.fromString(`\
 
 const analysis = template.analyzeSync();
 
-for (const [name, locations] of Object.entries(a.globalVariables)) {
+for (const [name, locations] of Object.entries(analysis.globalVariables)) {
   for (const { templateName, lineNumber } of locations) {
     console.log(
       `'${name}' is out of scope in '${templateName}' on line ${lineNumber}`
@@ -99,7 +99,7 @@ const template = Template.fromString(`\
 
 const analysis = template.analyzeSync();
 
-for (const [name, locations] of Object.entries(a.localVariables)) {
+for (const [name, locations] of Object.entries(analysis.localVariables)) {
   for (const { templateName, lineNumber } of locations) {
     console.log(
       `'${name}' assigned in '${templateName}' on line ${lineNumber}`
@@ -111,6 +111,71 @@ for (const [name, locations] of Object.entries(a.localVariables)) {
 ```plain title="output"
 'people' assigned in '<string>' on line 1
 'people' assigned in '<string>' on line 2
+```
+
+## Filters
+
+**_New in version 1.8.0_**
+
+The `filters` property of [`TemplateAnalysis`](../api/modules.md#templateanalysis) is an object mapping filter names to their locations.
+
+
+```javascript
+import { Template } from "liquidscript";
+
+const template = Template.fromString(`\
+{% assign people = "Sally, John, Brian, Sue" | split: ", " %}
+{% for person in people %}
+  - {{ person | upcase | prepend: 'Hello, ' }}
+{% endfor %}`);
+
+const analysis = template.analyzeSync();
+
+for (const [filterName, locations] of Object.entries(analysis.filters)) {
+  for (const { templateName, lineNumber } of locations) {
+    console.log(
+      `'${filterName}' found in '${templateName}' on line ${lineNumber}`
+    );
+  }
+}
+```
+
+```plain title="output"
+'split' found in '<string>' on line 1
+'upcase' found in '<string>' on line 3
+'prepend' found in '<string>' on line 3
+```
+
+## Tags
+
+**_New in version 1.8.0_**
+
+The `tags` property of [`TemplateAnalysis`](../api/modules.md#templateanalysis) is an object mapping tag names to their locations. Note that, for block tags, we only report the locations of the opening tag, and `{% raw %}` tags will never be included.
+
+
+```javascript
+import { Template } from "liquidscript";
+
+const template = Template.fromString(`\
+{% assign people = "Sally, John, Brian, Sue" | split: ", " %}
+{% for person in people %}
+  - {{ person | upcase | prepend: 'Hello, ' }}
+{% endfor %}`);
+
+const analysis = template.analyzeSync();
+
+for (const [tagName, locations] of Object.entries(analysis.tags)) {
+  for (const { templateName, lineNumber } of locations) {
+    console.log(
+      `'${tagName}' found in '${templateName}' on line ${lineNumber}`
+    );
+  }
+}
+```
+
+```plain title="output"
+'assign' found in '<string>' on line 1
+'for' found in '<string>' on line 2
 ```
 
 ## Analyzing Partial Templates
