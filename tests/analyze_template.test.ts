@@ -13,7 +13,7 @@ import {
 import { Token, TokenStream } from "../src/token";
 import { VariableRefs, Template, TemplateAnalysis } from "../src/template";
 import { CallTag, MacroTag } from "../src/extra/tags";
-import { registerInheritanceTags } from "../src/extra/register";
+import { addInheritanceTags } from "../src/extra/register";
 
 class MockExpression implements Expression {
   async evaluate(): Promise<unknown> {
@@ -963,7 +963,7 @@ describe("static template analysis", () => {
     });
 
     const _env = new Environment({ loader });
-    registerInheritanceTags(_env);
+    addInheritanceTags(_env);
     const template = _env.getTemplateSync("some");
 
     const expectedGlobals: VariableRefs = {};
@@ -984,7 +984,7 @@ describe("static template analysis", () => {
     });
 
     const _env = new Environment({ loader });
-    registerInheritanceTags(_env);
+    addInheritanceTags(_env);
     const template = _env.getTemplateSync("some");
     expect(() => template.analyzeSync()).toThrow(TemplateInheritanceError);
     expect(async () => await template.analyze()).rejects.toThrow(
@@ -1001,7 +1001,7 @@ describe("static template analysis", () => {
     });
 
     const _env = new Environment({ loader });
-    registerInheritanceTags(_env);
+    addInheritanceTags(_env);
     const template = _env.getTemplateSync("some");
 
     const expectedGlobals: VariableRefs = {

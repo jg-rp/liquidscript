@@ -11,13 +11,13 @@ import {
   WithTag,
 } from "./tags";
 
-export function registerInheritanceTags(env: Environment): void {
+export function addInheritanceTags(env: Environment): void {
   env.tags["block"] = new BlockTag();
   env.tags["extends"] = new ExtendsTag();
 }
 
-export function registerExtras(env: Environment): void {
-  registerInheritanceTags(env);
+export function addAllExtras(env: Environment): void {
+  addInheritanceTags(env);
   env.tags["call"] = new CallTag();
   env.tags["ConditionalOutputStatementWithParens"] =
     new ConditionalOutputStatementWithParens();

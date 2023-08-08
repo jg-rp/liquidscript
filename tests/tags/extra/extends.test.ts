@@ -7,7 +7,7 @@ import {
   LiquidUndefinedError,
   TemplateInheritanceError,
 } from "../../../src/errors";
-import { registerInheritanceTags } from "../../../src/extra/register";
+import { addInheritanceTags } from "../../../src/extra/register";
 import { StrictUndefined } from "../../../src/undefined";
 
 type Case = {
@@ -284,7 +284,7 @@ describe("template inheritance", () => {
           globals,
           loader: new ObjectLoader(partials),
         });
-        registerInheritanceTags(env);
+        addInheritanceTags(env);
         const template = env.fromString(source);
         const result = await template.render();
         expect(result).toBe(want);
