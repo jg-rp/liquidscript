@@ -2,7 +2,7 @@
 
 **_New in version 1.3.0_**
 
-Use the [`analyze()`](../api/classes/Template.md#analyze) or [`analyzeSync()`](../api/classes/Template.md#analyzesync) methods of a Liquid [`Template`](../api/classes/Template.md) to traverse its abstract syntax tree and report template variable usage.
+Use the [`analyze()`](../api/classes/Template.md#analyze) or [`analyzeSync()`](../api/classes/Template.md#analyzesync) methods of a Liquid [`Template`](../api/classes/Template.md) to traverse its abstract syntax tree and report template variable, tag and filter usage.
 
 ## All Template Variables
 

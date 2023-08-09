@@ -4,9 +4,9 @@
 
 **Features**
 
-- Added the standard `sum` filter, which returns the sum of any numeric values in its input array.
-- Added optional `{% extends %}` and `{% block %}` tags that add template inheritance features to Liquid templates.
-- Added `filter` and `tag` properties to the result of `Template.analyze()`, containing the locations of filters and tags found during static analysis. 
+- Added the standard `sum` filter, which returns the sum of any numeric values in its input array ([docs](https://jg-rp.github.io/liquidscript/language/filters#sum), [source](https://github.com/jg-rp/liquidscript/blob/622a8c1e79ac34b354037ab88be590c13d53d928/src/builtin/filters/array.ts#L290)).
+- Added optional `{% extends %}` and `{% block %}` tags that add template inheritance features to Liquid templates ([docs](https://jg-rp.github.io/liquidscript/extra/tags#extends--block), [source](https://github.com/jg-rp/liquidscript/blob/main/src/extra/tags/extends.ts)).
+- Added `filter` and `tag` properties to the result of `Template.analyze()`, containing the locations of filters and tags found during static analysis ([docs](https://jg-rp.github.io/liquidscript/guides/static-analysis#filters)). 
 
 ## Version 1.7.0
 
