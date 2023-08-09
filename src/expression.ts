@@ -943,6 +943,13 @@ function compare(left: unknown, operator: string, right: unknown): boolean {
 
   if (left instanceof Range) return left.equals(right);
 
+  if (isArray(left) && isArray(right)) {
+    const _right = right; // for odd typescript bug?
+    return (
+      left.length === _right.length && left.every((v, i) => v === _right[i])
+    );
+  }
+
   switch (operator) {
     case "==": {
       if (left instanceof Undefined && right instanceof Undefined) return true;

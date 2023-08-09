@@ -2,6 +2,10 @@
 
 ## Version 1.8.0 (unreleased)
 
+**Fixes**
+
+- Fixed comparison of simple arrays with `{% if %}`, `{% unless %}` and `{% case %}` tags. Previously, two simple arrays with the same elements would not be considered equal.
+
 **Features**
 
 - Added the standard `sum` filter, which returns the sum of any numeric values in its input array ([docs](https://jg-rp.github.io/liquidscript/language/filters#sum), [source](https://github.com/jg-rp/liquidscript/blob/622a8c1e79ac34b354037ab88be590c13d53d928/src/builtin/filters/array.ts#L290)).
