@@ -968,6 +968,26 @@
                     "strict": false
                 },
                 {
+                    "name": "switch on array",
+                    "template": "{% case x %}{% when y %}foo{% endcase %}",
+                    "want": "foo",
+                    "context": {
+                        "x": [
+                            "a",
+                            "b",
+                            "c"
+                        ],
+                        "y": [
+                            "a",
+                            "b",
+                            "c"
+                        ]
+                    },
+                    "partials": {},
+                    "error": false,
+                    "strict": false
+                },
+                {
                     "name": "tags inside when block",
                     "template": "{% case title %}{% when other %}{% if true %}foo{% endif %}{% when 'goodbye' %}bar{% endcase %}",
                     "want": "foo",
@@ -3727,6 +3747,30 @@
                     "strict": false
                 },
                 {
+                    "name": "array is equal to array",
+                    "template": "{% assign x = 'a,b,c' | split: ',' %}{% assign y = 'a,b,c' | split: ',' %}{% if x == y %}true{% else %}false{% endif %}",
+                    "want": "true",
+                    "context": {},
+                    "partials": {},
+                    "error": false,
+                    "strict": false
+                },
+                {
+                    "name": "array is equal to array from context",
+                    "template": "{% assign y = 'a,b,c' | split: ',' %}{% if x == y %}true{% else %}false{% endif %}",
+                    "want": "true",
+                    "context": {
+                        "x": [
+                            "a",
+                            "b",
+                            "c"
+                        ]
+                    },
+                    "partials": {},
+                    "error": false,
+                    "strict": false
+                },
+                {
                     "name": "blocks that contain only whitespace and comments are not rendered",
                     "template": "{% if true %} {% comment %} this is blank {% endcomment %} {% endif %}",
                     "want": "",
@@ -4792,6 +4836,15 @@
             "name": "liquid.golden.liquid_tag",
             "tests": [
                 {
+                    "name": "bare liquid tag in liquid tag",
+                    "template": "{%- liquid\n  liquid\n  echo \"foo\"\n-%}",
+                    "want": "foo",
+                    "context": {},
+                    "partials": {},
+                    "error": false,
+                    "strict": false
+                },
+                {
                     "name": "can't close nested blocks",
                     "template": "{%- if true -%}\n42\n{%- liquid endif -%}",
                     "want": "",
@@ -5056,6 +5109,20 @@
                     "strict": false
                 },
                 {
+                    "name": "input is a hash",
+                    "template": "{{ a | map: 'title' | join: '#' }}",
+                    "want": "foo",
+                    "context": {
+                        "a": {
+                            "title": "foo",
+                            "some": "thing"
+                        }
+                    },
+                    "partials": {},
+                    "error": false,
+                    "strict": false
+                },
+                {
                     "name": "left value not an array",
                     "template": "{{ a | map: 'title' | join: '#' }}",
                     "want": "",
@@ -5081,6 +5148,29 @@
                             {
                                 "heading": "baz"
                             }
+                        ]
+                    },
+                    "partials": {},
+                    "error": false,
+                    "strict": false
+                },
+                {
+                    "name": "nested arrays get flattened",
+                    "template": "{{ a | map: 'title' | join: '#' }}",
+                    "want": "foo#bar#baz",
+                    "context": {
+                        "a": [
+                            {
+                                "title": "foo"
+                            },
+                            [
+                                {
+                                    "title": "bar"
+                                },
+                                {
+                                    "title": "baz"
+                                }
+                            ]
                         ]
                     },
                     "partials": {},
@@ -7474,6 +7564,22 @@
                     "strict": false
                 },
                 {
+                    "name": "incompatible types",
+                    "template": "{{ a | sort }}",
+                    "want": "",
+                    "context": {
+                        "a": [
+                            [],
+                            {},
+                            1,
+                            "4"
+                        ]
+                    },
+                    "partials": {},
+                    "error": true,
+                    "strict": false
+                },
+                {
                     "name": "left value is not an array",
                     "template": "{{ a | sort | join: '#' }}",
                     "want": "123",
@@ -8998,6 +9104,30 @@
                     "template": "{% unless true %}foo{% else %}bar{% endunless %}",
                     "want": "bar",
                     "context": {},
+                    "partials": {},
+                    "error": false,
+                    "strict": false
+                },
+                {
+                    "name": "array is equal to array",
+                    "template": "{% assign x = 'a,b,c' | split: ',' %}{% assign y = 'a,b,c' | split: ',' %}{% unless x == y %}true{% else %}false{% endunless %}",
+                    "want": "false",
+                    "context": {},
+                    "partials": {},
+                    "error": false,
+                    "strict": false
+                },
+                {
+                    "name": "array is equal to array from context",
+                    "template": "{% assign y = 'a,b,c' | split: ',' %}{% unless x == y %}true{% else %}false{% endunless %}",
+                    "want": "false",
+                    "context": {
+                        "x": [
+                            "a",
+                            "b",
+                            "c"
+                        ]
+                    },
                     "partials": {},
                     "error": false,
                     "strict": false
