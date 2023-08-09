@@ -102,22 +102,25 @@ export class LiquidTag implements Tag {
 
   parse(stream: TokenStream, environment: Environment): Node {
     const token = stream.next();
+    let block: BlockNode;
 
     if (stream.current.kind === TOKEN_EOF) {
       // Empty liquid tag at end of file.
-      return new LiquidNode(token, new BlockNode(stream.current, []));
+      block = new BlockNode(stream.current, []);
+    } else if (stream.current.kind === TOKEN_TAG) {
+      block = environment.parser.parseLiquid(stream);
+    } else {
+      stream.expect(TOKEN_EXPRESSION);
+      const exprStream = new TemplateTokenStream(
+        tokenize(
+          stream.current.value,
+          stream.current.index,
+          stream.current.input,
+        ),
+      );
+      block = environment.parser.parseLiquid(exprStream);
     }
 
-    stream.expect(TOKEN_EXPRESSION);
-    const exprStream = new TemplateTokenStream(
-      tokenize(
-        stream.current.value,
-        stream.current.index,
-        stream.current.input,
-      ),
-    );
-
-    const block = environment.parser.parseLiquid(exprStream);
     return new this.nodeClass(token, block);
   }
 }
