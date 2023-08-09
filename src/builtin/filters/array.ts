@@ -156,10 +156,7 @@ export function map(
   key: unknown,
 ): unknown[] {
   checkArguments(arguments.length, 1, 1);
-  if (!isIterable(left)) {
-    throw new FilterArgumentError("can't map non-iterable");
-  }
-  return Array.from(left).map((v) => getItem(v, key));
+  return Array.from(inputArray(left)).map((v) => getItem(v, key));
 }
 
 /**

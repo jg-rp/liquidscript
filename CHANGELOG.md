@@ -5,6 +5,7 @@
 **Fixes**
 
 - Fixed comparison of simple arrays with `{% if %}`, `{% unless %}` and `{% case %}` tags. Previously, two simple arrays with the same elements would not be considered equal.
+- Fixed the standard `map` filters handling of nested input arrays. We now automatically flatten nested input arrays and coerce non-iterable inputs to a single element array, just like Ruby Liquid.
 
 **Features**
 
