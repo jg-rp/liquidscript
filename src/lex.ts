@@ -7,7 +7,7 @@ import {
   TOKEN_TAG,
 } from "./token";
 
-const enum MatchGroup {
+enum MatchGroup {
   RAW = "raw",
   STA = "statement",
   RSS = "rightStripStatement",

@@ -1,5 +1,5 @@
 {
-    "version": "0.18.0",
+    "version": "0.20.0",
     "test_groups": [
         {
             "name": "liquid.golden.abs_filter",
@@ -5656,6 +5656,32 @@
                     "strict": false
                 },
                 {
+                    "name": "quoted, bracketed variable name",
+                    "template": "{{ foo['bar'] }}",
+                    "want": "42",
+                    "context": {
+                        "foo": {
+                            "bar": 42
+                        }
+                    },
+                    "partials": {},
+                    "error": false,
+                    "strict": false
+                },
+                {
+                    "name": "quoted, bracketed variable name with whitespace",
+                    "template": "{{ foo['bar baz'] }}",
+                    "want": "42",
+                    "context": {
+                        "foo": {
+                            "bar baz": 42
+                        }
+                    },
+                    "partials": {},
+                    "error": false,
+                    "strict": false
+                },
+                {
                     "name": "render a default given a literal false",
                     "template": "{{ false | default: 'bar' }}",
                     "want": "bar",
@@ -5828,6 +5854,30 @@
                     "want": "5#4#3#2",
                     "context": {
                         "foo": 2
+                    },
+                    "partials": {},
+                    "error": false,
+                    "strict": false
+                },
+                {
+                    "name": "top-level quoted, bracketed variable name with whitespace",
+                    "template": "{{ ['bar baz'] }}",
+                    "want": "42",
+                    "context": {
+                        "bar baz": 42
+                    },
+                    "partials": {},
+                    "error": false,
+                    "strict": false
+                },
+                {
+                    "name": "top-level quoted, bracketed variable name with whitespace followed by dot notation",
+                    "template": "{{ ['bar baz'].qux }}",
+                    "want": "42",
+                    "context": {
+                        "bar baz": {
+                            "qux": 42
+                        }
                     },
                     "partials": {},
                     "error": false,
@@ -7956,9 +8006,63 @@
             "name": "liquid.golden.split_filter",
             "tests": [
                 {
+                    "name": "argument does not appear in string",
+                    "template": "{% assign a = \"abc\" | split: \",\" %}{% for i in a %}#{{ forloop.index0 }}{{ i }}{% endfor %}",
+                    "want": "#0abc",
+                    "context": {},
+                    "partials": {},
+                    "error": false,
+                    "strict": false
+                },
+                {
                     "name": "argument not a string",
                     "template": "{{ \"hello th1ere\" | split: 1 | join: \"#\" }}",
                     "want": "hello th#ere",
+                    "context": {},
+                    "partials": {},
+                    "error": false,
+                    "strict": false
+                },
+                {
+                    "name": "empty string and empty argument",
+                    "template": "{% assign a = \"\" | split: \"\" %}{% for i in a %}{{ forloop.index0 }}{{ i }}{% endfor %}",
+                    "want": "",
+                    "context": {},
+                    "partials": {},
+                    "error": false,
+                    "strict": false
+                },
+                {
+                    "name": "empty string and single char argument",
+                    "template": "{% assign a = \"\" | split: \",\" %}{% for i in a %}{{ forloop.index0 }}{{ i }}{% endfor %}",
+                    "want": "",
+                    "context": {},
+                    "partials": {},
+                    "error": false,
+                    "strict": false
+                },
+                {
+                    "name": "empty string argument",
+                    "template": "{% assign a = \"abc\" | split: \"\" %}{% for i in a %}#{{ forloop.index0 }}{{ i }}{% endfor %}",
+                    "want": "#0a#1b#2c",
+                    "context": {},
+                    "partials": {},
+                    "error": false,
+                    "strict": false
+                },
+                {
+                    "name": "left matches argument",
+                    "template": "{% assign a = \",\" | split: \",\" %}{% for i in a %}{{ forloop.index0 }}{{ i }}{% endfor %}",
+                    "want": "",
+                    "context": {},
+                    "partials": {},
+                    "error": false,
+                    "strict": false
+                },
+                {
+                    "name": "left matches string repr of argument",
+                    "template": "{% assign a = \"1\" | split: 1 %}{% for i in a %}{{ forloop.index0 }}{{ i }}{% endfor %}",
+                    "want": "",
                     "context": {},
                     "partials": {},
                     "error": false,

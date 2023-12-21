@@ -437,7 +437,10 @@ export function split(
   subString: unknown,
 ): string[] | Markup[] {
   checkArguments(arguments.length, 1, 1);
-  return liquidStringify(left).split(liquidStringify(subString));
+  const val = liquidStringify(left);
+  const sep = liquidStringify(subString);
+  if (!val || val === sep) return [];
+  return val.split(sep);
 }
 
 /**
