@@ -1,4 +1,5 @@
-module.exports = {
+/** @type {import('jest').Config} */
+const config = {
   testEnvironment: "node",
   testRegex: ".*test.ts$",
   transform: { "^.+\\.ts?$": "ts-jest" },
@@ -10,3 +11,5 @@ module.exports = {
   testPathIgnorePatterns: ["/node_modules/", "<rootDir>/tests/browser/"],
   slowTestThreshold: 10,
 };
+
+module.exports = config;
