@@ -1,5 +1,11 @@
 # LiquidScript Change Log
 
+## Version 1.8.1
+
+**Fixes**
+
+- Fixed the `split` filter. Previously, when the `split` filter's argument string was equal to its input string, we returned an array with empty strings. Now we return an empty array.
+
 ## Version 1.8.0
 
 **Fixes**
