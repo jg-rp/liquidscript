@@ -2,7 +2,6 @@ import { isLiquidStringable, toLiquidString } from "./drop";
 import { isNumberT, NumberT } from "./number";
 import { Undefined } from "./undefined";
 
-
 /**
  * A type predicate for the primitive boolean.
  * @param value - Any value
@@ -11,7 +10,6 @@ import { Undefined } from "./undefined";
 export function isBoolean(value: unknown): value is boolean {
   return typeof value == "boolean";
 }
-
 
 /**
  * A type predicate for the primitive string.
