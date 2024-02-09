@@ -3,6 +3,15 @@ import { isNumberT, NumberT } from "./number";
 import { Undefined } from "./undefined";
 
 /**
+ * A type predicate for the primitive boolean.
+ * @param value - Any value
+ * @returns `true` if the value is a primitive boolean.
+ */
+export function isBoolean(value: unknown): value is boolean {
+  return typeof value == "boolean";
+}
+
+/**
  * A type predicate for the primitive string.
  * @param value - Any value
  * @returns `true` if the value is a primitive string.

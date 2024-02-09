@@ -12,12 +12,14 @@ import { Float, Integer, isInteger, parseNumberT } from "./number";
 import { range, Range } from "./range";
 import {
   isArray,
+  isBoolean,
   isIterable,
   isNumber,
   isObject,
   isPrimitiveInteger,
   isPropertyKey,
   isString,
+  isUndefined,
 } from "./types";
 import { Undefined } from "./undefined";
 
@@ -887,52 +889,103 @@ function isExpression(obj: unknown): obj is Expression {
 }
 
 // eslint-disable-next-line sonarjs/cognitive-complexity
-function compare(left: unknown, operator: string, right: unknown): boolean {
-  switch (operator) {
-    case "and":
-      return isLiquidTruthy(left) && isLiquidTruthy(right);
-    case "or":
-      return isLiquidTruthy(left) || isLiquidTruthy(right);
+function compare(left: unknown, op: string, right: unknown): boolean {
+  if (op === "and") {
+    return isLiquidTruthy(left) && isLiquidTruthy(right);
+  } else if (op === "or") {
+    return isLiquidTruthy(left) || isLiquidTruthy(right);
   }
 
   if (isLiquidPrimitive(left)) left = left[toLiquidPrimitive]();
   if (isLiquidPrimitive(right)) right = right[toLiquidPrimitive]();
 
-  if (isNumber(left) && isNumber(right)) {
-    const _left = parseNumberT(left);
-    switch (operator) {
-      case "==":
-        return _left.eq(right);
-      case "!=":
-      case "<>":
-        return !_left.eq(right);
-      case "<":
-        return _left.lt(right);
-      case "<=":
-        return _left.lte(right);
-      case ">":
-        return _left.gt(right);
-      case ">=":
-        return _left.gte(right);
-    }
-    throw new InternalTypeError(
-      `invalid operator '${left} ${operator} ${right}'`,
-    );
-  }
-
-  if (operator === "contains" && isNumber(right)) {
-    if (isString(left)) return left.indexOf(String(right)) !== -1;
-    if (isArray(left)) {
-      const n = parseNumberT(right);
-      for (const item of left) {
-        if (isNumber(item) && n.eq(item)) {
-          return true;
-        }
+  switch (op) {
+    case "==":
+      return eq(left, right);
+    case "!=":
+    case "<>":
+      return !eq(left, right);
+    case "<":
+      try {
+        return lt(left, right);
+      } catch {
+        throw new InternalTypeError(
+          `invalid operator '${left} ${op} ${right}'`,
+        );
       }
-    }
-    return false;
+    case ">":
+      try {
+        return lt(right, left);
+      } catch {
+        throw new InternalTypeError(
+          `invalid operator '${left} ${op} ${right}'`,
+        );
+      }
+    case ">=":
+      try {
+        return lt(right, left) || eq(left, right);
+      } catch {
+        throw new InternalTypeError(
+          `invalid operator '${left} ${op} ${right}'`,
+        );
+      }
+    case "<=":
+      try {
+        return lt(left, right) || eq(left, right);
+      } catch {
+        throw new InternalTypeError(
+          `invalid operator '${left} ${op} ${right}'`,
+        );
+      }
+    case "contains":
+      if (isString(left)) {
+        return left.indexOf(String(right)) !== -1;
+      }
+
+      if (isArray(left)) {
+        if (isNumber(right)) {
+          const n = parseNumberT(right);
+          for (const item of left) {
+            if (isNumber(item) && n.eq(item)) {
+              return true;
+            }
+          }
+          return false;
+        }
+        return left.indexOf(right) !== -1;
+      }
+
+      if (isUndefined(left)) {
+        return false;
+      }
+
+      if (isObject(left) && isPropertyKey(right)) {
+        return Object.propertyIsEnumerable.call(left, right);
+      }
   }
 
+  throw new InternalTypeError(
+    `invalid comparison operator '${left} ${op} ${right}'`,
+  );
+}
+
+/**
+ * Check a value for Liquid truthiness.
+ * @param value - Any value
+ * @returns `true` if the value is Liquid truthy, `false` otherwise.
+ */
+export function isLiquidTruthy(value: unknown): boolean {
+  if (isLiquidPrimitive(value)) value = value[toLiquidPrimitive]();
+  return !(
+    value === false ||
+    FALSE.equals(value) ||
+    value === undefined ||
+    value === null ||
+    value instanceof Undefined
+  );
+}
+
+function eq(left: unknown, right: unknown): boolean {
   if (
     right instanceof Empty ||
     right instanceof Blank ||
@@ -941,7 +994,13 @@ function compare(left: unknown, operator: string, right: unknown): boolean {
   )
     [left, right] = [right, left];
 
-  if (left instanceof Range) return left.equals(right);
+  if (left instanceof Undefined && right instanceof Undefined) {
+    return true;
+  }
+
+  if (isNumber(left) && isNumber(right)) {
+    return parseNumberT(left).eq(right);
+  }
 
   if (isArray(left) && isArray(right)) {
     const _right = right; // for odd typescript bug?
@@ -950,40 +1009,23 @@ function compare(left: unknown, operator: string, right: unknown): boolean {
     );
   }
 
-  switch (operator) {
-    case "==": {
-      if (left instanceof Undefined && right instanceof Undefined) return true;
-      return isExpression(left) ? left.equals(right) : left === right;
-    }
-    case "!=":
-    case "<>":
-      return isExpression(left) ? !left.equals(right) : left !== right;
-    case "contains":
-      if (isString(left)) return left.indexOf(String(right)) !== -1;
-      if (isArray(left)) return left.indexOf(right) !== -1;
-      if (isObject(left) && isPropertyKey(right)) {
-        return Object.propertyIsEnumerable.call(left, right);
-      }
+  return isExpression(left) || left instanceof Range
+    ? left.equals(right)
+    : left === right;
+}
+
+function lt(left: unknown, right: unknown): boolean {
+  if (isString(left) && isString(right)) {
+    return left < right;
   }
 
-  if (left instanceof Undefined || right instanceof Undefined) return false;
+  if (isBoolean(left) || isBoolean(right)) {
+    return false;
+  }
 
-  throw new InternalTypeError(
-    `invalid comparison operator '${left} ${operator} ${right}'`,
-  );
-}
-/**
- * Check a value for Liquid truthiness.
- * @param value - Any value
- * @returns `true` if the value is Liquid truthy, `false` otherwise.
- */
-export function isLiquidTruthy(value: unknown): boolean {
-  if (isLiquidPrimitive(value)) value = value[toLiquidPrimitive]();
-  return value === false ||
-    FALSE.equals(value) ||
-    value === undefined ||
-    value === null ||
-    value instanceof Undefined
-    ? false
-    : true;
+  if (isNumber(left) && isNumber(right)) {
+    return parseNumberT(left) < right;
+  }
+
+  throw new InternalTypeError("");
 }

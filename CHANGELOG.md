@@ -1,5 +1,12 @@
 # LiquidScript Change Log
 
+## Version 1.8.2 (unreleased)
+
+**Fixes**
+
+- Fixed comparison of strings in logical expressions. Previously we only supported comparing strings for equality with `==` and `!=`, now we support `<`, `>`, `<=` and `>=` too.
+
+
 ## Version 1.8.1
 
 **Fixes**
