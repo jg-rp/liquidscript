@@ -3866,6 +3866,33 @@
                     "strict": false
                 },
                 {
+                    "name": "else tag expressions are ignored",
+                    "template": "{% if false %}1{% else nonsense %}2{% endif %}",
+                    "want": "2",
+                    "context": {},
+                    "partials": {},
+                    "error": false,
+                    "strict": true
+                },
+                {
+                    "name": "extra else blocks are ignored",
+                    "template": "{% if false %}1{% else %}2{% else %}3{% endif %}",
+                    "want": "2",
+                    "context": {},
+                    "partials": {},
+                    "error": false,
+                    "strict": true
+                },
+                {
+                    "name": "extra elsif blocks are ignored",
+                    "template": "{% if false %}1{% else %}2{% elsif true %}3{% endif %}",
+                    "want": "2",
+                    "context": {},
+                    "partials": {},
+                    "error": false,
+                    "strict": true
+                },
+                {
                     "name": "int does not equal string",
                     "template": "{% if 1 == '1' %}true{% else %}false{% endif %}",
                     "want": "false",
@@ -9334,6 +9361,33 @@
                     "partials": {},
                     "error": false,
                     "strict": false
+                },
+                {
+                    "name": "else tag expressions are ignored",
+                    "template": "{% unless true %}1{% else nonsense %}2{% endunless %}",
+                    "want": "2",
+                    "context": {},
+                    "partials": {},
+                    "error": false,
+                    "strict": true
+                },
+                {
+                    "name": "extra else blocks are ignored",
+                    "template": "{% unless true %}1{% else %}2{% else %}3{% endunless %}",
+                    "want": "2",
+                    "context": {},
+                    "partials": {},
+                    "error": false,
+                    "strict": true
+                },
+                {
+                    "name": "extra elsif blocks are ignored",
+                    "template": "{% unless true %}1{% else %}2{% elsif true %}3{% endunless %}",
+                    "want": "2",
+                    "context": {},
+                    "partials": {},
+                    "error": false,
+                    "strict": true
                 },
                 {
                     "name": "literal false condition",

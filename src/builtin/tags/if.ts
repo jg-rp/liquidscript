@@ -32,7 +32,7 @@ export class IfTag implements Tag {
     TOKEN_EOF,
   ]);
   protected static END_ELSEIF_BLOCK = new Set([TAG_ENDIF, TAG_ELSIF, TAG_ELSE]);
-  protected static END_ELSE_BLOCK = new Set([TAG_ENDIF]);
+  protected static END_ELSE_BLOCK = new Set([TAG_ENDIF, TAG_ELSIF, TAG_ELSE]);
 
   readonly block = true;
   readonly name: string = TAG_IF;
@@ -71,24 +71,45 @@ export class IfTag implements Tag {
       });
     }
 
+    let alternative: BlockNode | undefined = undefined;
+
     if (
       stream.current.kind === TOKEN_TAG &&
       stream.current.value === TAG_ELSE
     ) {
-      return new this.nodeClass(
-        token,
-        condition,
-        consequence,
-        conditionalAlternatives,
-        parser.parseBlock(stream, IfTag.END_ELSE_BLOCK, stream.next()),
-      );
+      const tok = stream.next();
+      // @ts-expect-error: stream.current has changed, so `kind` will have changed too.
+      if (stream.current.kind === TOKEN_EXPRESSION) {
+        // Superfluous expressions inside an `else` tag are ignored.
+        stream.next();
+      }
+
+      alternative = parser.parseBlock(stream, IfTag.END_ELSE_BLOCK, tok);
     }
+
+    // Extraneous `else` and `elsif` blocks are ignored.
+    if (
+      !(stream.current.kind === TOKEN_TAG && stream.current.value === TAG_ENDIF)
+    ) {
+      while (stream.current.kind !== TOKEN_EOF) {
+        if (
+          stream.current.kind === TOKEN_TAG &&
+          stream.current.value === TAG_ENDIF
+        ) {
+          break;
+        }
+        stream.next();
+      }
+    }
+
+    stream.expectTag(TAG_ENDIF);
 
     return new this.nodeClass(
       token,
       condition,
       consequence,
       conditionalAlternatives,
+      alternative,
     );
   }
 }
