@@ -994,7 +994,10 @@ function eq(left: unknown, right: unknown): boolean {
   )
     [left, right] = [right, left];
 
-  if (left instanceof Undefined && right instanceof Undefined) {
+  if (
+    (isUndefined(left) || left instanceof Nil || left === null) &&
+    (isUndefined(right) || right instanceof Nil || right === null)
+  ) {
     return true;
   }
 

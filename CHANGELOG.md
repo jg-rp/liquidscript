@@ -5,6 +5,8 @@
 **Fixes**
 
 - Fixed comparison of strings in logical expressions. Previously we only supported comparing strings for equality with `==` and `!=`, now we support `<`, `>`, `<=` and `>=` too.
+- Fixed handling of superfluous expressions in `{% else %}` tags. We now silently ignore anything between `else` and `%}`, matching the behavior of Shopify/Liquid.
+- Fixed handling of extra `{% else %}` and `{% elsif %}` blocks after the first `{% else %}` block. We now silently ignore extraneous blocks, matching the behavior of Shopify/Liquid. 
 
 
 ## Version 1.8.1
