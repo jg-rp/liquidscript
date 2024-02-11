@@ -1,6 +1,6 @@
 # LiquidScript Change Log
 
-## Version 1.8.2 (unreleased)
+## Version 1.8.2
 
 **Fixes**
 
