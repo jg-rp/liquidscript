@@ -16,7 +16,7 @@ This page documents extra tags available in LiquidScript. These tags are not par
 {% endblock [<identifier,string>] %}
 ```
 
-The `{% extends %}` and `{% block %}` tags add template inheritance features to Python Liquid. In this example, `page.html` inherits from `base.html` and overrides the `content` block. As `page.html` does not define a `footer` block, the footer from `base.html` is used.
+The `{% extends %}` and `{% block %}` tags add template inheritance features to LiquidScript. In this example, `page.html` inherits from `base.html` and overrides the `content` block. As `page.html` does not define a `footer` block, the footer from `base.html` is used.
 
 ```javascript
 import { Environment, extra, ObjectLoader } from "liquidscript";
@@ -41,7 +41,7 @@ console.log(template.renderSync({ you: "World" }));
 
 A template can contain at most one `{% extends %}` tag, and that tag should normally be the first in the template. All other template text and tags (including whitespace) preceding `{% extends %}` will be output normally. Subsequent template text and tags outside any `{% block %}` tags will be ignored, unless rendering a base template directly.
 
-As soon as an `{% extends %}` tag is found, template rendering stops and Python Liquid loads the parent template (using the configured [loader](../introduction/loading-templates.md)) before searching for `{% block %}` tags. We keep loading and searching up the inheritance chain until a parent template with no `{% extends %}` tag is found, this is the _base_ template.
+As soon as an `{% extends %}` tag is found, template rendering stops and LiquidScript loads the parent template (using the configured [loader](../introduction/loading-templates.md)) before searching for `{% block %}` tags. We keep loading and searching up the inheritance chain until a parent template with no `{% extends %}` tag is found, this is the _base_ template.
 
 The base template is then rendered, substituting its blocks with those defined in its children.
 
