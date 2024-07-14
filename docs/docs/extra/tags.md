@@ -204,7 +204,7 @@ This implementation of `if` maintains that right associativity so that any stand
 
 Drop-in replacements for the standard output statement, [`assign`](../language/tags.md#assign) tag, and [`echo`](../language/tags.md#echo) tag that support inline `if`/`else` expressions. You can find a BNF-like description of the inline conditional expression in [this gist](https://gist.github.com/jg-rp/e2dc4da9e5033e087e46016008a9d91c#file-inline_if_expression-bnf).
 
-Register one or more of `ConditionalOutputStatement`, `ConditionalAssignTag` amd `ConditionalEchoTag` from `liquidscript.extra.tags` with an [`Environment`](../api/classes/Environment.md) to make them available to templates rendered from that environment.
+Register one or more of `ConditionalOutputStatement`, `ConditionalAssignTag` and `ConditionalEchoTag` from `liquidscript.extra.tags` with an [`Environment`](../api/classes/Environment.md) to make them available to templates rendered from that environment.
 
 ```javascript
 import { Environment, extra } from "liquidscript";
