@@ -3,7 +3,7 @@ import commonjs from "@rollup/plugin-commonjs";
 import resolve from "@rollup/plugin-node-resolve";
 import { babel } from "@rollup/plugin-babel";
 import replace from "@rollup/plugin-replace";
-import { uglify } from "rollup-plugin-uglify";
+import terser from "@rollup/plugin-terser";
 import pkg from "./package.json" assert { type: "json" };
 
 const extensions = [".js", ".jsx", ".ts", ".tsx"];
@@ -97,7 +97,7 @@ const browserBundles = {
       file: pkg["browser-min"],
       format: "iife",
       name,
-      plugins: [uglify()],
+      plugins: [terser()],
       sourcemap: true,
       globals: { "decimal.js": "Decimal", luxon: "luxon" },
       banner,
@@ -145,7 +145,7 @@ const browserBundlesWithDependencies = {
       file: pkg["browser-bundle-min"],
       format: "iife",
       name,
-      plugins: [uglify()],
+      plugins: [terser()],
       sourcemap: true,
       globals: {},
       banner,
