@@ -2,18 +2,11 @@ import { Token } from "../src/token";
 import { tokenize } from "../src/expressions/standard";
 
 import {
-  TOKEN_COLON,
-  TOKEN_COMMA,
-  TOKEN_DOT,
   TOKEN_FLOAT,
   TOKEN_IDENT,
-  TOKEN_IDENT_INDEX,
   TOKEN_INTEGER,
-  TOKEN_LBRACKET,
   TOKEN_LPAREN,
-  TOKEN_PIPE,
   TOKEN_RANGE,
-  TOKEN_RBRACKET,
   TOKEN_RPAREN,
   TOKEN_STRING,
 } from "../src/expressions/tokens";
