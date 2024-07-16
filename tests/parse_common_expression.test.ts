@@ -2,8 +2,6 @@ import { tokenize, parse } from "../src/expressions/standard";
 
 import {
   ExpressionTokenStream,
-  TOKEN_IN,
-  TOKEN_LPAREN,
   TOKEN_BLANK,
   TOKEN_EMPTY,
   TOKEN_FALSE,

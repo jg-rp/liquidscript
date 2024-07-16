@@ -67,7 +67,6 @@ export class XMLHttpRequestLoader extends Loader {
     const url = `${this.baseURL}/${name}`;
     if (this.bustBrowserCache) {
       return (
-        // eslint-disable-next-line prefer-template
         url +
         (url.indexOf("?") === -1 ? "?" : "&") +
         "s=" +

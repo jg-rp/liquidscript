@@ -24,10 +24,6 @@ Comment out one or more lines with a single inline tag.
 -%}
 ```
 
-```plain title="output"
-
-```
-
 Inside [liquid](#liquid) tags, any line starting with a hash will be considered a comment.
 
 ```liquid
