@@ -83,7 +83,7 @@ delete env.filters.base64_decode;
 
 ## Filter Context
 
-Filter functions are applied with their `this` value set to a [`FilterContext`](../api/modules.md#filtercontext), giving filters access to the current environment and render context.
+Filter functions are applied with their `this` value set to a [`FilterContext`](../api/type-aliases/FilterContext.md), giving filters access to the current environment and render context.
 
 This example resolves the name `"handle"` in the scope of the current render context, then uses the result as part of the filter's return value. We also reference the `autoEscape` option set on the active environment.
 
@@ -124,7 +124,7 @@ env.addFilter("link_to_tag", LinkToTag);
 
 ### Keyword Arguments and Options
 
-The [`FilterContext`](../api/modules.md#filtercontext) also includes any keyword arguments passed to the filter. These are available as `this.options`. The [`default`](../language/filters.md#default) filter is the only built-in filter to use a keyword argument. For example, `{{ user.name | default: 'anonymous', allow_false: false }}`
+The [`FilterContext`](../api/type-aliases/FilterContext.md) also includes any keyword arguments passed to the filter. These are available as `this.options`. The [`default`](../language/filters.md#default) filter is the only built-in filter to use a keyword argument. For example, `{{ user.name | default: 'anonymous', allow_false: false }}`
 
 :::info
 In Liquid, keyword arguments can appear in any order, even before and inbetween positional arguments. It is because of this, and the desire to allow filters with [rest parameters](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/rest_parameters), that LiquidScript puts options in the filter context object instead of the last argument of the filter function.
@@ -132,11 +132,11 @@ In Liquid, keyword arguments can appear in any order, even before and inbetween 
 
 ## Liquid Numbers and Arithmetic
 
-Unlike JavaScript, Liquid has distinct integer and float number types. To maintain compatibility with the reference implementation of Liquid, LiquidScript defines an [`Integer`](../api/classes/Integer.md) type, a [`Float`](../api/classes/Float.md) type and [utility functions](../api/modules.md#parsenumbert) for converting to these types.
+Unlike JavaScript, Liquid has distinct integer and float number types. To maintain compatibility with the reference implementation of Liquid, LiquidScript defines an [`Integer`](../api/classes/Integer.md) type, a [`Float`](../api/classes/Float.md) type and [utility functions](../api/functions/parseNumberT.md) for converting to these types.
 
 Both `Integer` and `Float` export methods for performing decimal arithmetic, as opposed to JavaScript's usual floating point arithmetic.
 
-When writing custom filters that expect numbers as inputs, you should be prepared to handle JavaScript primitive numbers **and** Liquid numbers. All built-in math filters convert their arguments to Liquid's [`NumberT`](../api/modules.md#numbert) type on input, exclusively use methods of those types for arithmetic, and return a `NumberT` too.
+When writing custom filters that expect numbers as inputs, you should be prepared to handle JavaScript primitive numbers **and** Liquid numbers. All built-in math filters convert their arguments to Liquid's [`NumberT`](../api/functions/parseNumberT.md) type on input, exclusively use methods of those types for arithmetic, and return a `NumberT` too.
 
 To illustrate, here's the implementation of the [`plus`](../language/filters.md#plus) filter. It makes no assumptions about the type of its arguments and both arguments default to zero if they can't be converted to a number.
 
@@ -248,10 +248,10 @@ function append(
 
 All filters built in to Liquid throw a [`LiquidFilterArgumentError`](../api/classes/LiquidFilterArgumentError.md) if a required argument is missing or too many arguments are provided.
 
-When writing custom filters, if you want to be consistent with those built-in filters, you can use [`checkArguments`](../api/modules.md#checkarguments) to throw an error with a suitable message.
+When writing custom filters, if you want to be consistent with those built-in filters, you can use [`checkArguments`](../api/functions/checkArguments.md) to throw an error with a suitable message.
 
 ## Undefined vs undefined
 
 LiquidScript defines an [`Undefined`](../introduction/undefined.md) type, which is distinct from JavaScript's primitive `undefined` value. With [`LaxUndefined`](../api/classes/LaxUndefined.md), `Undefined` objects will be passed to filter functions if they are "called" with arguments that can not be resolved by the active render context.
 
-If a filter function needs to detect `Undefined` and `undefined` arguments, it can use [`object.isUndefined()`](../api/namespaces/object.md#isundefined).
+If a filter function needs to detect `Undefined` and `undefined` arguments, it can use [`object.isUndefined()`](../api/namespaces/object/functions/isUndefined.md).

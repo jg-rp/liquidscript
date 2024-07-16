@@ -10,7 +10,7 @@ Named counters created with [`{% increment %}`](../language/tags.md#increment) a
 
 ## Environment Globals
 
-You can add _global_ variables to an [Environment](../api/classes/Environment.md) using the [`globals`](../api/modules.md#environmentoptions) option. Environment globals are automatically added to the render context of every [Template](../api/classes/Template.md) created from that environment.
+You can add _global_ variables to an [Environment](../api/classes/Environment.md) using the [`globals`](../api/type-aliases/EnvironmentOptions.md) option. Environment globals are automatically added to the render context of every [Template](../api/classes/Template.md) created from that environment.
 
 ```js
 import { Environment } from "liquidscript";

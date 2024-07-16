@@ -29,7 +29,7 @@ We use [class syntax](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Re
 
 ### Example Tag
 
-A [`Tag`](../api/interfaces/Tag.md) is free to parse its expression any way it chooses. Built in tags use regular expressions to [generate](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Generator) a [stream of tokens](../api/classes/expressions.ExpressionTokenStream.md), then step through those tokens yielding [`Expression`](../api/interfaces/Expression.md) objects.
+A [`Tag`](../api/interfaces/Tag.md) is free to parse its expression any way it chooses. Built in tags use regular expressions to [generate](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Generator) a [stream of tokens](../api/namespaces/expressions/classes/ExpressionTokenStream.md), then step through those tokens yielding [`Expression`](../api/interfaces/Expression.md) objects.
 
 :::info
 Despite their names, `ExpressionTokenStream`, `TokenStream` and `RenderStream` do not implement a Node.js stream or a web stream.
@@ -103,9 +103,9 @@ type Arguments = {
 </TabItem>
 </Tabs>
 
-The [`parse()`](../api/interfaces/Tag.md#parse) method of a `Tag` object receives a [`TokenStream`](../api/classes/tokens.TemplateTokenStream.md) and a reference to the active [`Environment`](../api/classes/Environment.md). This stream of [tokens](../api/namespaces/tokens.md#variables) includes template literals, output statements, tags and unparsed tag expressions.
+The [`parse()`](../api/interfaces/Tag.md#parse) method of a `Tag` object receives a [`TokenStream`](../api/namespaces/tokens/interfaces/TokenStream.md) and a reference to the active [`Environment`](../api/classes/Environment.md). This stream of [tokens](/api/namespaces/tokens#variables) includes template literals, output statements, tags and unparsed tag expressions.
 
-The current token in the stream will always be of the type [`TOKEN_TAG`](../api/namespaces/tokens.md#token_tag), representing the start of the tag we're parsing. By convention, this token is used to populate the `token` property of the associated `Node` object. If the tag has an expression (anything after the tag's name), it will immediately follow the `TOKEN_TAG` in the stream as a [`TOKEN_EXPRESSION`](../api/namespaces/tokens.md#token_expression). In the example bellow we use [`TokenStream.expect()`](../api/interfaces/tokens.TokenStream.md#expect) to confirm that an expression was provided.
+The current token in the stream will always be of the type [`TOKEN_TAG`](../api/namespaces/tokens/variables/TOKEN_TAG.md), representing the start of the tag we're parsing. By convention, this token is used to populate the `token` property of the associated `Node` object. If the tag has an expression (anything after the tag's name), it will immediately follow the `TOKEN_TAG` in the stream as a [`TOKEN_EXPRESSION`](../api/namespaces/tokens/variables/TOKEN_EXPRESSION). In the example bellow we use [`TokenStream.expect()`](../api/namespaces/tokens/interfaces/TokenStream.md#expect) to confirm that an expression was provided.
 
 We use [`parseBlock()`](../api/interfaces/Parser.md#parseblock) from the active environment to parse our `with` tag's block, which could contain any number of other tags and output statements. Every block tag is expected to leave the stream with it's "end" tag as the current token.
 

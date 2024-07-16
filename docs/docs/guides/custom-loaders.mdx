@@ -5,7 +5,7 @@ import TabItem from "@theme/TabItem";
 
 [Template loaders](../introduction/loading-templates.md#built-in-template-loaders) are responsible for finding a template's source text given a name or identifier. You might want to write a custom template loader to read templates from a database, narrow the template search space for a specific user, or add extra context data to a template, for example.
 
-Write a custom template loader by extending the [`Loader`](../api/classes/Loader.md) base class and implementing its [`getSource()`](../api/classes/Loader.md#getsource) and [`getSourceSync()`](../api/classes/Loader.md#getsourcesync) methods. Then configure an [`Environment`](../api/classes/Environment.md) to use your loader with the [`loader`](../api/modules.md#environmentoptions) option.
+Write a custom template loader by extending the [`Loader`](../api/classes/Loader.md) base class and implementing its [`getSource()`](../api/classes/Loader.md#getsource) and [`getSourceSync()`](../api/classes/Loader.md#getsourcesync) methods. Then configure an [`Environment`](../api/classes/Environment.md) to use your loader with the [`loader`](../api/type-aliases/EnvironmentOptions.md#loader) option.
 
 ## Example Map Loader
 

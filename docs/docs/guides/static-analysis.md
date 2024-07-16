@@ -6,7 +6,7 @@ Use the [`analyze()`](../api/classes/Template.md#analyze) or [`analyzeSync()`](.
 
 ## All Template Variables
 
-The [`TemplateAnalysis`](../api/modules.md#templateanalysis) object returned from [`Template.analyze()`](../api/classes/Template.md#analyze) includes a `variables` property, mapping template variable names to arrays of locations where those names occur. Each location is an object with a `templateName` and `lineNumber` property.
+The [`TemplateAnalysis`](../api/type-aliases/TemplateAnalysis.md) object returned from [`Template.analyze()`](../api/classes/Template.md#analyze) includes a `variables` property, mapping template variable names to arrays of locations where those names occur. Each location is an object with a `templateName` and `lineNumber` property.
 
 ```javascript
 import { Template } from "liquidscript";
@@ -39,7 +39,7 @@ for (const [name, locations] of Object.entries(analysis.variables)) {
 
 ## Global Template Variables
 
-The `globalVariables` property of a [`TemplateAnalysis`](../api/modules.md#templateanalysis) object is similar to `variables`, but only includes those variables that are not in scope from previous `assign`, `capture`, `increment` or `decrement` tags, or added to a block's scope by a block tag.
+The `globalVariables` property of a [`TemplateAnalysis`](../api/type-aliases/TemplateAnalysis.md) object is similar to `variables`, but only includes those variables that are not in scope from previous `assign`, `capture`, `increment` or `decrement` tags, or added to a block's scope by a block tag.
 
 ```javascript
 import { Template } from "liquidscript";
@@ -88,7 +88,7 @@ for (const [name, locations] of Object.entries(analysis.globalVariables)) {
 
 ## Local Template Variables
 
-The `localVariables` property of a [`TemplateAnalysis`](../api/modules.md#templateanalysis) object is, again, a mapping of template variable names to their locations. Each entry is the location of an `assign`, `capture`, `increment`, or `decrement` tag (or any custom tag that introduces names into the template local namespace) that initializes or updates the variable.
+The `localVariables` property of a [`TemplateAnalysis`](../api/type-aliases/TemplateAnalysis.md) object is, again, a mapping of template variable names to their locations. Each entry is the location of an `assign`, `capture`, `increment`, or `decrement` tag (or any custom tag that introduces names into the template local namespace) that initializes or updates the variable.
 
 ```javascript
 import { Template } from "liquidscript";
@@ -117,7 +117,7 @@ for (const [name, locations] of Object.entries(analysis.localVariables)) {
 
 **_New in version 1.8.0_**
 
-The `filters` property of [`TemplateAnalysis`](../api/modules.md#templateanalysis) is an object mapping filter names to their locations.
+The `filters` property of [`TemplateAnalysis`](../api/type-aliases/TemplateAnalysis.md) is an object mapping filter names to their locations.
 
 
 ```javascript
@@ -150,7 +150,7 @@ for (const [filterName, locations] of Object.entries(analysis.filters)) {
 
 **_New in version 1.8.0_**
 
-The `tags` property of [`TemplateAnalysis`](../api/modules.md#templateanalysis) is an object mapping tag names to their locations. Note that, for block tags, we only report the locations of the opening tag, and `{% raw %}` tags will never be included.
+The `tags` property of [`TemplateAnalysis`](../api/type-aliases/TemplateAnalysis.md) is an object mapping tag names to their locations. Note that, for block tags, we only report the locations of the opening tag, and `{% raw %}` tags will never be included.
 
 
 ```javascript
@@ -295,6 +295,6 @@ console.log(analysis.failedVisits);
 { ExampleNode: [ { templateName: 'layout', lineNumber: 1 } ] }
 ```
 
-[`Node.children()`](../api/interfaces/Node.md#children) should return an array of [`ChildNode`](../api/modules.md#childnode) objects. Each `ChildNode` includes a child [`Expression`](../api/interfaces/Expression.md) and/or [`Node`](../api/interfaces/Node.md), plus any names the tag adds to the template local scope or subsequent block scope. Please see [src/builtin/tags](https://github.com/jg-rp/liquidscript/tree/main/src/builtin/tags) for examples.
+[`Node.children()`](../api/interfaces/Node.md#children) should return an array of [`ChildNode`](../api/type-aliases/ChildNode.md) objects. Each `ChildNode` includes a child [`Expression`](../api/interfaces/Expression.md) and/or [`Node`](../api/interfaces/Node.md), plus any names the tag adds to the template local scope or subsequent block scope. Please see [src/builtin/tags](https://github.com/jg-rp/liquidscript/tree/main/src/builtin/tags) for examples.
 
 [`Expression.children()`](../api/interfaces/Expression.md#children) is expected to return an array of child `Expression`s. For example, [`RangeLiteral.children()`](../api/classes/RangeLiteral.md#children) returns an array containing expressions for its `start` and `stop` properties. Please see [src/expression.ts](https://github.com/jg-rp/liquidscript/blob/main/src/expression.ts) for examples.
