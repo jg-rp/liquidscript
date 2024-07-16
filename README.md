@@ -1,6 +1,6 @@
 # LiquidScript
 
-A JavaScript and TypeScript engine for the Liquid template language.
+Liquid templates for JavaScript.
 
 [![npm version](https://img.shields.io/npm/v/liquidscript?style=flat-square)](https://www.npmjs.com/package/liquidscript)
 [![tests status](https://img.shields.io/github/actions/workflow/status/jg-rp/liquidscript/tests.yaml?branch=main&label=tests&style=flat-square)](https://github.com/jg-rp/liquidscript/actions/workflows/tests.yaml)
@@ -66,11 +66,10 @@ Some excellent JavaScript implementations of Liquid already exist. To meet some 
   - Built-in math filters must handle integers and floats appropriately. For example, the `divided_by` filter should perform integer division if both arguments are integers, and regular division otherwise.
   - Built-in math filters must do decimal arithmetic. See [Decimal.js dependency](#dependencies).
   - Built-in filters must reject excess or otherwise invalid arguments with an error.
-  -
 
 - It should be possible to extend LiquidScript (without forking) to include features commonly found in other template languages. Like template inheritance, expressions that use logical `not` and inline conditional statements, for example.
 
-- Construct and expose a syntax tree for every parsed template, facilitating template static analysis and performance optimizations.
+- Expose a syntax tree for every parsed template, facilitating template static analysis and performance optimizations.
 
 - Offer fine-grained control of template context globals. Pin globals to an environment, template or loader.
 
