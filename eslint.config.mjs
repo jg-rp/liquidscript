@@ -3,6 +3,7 @@ import pluginJs from "@eslint/js";
 import tseslint from "typescript-eslint";
 
 import sonarjs from "eslint-plugin-sonarjs";
+import eslintConfigPrettier from "eslint-config-prettier";
 
 export default [
   {
@@ -29,4 +30,5 @@ export default [
       "@typescript-eslint/no-unused-vars": ["warn", { varsIgnorePattern: "_" }],
     },
   },
+  eslintConfigPrettier,
 ];
