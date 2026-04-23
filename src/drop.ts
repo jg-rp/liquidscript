@@ -1,184 +1,74 @@
-import { RenderContext } from "./context";
+import type { RenderContext } from "./context";
+import { isObject } from "./type_guards";
 
 /**
- * A symbol that specifies a function valued property that is called to
- * convert an object to its corresponding Liquid value.
+ * Symbols that specify function valued properties defining a "Drop" - a
+ * user-defined extension type.
  */
-export const toLiquid = Symbol.for("liquid.drop.liquid");
-
-export interface Liquidable {
-  [toLiquid](context: RenderContext): Promise<unknown>;
-}
+export const toLiquid = Symbol.for("liquid.drop");
+export const toLiquidSync = Symbol.for("liquid.drop.sync");
 
 /**
- * A type predicate for the `Liquidable` interface.
- * @param value - A value that may or may not implement the `Liquidable` interface.
- * @returns `true` if the argument value implements the `Liquidable`
- * interface, `false` otherwise.
+ * Drop type coercion hints.
  */
-export function isLiquidable(value: unknown): value is Liquidable {
-  return (
-    isObject(value) &&
-    toLiquid in value &&
-    typeof Reflect.get(value, toLiquid) === "function"
-  );
+export type contextHint = "data" | "numeric" | "string" | "boolean";
+
+/**
+ * An object with `[toLiquid]` and `[toLiquidSync]` properties is a "Drop".
+ */
+export interface Drop {
+  [toLiquid](hint: contextHint, context?: RenderContext): Promise<unknown>;
+  [toLiquidSync](hint: contextHint, context?: RenderContext): unknown;
 }
 
 /**
- * A symbol that specifies a function valued property that is called to
- * convert an object to its corresponding Liquid value.
+ * A type guard for the basic Drop interface. Drops may implement additional
+ * protocols for interaction with equality operators, ordering operators and
+ * variable/path resolution.
  */
-export const toLiquidSync = Symbol.for("liquid.drop.liquidSync");
-
-export interface LiquidableSync {
-  [toLiquidSync](context: RenderContext): unknown;
+export function isDrop(obj: unknown): obj is Drop {
+  return isObject(obj) && toLiquid in obj && toLiquidSync in obj;
 }
 
 /**
- * A type predicate for the `LiquidableSync` interface.
- * @param value - A value that may or may not implement the `LiquidableSync`
- * interface.
- * @returns `true` if the argument value implements the `LiquidableSync`
- * interface, `false` otherwise.
+ * A symbol specifying a function valued property. Liquid calls `[isInvocable]`
+ * to test method names against a set of whitelist. Only when `[isInvocable]`
+ * returns `true` can a drop method be called.
  */
-export function isLiquidableSync(value: unknown): value is LiquidableSync {
-  return (
-    isObject(value) &&
-    toLiquidSync in value &&
-    typeof Reflect.get(value, toLiquid) === "function"
-  );
+export const isInvocable = Symbol.for("liquid.drop.invocable");
+
+/**
+ * A Drop interface for whitelisting methods.
+ */
+export interface InvocableDrop {
+  [isInvocable](name: string): boolean;
 }
 
 /**
- * A symbol that specifies a function valued property that is called to
- * convert an object to its corresponding Liquid primitive value.
+ * A type predicate for the `InvocableDrop` interface.
  */
-export const toLiquidPrimitive = Symbol.for("liquid.drop.primitive");
-
-export interface LiquidPrimitive {
-  [toLiquidPrimitive](hint?: string): unknown;
+export function isInvocableDrop(obj: unknown): obj is InvocableDrop {
+  return isObject(obj) && isInvocable in obj;
 }
 
 /**
- * A type predicate for the `LiquidPrimitive` interface.
- * @param value - A value that may or may not implement the `LiquidPrimitive` interface.
- * @returns `true` if the argument value implements the `LiquidPrimitive`
- * interface, `false` otherwise.
+ * Symbols that specify function valued properties used as a catch-all for
+ * missing drop methods.
  */
-export function isLiquidPrimitive(value: unknown): value is LiquidPrimitive {
-  return (
-    isObject(value) &&
-    toLiquidPrimitive in value &&
-    typeof Reflect.get(value, toLiquidPrimitive) === "function"
-  );
+export const dispatch = Symbol.for("liquid.drop.dispatch");
+export const dispatchSync = Symbol.for("liquid.drop.dispatch.sync");
+
+/**
+ * A Drop interface for catching and handling unknown property names.
+ */
+export interface DispatchingDrop {
+  [dispatch](name: string, context: RenderContext): Promise<unknown>;
+  [dispatchSync](name: string, context: RenderContext): unknown;
 }
 
 /**
- * A symbol that specifies a function valued property that is called to
- * convert an object to its Liquid specific string representation.
+ * A type predicate for the `DispatchingDrop` interface.
  */
-export const toLiquidString = Symbol.for("liquid.drop.string");
-
-export interface LiquidStringable {
-  [toLiquidString](): string;
-}
-
-/**
- * A type predicate for the `LiquidStringable` interface.
- * @param value - A value that may or may not implement the `LiquidStringable` interface.
- * @returns `true` if the argument value implements the `LiquidStringable`
- * interface, `false` otherwise.
- */
-export function isLiquidStringable(value: unknown): value is LiquidStringable {
-  return (
-    isObject(value) &&
-    toLiquidString in value &&
-    typeof Reflect.get(value, toLiquidString) === "function"
-  );
-}
-
-/**
- * A symbol that specifies a function valued property that is called to
- * convert an object to an HTML-safe string representation.
- */
-export const toLiquidHtml = Symbol.for("liquid.drop.html");
-
-export interface LiquidHTMLable {
-  [toLiquidHtml](): string;
-}
-
-/**
- * A type predicate for the `LiquidHTMLable` interface.
- * @param value - A value that may or may not implement the `LiquidHTMLable` interface.
- * @returns `true` if the argument value implements the `LiquidHTMLable`
- * interface, `false` otherwise.
- */
-export function isLiquidHTMLable(value: unknown): value is LiquidHTMLable {
-  return (
-    isObject(value) &&
-    toLiquidHtml in value &&
-    typeof Reflect.get(value, toLiquidHtml) === "function"
-  );
-}
-
-/**
- * A symbol that specifies a function valued property that is called to
- * test a method name against a set of whitelisted methods that Liquid
- * can call.
- */
-export const isLiquidCallable = Symbol.for("liquid.drop.callable");
-
-export interface LiquidCallable {
-  [isLiquidCallable](name: PropertyKey): boolean;
-}
-
-/**
- * A type predicate for the `LiquidCallable` interface.
- * @param value - A value that may or may not implement the `LiquidCallable` interface.
- * @returns `true` if the argument value implements the `LiquidCallable` interface,
- * `false` otherwise.
- */
-export function hasLiquidCallable(value: unknown): value is LiquidCallable {
-  return isObject(value) && isLiquidCallable in value;
-}
-
-/**
- * A symbol that specifies a function valued property that is called in
- * the event that a property is missing from an object.
- */
-export const liquidDispatch = Symbol.for("liquid.drop.dispatch");
-
-export interface LiquidDispatchable {
-  [liquidDispatch](name: PropertyKey): Promise<unknown>;
-}
-
-/**
- * A type predicate for the `LiquidDispatchable` interface.
- * @param value - A value that may or may not implement the `LiquidDispatchable` interface.
- * @returns `true` if the argument value implements the `LiquidDispatchable` interface,
- * `false` otherwise.
- */
-export function isLiquidDispatchable(
-  value: unknown,
-): value is LiquidDispatchable {
-  return isObject(value) && liquidDispatch in value;
-}
-
-export const liquidDispatchSync = Symbol.for("liquid.drop.dispatchSync");
-
-export interface LiquidDispatchableSync {
-  [liquidDispatchSync](name: PropertyKey): unknown;
-}
-
-export function isLiquidDispatchableSync(
-  value: unknown,
-): value is LiquidDispatchableSync {
-  return isObject(value) && liquidDispatchSync in value;
-}
-
-function isObject(value: unknown): value is object {
-  const _type = typeof value;
-  return (value !== null && _type === "object") || _type === "function"
-    ? true
-    : false;
+export function isDispatchingDrop(obj: unknown): obj is DispatchingDrop {
+  return isObject(obj) && dispatch in obj && dispatchSync in obj;
 }
