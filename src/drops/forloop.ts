@@ -1,7 +1,7 @@
 import type { RenderContext } from "../context";
 import { Nothing } from "../runtime";
 import {
-  type contextHint,
+  type ContextHint,
   type Drop,
   type InvocableDrop,
   isInvocable,
@@ -38,7 +38,7 @@ export class ForLoopDrop implements Drop, InvocableDrop {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  [toLiquidSync](hint: contextHint, context?: RenderContext): unknown {
+  [toLiquidSync](hint: ContextHint, context?: RenderContext): unknown {
     switch (hint) {
       case "string":
       case "data":
@@ -53,7 +53,7 @@ export class ForLoopDrop implements Drop, InvocableDrop {
   }
 
   async [toLiquid](
-    hint: contextHint,
+    hint: ContextHint,
     context?: RenderContext,
   ): Promise<unknown> {
     return this[toLiquidSync](hint, context);

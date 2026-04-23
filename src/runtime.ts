@@ -1,3 +1,13 @@
+import type { RenderContext } from "./context";
+import {
+  equals,
+  toLiquid,
+  toLiquidSync,
+  type ContextHint,
+  type Drop,
+  type EqualityDrop,
+} from "./drop";
+
 /**
  * The special value `Nothing` indicates the absence of a value. It is
  * deliberately distinct from `null` or `undefined` (a property can exist
@@ -26,7 +36,7 @@ export function range(...args: number[]): Range {
   return new Range(start, stop);
 }
 
-export class Range implements Iterable<number> {
+export class Range implements Iterable<number>, Drop, EqualityDrop {
   readonly length: number;
   readonly start: number;
   readonly stop: number;
@@ -42,7 +52,7 @@ export class Range implements Iterable<number> {
     for (let i = this.start; i <= this.stop; i++) yield i;
   }
 
-  public equals(other: unknown): boolean {
+  public [equals](other: unknown): boolean {
     return (
       other instanceof Range &&
       this.start === other.start &&
@@ -52,5 +62,28 @@ export class Range implements Iterable<number> {
 
   public toString(): string {
     return `${this.start}..${this.stop}`;
+  }
+
+  public async [toLiquid](
+    hint: ContextHint,
+    context: RenderContext,
+  ): Promise<unknown> {
+    return this[toLiquidSync](hint, context);
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public [toLiquidSync](hint: ContextHint, context: RenderContext): unknown {
+    switch (hint) {
+      case "string":
+        return this.toString();
+      case "data":
+        return Array.from({ length: this.length }, (_, i) => this.start + i);
+      case "boolean":
+        return this.length > 0;
+      case "numeric":
+        return Nothing;
+      default:
+        return Nothing;
+    }
   }
 }

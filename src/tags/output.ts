@@ -12,11 +12,15 @@ export class OutputStatement implements Markup {
   ) {}
 
   async render(context: RenderContext, buffer: OutputBuffer): Promise<void> {
-    buffer.push(context.env.serialize(await this.expression.evaluate(context)));
+    buffer.push(
+      context.env.serialize(await this.expression.evaluate(context), context),
+    );
   }
 
   renderSync(context: RenderContext, buffer: OutputBuffer): void {
-    buffer.push(context.env.serialize(this.expression.evaluateSync(context)));
+    buffer.push(
+      context.env.serialize(this.expression.evaluateSync(context), context),
+    );
   }
 
   expressions(): Expression[] {

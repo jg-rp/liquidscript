@@ -119,14 +119,16 @@ export class OrExpression implements Expression {
 
   async evaluate(context: RenderContext): Promise<unknown> {
     const left = await this.left.evaluate(context);
-    return context.env.isTruthy(left)
+    return context.env.isTruthy(left, context)
       ? left
       : await this.right.evaluate(context);
   }
 
   evaluateSync(context: RenderContext): unknown {
     const left = this.left.evaluateSync(context);
-    return context.env.isTruthy(left) ? left : this.right.evaluateSync(context);
+    return context.env.isTruthy(left, context)
+      ? left
+      : this.right.evaluateSync(context);
   }
 
   children(context: StaticContext): Traversable[] {
@@ -147,14 +149,16 @@ export class AndExpression implements Expression {
 
   async evaluate(context: RenderContext): Promise<unknown> {
     const left = await this.left.evaluate(context);
-    return context.env.isTruthy(left)
+    return context.env.isTruthy(left, context)
       ? await this.right.evaluate(context)
       : left;
   }
 
   evaluateSync(context: RenderContext): unknown {
     const left = this.left.evaluateSync(context);
-    return context.env.isTruthy(left) ? this.right.evaluateSync(context) : left;
+    return context.env.isTruthy(left, context)
+      ? this.right.evaluateSync(context)
+      : left;
   }
 
   children(context: StaticContext): Traversable[] {
@@ -177,6 +181,7 @@ export class EqExpression implements Expression {
     return context.env.isEqual(
       await this.left.evaluate(context),
       await this.right.evaluate(context),
+      context,
     );
   }
 
@@ -184,6 +189,7 @@ export class EqExpression implements Expression {
     return context.env.isEqual(
       this.left.evaluateSync(context),
       this.right.evaluateSync(context),
+      context,
     );
   }
 
@@ -207,6 +213,7 @@ export class NeExpression implements Expression {
     return !context.env.isEqual(
       await this.left.evaluate(context),
       await this.right.evaluate(context),
+      context,
     );
   }
 
@@ -214,6 +221,7 @@ export class NeExpression implements Expression {
     return !context.env.isEqual(
       this.left.evaluateSync(context),
       this.right.evaluateSync(context),
+      context,
     );
   }
 
@@ -237,6 +245,7 @@ export class LtExpression implements Expression {
     return context.env.isLessThan(
       await this.left.evaluate(context),
       await this.right.evaluate(context),
+      context,
     );
   }
 
@@ -244,6 +253,7 @@ export class LtExpression implements Expression {
     return context.env.isLessThan(
       this.left.evaluateSync(context),
       this.right.evaluateSync(context),
+      context,
     );
   }
 
@@ -267,7 +277,8 @@ export class LeExpression implements Expression {
     const left = await this.left.evaluate(context);
     const right = await this.right.evaluate(context);
     return (
-      context.env.isLessThan(left, right) || context.env.isEqual(left, right)
+      context.env.isLessThan(left, right, context) ||
+      context.env.isEqual(left, right, context)
     );
   }
 
@@ -275,7 +286,8 @@ export class LeExpression implements Expression {
     const left = this.left.evaluateSync(context);
     const right = this.right.evaluateSync(context);
     return (
-      context.env.isLessThan(left, right) || context.env.isEqual(left, right)
+      context.env.isLessThan(left, right, context) ||
+      context.env.isEqual(left, right, context)
     );
   }
 
@@ -299,6 +311,7 @@ export class GtExpression implements Expression {
     return context.env.isLessThan(
       await this.right.evaluate(context),
       await this.left.evaluate(context),
+      context,
     );
   }
 
@@ -306,6 +319,7 @@ export class GtExpression implements Expression {
     return context.env.isLessThan(
       this.right.evaluateSync(context),
       this.left.evaluateSync(context),
+      context,
     );
   }
 
@@ -329,7 +343,8 @@ export class GeExpression implements Expression {
     const left = await this.left.evaluate(context);
     const right = await this.right.evaluate(context);
     return (
-      context.env.isLessThan(right, left) || context.env.isEqual(left, right)
+      context.env.isLessThan(right, left, context) ||
+      context.env.isEqual(left, right, context)
     );
   }
 
@@ -337,7 +352,8 @@ export class GeExpression implements Expression {
     const left = this.left.evaluateSync(context);
     const right = this.right.evaluateSync(context);
     return (
-      context.env.isLessThan(right, left) || context.env.isEqual(left, right)
+      context.env.isLessThan(right, left, context) ||
+      context.env.isEqual(left, right, context)
     );
   }
 
@@ -361,6 +377,7 @@ export class ContainsExpression implements Expression {
     return context.env.contains(
       await this.left.evaluate(context),
       await this.right.evaluate(context),
+      context,
     );
   }
 
@@ -368,6 +385,7 @@ export class ContainsExpression implements Expression {
     return context.env.contains(
       this.left.evaluateSync(context),
       this.right.evaluateSync(context),
+      context,
     );
   }
 

@@ -11,14 +11,14 @@ export const toLiquidSync = Symbol.for("liquid.drop.sync");
 /**
  * Drop type coercion hints.
  */
-export type contextHint = "data" | "numeric" | "string" | "boolean";
+export type ContextHint = "data" | "numeric" | "string" | "boolean";
 
 /**
  * An object with `[toLiquid]` and `[toLiquidSync]` properties is a "Drop".
  */
 export interface Drop {
-  [toLiquid](hint: contextHint, context?: RenderContext): Promise<unknown>;
-  [toLiquidSync](hint: contextHint, context?: RenderContext): unknown;
+  [toLiquid](hint: ContextHint, context: RenderContext): Promise<unknown>;
+  [toLiquidSync](hint: ContextHint, context: RenderContext): unknown;
 }
 
 /**
@@ -71,4 +71,22 @@ export interface DispatchingDrop {
  */
 export function isDispatchingDrop(obj: unknown): obj is DispatchingDrop {
   return isObject(obj) && dispatch in obj && dispatchSync in obj;
+}
+
+/**
+ * A symbol specifying a function valued property. Liquid calls `[equals]`
+ * on object that implement the equality Drop protocol when comparing
+ * objects for equality.
+ */
+export const equals = Symbol.for("liquid.drop.equals");
+
+export interface EqualityDrop {
+  [equals](obj: unknown, context: RenderContext): boolean;
+}
+
+/**
+ * A type guard for the `isEqualityDrop` interface.
+ */
+export function isEqualityDrop(obj: unknown): obj is EqualityDrop {
+  return isObject(obj) && equals in obj;
 }

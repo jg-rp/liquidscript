@@ -40,7 +40,9 @@ export class ConditionalBlock {
     context: RenderContext,
     buffer: OutputBuffer,
   ): Promise<boolean> {
-    if (context.env.isTruthy(await this.expression.evaluate(context))) {
+    if (
+      context.env.isTruthy(await this.expression.evaluate(context), context)
+    ) {
       for (const node of this.nodes) {
         if (isString(node)) {
           buffer.push(node);
@@ -54,7 +56,7 @@ export class ConditionalBlock {
   }
 
   public renderSync(context: RenderContext, buffer: OutputBuffer): boolean {
-    if (context.env.isTruthy(this.expression.evaluateSync(context))) {
+    if (context.env.isTruthy(this.expression.evaluateSync(context), context)) {
       for (const node of this.nodes) {
         if (isString(node)) {
           buffer.push(node);

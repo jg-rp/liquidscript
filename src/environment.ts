@@ -3,8 +3,9 @@ import { LegacyLexer } from "./legacy_lexer";
 import { LegacyParser } from "./legacy_parser";
 import type { Block, Tag } from "./markup";
 import { isNothing } from "./runtime";
-import { isDrop, toLiquid, toLiquidSync } from "./drop";
+import { equals, isDrop, isEqualityDrop, toLiquid, toLiquidSync } from "./drop";
 import * as tags from "./tags";
+import * as filters from "./filters";
 import { Template } from "./template";
 import type { Token } from "./token";
 import {
@@ -16,6 +17,7 @@ import {
   isPropertyKey,
   isString,
 } from "./type_guards";
+import type { RenderContext } from "./context";
 
 interface _Parser {
   parse(env: Environment, source: string, startIndex?: number): Block;
@@ -69,13 +71,15 @@ export class Environment {
     this.tags["raw"] = tags.RawTag;
   }
 
-  public setupFilters(): void {}
+  public setupFilters(): void {
+    this.filters["split"] = filters.split;
+  }
 
-  public serialize(obj: unknown): string {
+  public serialize(obj: unknown, context: RenderContext): string {
     if (isArray(obj)) {
-      return obj.map((item) => this.toString(item)).join("");
+      return obj.map((item) => this.toString(item, context)).join("");
     }
-    return this.toString(obj);
+    return this.toString(obj, context);
   }
 
   public trim(value: string, left?: string, right?: string): string {
@@ -94,9 +98,9 @@ export class Environment {
     return value;
   }
 
-  public isTruthy(obj: unknown): boolean {
+  public isTruthy(obj: unknown, context: RenderContext): boolean {
     if (isDrop(obj)) {
-      obj = obj[toLiquid]("boolean");
+      obj = obj[toLiquid]("boolean", context);
     }
 
     if (this.falsyUndefined && isNothing(obj)) {
@@ -106,11 +110,14 @@ export class Environment {
     return !(obj === false || obj === null || obj === undefined);
   }
 
-  public isEqual(left: unknown, right: unknown): boolean {
+  public isEqual(
+    left: unknown,
+    right: unknown,
+    context: RenderContext,
+  ): boolean {
     if (isDrop(right)) [left, right] = [right, left];
-    if (isDrop(left)) {
-      // TODO: drop equality
-      throw new Error("not implemented");
+    if (isEqualityDrop(left)) {
+      return left[equals](right, context);
     }
 
     if (
@@ -131,7 +138,12 @@ export class Environment {
     return left === right;
   }
 
-  public isLessThan(left: unknown, right: unknown): boolean {
+  public isLessThan(
+    left: unknown,
+    right: unknown,
+    context: RenderContext,
+  ): boolean {
+    // TODO: OrderedDrop protocol
     if (isString(left) && isString(right)) {
       return left < right;
     }
@@ -148,7 +160,12 @@ export class Environment {
     return false;
   }
 
-  public contains(left: unknown, right: unknown): boolean {
+  public contains(
+    left: unknown,
+    right: unknown,
+    context: RenderContext,
+  ): boolean {
+    // TODO: MembershipDrop
     if (isString(left)) {
       return left.indexOf(String(right)) !== -1;
     }
@@ -179,8 +196,8 @@ export class Environment {
     return Math.trunc(this.toNumber(obj));
   }
 
-  public toString(obj: unknown): string {
-    if (isDrop(obj)) return obj[toLiquidSync]("string") as string;
+  public toString(obj: unknown, context: RenderContext): string {
+    if (isDrop(obj)) return obj[toLiquidSync]("string", context) as string;
     if (isArray(obj) || isObject(obj)) return JSON.stringify(obj);
     return String(obj);
   }
