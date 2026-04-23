@@ -1,6 +1,6 @@
 import { render, renderSync } from "./src";
 
-const source = `{% for x in y %}{{ x }}, {% endfor %}`;
+const source = `"{% if nosuchthing %}bar{% else %}foo{% endif %}"`;
 
 const data = { y: [1, 2, 3] };
 

@@ -91,6 +91,15 @@ export abstract class Parser {
   public eat(kind: TokenKind, message: string | undefined = undefined): Token {
     const token = this.tokens[this.pos] || this.eoi;
     if (token.kind !== kind) {
+      // console.log(
+      //   "!!",
+      //   this.tokens.slice(this.pos).map((token) => {
+      //     return {
+      //       kind: REVERSE_T[token.kind],
+      //       value: getTokenValue(token, this.source),
+      //     };
+      //   }),
+      // );
       throw new TemplateSyntaxError(
         message || `unexpected ${REVERSE_T[token.kind]}`,
         token,

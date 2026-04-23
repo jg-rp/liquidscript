@@ -46,6 +46,7 @@ const INFIX_OPERATORS: Map<TokenKind, InfixConstructor> = new Map([
   [T.NE, expr.NeExpression],
   [T.LE, expr.LeExpression],
   [T.GE, expr.GeExpression],
+  [T.CONTAINS, expr.ContainsExpression],
 ]);
 
 const TERMINATE_FILTER: Set<TokenKind> = new Set([
@@ -83,6 +84,7 @@ export class LegacyParser extends Parser {
       [T.TRUE, this.parseTrueLiteral.bind(this)],
       [T.FALSE, this.parseFalseLiteral.bind(this)],
       [T.NULL, this.parseNullLiteral.bind(this)],
+      [T.NIL, this.parseNullLiteral.bind(this)],
       [T.INT, this.parseIntLiteral.bind(this)],
       [T.FLOAT, this.parseFloatLiteral.bind(this)],
     ]);
@@ -322,7 +324,12 @@ export class LegacyParser extends Parser {
 
   protected parseStringLiteral(): expr.StringLiteral {
     const token = this.next();
-    return new expr.StringLiteral(token, getTokenValue(token, this.source));
+    const result = new expr.StringLiteral(
+      token,
+      getTokenValue(this.next(), this.source),
+    );
+    this.eat(token.kind);
+    return result;
   }
 
   protected parsePath(): expr.Variable {

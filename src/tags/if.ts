@@ -55,6 +55,7 @@ export class IfTag implements Markup {
   static parseElsif(parser: Parser): ConditionalBlock {
     parser.eat(T.TAG_START);
     parser.skipWhitespaceControl();
+    parser.eat(T.TAG_NAME);
     parser.expectExpression();
     const expression = parser.parseExpression();
     parser.carryWhitespaceControl();

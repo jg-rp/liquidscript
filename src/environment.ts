@@ -34,7 +34,7 @@ export class Environment {
 
   public persistentRegisters: Set<string> = new Set();
   public strictFilters = true;
-  public falsyUndefined = false;
+  public falsyUndefined = true;
 
   constructor() {
     this.tags = {};
@@ -127,7 +127,7 @@ export class Environment {
     }
 
     // TODO: number equality?
-    // TODO: range equality?
+    // TODO: range equality? Make range a drop?
     return left === right;
   }
 
