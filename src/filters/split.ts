@@ -5,8 +5,8 @@ export function split(
   left: unknown,
   sep: unknown,
 ): string[] {
-  const _left = this.context.env.toString(left, this.context);
-  const _sep = this.context.env.toString(sep, this.context);
+  const _left = this.context.env.toString(left, this.context, this.span);
+  const _sep = this.context.env.toString(sep, this.context, this.span);
   if (!_left || _left === _sep) return [];
   return _left.split(_sep);
 }

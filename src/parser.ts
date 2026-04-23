@@ -103,6 +103,7 @@ export abstract class Parser {
       throw new TemplateSyntaxError(
         message || `unexpected ${REVERSE_T[token.kind]}`,
         token,
+        this.source,
       );
     }
     this.pos += 1;
@@ -116,7 +117,11 @@ export abstract class Parser {
   public eatOneOf(kinds: Set<TokenKind>): Token {
     const token = this.next();
     if (!kinds.has(token.kind)) {
-      throw new TemplateSyntaxError(`unexpected ${token.kind}`, token);
+      throw new TemplateSyntaxError(
+        `unexpected ${token.kind}`,
+        token,
+        this.source,
+      );
     }
     return token;
   }
@@ -130,7 +135,31 @@ export abstract class Parser {
       throw new TemplateSyntaxError(
         `unexpected tag ${REVERSE_T[token.kind]}`,
         token,
+        this.source,
       );
+    }
+
+    this.carryWhitespaceControl();
+    this.eat(T.TAG_END, `expected tag ${name}`);
+    return token;
+  }
+
+  public eatTag(name: string): Token {
+    this.eat(T.TAG_START, `expected tag ${name}`);
+    if (this.kind() === T.WC) this.pos += 1;
+    const token = this.eat(T.TAG_NAME, `expected tag ${name}`);
+
+    if (getTokenValue(token, this.source) !== name) {
+      throw new TemplateSyntaxError(
+        `unexpected tag ${REVERSE_T[token.kind]}`,
+        token,
+        this.source,
+      );
+    }
+
+    // Ignore everything between the tag name and the closing tag delimiter.
+    while (!TERMINATE_EXPRESSION.has(this.kind())) {
+      this.pos += 1;
     }
 
     this.carryWhitespaceControl();
@@ -143,7 +172,7 @@ export abstract class Parser {
     if (token.kind === T.WC) token = this.peek();
 
     if (token.kind !== T.TAG_NAME) {
-      throw new TemplateSyntaxError("missing tag name", token);
+      throw new TemplateSyntaxError("missing tag name", token, this.source);
     }
 
     return getTokenValue(token, this.source);
@@ -182,9 +211,30 @@ export abstract class Parser {
     );
   }
 
+  public tags(names: Set<string>): string | undefined {
+    let token = this.peek();
+    if (token.kind === T.WC) {
+      token = this.peek(2);
+    }
+
+    if (token.kind !== T.TAG_NAME) {
+      return;
+    }
+
+    const name = getTokenValue(token, this.source);
+
+    if (names.has(name)) {
+      return name;
+    }
+  }
+
   public expectExpression(): void {
     if (TERMINATE_EXPRESSION.has(this.kind())) {
-      throw new TemplateSyntaxError("missing expression", this.current());
+      throw new TemplateSyntaxError(
+        "missing expression",
+        this.current(),
+        this.source,
+      );
     }
   }
 

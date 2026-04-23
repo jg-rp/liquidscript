@@ -47,6 +47,7 @@ export class ForTag implements Markup {
     const expr = parser.parseExpression();
 
     const [reversed, offset, limit] = this.unpackArgs(
+      parser,
       parser.parseArguments(false),
     );
 
@@ -83,6 +84,7 @@ export class ForTag implements Markup {
   }
 
   private static unpackArgs(
+    parser: Parser,
     args: Array<Expression | KeywordArgument>,
   ): [boolean, Expression | undefined, Expression | undefined] {
     let reversed: boolean = false;
@@ -99,6 +101,7 @@ export class ForTag implements Markup {
           throw new TemplateSyntaxError(
             `unknown argument '${arg.name.value}'`,
             arg.name.token,
+            parser.source,
           );
         }
       } else if (
@@ -109,7 +112,11 @@ export class ForTag implements Markup {
       ) {
         reversed = true;
       } else {
-        throw new TemplateSyntaxError("unexpected argument", arg.token);
+        throw new TemplateSyntaxError(
+          "unexpected argument",
+          arg.token,
+          parser.source,
+        );
       }
     }
 
@@ -135,7 +142,11 @@ export class ForTag implements Markup {
       throw new Error("not implemented");
     }
 
-    this.renderForArraySync(context.env.toArray(target), context, buffer);
+    this.renderForArraySync(
+      context.env.toArray(target, context, this.expression.span),
+      context,
+      buffer,
+    );
   }
 
   private async renderForArray(
@@ -149,7 +160,7 @@ export class ForTag implements Markup {
     const limit = this.limit ? await this.limit.evaluate(context) : undefined;
 
     const array = this.slice(
-      context.env.toArray(target),
+      context.env.toArray(target, context, this.expression.span),
       offset,
       limit,
       context,
@@ -209,7 +220,7 @@ export class ForTag implements Markup {
     const limit = this.limit ? this.limit.evaluateSync(context) : undefined;
 
     const array = this.slice(
-      context.env.toArray(target),
+      context.env.toArray(target, context, this.expression.span),
       offset,
       limit,
       context,
@@ -279,12 +290,20 @@ export class ForTag implements Markup {
     if (offset === "continue") {
       normalizedOffset = offsets.get(offsetKey) as number;
     } else if (offset !== undefined) {
-      normalizedOffset = context.env.toInteger(offset);
+      normalizedOffset = context.env.toInteger(
+        offset,
+        context,
+        this.expression.span,
+      );
     }
 
     let normalizedLimit = length;
     if (limit !== undefined) {
-      normalizedLimit = context.env.toInteger(limit);
+      normalizedLimit = context.env.toInteger(
+        limit,
+        context,
+        this.expression.span,
+      );
     }
 
     const result = target.slice(normalizedOffset, normalizedLimit);

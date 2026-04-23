@@ -13,13 +13,21 @@ export class OutputStatement implements Markup {
 
   async render(context: RenderContext, buffer: OutputBuffer): Promise<void> {
     buffer.push(
-      context.env.serialize(await this.expression.evaluate(context), context),
+      context.env.serialize(
+        await this.expression.evaluate(context),
+        context,
+        this.expression.span,
+      ),
     );
   }
 
   renderSync(context: RenderContext, buffer: OutputBuffer): void {
     buffer.push(
-      context.env.serialize(this.expression.evaluateSync(context), context),
+      context.env.serialize(
+        this.expression.evaluateSync(context),
+        context,
+        this.expression.span,
+      ),
     );
   }
 

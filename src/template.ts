@@ -7,6 +7,7 @@ import { isString } from "./type_guards";
 export class Template {
   constructor(
     readonly env: Environment,
+    readonly source: string,
     readonly nodes: Block,
   ) {}
 

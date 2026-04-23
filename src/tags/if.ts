@@ -6,6 +6,7 @@ import { T, type Token } from "../token";
 import { isString } from "../type_guards";
 
 const END_IF_BLOCK = new Set(["else", "elsif", "endif"]);
+const IF_BLOCKS = new Set(["else", "elsif"]);
 
 export class IfTag implements Markup {
   constructor(
@@ -23,18 +24,24 @@ export class IfTag implements Markup {
     const block = parser.parseBlock(END_IF_BLOCK);
     blocks.push(new ConditionalBlock(expression, block));
 
-    while (parser.tag("elsif")) {
-      blocks.push(this.parseElsif(parser));
-    }
+    for (;;) {
+      const tagName = parser.tags(IF_BLOCKS);
 
-    if (parser.tag("else")) {
-      const elseToken = parser.eatEmptyTag("else");
-      blocks.push(
-        new ConditionalBlock(
-          new BooleanLiteral(elseToken, true),
-          parser.parseBlock(END_IF_BLOCK),
-        ),
-      );
+      if (tagName === "elsif") {
+        blocks.push(this.parseElsif(parser));
+      } else if (tagName === "else") {
+        // Any remaining `else` or `elsif` blocks are guaranteed to be ignored,
+        // but we keep them in the AST anyway.
+        const nameToken = parser.eatTag("else");
+        blocks.push(
+          new ConditionalBlock(
+            new BooleanLiteral(nameToken, true),
+            parser.parseBlock(END_IF_BLOCK),
+          ),
+        );
+      } else {
+        break;
+      }
     }
 
     parser.eatEmptyTag("endif");

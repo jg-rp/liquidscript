@@ -18,6 +18,7 @@ import {
   isString,
 } from "./type_guards";
 import type { RenderContext } from "./context";
+import { TemplateTypeError } from "./errors";
 
 interface _Parser {
   parse(env: Environment, source: string, startIndex?: number): Block;
@@ -46,7 +47,7 @@ export class Environment {
   }
 
   public parse(source: string): Template {
-    return new Template(this, this.parser.parse(this, source, 0));
+    return new Template(this, source, this.parser.parse(this, source, 0));
   }
 
   public async render(
@@ -75,11 +76,11 @@ export class Environment {
     this.filters["split"] = filters.split;
   }
 
-  public serialize(obj: unknown, context: RenderContext): string {
+  public serialize(obj: unknown, context: RenderContext, token: Token): string {
     if (isArray(obj)) {
-      return obj.map((item) => this.toString(item, context)).join("");
+      return obj.map((item) => this.toString(item, context, token)).join("");
     }
-    return this.toString(obj, context);
+    return this.toString(obj, context, token);
   }
 
   public trim(value: string, left?: string, right?: string): string {
@@ -114,6 +115,7 @@ export class Environment {
     left: unknown,
     right: unknown,
     context: RenderContext,
+    token: Token,
   ): boolean {
     if (isDrop(right)) [left, right] = [right, left];
     if (isEqualityDrop(left)) {
@@ -134,7 +136,6 @@ export class Environment {
     }
 
     // TODO: number equality?
-    // TODO: range equality? Make range a drop?
     return left === right;
   }
 
@@ -142,6 +143,7 @@ export class Environment {
     left: unknown,
     right: unknown,
     context: RenderContext,
+    token: Token,
   ): boolean {
     // TODO: OrderedDrop protocol
     if (isString(left) && isString(right)) {
@@ -156,14 +158,18 @@ export class Environment {
       return left < right;
     }
 
-    // TODO: error on not orderable?
-    return false;
+    throw new TemplateTypeError(
+      `${left} and ${right} are not comparable`,
+      token,
+      context.template.source,
+    );
   }
 
   public contains(
     left: unknown,
     right: unknown,
     context: RenderContext,
+    token: Token,
   ): boolean {
     // TODO: MembershipDrop
     if (isString(left)) {
@@ -171,7 +177,8 @@ export class Environment {
     }
 
     if (isArray(left)) {
-      return left.indexOf(right) !== -1;
+      // NOTE: In Shopify/liquid, falsy values always return false.
+      return left.indexOf(right) !== -1 && this.isTruthy(right, context);
     }
 
     if (isNothing(left)) {
@@ -182,34 +189,45 @@ export class Environment {
       return Object.propertyIsEnumerable.call(left, right);
     }
 
-    // TODO: error on not a container?
-    return false;
+    throw new TemplateTypeError(
+      `${left} is not a container`,
+      token,
+      context.template.source,
+    );
   }
 
-  public toNumber(obj: unknown): number {
+  public toNumber(obj: unknown, context: RenderContext, token: Token): number {
     const n = Number(obj);
     if (isNaN(n)) return 0;
     return n;
   }
 
-  public toInteger(obj: unknown): number {
-    return Math.trunc(this.toNumber(obj));
+  public toInteger(obj: unknown, context: RenderContext, token: Token): number {
+    return Math.trunc(this.toNumber(obj, context, token));
   }
 
-  public toString(obj: unknown, context: RenderContext): string {
+  public toString(obj: unknown, context: RenderContext, token: Token): string {
     if (isDrop(obj)) return obj[toLiquidSync]("string", context) as string;
     if (isArray(obj) || isObject(obj)) return JSON.stringify(obj);
     return String(obj);
   }
 
-  public toArray(obj: unknown): unknown[] {
+  public toArray(
+    obj: unknown,
+    context: RenderContext,
+    token: Token,
+  ): unknown[] {
     if (isArray(obj)) return obj; // TODO: flatten
     if (isString(obj)) return [obj];
     if (isIterable(obj)) return Array.from(obj);
     return [obj];
   }
 
-  public toIterable(obj: unknown): Iterable<unknown> {
+  public toIterable(
+    obj: unknown,
+    context: RenderContext,
+    token: Token,
+  ): Iterable<unknown> {
     // TODO:
     throw new Error("not implemented");
   }

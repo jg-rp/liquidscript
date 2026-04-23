@@ -2,7 +2,7 @@
 import { StaticContext, type RenderContext } from "./context";
 import { UnknownFilterError } from "./errors";
 import { Nothing, range } from "./runtime";
-import { T, type Token } from "./token";
+import { span, T, type Token } from "./token";
 
 export type PathSegment = Name | StringLiteral | IntegerLiteral | Variable;
 
@@ -18,6 +18,7 @@ export interface Expression {
   evaluate(context: RenderContext): Promise<unknown>;
   evaluateSync(context: RenderContext): unknown;
   children(context: StaticContext): Traversable[];
+  span: Token;
   token: Token;
 }
 
@@ -26,11 +27,15 @@ export interface Traversable {
 }
 
 export class FilteredExpression implements Expression {
+  readonly span: Token;
+
   constructor(
     readonly token: Token,
     readonly left: Expression,
     readonly filter: Filter,
-  ) {}
+  ) {
+    this.span = span(token, filter.span);
+  }
 
   async evaluate(context: RenderContext): Promise<unknown> {
     const func = context.env.filters[this.filter.name.value];
@@ -39,6 +44,7 @@ export class FilteredExpression implements Expression {
         throw new UnknownFilterError(
           `unknown filter ${this.filter.name.value}`,
           this.filter.token,
+          context.template.source,
         );
       }
 
@@ -49,7 +55,7 @@ export class FilteredExpression implements Expression {
 
     if (!this.filter.args.length) {
       // TODO: async filter
-      return func.call({ context, options: {} }, left);
+      return func.call({ context, span: this.span, options: {} }, left);
     }
 
     const args: unknown[] = [];
@@ -65,7 +71,11 @@ export class FilteredExpression implements Expression {
 
     // TODO: async filter
 
-    return func.call({ context, options: kwargs }, left, ...args);
+    return func.call(
+      { context, span: this.span, options: kwargs },
+      left,
+      ...args,
+    );
   }
 
   evaluateSync(context: RenderContext): unknown {
@@ -75,6 +85,7 @@ export class FilteredExpression implements Expression {
         throw new UnknownFilterError(
           `unknown filter ${this.filter.name.value}`,
           this.filter.token,
+          context.template.source,
         );
       }
 
@@ -84,7 +95,7 @@ export class FilteredExpression implements Expression {
     const left = this.left.evaluateSync(context);
 
     if (!this.filter.args.length) {
-      return func.call({ context, options: {} }, left);
+      return func.call({ context, span: this.span, options: {} }, left);
     }
 
     const args: unknown[] = [];
@@ -98,7 +109,11 @@ export class FilteredExpression implements Expression {
       }
     }
 
-    return func.call({ context, options: kwargs }, left, ...args);
+    return func.call(
+      { context, span: this.span, options: kwargs },
+      left,
+      ...args,
+    );
   }
 
   children(context: StaticContext): Traversable[] {
@@ -111,11 +126,15 @@ export class FilteredExpression implements Expression {
 }
 
 export class OrExpression implements Expression {
+  readonly span: Token;
+
   constructor(
     readonly token: Token,
     readonly left: Expression,
     readonly right: Expression,
-  ) {}
+  ) {
+    this.span = span(left.token, right.token);
+  }
 
   async evaluate(context: RenderContext): Promise<unknown> {
     const left = await this.left.evaluate(context);
@@ -141,11 +160,15 @@ export class OrExpression implements Expression {
 }
 
 export class AndExpression implements Expression {
+  readonly span: Token;
+
   constructor(
     readonly token: Token,
     readonly left: Expression,
     readonly right: Expression,
-  ) {}
+  ) {
+    this.span = span(left.token, right.token);
+  }
 
   async evaluate(context: RenderContext): Promise<unknown> {
     const left = await this.left.evaluate(context);
@@ -171,17 +194,22 @@ export class AndExpression implements Expression {
 }
 
 export class EqExpression implements Expression {
+  readonly span: Token;
+
   constructor(
     readonly token: Token,
     readonly left: Expression,
     readonly right: Expression,
-  ) {}
+  ) {
+    this.span = span(left.token, right.token);
+  }
 
   async evaluate(context: RenderContext): Promise<unknown> {
     return context.env.isEqual(
       await this.left.evaluate(context),
       await this.right.evaluate(context),
       context,
+      this.span,
     );
   }
 
@@ -190,6 +218,7 @@ export class EqExpression implements Expression {
       this.left.evaluateSync(context),
       this.right.evaluateSync(context),
       context,
+      this.span,
     );
   }
 
@@ -203,17 +232,22 @@ export class EqExpression implements Expression {
 }
 
 export class NeExpression implements Expression {
+  readonly span: Token;
+
   constructor(
     readonly token: Token,
     readonly left: Expression,
     readonly right: Expression,
-  ) {}
+  ) {
+    this.span = span(left.token, right.token);
+  }
 
   async evaluate(context: RenderContext): Promise<unknown> {
     return !context.env.isEqual(
       await this.left.evaluate(context),
       await this.right.evaluate(context),
       context,
+      this.span,
     );
   }
 
@@ -222,6 +256,7 @@ export class NeExpression implements Expression {
       this.left.evaluateSync(context),
       this.right.evaluateSync(context),
       context,
+      this.span,
     );
   }
 
@@ -235,17 +270,22 @@ export class NeExpression implements Expression {
 }
 
 export class LtExpression implements Expression {
+  readonly span: Token;
+
   constructor(
     readonly token: Token,
     readonly left: Expression,
     readonly right: Expression,
-  ) {}
+  ) {
+    this.span = span(left.token, right.token);
+  }
 
   async evaluate(context: RenderContext): Promise<unknown> {
     return context.env.isLessThan(
       await this.left.evaluate(context),
       await this.right.evaluate(context),
       context,
+      this.span,
     );
   }
 
@@ -254,6 +294,7 @@ export class LtExpression implements Expression {
       this.left.evaluateSync(context),
       this.right.evaluateSync(context),
       context,
+      this.span,
     );
   }
 
@@ -267,18 +308,22 @@ export class LtExpression implements Expression {
 }
 
 export class LeExpression implements Expression {
+  readonly span: Token;
+
   constructor(
     readonly token: Token,
     readonly left: Expression,
     readonly right: Expression,
-  ) {}
+  ) {
+    this.span = span(left.token, right.token);
+  }
 
   async evaluate(context: RenderContext): Promise<unknown> {
     const left = await this.left.evaluate(context);
     const right = await this.right.evaluate(context);
     return (
-      context.env.isLessThan(left, right, context) ||
-      context.env.isEqual(left, right, context)
+      context.env.isLessThan(left, right, context, this.span) ||
+      context.env.isEqual(left, right, context, this.span)
     );
   }
 
@@ -286,8 +331,8 @@ export class LeExpression implements Expression {
     const left = this.left.evaluateSync(context);
     const right = this.right.evaluateSync(context);
     return (
-      context.env.isLessThan(left, right, context) ||
-      context.env.isEqual(left, right, context)
+      context.env.isLessThan(left, right, context, this.span) ||
+      context.env.isEqual(left, right, context, this.span)
     );
   }
 
@@ -301,17 +346,22 @@ export class LeExpression implements Expression {
 }
 
 export class GtExpression implements Expression {
+  readonly span: Token;
+
   constructor(
     readonly token: Token,
     readonly left: Expression,
     readonly right: Expression,
-  ) {}
+  ) {
+    this.span = span(left.token, right.token);
+  }
 
   async evaluate(context: RenderContext): Promise<unknown> {
     return context.env.isLessThan(
       await this.right.evaluate(context),
       await this.left.evaluate(context),
       context,
+      this.span,
     );
   }
 
@@ -320,6 +370,7 @@ export class GtExpression implements Expression {
       this.right.evaluateSync(context),
       this.left.evaluateSync(context),
       context,
+      this.span,
     );
   }
 
@@ -333,18 +384,22 @@ export class GtExpression implements Expression {
 }
 
 export class GeExpression implements Expression {
+  readonly span: Token;
+
   constructor(
     readonly token: Token,
     readonly left: Expression,
     readonly right: Expression,
-  ) {}
+  ) {
+    this.span = span(left.token, right.token);
+  }
 
   async evaluate(context: RenderContext): Promise<unknown> {
     const left = await this.left.evaluate(context);
     const right = await this.right.evaluate(context);
     return (
-      context.env.isLessThan(right, left, context) ||
-      context.env.isEqual(left, right, context)
+      context.env.isLessThan(right, left, context, this.span) ||
+      context.env.isEqual(left, right, context, this.span)
     );
   }
 
@@ -352,8 +407,8 @@ export class GeExpression implements Expression {
     const left = this.left.evaluateSync(context);
     const right = this.right.evaluateSync(context);
     return (
-      context.env.isLessThan(right, left, context) ||
-      context.env.isEqual(left, right, context)
+      context.env.isLessThan(right, left, context, this.span) ||
+      context.env.isEqual(left, right, context, this.span)
     );
   }
 
@@ -367,17 +422,22 @@ export class GeExpression implements Expression {
 }
 
 export class ContainsExpression implements Expression {
+  readonly span: Token;
+
   constructor(
     readonly token: Token,
     readonly left: Expression,
     readonly right: Expression,
-  ) {}
+  ) {
+    this.span = span(left.token, right.token);
+  }
 
   async evaluate(context: RenderContext): Promise<unknown> {
     return context.env.contains(
       await this.left.evaluate(context),
       await this.right.evaluate(context),
       context,
+      this.span,
     );
   }
 
@@ -386,6 +446,7 @@ export class ContainsExpression implements Expression {
       this.left.evaluateSync(context),
       this.right.evaluateSync(context),
       context,
+      this.span,
     );
   }
 
@@ -399,11 +460,18 @@ export class ContainsExpression implements Expression {
 }
 
 export class Variable implements Expression {
+  readonly span: Token;
+
   constructor(
     readonly token: Token,
     readonly root: Name | StringLiteral,
     readonly segments: PathSegment[],
-  ) {}
+  ) {
+    this.span =
+      segments.length === 0
+        ? token
+        : span(token, (segments[segments.length - 1] as PathSegment).span);
+  }
 
   async evaluate(context: RenderContext): Promise<unknown> {
     const root = context.resolve(this.root.value);
@@ -448,10 +516,14 @@ export class Variable implements Expression {
 }
 
 export class StringLiteral implements Expression {
+  readonly span: Token;
+
   constructor(
     readonly token: Token,
     readonly value: string,
-  ) {}
+  ) {
+    this.span = token;
+  }
 
   async evaluate(context: RenderContext): Promise<unknown> {
     return this.value;
@@ -473,10 +545,14 @@ export class StringLiteral implements Expression {
 }
 
 export class IntegerLiteral implements Expression {
+  readonly span: Token;
+
   constructor(
     readonly token: Token,
     readonly value: number,
-  ) {}
+  ) {
+    this.span = token;
+  }
 
   async evaluate(context: RenderContext): Promise<unknown> {
     return this.value;
@@ -496,10 +572,14 @@ export class IntegerLiteral implements Expression {
 }
 
 export class FloatLiteral implements Expression {
+  readonly span: Token;
+
   constructor(
     readonly token: Token,
     readonly value: number,
-  ) {}
+  ) {
+    this.span = token;
+  }
 
   async evaluate(context: RenderContext): Promise<unknown> {
     return this.value;
@@ -519,10 +599,14 @@ export class FloatLiteral implements Expression {
 }
 
 export class BooleanLiteral implements Expression {
+  readonly span: Token;
+
   constructor(
     readonly token: Token,
     readonly value: boolean,
-  ) {}
+  ) {
+    this.span = token;
+  }
 
   async evaluate(context: RenderContext): Promise<unknown> {
     return this.value;
@@ -542,7 +626,11 @@ export class BooleanLiteral implements Expression {
 }
 
 export class NullLiteral implements Expression {
-  constructor(readonly token: Token) {}
+  readonly span: Token;
+
+  constructor(readonly token: Token) {
+    this.span = token;
+  }
 
   async evaluate(context: RenderContext): Promise<unknown> {
     return null;
@@ -562,21 +650,45 @@ export class NullLiteral implements Expression {
 }
 
 export class RangeLiteral implements Expression {
+  readonly span: Token;
+
   constructor(
     readonly token: Token,
     readonly start: Expression,
     readonly stop: Expression,
-  ) {}
+  ) {
+    this.span = span(start.token, stop.token);
+  }
 
   async evaluate(context: RenderContext): Promise<unknown> {
-    const start = context.env.toNumber(await this.start.evaluate(context));
-    const stop = context.env.toNumber(await this.stop.evaluate(context));
+    const start = context.env.toNumber(
+      await this.start.evaluate(context),
+      context,
+      this.span,
+    );
+
+    const stop = context.env.toNumber(
+      await this.stop.evaluate(context),
+      context,
+      this.span,
+    );
+
     return range(start, stop);
   }
 
   evaluateSync(context: RenderContext): unknown {
-    const start = context.env.toNumber(this.start.evaluateSync(context));
-    const stop = context.env.toNumber(this.stop.evaluateSync(context));
+    const start = context.env.toNumber(
+      this.start.evaluateSync(context),
+      context,
+      this.span,
+    );
+
+    const stop = context.env.toNumber(
+      this.stop.evaluateSync(context),
+      context,
+      this.span,
+    );
+
     return range(start, stop);
   }
 
@@ -590,11 +702,21 @@ export class RangeLiteral implements Expression {
 }
 
 export class Filter implements Traversable {
+  readonly span: Token;
+
   constructor(
     readonly token: Token,
     readonly name: Name,
     readonly args: Array<Expression | KeywordArgument>,
-  ) {}
+  ) {
+    this.span =
+      args.length === 0
+        ? token
+        : span(
+            token,
+            (args[args.length - 1] as Expression | KeywordArgument).token,
+          );
+  }
 
   children(context: StaticContext): Traversable[] {
     return this.args;
@@ -610,10 +732,14 @@ export class Filter implements Traversable {
 }
 
 export class Name {
+  readonly span: Token;
+
   constructor(
     readonly token: Token,
     readonly value: string,
-  ) {}
+  ) {
+    this.span = token;
+  }
 
   async evaluate(context: RenderContext): Promise<string> {
     return this.value;

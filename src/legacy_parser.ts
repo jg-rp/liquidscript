@@ -61,6 +61,13 @@ const TERMINATE_FILTER: Set<TokenKind> = new Set([
 
 const PATH_PUNCTUATION: Set<TokenKind> = new Set([T.DOT, T.LBRACKET]);
 
+const STRING_LITERAL_KINDS: Set<TokenKind> = new Set([
+  T.SINGLE_ESCAPED,
+  T.SINGLE_QUOTED,
+  T.DOUBLE_ESCAPED,
+  T.DOUBLE_QUOTED,
+]);
+
 /**
  * A single pass template parser that matches Shopify/liquid v5.12.0 strict
  * mode syntax and semantics.
@@ -123,6 +130,7 @@ export class LegacyParser extends Parser {
           throw new TemplateSyntaxError(
             `unexpected ${REVERSE_T[token.kind]}`,
             token,
+            this.source,
           );
       }
     }
@@ -135,6 +143,7 @@ export class LegacyParser extends Parser {
       throw new TemplateSyntaxError(
         `unexpected ${REVERSE_T[this.kind()]}`,
         this.current(),
+        this.source,
       );
     }
 
@@ -175,6 +184,7 @@ export class LegacyParser extends Parser {
       throw new TemplateSyntaxError(
         "expected an identifier, found a path",
         token,
+        this.source,
       );
     }
     return new expr.Name(token, getTokenValue(token, this.source));
@@ -194,6 +204,7 @@ export class LegacyParser extends Parser {
         throw new TemplateSyntaxError(
           "expected a string or identifier",
           this.current(),
+          this.source,
         );
     }
   }
@@ -254,6 +265,7 @@ export class LegacyParser extends Parser {
     throw new TemplateSyntaxError(
       `unexpected tag ${getTokenValue(token, this.source)}`,
       token,
+      this.source,
     );
   }
 
@@ -324,10 +336,18 @@ export class LegacyParser extends Parser {
 
   protected parseStringLiteral(): expr.StringLiteral {
     const token = this.next();
+
+    if (this.kind() === token.kind) {
+      // Empty string
+      this.eat(token.kind);
+      return new expr.StringLiteral(token, "");
+    }
+
     const result = new expr.StringLiteral(
       token,
-      getTokenValue(this.next(), this.source),
+      getTokenValue(this.eatOneOf(STRING_LITERAL_KINDS), this.source),
     );
+
     this.eat(token.kind);
     return result;
   }
@@ -391,11 +411,16 @@ export class LegacyParser extends Parser {
         segment = this.parseStringLiteral();
         break;
       case T.RBRACKET:
-        throw new TemplateSyntaxError("empty bracketed segment", token);
+        throw new TemplateSyntaxError(
+          "empty bracketed segment",
+          token,
+          this.source,
+        );
       default:
         throw new TemplateSyntaxError(
           "expected an integer, identifier or string",
           token,
+          this.source,
         );
     }
 

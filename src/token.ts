@@ -72,6 +72,7 @@ export const T = {
   EOI: 60,
   UNKNOWN: 61,
   HASH: 62,
+  SPAN: 63,
 } as const;
 
 export const REVERSE_T = Object.fromEntries(
@@ -80,4 +81,8 @@ export const REVERSE_T = Object.fromEntries(
 
 export function getTokenValue(token: Token, source: string): string {
   return source.slice(token.start, token.end);
+}
+
+export function span(start: Token, end: Token): Token {
+  return { kind: T.SPAN, start: start.start, end: end.end };
 }
