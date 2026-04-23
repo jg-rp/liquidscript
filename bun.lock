@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "js-awen",
+      "name": "liquidscript",
       "dependencies": {
         "decimal.js": "^10.6.0",
       },

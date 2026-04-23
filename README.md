@@ -1,4 +1,4 @@
-# js-awen
+# LiquidScript
 
 To install dependencies:
 
