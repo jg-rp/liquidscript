@@ -1,12 +1,13 @@
 import { render, renderSync } from "./src";
 
-const source = `{% if '2' > 1 %}true{% else %}false{% endif %}`;
+const source = `{% for i in (0..product.end_range) %}{{ i }} - {{ product.tags[i] }} {% endfor %}`;
 
 const data = {
   product: {
-    title: "foo",
+    tags: ["sports", "garden"],
+    end_range: 1,
   },
 };
 
-render(source, data).then(console.log);
-// console.log(renderSync(source, data));
+// render(source, data).then(console.log);
+console.log(renderSync(source, data));

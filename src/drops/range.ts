@@ -1,0 +1,130 @@
+import type { RenderContext } from "../context";
+import {
+  type ContextHint,
+  type Drop,
+  type EqualityDrop,
+  type SequenceDrop,
+} from "../drop";
+import { Nothing } from "../runtime";
+import * as drop from "../drop";
+
+export function range(stop: number): Range;
+export function range(start: number, stop: number): Range;
+export function range(...args: number[]): Range {
+  let start = 0;
+  let stop: number;
+
+  if (args.length === 2) {
+    start = args[0] as number;
+    stop = args[1] as number;
+  } else {
+    stop = args[0] as number;
+  }
+  return new Range(start, stop);
+}
+
+export class Range
+  implements Iterable<number>, Drop, EqualityDrop, SequenceDrop
+{
+  protected length: number;
+  readonly start: number;
+  readonly stop: number;
+  protected step: number = 1;
+
+  constructor(start: number, stop: number) {
+    this.start = Math.trunc(start);
+    this.stop = Math.trunc(stop);
+    this.length = this.stop <= this.start ? 0 : this.stop - this.start;
+  }
+
+  // Should we keep this?
+  public *[Symbol.iterator](): Iterator<number> {
+    // Ranges are inclusive of stop.
+    for (let i = this.start; i <= this.stop; i += this.step) yield i;
+  }
+
+  public [drop.equals](other: unknown): boolean {
+    return (
+      other instanceof Range &&
+      this.start === other.start &&
+      this.stop === other.stop
+    );
+  }
+
+  public toString(): string {
+    return `${this.start}..${this.stop}`;
+  }
+
+  public async [drop.toLiquid](
+    hint: ContextHint,
+    context: RenderContext,
+  ): Promise<unknown> {
+    return this[drop.toLiquidSync](hint, context);
+  }
+
+  public [drop.toLiquidSync](
+    hint: ContextHint,
+    context: RenderContext,
+  ): unknown {
+    switch (hint) {
+      case "string":
+        return this.toString();
+      case "data":
+        return Array.from({ length: this.length }, (_, i) => this.start + i);
+      case "boolean":
+        return this.length > 0;
+      case "numeric":
+        return Nothing;
+      default:
+        return Nothing;
+    }
+  }
+
+  public [drop.length]() {
+    return this.length;
+  }
+
+  public *[drop.iterate]() {
+    for (let i = this.start; i <= this.stop; i += this.step) {
+      yield i;
+    }
+  }
+
+  public [drop.slice](
+    offset?: number,
+    limit?: number,
+    reversed?: boolean,
+  ): Range {
+    if (this.length === 0) {
+      return EMPTY_RANGE;
+    }
+
+    if (offset === undefined && limit === undefined) {
+      return reversed ? new DescendingRange(this.stop, this.start) : this;
+    }
+
+    let start = this.start;
+    let stop = this.stop;
+
+    if (offset !== undefined) {
+      start += offset;
+    }
+
+    if (limit !== undefined) {
+      stop = limit + start;
+    }
+
+    return reversed ? new DescendingRange(stop, start) : new Range(start, stop);
+  }
+}
+
+export const EMPTY_RANGE = new Range(0, 0);
+
+class DescendingRange extends Range {
+  protected override step: number = -1;
+
+  constructor(start: number, stop: number) {
+    super(start, stop);
+    this.length = Math.abs(this.start - this.stop);
+  }
+}

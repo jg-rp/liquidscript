@@ -71,6 +71,8 @@ export class Environment {
     this.tags["for"] = tags.ForTag;
     this.tags["if"] = tags.IfTag;
     this.tags["raw"] = tags.RawTag;
+    this.tags["continue"] = tags.ContinueTag;
+    this.tags["break"] = tags.BreakTag;
   }
 
   public setupFilters(): void {
@@ -221,7 +223,9 @@ export class Environment {
   ): unknown[] {
     if (isArray(obj)) return obj; // TODO: flatten
     if (isString(obj)) return [obj];
-    if (isIterable(obj)) return Array.from(obj);
+    if (isObject(obj)) {
+      return isIterable(obj) ? Array.from(obj) : Object.entries(obj);
+    }
     return [obj];
   }
 

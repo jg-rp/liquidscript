@@ -90,3 +90,18 @@ export interface EqualityDrop {
 export function isEqualityDrop(obj: unknown): obj is EqualityDrop {
   return isObject(obj) && equals in obj;
 }
+
+// TODO: async and sync?
+export const iterate = Symbol.for("liquid.drop.iterate");
+export const length = Symbol.for("liquid.drop.length");
+export const slice = Symbol.for("liquid.drop.slice");
+
+export interface SequenceDrop {
+  [iterate](): Iterable<unknown>;
+  [length](): number;
+  [slice](offset?: number, limit?: number, reversed?: boolean): SequenceDrop;
+}
+
+export function isSequenceDrop(obj: unknown): obj is SequenceDrop {
+  return isObject(obj) && iterate in obj && length in obj && slice in obj;
+}

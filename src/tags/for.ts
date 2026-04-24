@@ -15,11 +15,13 @@ import {
   type OutputBuffer,
 } from "../markup";
 import type { Parser } from "../parser";
-import { isDrop } from "../drop";
+import { isDrop, isSequenceDrop, type SequenceDrop } from "../drop";
 import { T, type Token } from "../token";
 import { isString } from "../type_guards";
 import { ForLoop } from "../drops";
 import { Nothing } from "../runtime";
+
+import * as drop from "../drop";
 
 const END_FOR_BLOCK = new Set(["else", "endfor"]);
 const FOR_STACK = Symbol.for("liquid.tags.for");
@@ -126,9 +128,8 @@ export class ForTag implements Markup {
   async render(context: RenderContext, buffer: OutputBuffer): Promise<void> {
     const target = await this.expression.evaluate(context);
 
-    if (isDrop(target)) {
-      // TODO: Only Drops can be lazy.
-      throw new Error("not implemented");
+    if (isDrop(target) && isSequenceDrop(target)) {
+      return await this.renderForIterable(target, context, buffer);
     }
 
     await this.renderForArray(target, context, buffer);
@@ -137,9 +138,8 @@ export class ForTag implements Markup {
   renderSync(context: RenderContext, buffer: OutputBuffer): void {
     const target = this.expression.evaluateSync(context);
 
-    if (isDrop(target)) {
-      // TODO: Only Drops can be lazy.
-      throw new Error("not implemented");
+    if (isDrop(target) && isSequenceDrop(target)) {
+      return this.renderForIterableSync(target, context, buffer);
     }
 
     this.renderForArraySync(
@@ -147,6 +147,112 @@ export class ForTag implements Markup {
       context,
       buffer,
     );
+  }
+
+  private async renderForIterable(
+    target: SequenceDrop,
+    context: RenderContext,
+    buffer: OutputBuffer,
+  ): Promise<void> {
+    const offset = this.offset
+      ? await this.offset.evaluate(context)
+      : undefined;
+
+    const limit = this.limit ? await this.limit.evaluate(context) : undefined;
+    const sequence = this.lazySlice(target, offset, limit, context);
+    const length = sequence[drop.length]();
+
+    if (!length) {
+      if (this._default) {
+        await renderBlock(this._default, context, buffer);
+      }
+      return;
+    }
+
+    const it = sequence[drop.iterate]();
+    const name = this.name.value;
+    const parents = context.forloops;
+
+    const forloop = new ForLoop(
+      name,
+      length,
+      parents[parents.length - 1] || Nothing,
+    );
+
+    // TODO raise for loop limit
+    const namespace: Namespace = { forloop };
+    let interrupt: symbol | undefined = undefined;
+
+    context.forloops.push(forloop);
+
+    try {
+      await context.extend(namespace, async () => {
+        for (const obj of it) {
+          namespace[name] = obj;
+          forloop.step();
+          await renderBlock(this.block, context, buffer);
+
+          interrupt = context.interrupts.pop();
+          if (interrupt === BREAK) break;
+          if (interrupt === CONTINUE) continue;
+          // TODO: push the interrupt back otherwise?
+        }
+      });
+    } finally {
+      context.forloops.pop();
+    }
+  }
+
+  private renderForIterableSync(
+    target: SequenceDrop,
+    context: RenderContext,
+    buffer: OutputBuffer,
+  ): void {
+    const offset = this.offset ? this.offset.evaluateSync(context) : undefined;
+
+    const limit = this.limit ? this.limit.evaluateSync(context) : undefined;
+    const sequence = this.lazySlice(target, offset, limit, context);
+    const length = sequence[drop.length]();
+
+    if (!length) {
+      if (this._default) {
+        renderBlockSync(this._default, context, buffer);
+      }
+      return;
+    }
+
+    const it = sequence[drop.iterate]();
+    const name = this.name.value;
+    const parents = context.forloops;
+
+    const forloop = new ForLoop(
+      name,
+      length,
+      parents[parents.length - 1] || Nothing,
+    );
+
+    // TODO raise for loop limit
+    const namespace: Namespace = { forloop };
+    let interrupt: symbol | undefined = undefined;
+
+    context.forloops.push(forloop);
+
+    try {
+      context.extendSync(namespace, () => {
+        for (const obj of it) {
+          namespace[name] = obj;
+          forloop.step();
+          renderBlockSync(this.block, context, buffer);
+
+          interrupt = context.interrupts.pop();
+          if (interrupt === BREAK) break;
+          if (interrupt === CONTINUE) continue;
+          // TODO: push the interrupt back otherwise?
+        }
+      });
+    } finally {
+      context.forloops.pop();
+    }
   }
 
   private async renderForArray(
@@ -157,6 +263,7 @@ export class ForTag implements Markup {
     const offset = this.offset
       ? await this.offset.evaluate(context)
       : undefined;
+
     const limit = this.limit ? await this.limit.evaluate(context) : undefined;
 
     const array = this.slice(
@@ -271,21 +378,20 @@ export class ForTag implements Markup {
     }
   }
 
-  private slice(
-    target: unknown[],
+  private normalizedOffsetAndLimit(
     offset: unknown,
     limit: unknown,
+    length: number,
     context: RenderContext,
-  ): unknown[] {
+  ): [number, number, Map<string, number>, string] {
     const offsets = (context.registers.get(FOR_STACK) || new Map()) as Map<
       string,
       number
     >;
+    let normalizedOffset = 0;
+    let normalizedLimit = length;
 
     const offsetKey = `${this.name.value}-${this.expression}`;
-    const length = target.length;
-
-    let normalizedOffset = 0;
 
     if (offset === "continue") {
       normalizedOffset = offsets.get(offsetKey) as number;
@@ -297,7 +403,6 @@ export class ForTag implements Markup {
       );
     }
 
-    let normalizedLimit = length;
     if (limit !== undefined) {
       normalizedLimit = context.env.toInteger(
         limit,
@@ -305,6 +410,18 @@ export class ForTag implements Markup {
         this.expression.span,
       );
     }
+
+    return [normalizedOffset, normalizedLimit, offsets, offsetKey];
+  }
+
+  private slice(
+    target: unknown[],
+    offset: unknown,
+    limit: unknown,
+    context: RenderContext,
+  ): unknown[] {
+    const [normalizedOffset, normalizedLimit, offsets, offsetKey] =
+      this.normalizedOffsetAndLimit(offset, limit, target.length, context);
 
     const result = target.slice(normalizedOffset, normalizedLimit);
     if (normalizedOffset) offsets.set(offsetKey, result.length);
@@ -340,6 +457,30 @@ export class ForTag implements Markup {
     }
 
     return result;
+  }
+
+  private lazySlice(
+    sequence: SequenceDrop,
+    offset: unknown,
+    limit: unknown,
+    context: RenderContext,
+  ): SequenceDrop {
+    const [normalizedOffset, normalizedLimit, offsets, offsetKey] =
+      this.normalizedOffsetAndLimit(
+        offset,
+        limit,
+        sequence[drop.length](),
+        context,
+      );
+
+    const it = sequence[drop.slice](
+      normalizedOffset,
+      normalizedLimit,
+      this.reversed,
+    );
+
+    if (offset) offsets.set(offsetKey, it[drop.length]());
+    return it;
   }
 
   blockScope(): Name[] {

@@ -356,8 +356,8 @@ export class LegacyParser extends Parser {
 
   protected parsePath(): expr.Variable {
     const token = this.current();
-
     let root: expr.Name | expr.StringLiteral;
+
     if (token.kind === T.IDENT) {
       this.pos += 1;
       root = new expr.Name(token, getTokenValue(token, this.source));
@@ -405,6 +405,7 @@ export class LegacyParser extends Parser {
         );
         break;
       case T.IDENT:
+        this.pos -= 1;
         segment = this.parsePath();
         break;
       case T.DOUBLE_QUOTE:

@@ -2,7 +2,8 @@
 import { StaticContext, type RenderContext } from "./context";
 import { BLANK, EMPTY } from "./drops";
 import { UnknownFilterError } from "./errors";
-import { Nothing, range } from "./runtime";
+import { Nothing } from "./runtime";
+import { range } from "./drops/range";
 import { span, T, type Token } from "./token";
 
 export type PathSegment = Name | StringLiteral | IntegerLiteral | Variable;
