@@ -26,6 +26,8 @@ const tokenMap: { [key: string]: (typeof T)[keyof typeof T] } = {
   or: T.OR,
   contains: T.CONTAINS,
   in: T.IN,
+  blank: T.BLANK,
+  empty: T.EMPTY,
   "[": T.LBRACKET,
   "]": T.RBRACKET,
   "|": T.PIPE,

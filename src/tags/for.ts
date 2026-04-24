@@ -18,7 +18,7 @@ import type { Parser } from "../parser";
 import { isDrop } from "../drop";
 import { T, type Token } from "../token";
 import { isString } from "../type_guards";
-import { ForLoopDrop } from "../drops/forloop";
+import { ForLoop } from "../drops";
 import { Nothing } from "../runtime";
 
 const END_FOR_BLOCK = new Set(["else", "endfor"]);
@@ -178,7 +178,7 @@ export class ForTag implements Markup {
     const name = this.name.value;
     const parents = context.forloops;
 
-    const forloop = new ForLoopDrop(
+    const forloop = new ForLoop(
       name,
       length,
       parents[parents.length - 1] || Nothing,
@@ -238,7 +238,7 @@ export class ForTag implements Markup {
     const name = this.name.value;
     const parents = context.forloops;
 
-    const forloop = new ForLoopDrop(
+    const forloop = new ForLoop(
       name,
       length,
       parents[parents.length - 1] || Nothing,

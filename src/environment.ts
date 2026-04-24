@@ -19,6 +19,7 @@ import {
 } from "./type_guards";
 import type { RenderContext } from "./context";
 import { TemplateTypeError } from "./errors";
+import { EMPTY } from "./drops";
 
 interface _Parser {
   parse(env: Environment, source: string, startIndex?: number): Block;
@@ -118,6 +119,7 @@ export class Environment {
     token: Token,
   ): boolean {
     if (isDrop(right)) [left, right] = [right, left];
+
     if (isEqualityDrop(left)) {
       return left[equals](right, context);
     }
@@ -159,7 +161,7 @@ export class Environment {
     }
 
     throw new TemplateTypeError(
-      `${left} and ${right} are not comparable`,
+      `${left.constructor.name} and ${right.constructor.name} are not comparable`,
       token,
       context.template.source,
     );

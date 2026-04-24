@@ -46,9 +46,7 @@ describe("golden liquid async", () => {
     "$name",
     async ({ template, templates, data, result, results, invalid }: Case) => {
       if (invalid) {
-        await expect(() => render(template, data)).rejects.toThrow(
-          TemplateError,
-        );
+        await expect(() => render(template, data)).toThrow(TemplateError);
       } else if (result) {
         // TODO: loader with templates
         await expect(render(template, data)).resolves.toStrictEqual(result);

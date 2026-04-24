@@ -9,7 +9,7 @@ import {
   toLiquidSync,
 } from "../drop";
 
-export class ForLoopDrop implements Drop, InvocableDrop {
+export class ForLoop implements Drop, InvocableDrop {
   private static _keys = new Set([
     "name",
     "length",
@@ -25,12 +25,12 @@ export class ForLoopDrop implements Drop, InvocableDrop {
   private _index: number = -1;
   private _name: string;
   private _length: number;
-  private _parentloop: ForLoopDrop | typeof Nothing;
+  private _parentloop: ForLoop | typeof Nothing;
 
   constructor(
     name: string,
     length: number,
-    parentloop: ForLoopDrop | typeof Nothing,
+    parentloop: ForLoop | typeof Nothing,
   ) {
     this._name = name;
     this._length = length;
@@ -60,7 +60,7 @@ export class ForLoopDrop implements Drop, InvocableDrop {
   }
 
   [isInvocable](name: string): boolean {
-    return ForLoopDrop._keys.has(name);
+    return ForLoop._keys.has(name);
   }
 
   public toString(): string {
@@ -79,7 +79,7 @@ export class ForLoopDrop implements Drop, InvocableDrop {
     return this._length;
   }
 
-  public parentloop(): ForLoopDrop | typeof Nothing {
+  public parentloop(): ForLoop | typeof Nothing {
     return this._parentloop;
   }
 

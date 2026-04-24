@@ -73,6 +73,8 @@ export const T = {
   UNKNOWN: 61,
   HASH: 62,
   SPAN: 63,
+  BLANK: 64,
+  EMPTY: 65,
 } as const;
 
 export const REVERSE_T = Object.fromEntries(

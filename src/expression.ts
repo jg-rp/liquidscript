@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { StaticContext, type RenderContext } from "./context";
+import { BLANK, EMPTY } from "./drops";
 import { UnknownFilterError } from "./errors";
 import { Nothing, range } from "./runtime";
 import { span, T, type Token } from "./token";
@@ -477,7 +478,9 @@ export class Variable implements Expression {
     const root = context.resolve(this.root.value);
     const [obj, index] = await context.resolvePath(
       root,
-      this.segments.map(async (s) => await s.evaluate(context)),
+      await Promise.all(
+        this.segments.map(async (s) => await s.evaluate(context)),
+      ),
     );
 
     // TODO: Nothing with index
@@ -646,6 +649,54 @@ export class NullLiteral implements Expression {
 
   toString(): string {
     return `null`;
+  }
+}
+
+export class Blank implements Expression {
+  readonly span: Token;
+
+  constructor(readonly token: Token) {
+    this.span = token;
+  }
+
+  async evaluate(context: RenderContext): Promise<unknown> {
+    return BLANK;
+  }
+
+  evaluateSync(context: RenderContext): unknown {
+    return BLANK;
+  }
+
+  children(context: StaticContext): Traversable[] {
+    return [];
+  }
+
+  toString(): string {
+    return "";
+  }
+}
+
+export class Empty implements Expression {
+  readonly span: Token;
+
+  constructor(readonly token: Token) {
+    this.span = token;
+  }
+
+  async evaluate(context: RenderContext): Promise<unknown> {
+    return EMPTY;
+  }
+
+  evaluateSync(context: RenderContext): unknown {
+    return EMPTY;
+  }
+
+  children(context: StaticContext): Traversable[] {
+    return [];
+  }
+
+  toString(): string {
+    return "";
   }
 }
 

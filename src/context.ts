@@ -3,7 +3,7 @@ import { Nothing } from "./runtime";
 import { isDrop, toLiquid } from "./drop";
 import type { Template } from "./template";
 import { isArray, isNumber, isObject, isPropertyKey } from "./type_guards";
-import type { ForLoopDrop } from "./drops/forloop";
+import type { ForLoop } from "./drops";
 
 export type Namespace = { [index: string]: unknown };
 
@@ -23,7 +23,7 @@ export class RenderContext {
 
   readonly env: Environment;
   readonly disabledTags: Set<string> | undefined;
-  readonly forloops: ForLoopDrop[] = [];
+  readonly forloops: ForLoop[] = [];
 
   /**
    * Namespaces supporting stateful tags. It's OK to use this map for storing

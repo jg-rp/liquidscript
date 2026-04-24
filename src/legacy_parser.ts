@@ -94,6 +94,8 @@ export class LegacyParser extends Parser {
       [T.NIL, this.parseNullLiteral.bind(this)],
       [T.INT, this.parseIntLiteral.bind(this)],
       [T.FLOAT, this.parseFloatLiteral.bind(this)],
+      [T.BLANK, this.parseBlank.bind(this)],
+      [T.EMPTY, this.parseEmpty.bind(this)],
     ]);
   }
 
@@ -447,6 +449,14 @@ export class LegacyParser extends Parser {
 
   protected parseNullLiteral(): Expression {
     return new expr.NullLiteral(this.next());
+  }
+
+  protected parseBlank(): Expression {
+    return new expr.Blank(this.next());
+  }
+
+  protected parseEmpty(): Expression {
+    return new expr.Empty(this.next());
   }
 
   protected parseIntLiteral(): Expression {
