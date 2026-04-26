@@ -31,7 +31,16 @@ export abstract class Drop {
   }
 
   [toLiquidSync](hint: ContextHint, context: RenderContext): unknown {
-    return null;
+    switch (hint) {
+      case "string":
+        return "";
+      case "boolean":
+        return false;
+      case "data":
+        return null;
+      case "numeric":
+        return 0;
+    }
   }
 
   [isInvocable](name: string): boolean {

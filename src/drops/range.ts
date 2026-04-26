@@ -31,7 +31,6 @@ export class Range extends Drop implements Iterable<number> {
     this.length = this.stop <= this.start ? 0 : this.stop - this.start;
   }
 
-  // Should we keep this?
   public override *[Symbol.iterator](): Iterator<number> {
     // Ranges are inclusive of stop.
     for (let i = this.start; i <= this.stop; i += this.step) yield i;

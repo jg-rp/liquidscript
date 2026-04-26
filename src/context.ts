@@ -1,9 +1,10 @@
 import type { Environment } from "./environment";
-import { Nothing } from "./runtime";
-import { isDrop } from "./drop";
+import { isNothing, Nothing } from "./runtime";
+import { Drop } from "./drop";
 import type { Template } from "./template";
 import {
   isArray,
+  isFunction,
   isNumber,
   isObject,
   isPropertyKey,
@@ -97,17 +98,40 @@ export class RenderContext {
     for (let segment of segments) {
       segmentIndex += 1;
 
-      if (isDrop(obj)) {
-        // TODO: Pass property values through.
-        // TODO: Call function valued properties only if they are whitelisted.
-        // TODO: Fall back to catch-all async dispatch protocol.
-        // TODO: Fall back to catch-all sync dispatch protocol.
-        throw new Error("not implemented");
-      }
+      if (obj instanceof Drop) {
+        if (segment instanceof Drop) {
+          segment = await segment[drop.toLiquid]("string", this);
+        }
 
-      if (isArray(obj)) {
-        if (isDrop(segment)) {
-          segment = segment[drop.toLiquid]("numeric", this);
+        if (
+          segment === "__proto__" ||
+          segment === "constructor" ||
+          !isString(segment)
+        ) {
+          return [Nothing, segmentIndex];
+        }
+
+        if (segment in obj) {
+          const prop = obj[segment as keyof typeof obj] as unknown;
+
+          if (isFunction(prop)) {
+            if (obj[drop.isInvocable](segment)) {
+              obj = await Reflect.apply(prop, obj, []);
+            } else {
+              return [Nothing, segmentIndex];
+            }
+          } else {
+            obj = prop;
+          }
+        } else {
+          obj = await obj[drop.dispatch](segment, this);
+          if (isNothing(obj)) {
+            return [Nothing, segmentIndex];
+          }
+        }
+      } else if (isArray(obj)) {
+        if (segment instanceof Drop) {
+          segment = await segment[drop.toLiquid]("numeric", this);
         }
 
         const normIndex = normalizeIndex(segment, obj.length);
@@ -121,8 +145,8 @@ export class RenderContext {
           return [Nothing, segmentIndex];
         }
       } else if (isObject(obj)) {
-        if (isDrop(segment)) {
-          segment = segment[drop.toLiquid]("data", this);
+        if (segment instanceof Drop) {
+          segment = await segment[drop.toLiquid]("data", this);
         }
 
         if (
@@ -154,27 +178,40 @@ export class RenderContext {
     for (let segment of segments) {
       segmentIndex += 1;
 
-      if (isDrop(obj)) {
-        if (isDrop(segment)) {
+      if (obj instanceof Drop) {
+        if (segment instanceof Drop) {
           segment = segment[drop.toLiquidSync]("string", this);
         }
 
         if (
-          isString(segment) &&
-          drop.isInvocableDrop(obj) &&
-          obj[drop.isInvocable](segment)
+          segment === "__proto__" ||
+          segment === "constructor" ||
+          !isString(segment)
         ) {
-          // TODO
+          return [Nothing, segmentIndex];
         }
-        // TODO: Pass property values through.
-        // TODO: Call function valued properties only if they are whitelisted.
-        // TODO: Fall back to catch-all async dispatch protocol.
-        throw new Error("not implemented");
-      }
 
-      if (isArray(obj)) {
-        if (isDrop(segment)) {
-          segment = segment[drop.toLiquid]("numeric", this);
+        if (segment in obj) {
+          const prop = obj[segment as keyof typeof obj] as unknown;
+
+          if (isFunction(prop)) {
+            if (obj[drop.isInvocable](segment)) {
+              obj = Reflect.apply(prop, obj, []);
+            } else {
+              return [Nothing, segmentIndex];
+            }
+          } else {
+            obj = prop;
+          }
+        } else {
+          obj = obj[drop.dispatchSync](segment, this);
+          if (isNothing(obj)) {
+            return [Nothing, segmentIndex];
+          }
+        }
+      } else if (isArray(obj)) {
+        if (segment instanceof Drop) {
+          segment = segment[drop.toLiquidSync]("numeric", this);
         }
 
         const normIndex = normalizeIndex(segment, obj.length);
@@ -188,8 +225,8 @@ export class RenderContext {
           return [Nothing, segmentIndex];
         }
       } else if (isObject(obj)) {
-        if (isDrop(segment)) {
-          segment = segment[drop.toLiquid]("data", this);
+        if (segment instanceof Drop) {
+          segment = segment[drop.toLiquidSync]("data", this);
         }
 
         if (

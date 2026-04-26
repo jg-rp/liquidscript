@@ -1,9 +1,10 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import type { Filter } from "./filter";
 import { LegacyLexer } from "./legacy_lexer";
 import { LegacyParser } from "./legacy_parser";
 import type { Block, Tag } from "./markup";
 import { isNothing } from "./runtime";
-import { equals, isDrop, isEqualityDrop, toLiquid, toLiquidSync } from "./drop";
+import { Drop, equals, toLiquid, toLiquidSync } from "./drop";
 import * as tags from "./tags";
 import * as filters from "./filters";
 import { Template } from "./template";
@@ -103,7 +104,7 @@ export class Environment {
   }
 
   public isTruthy(obj: unknown, context: RenderContext): boolean {
-    if (isDrop(obj)) {
+    if (obj instanceof Drop) {
       obj = obj[toLiquid]("boolean", context);
     }
 
@@ -120,12 +121,15 @@ export class Environment {
     context: RenderContext,
     token: Token,
   ): boolean {
-    if (isDrop(right)) [left, right] = [right, left];
-
-    if (isEqualityDrop(left)) {
+    if (left instanceof Drop) {
       return left[equals](right, context);
     }
 
+    if (right instanceof Drop) {
+      return right[equals](left, context);
+    }
+
+    // TODO: make `Nothing` a Drop?
     if (
       (isNothing(left) || left === null || left === undefined) &&
       (isNothing(right) || right === null || right === undefined)
@@ -163,7 +167,7 @@ export class Environment {
     }
 
     throw new TemplateTypeError(
-      `${left.constructor.name} and ${right.constructor.name} are not comparable`,
+      `${left && left.constructor.name} and ${right && right.constructor.name} are not comparable`,
       token,
       context.template.source,
     );
@@ -211,7 +215,8 @@ export class Environment {
   }
 
   public toString(obj: unknown, context: RenderContext, token: Token): string {
-    if (isDrop(obj)) return obj[toLiquidSync]("string", context) as string;
+    if (obj instanceof Drop)
+      return obj[toLiquidSync]("string", context) as string;
     if (isArray(obj) || isObject(obj)) return JSON.stringify(obj);
     return String(obj);
   }

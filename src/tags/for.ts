@@ -15,12 +15,11 @@ import {
   type OutputBuffer,
 } from "../markup";
 import type { Parser } from "../parser";
-import { isDrop, isSequenceDrop, type SequenceDrop } from "../drop";
 import { T, type Token } from "../token";
 import { isString } from "../type_guards";
 import { ForLoop } from "../drops";
 import { Nothing } from "../runtime";
-
+import { Drop } from "../drop";
 import * as drop from "../drop";
 
 const END_FOR_BLOCK = new Set(["else", "endfor"]);
@@ -128,7 +127,7 @@ export class ForTag implements Markup {
   async render(context: RenderContext, buffer: OutputBuffer): Promise<void> {
     const target = await this.expression.evaluate(context);
 
-    if (isDrop(target) && isSequenceDrop(target)) {
+    if (target instanceof Drop) {
       return await this.renderForIterable(target, context, buffer);
     }
 
@@ -138,7 +137,7 @@ export class ForTag implements Markup {
   renderSync(context: RenderContext, buffer: OutputBuffer): void {
     const target = this.expression.evaluateSync(context);
 
-    if (isDrop(target) && isSequenceDrop(target)) {
+    if (target instanceof Drop) {
       return this.renderForIterableSync(target, context, buffer);
     }
 
@@ -150,7 +149,7 @@ export class ForTag implements Markup {
   }
 
   private async renderForIterable(
-    target: SequenceDrop,
+    target: Drop,
     context: RenderContext,
     buffer: OutputBuffer,
   ): Promise<void> {
@@ -159,8 +158,9 @@ export class ForTag implements Markup {
       : undefined;
 
     const limit = this.limit ? await this.limit.evaluate(context) : undefined;
-    const sequence = this.lazySlice(target, offset, limit, context);
-    const length = sequence[drop.length]();
+    // TODO: async iterator?
+    const it = await this.lazySlice(target, offset, limit, context);
+    const length = it[drop.length]();
 
     if (!length) {
       if (this._default) {
@@ -169,7 +169,6 @@ export class ForTag implements Markup {
       return;
     }
 
-    const it = sequence[drop.iterate]();
     const name = this.name.value;
     const parents = context.forloops;
 
@@ -204,15 +203,15 @@ export class ForTag implements Markup {
   }
 
   private renderForIterableSync(
-    target: SequenceDrop,
+    target: Drop,
     context: RenderContext,
     buffer: OutputBuffer,
   ): void {
     const offset = this.offset ? this.offset.evaluateSync(context) : undefined;
 
     const limit = this.limit ? this.limit.evaluateSync(context) : undefined;
-    const sequence = this.lazySlice(target, offset, limit, context);
-    const length = sequence[drop.length]();
+    const it = this.lazySliceSync(target, offset, limit, context);
+    const length = it[drop.length]();
 
     if (!length) {
       if (this._default) {
@@ -221,7 +220,6 @@ export class ForTag implements Markup {
       return;
     }
 
-    const it = sequence[drop.iterate]();
     const name = this.name.value;
     const parents = context.forloops;
 
@@ -459,12 +457,12 @@ export class ForTag implements Markup {
     return result;
   }
 
-  private lazySlice(
-    sequence: SequenceDrop,
+  private lazySliceSync(
+    sequence: Drop,
     offset: unknown,
     limit: unknown,
     context: RenderContext,
-  ): SequenceDrop {
+  ): Drop {
     const [normalizedOffset, normalizedLimit, offsets, offsetKey] =
       this.normalizedOffsetAndLimit(
         offset,
@@ -473,7 +471,30 @@ export class ForTag implements Markup {
         context,
       );
 
-    const it = sequence[drop.slice](
+    const it = sequence[drop.sliceSync](
+      normalizedOffset,
+      normalizedLimit,
+      this.reversed,
+    );
+
+    if (offset) offsets.set(offsetKey, it[drop.length]());
+    return it;
+  }
+  private async lazySlice(
+    sequence: Drop,
+    offset: unknown,
+    limit: unknown,
+    context: RenderContext,
+  ): Promise<Drop> {
+    const [normalizedOffset, normalizedLimit, offsets, offsetKey] =
+      this.normalizedOffsetAndLimit(
+        offset,
+        limit,
+        sequence[drop.length](),
+        context,
+      );
+
+    const it = await sequence[drop.slice](
       normalizedOffset,
       normalizedLimit,
       this.reversed,

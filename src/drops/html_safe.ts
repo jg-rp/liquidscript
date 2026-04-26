@@ -1,12 +1,13 @@
-import type { RenderContext } from "./context";
-import { toLiquid, toLiquidSync, type ContextHint, type DropI } from "./drop";
-import { Nothing } from "./runtime";
-import { escape } from "./escape";
+import type { RenderContext } from "../context";
+import { Drop, toLiquid, toLiquidSync, type ContextHint } from "../drop";
+import { Nothing } from "../runtime";
+import { escape } from "../escape";
 
-export class HTMLSafeString implements DropI {
+export class HTMLSafeString extends Drop {
   #s: string;
 
   constructor(s: string) {
+    super();
     this.#s = s;
   }
 
@@ -23,15 +24,18 @@ export class HTMLSafeString implements DropI {
     return "HTMLSageString";
   }
 
-  public async [toLiquid](
+  public override async [toLiquid](
     hint: ContextHint,
     context: RenderContext,
   ): Promise<unknown> {
     return this[toLiquidSync](hint, context);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  public [toLiquidSync](hint: ContextHint, context: RenderContext): unknown {
+  public override [toLiquidSync](
+    hint: ContextHint,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    context: RenderContext,
+  ): unknown {
     switch (hint) {
       case "string":
       case "data":

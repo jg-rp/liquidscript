@@ -58,7 +58,6 @@ export function isPropertyKey(value: unknown): value is PropertyKey {
     : false;
 }
 
-
 /**
  * A type predicate for the Iterable interface.
  * @param value - Any value
@@ -66,4 +65,13 @@ export function isPropertyKey(value: unknown): value is PropertyKey {
  */
 export function isIterable(value: unknown): value is Iterable<unknown> {
   return isObject(value) ? Symbol.iterator in value : false;
+}
+
+/**
+ * A type predicate for Function.
+ * @param value - Any value
+ * @returns `true` if the value is a function.
+ */
+export function isFunction(value: unknown): value is CallableFunction {
+  return typeof value === "function";
 }
