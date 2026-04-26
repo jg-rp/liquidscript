@@ -1,9 +1,9 @@
 import type { RenderContext } from "./context";
-import { toLiquid, toLiquidSync, type ContextHint, type Drop } from "./drop";
+import { toLiquid, toLiquidSync, type ContextHint, type DropI } from "./drop";
 import { Nothing } from "./runtime";
 import { escape } from "./escape";
 
-export class HTMLSafeString implements Drop {
+export class HTMLSafeString implements DropI {
   #s: string;
 
   constructor(s: string) {

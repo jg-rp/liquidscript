@@ -1,10 +1,5 @@
 import type { RenderContext } from "../context";
-import {
-  type ContextHint,
-  type Drop,
-  type EqualityDrop,
-  type SequenceDrop,
-} from "../drop";
+import { type ContextHint, Drop } from "../drop";
 import { Nothing } from "../runtime";
 import * as drop from "../drop";
 
@@ -23,27 +18,26 @@ export function range(...args: number[]): Range {
   return new Range(start, stop);
 }
 
-export class Range
-  implements Iterable<number>, Drop, EqualityDrop, SequenceDrop
-{
+export class Range extends Drop implements Iterable<number> {
   protected length: number;
   readonly start: number;
   readonly stop: number;
   protected step: number = 1;
 
   constructor(start: number, stop: number) {
+    super();
     this.start = Math.trunc(start);
     this.stop = Math.trunc(stop);
     this.length = this.stop <= this.start ? 0 : this.stop - this.start;
   }
 
   // Should we keep this?
-  public *[Symbol.iterator](): Iterator<number> {
+  public override *[Symbol.iterator](): Iterator<number> {
     // Ranges are inclusive of stop.
     for (let i = this.start; i <= this.stop; i += this.step) yield i;
   }
 
-  public [drop.equals](other: unknown): boolean {
+  public override [drop.equals](other: unknown): boolean {
     return (
       other instanceof Range &&
       this.start === other.start &&
@@ -51,19 +45,20 @@ export class Range
     );
   }
 
-  public toString(): string {
+  public override toString(): string {
     return `${this.start}..${this.stop}`;
   }
 
-  public async [drop.toLiquid](
+  public override async [drop.toLiquid](
     hint: ContextHint,
     context: RenderContext,
   ): Promise<unknown> {
     return this[drop.toLiquidSync](hint, context);
   }
 
-  public [drop.toLiquidSync](
+  public override [drop.toLiquidSync](
     hint: ContextHint,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     context: RenderContext,
   ): unknown {
     switch (hint) {
@@ -80,17 +75,11 @@ export class Range
     }
   }
 
-  public [drop.length]() {
+  public override [drop.length]() {
     return this.length;
   }
 
-  public *[drop.iterate]() {
-    for (let i = this.start; i <= this.stop; i += this.step) {
-      yield i;
-    }
-  }
-
-  public [drop.slice](
+  public override [drop.sliceSync](
     offset?: number,
     limit?: number,
     reversed?: boolean,

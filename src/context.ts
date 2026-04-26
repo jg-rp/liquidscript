@@ -1,9 +1,16 @@
 import type { Environment } from "./environment";
 import { Nothing } from "./runtime";
-import { isDrop, toLiquid } from "./drop";
+import { isDrop } from "./drop";
 import type { Template } from "./template";
-import { isArray, isNumber, isObject, isPropertyKey } from "./type_guards";
+import {
+  isArray,
+  isNumber,
+  isObject,
+  isPropertyKey,
+  isString,
+} from "./type_guards";
 import type { ForLoop } from "./drops";
+import * as drop from "./drop";
 
 export type Namespace = { [index: string]: unknown };
 
@@ -100,7 +107,7 @@ export class RenderContext {
 
       if (isArray(obj)) {
         if (isDrop(segment)) {
-          segment = segment[toLiquid]("numeric", this);
+          segment = segment[drop.toLiquid]("numeric", this);
         }
 
         const normIndex = normalizeIndex(segment, obj.length);
@@ -115,7 +122,7 @@ export class RenderContext {
         }
       } else if (isObject(obj)) {
         if (isDrop(segment)) {
-          segment = segment[toLiquid]("data", this);
+          segment = segment[drop.toLiquid]("data", this);
         }
 
         if (
@@ -148,6 +155,17 @@ export class RenderContext {
       segmentIndex += 1;
 
       if (isDrop(obj)) {
+        if (isDrop(segment)) {
+          segment = segment[drop.toLiquidSync]("string", this);
+        }
+
+        if (
+          isString(segment) &&
+          drop.isInvocableDrop(obj) &&
+          obj[drop.isInvocable](segment)
+        ) {
+          // TODO
+        }
         // TODO: Pass property values through.
         // TODO: Call function valued properties only if they are whitelisted.
         // TODO: Fall back to catch-all async dispatch protocol.
@@ -156,7 +174,7 @@ export class RenderContext {
 
       if (isArray(obj)) {
         if (isDrop(segment)) {
-          segment = segment[toLiquid]("numeric", this);
+          segment = segment[drop.toLiquid]("numeric", this);
         }
 
         const normIndex = normalizeIndex(segment, obj.length);
@@ -171,7 +189,7 @@ export class RenderContext {
         }
       } else if (isObject(obj)) {
         if (isDrop(segment)) {
-          segment = segment[toLiquid]("data", this);
+          segment = segment[drop.toLiquid]("data", this);
         }
 
         if (

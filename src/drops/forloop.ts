@@ -2,14 +2,13 @@ import type { RenderContext } from "../context";
 import { Nothing } from "../runtime";
 import {
   type ContextHint,
-  type Drop,
-  type InvocableDrop,
+  Drop,
   isInvocable,
   toLiquid,
   toLiquidSync,
 } from "../drop";
 
-export class ForLoop implements Drop, InvocableDrop {
+export class ForLoop extends Drop {
   private static _keys = new Set([
     "name",
     "length",
@@ -32,13 +31,14 @@ export class ForLoop implements Drop, InvocableDrop {
     length: number,
     parentloop: ForLoop | typeof Nothing,
   ) {
+    super();
     this._name = name;
     this._length = length;
     this._parentloop = parentloop;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  [toLiquidSync](hint: ContextHint, context?: RenderContext): unknown {
+  override [toLiquidSync](hint: ContextHint, context?: RenderContext): unknown {
     switch (hint) {
       case "string":
       case "data":
@@ -52,18 +52,18 @@ export class ForLoop implements Drop, InvocableDrop {
     }
   }
 
-  async [toLiquid](
+  override async [toLiquid](
     hint: ContextHint,
     context?: RenderContext,
   ): Promise<unknown> {
     return this[toLiquidSync](hint, context);
   }
 
-  [isInvocable](name: string): boolean {
+  override [isInvocable](name: string): boolean {
     return ForLoop._keys.has(name);
   }
 
-  public toString(): string {
+  public override toString(): string {
     return "Liquid::ForLoopDrop";
   }
 
