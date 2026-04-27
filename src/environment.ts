@@ -3,7 +3,6 @@ import type { Filter } from "./filter";
 import { LegacyLexer } from "./legacy_lexer";
 import { LegacyParser } from "./legacy_parser";
 import type { Block, Tag } from "./markup";
-import { isNothing } from "./runtime";
 import { Drop, equals, toLiquid, toLiquidSync } from "./drop";
 import * as tags from "./tags";
 import * as filters from "./filters";
@@ -20,26 +19,30 @@ import {
 } from "./type_guards";
 import type { RenderContext } from "./context";
 import { TemplateTypeError } from "./errors";
-import { EMPTY } from "./drops";
+import { Undefined } from "./drops/undefined";
 
-interface _Parser {
+export interface _Parser {
   parse(env: Environment, source: string, startIndex?: number): Block;
 }
 
-interface _Lexer {
+export interface _Lexer {
   tokenize(env: Environment, source: string, startIndex?: number): Token[];
+}
+
+export interface _Undefined {
+  new (path: string, token: Token, source: string): Undefined;
 }
 
 export class Environment {
   public lexer: _Lexer = LegacyLexer;
   public parser: _Parser = LegacyParser;
+  public undefinedFactory: _Undefined = Undefined;
 
   public tags: { [key: string]: Tag };
   public filters: { [key: string]: Filter };
 
   public persistentRegisters: Set<string> = new Set();
   public strictFilters = true;
-  public falsyUndefined = true;
 
   constructor() {
     this.tags = {};
@@ -103,13 +106,10 @@ export class Environment {
     return value;
   }
 
+  // TODO: sync and async
   public isTruthy(obj: unknown, context: RenderContext): boolean {
     if (obj instanceof Drop) {
-      obj = obj[toLiquid]("boolean", context);
-    }
-
-    if (this.falsyUndefined && isNothing(obj)) {
-      return false;
+      obj = obj[toLiquidSync]("boolean", context);
     }
 
     return !(obj === false || obj === null || obj === undefined);
@@ -129,10 +129,9 @@ export class Environment {
       return right[equals](left, context);
     }
 
-    // TODO: make `Nothing` a Drop?
     if (
-      (isNothing(left) || left === null || left === undefined) &&
-      (isNothing(right) || right === null || right === undefined)
+      (left === null || left === undefined) &&
+      (right === null || right === undefined)
     ) {
       return true;
     }
@@ -180,6 +179,7 @@ export class Environment {
     token: Token,
   ): boolean {
     // TODO: MembershipDrop
+    // XXX
     if (isString(left)) {
       return left.indexOf(String(right)) !== -1;
     }
@@ -187,10 +187,6 @@ export class Environment {
     if (isArray(left)) {
       // NOTE: In Shopify/liquid, falsy values always return false.
       return left.indexOf(right) !== -1 && this.isTruthy(right, context);
-    }
-
-    if (isNothing(left)) {
-      return false;
     }
 
     if (isObject(left) && isPropertyKey(right)) {

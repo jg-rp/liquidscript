@@ -1,6 +1,8 @@
-import { render, renderSync } from "./src";
+import { Environment, render, renderSync } from "./src";
+import { StrictUndefined } from "./src/drops/undefined";
+import type { _Undefined } from "./src/environment";
 
-const source = `{% for i in (0..product.end_range) %}{{ i }} - {{ product.tags[i] }} {% endfor %}`;
+const source = `{% if nosuchthing %}bar{% else %}foo{% endif %}`;
 
 const data = {
   product: {
@@ -9,5 +11,11 @@ const data = {
   },
 };
 
+class MyEnv extends Environment {
+  // public override undefinedFactory: _Undefined = StrictUndefined;
+}
+
+const env = new MyEnv();
+
 // render(source, data).then(console.log);
-console.log(renderSync(source, data));
+console.log(env.renderSync(source, data));

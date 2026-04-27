@@ -51,3 +51,16 @@ export class TemplateTypeError extends TemplateError {
     // TODO: this.message = withErrorContext(message, token);
   }
 }
+
+export class UndefinedVariableError extends TemplateError {
+  constructor(
+    override readonly message: string,
+    override readonly token: Token,
+    override readonly source: string,
+  ) {
+    super(message, token, source);
+    Object.setPrototypeOf(this, new.target.prototype);
+    this.name = "UndefinedVariableError";
+    // TODO: this.message = withErrorContext(message, token);
+  }
+}

@@ -19,7 +19,7 @@ type Case = {
 // );
 
 const golden = JSON.parse(
-  readFileSync("tests/golden_liquid/tests/tags/for.json", {
+  readFileSync("tests/golden_liquid/tests/tags/if.json", {
     encoding: "utf8",
   }),
 );

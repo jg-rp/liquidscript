@@ -484,7 +484,14 @@ export class Variable implements Expression {
       ),
     );
 
-    // TODO: Nothing with index
+    if (obj === Nothing) {
+      return new context.env.undefinedFactory(
+        this.path(this.segments.slice(0, index + 1)),
+        this.span,
+        context.template.source,
+      );
+    }
+
     return obj;
   }
 
@@ -495,7 +502,14 @@ export class Variable implements Expression {
       this.segments.map((s) => s.evaluateSync(context)),
     );
 
-    // TODO: Nothing with index
+    if (obj === Nothing) {
+      return new context.env.undefinedFactory(
+        this.path(this.segments.slice(0, index + 1)),
+        this.span,
+        context.template.source,
+      );
+    }
+
     return obj;
   }
 
@@ -504,15 +518,19 @@ export class Variable implements Expression {
   }
 
   toString(): string {
+    return this.path(this.segments);
+  }
+
+  private path(segments: PathSegment[]): string {
     const root = this.root instanceof Name ? `${this.root}` : `[${this.root}]`;
 
-    if (this.segments.length) {
-      const segments = this.segments
+    if (segments.length) {
+      const _segments = segments
         .map((s) => {
           return s instanceof Name ? `.${s}` : `[${s}]`;
         })
         .join("");
-      return `${root}${segments}`;
+      return `${root}${_segments}`;
     }
 
     return `${root}`;
