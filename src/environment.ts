@@ -3,7 +3,14 @@ import type { Filter } from "./filter";
 import { LegacyLexer } from "./legacy_lexer";
 import { LegacyParser } from "./legacy_parser";
 import type { Block, Tag } from "./markup";
-import { Drop, equals, toLiquid, toLiquidSync } from "./drop";
+import {
+  containsSync,
+  Drop,
+  equals,
+  lessThanSync,
+  toLiquid,
+  toLiquidSync,
+} from "./drop";
 import * as tags from "./tags";
 import * as filters from "./filters";
 import { Template } from "./template";
@@ -81,6 +88,7 @@ export class Environment {
 
   public setupFilters(): void {
     this.filters["split"] = filters.split;
+    this.filters["upcase"] = filters.upcase;
   }
 
   public serialize(obj: unknown, context: RenderContext, token: Token): string {
@@ -152,7 +160,10 @@ export class Environment {
     context: RenderContext,
     token: Token,
   ): boolean {
-    // TODO: OrderedDrop protocol
+    if (left instanceof Drop) {
+      return left[lessThanSync](right, context);
+    }
+
     if (isString(left) && isString(right)) {
       return left < right;
     }
@@ -178,8 +189,15 @@ export class Environment {
     context: RenderContext,
     token: Token,
   ): boolean {
-    // TODO: MembershipDrop
-    // XXX
+    if (left instanceof Drop) {
+      return left[containsSync](right, context);
+    }
+
+    if (!(this.isTruthy(left, context) && this.isTruthy(right, context))) {
+      // See https://github.com/Shopify/liquid/blob/1954a2655cf4d427b6c9169354832638740f2db5/lib/liquid/condition.rb#L20
+      return false;
+    }
+
     if (isString(left)) {
       return left.indexOf(String(right)) !== -1;
     }

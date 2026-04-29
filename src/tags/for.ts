@@ -21,6 +21,7 @@ import { ForLoop } from "../drops";
 import { Nothing } from "../runtime";
 import { Drop } from "../drop";
 import * as drop from "../drop";
+import { Undefined } from "../drops/undefined";
 
 const END_FOR_BLOCK = new Set(["else", "endfor"]);
 const FOR_STACK = Symbol.for("liquid.tags.for");
@@ -173,7 +174,7 @@ export class ForTag implements Markup {
     const parents = context.forloops;
 
     const forloop = new ForLoop(
-      name,
+      `${name}-${this.expression}`,
       length,
       parents[parents.length - 1] || Nothing,
     );
@@ -224,7 +225,7 @@ export class ForTag implements Markup {
     const parents = context.forloops;
 
     const forloop = new ForLoop(
-      name,
+      `${name}-${this.expression}`,
       length,
       parents[parents.length - 1] || Nothing,
     );
@@ -284,7 +285,7 @@ export class ForTag implements Markup {
     const parents = context.forloops;
 
     const forloop = new ForLoop(
-      name,
+      `${name}-${this.expression}`,
       length,
       parents[parents.length - 1] || Nothing,
     );
@@ -344,7 +345,7 @@ export class ForTag implements Markup {
     const parents = context.forloops;
 
     const forloop = new ForLoop(
-      name,
+      `${name}-${this.expression}`,
       length,
       parents[parents.length - 1] || Nothing,
     );
@@ -382,16 +383,17 @@ export class ForTag implements Markup {
     length: number,
     context: RenderContext,
   ): [number, number, Map<string, number>, string] {
-    const offsets = (context.registers.get(FOR_STACK) || new Map()) as Map<
-      string,
-      number
-    >;
+    if (!context.registers.has(FOR_STACK)) {
+      context.registers.set(FOR_STACK, new Map());
+    }
+
+    const offsets = context.registers.get(FOR_STACK) as Map<string, number>;
     let normalizedOffset = 0;
     let normalizedLimit = length;
 
     const offsetKey = `${this.name.value}-${this.expression}`;
 
-    if (offset === "continue") {
+    if (offset instanceof Undefined && offset.path === "continue") {
       normalizedOffset = offsets.get(offsetKey) as number;
     } else if (offset !== undefined) {
       normalizedOffset = context.env.toInteger(
@@ -422,7 +424,8 @@ export class ForTag implements Markup {
       this.normalizedOffsetAndLimit(offset, limit, target.length, context);
 
     const result = target.slice(normalizedOffset, normalizedLimit);
-    if (normalizedOffset) offsets.set(offsetKey, result.length);
+
+    if (normalizedLimit) offsets.set(offsetKey, result.length);
     return this.reversed ? result.reverse() : result;
   }
 

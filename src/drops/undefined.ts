@@ -1,10 +1,12 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import type { RenderContext } from "../context";
 import {
+  containsSync,
   dispatchSync,
   Drop,
   equals,
   length,
+  lessThanSync,
   sliceSync,
   toLiquidSync,
   type ContextHint,
@@ -14,7 +16,7 @@ import type { Token } from "../token";
 
 export class Undefined extends Drop {
   constructor(
-    protected path: string,
+    readonly path: string,
     protected token: Token,
     protected source: string,
   ) {
@@ -104,6 +106,14 @@ export class StrictUndefined extends Undefined {
     limit?: number,
     reversed?: boolean,
   ): Drop {
+    this.error();
+  }
+
+  override [containsSync](obj: unknown, context: RenderContext): boolean {
+    this.error();
+  }
+
+  override [lessThanSync](obj: unknown, context: RenderContext): boolean {
     this.error();
   }
 

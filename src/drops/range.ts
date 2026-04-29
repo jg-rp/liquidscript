@@ -28,7 +28,7 @@ export class Range extends Drop implements Iterable<number> {
     super();
     this.start = Math.trunc(start);
     this.stop = Math.trunc(stop);
-    this.length = this.stop <= this.start ? 0 : this.stop - this.start;
+    this.length = this.stop < this.start ? 0 : this.stop - this.start + 1;
   }
 
   public override *[Symbol.iterator](): Iterator<number> {
@@ -99,7 +99,7 @@ export class Range extends Drop implements Iterable<number> {
     }
 
     if (limit !== undefined) {
-      stop = limit + start;
+      stop = limit + start - 1;
     }
 
     return reversed ? new DescendingRange(stop, start) : new Range(start, stop);

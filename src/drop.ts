@@ -22,6 +22,12 @@ export const lengthSync = Symbol.for("liquid.drop.length.sync");
 export const slice = Symbol.for("liquid.drop.slice");
 export const sliceSync = Symbol.for("liquid.drop.slice.sync");
 
+export const contains = Symbol.for("liquid.drop.contains");
+export const containsSync = Symbol.for("liquid.drop.contains.sync");
+
+export const lessThan = Symbol.for("liquid.drop.lessThan");
+export const lessThanSync = Symbol.for("liquid.drop.lessThan.sync");
+
 export abstract class Drop {
   async [toLiquid](
     hint: ContextHint,
@@ -77,6 +83,22 @@ export abstract class Drop {
 
   [sliceSync](offset?: number, limit?: number, reversed?: boolean): Drop {
     return this;
+  }
+
+  async [contains](obj: unknown, context: RenderContext): Promise<boolean> {
+    return this[containsSync](obj, context);
+  }
+
+  [containsSync](obj: unknown, context: RenderContext): boolean {
+    return false;
+  }
+
+  async [lessThan](obj: unknown, context: RenderContext): Promise<boolean> {
+    return this[lessThanSync](obj, context);
+  }
+
+  [lessThanSync](obj: unknown, context: RenderContext): boolean {
+    return false;
   }
 
   toString(): string {
