@@ -15,6 +15,7 @@ export function range(...args: number[]): Range {
   } else {
     stop = args[0] as number;
   }
+
   return new Range(start, stop);
 }
 
@@ -99,7 +100,7 @@ export class Range extends Drop implements Iterable<number> {
     }
 
     if (limit !== undefined) {
-      stop = Math.min(limit + start - 1, stop);
+      stop = Math.min(limit, stop);
     }
 
     return reversed ? new DescendingRange(stop, start) : new Range(start, stop);

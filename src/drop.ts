@@ -78,7 +78,7 @@ export abstract class Drop {
     limit?: number,
     reversed?: boolean,
   ): Promise<Drop> {
-    return this;
+    return this[sliceSync](offset, limit, reversed);
   }
 
   [sliceSync](offset?: number, limit?: number, reversed?: boolean): Drop {

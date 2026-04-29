@@ -48,6 +48,11 @@ export class ForTag implements Markup {
     parser.expectExpression();
     const expr = parser.parseExpression();
 
+    // Leading commas are OK.
+    if (parser.kind() === T.COMMA) {
+      parser.eat(T.COMMA);
+    }
+
     const [reversed, offset, limit] = this.unpackArgs(
       parser,
       parser.parseArguments(false),
@@ -209,7 +214,6 @@ export class ForTag implements Markup {
     buffer: OutputBuffer,
   ): void {
     const offset = this.offset ? this.offset.evaluateSync(context) : undefined;
-
     const limit = this.limit ? this.limit.evaluateSync(context) : undefined;
     const it = this.lazySliceSync(target, offset, limit, context);
     const length = it[drop.length]();
@@ -382,7 +386,7 @@ export class ForTag implements Markup {
     limit: unknown,
     length: number,
     context: RenderContext,
-  ): [number, number, Map<string, number>, string] {
+  ): [number, number | undefined, Map<string, number>, string] {
     if (!context.registers.has(FOR_STACK)) {
       context.registers.set(FOR_STACK, new Map());
     }
@@ -391,7 +395,7 @@ export class ForTag implements Markup {
     const offsetKey = `${this.name.value}-${this.expression}`;
 
     let normalizedOffset = 0;
-    let normalizedLimit = length;
+    let normalizedLimit: number | undefined = undefined;
 
     if (offset instanceof Undefined && offset.path === "continue") {
       normalizedOffset = offsets.get(offsetKey) as number;
@@ -409,8 +413,6 @@ export class ForTag implements Markup {
         context.env.toInteger(limit, context, this.expression.span);
     }
 
-    console.log("!!", normalizedOffset, normalizedLimit, offsets);
-
     return [normalizedOffset, normalizedLimit, offsets, offsetKey];
   }
 
@@ -425,10 +427,7 @@ export class ForTag implements Markup {
 
     const result = target.slice(normalizedOffset, normalizedLimit);
 
-    if (normalizedLimit) {
-      offsets.set(offsetKey, normalizedOffset + result.length);
-    }
-
+    offsets.set(offsetKey, normalizedOffset + result.length);
     return this.reversed ? result.reverse() : result;
   }
 
@@ -483,10 +482,7 @@ export class ForTag implements Markup {
       this.reversed,
     );
 
-    if (normalizedLimit) {
-      offsets.set(offsetKey, normalizedOffset + it[drop.length]());
-    }
-
+    offsets.set(offsetKey, normalizedOffset + it[drop.length]());
     return it;
   }
   private async lazySlice(
@@ -509,10 +505,7 @@ export class ForTag implements Markup {
       this.reversed,
     );
 
-    if (normalizedLimit) {
-      offsets.set(offsetKey, normalizedOffset + it[drop.length]());
-    }
-
+    offsets.set(offsetKey, normalizedOffset + it[drop.length]());
     return it;
   }
 

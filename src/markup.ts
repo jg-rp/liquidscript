@@ -91,7 +91,7 @@ export async function renderBlock(
     }
 
     if (context.interrupts.length > 0) {
-      return;
+      break;
     }
   }
 }
