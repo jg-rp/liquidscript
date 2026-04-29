@@ -99,7 +99,7 @@ export class Range extends Drop implements Iterable<number> {
     }
 
     if (limit !== undefined) {
-      stop = limit + start - 1;
+      stop = Math.min(limit + start - 1, stop);
     }
 
     return reversed ? new DescendingRange(stop, start) : new Range(start, stop);

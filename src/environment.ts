@@ -27,6 +27,7 @@ import {
 import type { RenderContext } from "./context";
 import { TemplateTypeError } from "./errors";
 import { Undefined } from "./drops/undefined";
+import { isInteger, isLiquidNumber, isPrimitiveNumber } from "./number";
 
 export interface _Parser {
   parse(env: Environment, source: string, startIndex?: number): Block;
@@ -87,6 +88,7 @@ export class Environment {
   }
 
   public setupFilters(): void {
+    this.filters["join"] = filters.join;
     this.filters["split"] = filters.split;
     this.filters["upcase"] = filters.upcase;
   }
@@ -225,7 +227,20 @@ export class Environment {
   }
 
   public toInteger(obj: unknown, context: RenderContext, token: Token): number {
-    return Math.trunc(this.toNumber(obj, context, token));
+    if (isLiquidNumber(obj)) return obj.trunc().valueOf();
+    if (isPrimitiveNumber(obj)) return Math.trunc(obj);
+
+    const num = Number(String(obj));
+
+    if (isNaN(num)) {
+      throw new TemplateTypeError(
+        "invalid integer",
+        token,
+        context.template.source,
+      );
+    }
+
+    return Math.trunc(num);
   }
 
   public toString(obj: unknown, context: RenderContext, token: Token): string {

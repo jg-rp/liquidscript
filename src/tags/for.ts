@@ -388,10 +388,10 @@ export class ForTag implements Markup {
     }
 
     const offsets = context.registers.get(FOR_STACK) as Map<string, number>;
+    const offsetKey = `${this.name.value}-${this.expression}`;
+
     let normalizedOffset = 0;
     let normalizedLimit = length;
-
-    const offsetKey = `${this.name.value}-${this.expression}`;
 
     if (offset instanceof Undefined && offset.path === "continue") {
       normalizedOffset = offsets.get(offsetKey) as number;
@@ -404,12 +404,12 @@ export class ForTag implements Markup {
     }
 
     if (limit !== undefined) {
-      normalizedLimit = context.env.toInteger(
-        limit,
-        context,
-        this.expression.span,
-      );
+      normalizedLimit =
+        normalizedOffset +
+        context.env.toInteger(limit, context, this.expression.span);
     }
+
+    console.log("!!", normalizedOffset, normalizedLimit, offsets);
 
     return [normalizedOffset, normalizedLimit, offsets, offsetKey];
   }
@@ -425,7 +425,10 @@ export class ForTag implements Markup {
 
     const result = target.slice(normalizedOffset, normalizedLimit);
 
-    if (normalizedLimit) offsets.set(offsetKey, result.length);
+    if (normalizedLimit) {
+      offsets.set(offsetKey, normalizedOffset + result.length);
+    }
+
     return this.reversed ? result.reverse() : result;
   }
 
@@ -480,7 +483,10 @@ export class ForTag implements Markup {
       this.reversed,
     );
 
-    if (offset) offsets.set(offsetKey, it[drop.length]());
+    if (normalizedLimit) {
+      offsets.set(offsetKey, normalizedOffset + it[drop.length]());
+    }
+
     return it;
   }
   private async lazySlice(
@@ -503,7 +509,10 @@ export class ForTag implements Markup {
       this.reversed,
     );
 
-    if (offset) offsets.set(offsetKey, it[drop.length]());
+    if (normalizedLimit) {
+      offsets.set(offsetKey, normalizedOffset + it[drop.length]());
+    }
+
     return it;
   }
 

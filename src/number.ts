@@ -155,7 +155,7 @@ export function isFloat(val: unknown): val is Float {
   return val instanceof Float;
 }
 
-function isPrimitiveNumber(value: unknown): value is number {
+export function isPrimitiveNumber(value: unknown): value is number {
   return typeof value === "number";
 }
 

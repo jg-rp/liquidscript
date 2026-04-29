@@ -49,6 +49,10 @@ export class ConditionalBlock {
         } else {
           await node.render(context, buffer);
         }
+
+        if (context.interrupts.length > 0) {
+          break;
+        }
       }
       return true;
     }
@@ -62,6 +66,10 @@ export class ConditionalBlock {
           buffer.push(node);
         } else {
           node.renderSync(context, buffer);
+        }
+
+        if (context.interrupts.length > 0) {
+          break;
         }
       }
       return true;
@@ -81,6 +89,10 @@ export async function renderBlock(
     } else {
       await node.render(context, buffer);
     }
+
+    if (context.interrupts.length > 0) {
+      return;
+    }
   }
 }
 
@@ -94,6 +106,10 @@ export function renderBlockSync(
       buffer.push(node);
     } else {
       node.renderSync(context, buffer);
+    }
+
+    if (context.interrupts.length > 0) {
+      return;
     }
   }
 }
