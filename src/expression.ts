@@ -5,6 +5,7 @@ import { UnknownFilterError } from "./errors";
 import { Nothing } from "./runtime";
 import { range } from "./drops/range";
 import { span, T, type Token } from "./token";
+import { isString } from "./type_guards";
 
 export type PathSegment = Name | StringLiteral | IntegerLiteral | Variable;
 
@@ -466,7 +467,7 @@ export class Variable implements Expression {
 
   constructor(
     readonly token: Token,
-    readonly root: Name | StringLiteral,
+    readonly root: Name | StringLiteral | Variable,
     readonly segments: PathSegment[],
   ) {
     this.span =
@@ -476,7 +477,13 @@ export class Variable implements Expression {
   }
 
   async evaluate(context: RenderContext): Promise<unknown> {
-    const root = context.resolve(this.root.value);
+    const rootSegment =
+      this.root instanceof Variable
+        ? await this.root.evaluate(context)
+        : this.root.value;
+
+    const root = isString(rootSegment) ? context.resolve(rootSegment) : Nothing;
+
     const [obj, index] = await context.resolvePath(
       root,
       await Promise.all(
@@ -496,7 +503,13 @@ export class Variable implements Expression {
   }
 
   evaluateSync(context: RenderContext): unknown {
-    const root = context.resolve(this.root.value);
+    const rootSegment =
+      this.root instanceof Variable
+        ? this.root.evaluateSync(context)
+        : this.root.value;
+
+    const root = isString(rootSegment) ? context.resolve(rootSegment) : Nothing;
+
     const [obj, index] = context.resolvePathSync(
       root,
       this.segments.map((s) => s.evaluateSync(context)),

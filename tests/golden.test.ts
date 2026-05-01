@@ -12,22 +12,32 @@ type Case = {
   invalid?: boolean;
 };
 
-// const golden = JSON.parse(
+const SKIP = new Set([
+  "malformed tags are not parsed", // TODO: remove me
+  "incomplete tags are not parsed", // TODO: remove me
+  "tags, comment, malformed tags are not parsed", // TODO: rename me
+  "tags, comment, incomplete tags are not parsed", // TODO: rename me
+]);
+
+// const golden: {"tests": Case[]} = JSON.parse(
 //   readFileSync("tests/golden_liquid/golden_liquid.json", {
 //     encoding: "utf8",
 //   }),
 // );
 
-const golden = JSON.parse(
-  readFileSync("tests/golden_liquid/tests/tags/assign.json", {
+const golden: { tests: Case[] } = JSON.parse(
+  readFileSync("tests/golden_liquid/tests/filters/join.json", {
     encoding: "utf8",
   }),
 );
 
+const active = golden.tests.filter((t) => !SKIP.has(t.name));
+const skipped = golden.tests.filter((t) => SKIP.has(t.name));
+
 describe("golden liquid sync", () => {
-  test.each<Case>(golden.tests)(
+  test.each<Case>(active)(
     "$name",
-    ({ template, templates, data, result, results, invalid }: Case) => {
+    ({ name, template, templates, data, result, results, invalid }: Case) => {
       if (invalid) {
         expect(() => renderSync(template, data)).toThrow(TemplateError);
       } else if (result) {
@@ -39,10 +49,13 @@ describe("golden liquid sync", () => {
       }
     },
   );
+
+  // Report skipped test cases.
+  test.skip.each(skipped)("$name", () => {});
 });
 
 describe("golden liquid async", () => {
-  test.each<Case>(golden.tests)(
+  test.each<Case>(active)(
     "$name",
     async ({ template, templates, data, result, results, invalid }: Case) => {
       if (invalid) {

@@ -41,10 +41,15 @@ export interface _Undefined {
   new (path: string, token: Token, source: string): Undefined;
 }
 
+export interface BufferFactory {
+  new (): string[];
+}
+
 export class Environment {
   public lexer: _Lexer = LegacyLexer;
   public parser: _Parser = LegacyParser;
   public undefinedFactory: _Undefined = Undefined;
+  public bufferFactory: BufferFactory = Array;
 
   public tags: { [key: string]: Tag };
   public filters: { [key: string]: Filter };
@@ -79,6 +84,7 @@ export class Environment {
 
   public setupTags(): void {
     this.tags["assign"] = tags.AssignTag;
+    this.tags["capture"] = tags.CaptureTag;
     this.tags["comment"] = tags.CommentTag;
     this.tags["for"] = tags.ForTag;
     this.tags["if"] = tags.IfTag;
@@ -88,15 +94,14 @@ export class Environment {
   }
 
   public setupFilters(): void {
+    this.filters["default"] = filters.default_;
     this.filters["join"] = filters.join;
+    this.filters["reverse"] = filters.reverse;
     this.filters["split"] = filters.split;
     this.filters["upcase"] = filters.upcase;
   }
 
   public serialize(obj: unknown, context: RenderContext, token: Token): string {
-    if (isArray(obj)) {
-      return obj.map((item) => this.toString(item, context, token)).join("");
-    }
     return this.toString(obj, context, token);
   }
 
@@ -244,9 +249,18 @@ export class Environment {
   }
 
   public toString(obj: unknown, context: RenderContext, token: Token): string {
-    if (obj instanceof Drop)
+    if (obj instanceof Drop) {
       return obj[toLiquidSync]("string", context) as string;
-    if (isArray(obj) || isObject(obj)) return JSON.stringify(obj);
+    }
+
+    if (isArray(obj)) {
+      return obj.map((item) => this.toString(item, context, token)).join("");
+    }
+
+    if (isObject(obj)) {
+      return JSON.stringify(obj);
+    }
+
     return String(obj);
   }
 
@@ -255,7 +269,7 @@ export class Environment {
     context: RenderContext,
     token: Token,
   ): unknown[] {
-    if (isArray(obj)) return obj; // TODO: flatten
+    if (isArray(obj)) return obj;
     if (isString(obj)) return [obj];
     if (isObject(obj)) {
       return isIterable(obj) ? Array.from(obj) : Object.entries(obj);

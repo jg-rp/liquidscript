@@ -118,7 +118,7 @@ export abstract class Parser {
     const token = this.next();
     if (!kinds.has(token.kind)) {
       throw new TemplateSyntaxError(
-        `unexpected ${token.kind}`,
+        `unexpected ${REVERSE_T[token.kind]}`,
         token,
         this.source,
       );

@@ -39,6 +39,19 @@ export class UnknownFilterError extends TemplateError {
   }
 }
 
+export class ArgumentError extends TemplateError {
+  constructor(
+    override readonly message: string,
+    override readonly token: Token,
+    override readonly source: string,
+  ) {
+    super(message, token, source);
+    Object.setPrototypeOf(this, new.target.prototype);
+    this.name = "ArgumentError";
+    // TODO: this.message = withErrorContext(message, token);
+  }
+}
+
 export class TemplateTypeError extends TemplateError {
   constructor(
     override readonly message: string,

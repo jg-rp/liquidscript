@@ -3,7 +3,7 @@ import { T } from "./token";
 
 const reCommentSegment = /\{%-?\s*(comment|raw|endcomment|endraw).*?-?%\}/gs;
 const reFloat = /-?\d+\.\d+/y;
-const reIdent = /[a-zA-Z_][a-zA-Z0-9_]*\??/y;
+const reIdent = /[a-zA-Z_][a-zA-Z0-9_s-]*\??/y;
 const reInt = /-?\d+/y;
 const reLineCommentSegment = /\n\s*(comment|endcomment).*/g;
 const reLineTrivia = /[ \t\f]+/y;

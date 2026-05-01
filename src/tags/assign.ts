@@ -18,6 +18,7 @@ export class AssignTag implements Markup {
     const name = parser.parseIdent();
     parser.eat(T.ASSIGN, "bad identifier or missing assignment operator");
     const expression = parser.parseFilteredExpression();
+    parser.carryWhitespaceControl();
     parser.eat(T.TAG_END);
     return new AssignTag(token, name, expression);
   }

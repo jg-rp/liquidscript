@@ -1,4 +1,5 @@
 export { AssignTag } from "./assign";
+export { CaptureTag } from "./capture";
 export { CommentTag } from "./comment";
 export { ForTag, ContinueTag, BreakTag } from "./for";
 export { IfTag } from "./if";

@@ -311,6 +311,7 @@ export class LegacyParser extends Parser {
       if (kind === T.IDENT && this.peek().kind === T.COLON) {
         // A keyword argument.
         const param = this.parseIdent();
+        this.eat(T.COLON);
         args.push(
           new expr.KeywordArgument(param.token, param, this.parseExpression()),
         );
@@ -356,14 +357,19 @@ export class LegacyParser extends Parser {
 
   protected parsePath(): expr.Variable {
     const token = this.current();
-    let root: expr.Name | expr.StringLiteral;
+    let root: expr.Name | expr.StringLiteral | expr.Variable;
 
     if (token.kind === T.IDENT) {
       this.pos += 1;
       root = new expr.Name(token, getTokenValue(token, this.source));
     } else {
       this.eat(T.LBRACKET);
-      root = this.parseStringLiteral();
+      if (this.kind() == T.IDENT) {
+        root = this.parsePath();
+      } else {
+        root = this.parseStringLiteral();
+      }
+
       this.eat(T.RBRACKET);
     }
 

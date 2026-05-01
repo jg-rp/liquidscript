@@ -2,11 +2,10 @@ import { Environment, render, renderSync } from "./src";
 import { StrictUndefined } from "./src/drops/undefined";
 import type { _Undefined } from "./src/environment";
 
-const source = `{% for i in (1..3) limit:1 %}{{ forloop.name }}{% endfor %}`;
-// const source = `{% for tag in tags limit:1 %}{{ tag }} {% endfor %}`;
+const source = `{{ a | reverse | join: '#' }}`;
 
 const data = {
-  array: [1, 2, 3, 4, 5, 6],
+  a: ["a", "b", 1, [], {}],
 };
 
 class MyEnv extends Environment {
