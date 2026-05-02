@@ -21,63 +21,6 @@ export interface Tag {
   parse(token: Token, parser: Parser): Markup;
 }
 
-export class ConditionalBlock {
-  readonly expression: Expression;
-  readonly blank: boolean;
-  public nodes: Block;
-
-  constructor(expression: Expression, nodes: Block) {
-    this.expression = expression;
-    this.blank = isBlankBlock(nodes);
-    this.nodes = nodes;
-  }
-
-  public filterStrings(): void {
-    this.nodes = this.nodes.filter((node) => !isString(node));
-  }
-
-  public async render(
-    context: RenderContext,
-    buffer: OutputBuffer,
-  ): Promise<boolean> {
-    if (
-      context.env.isTruthy(await this.expression.evaluate(context), context)
-    ) {
-      for (const node of this.nodes) {
-        if (isString(node)) {
-          buffer.push(node);
-        } else {
-          await node.render(context, buffer);
-        }
-
-        if (context.interrupts.length > 0) {
-          break;
-        }
-      }
-      return true;
-    }
-    return false;
-  }
-
-  public renderSync(context: RenderContext, buffer: OutputBuffer): boolean {
-    if (context.env.isTruthy(this.expression.evaluateSync(context), context)) {
-      for (const node of this.nodes) {
-        if (isString(node)) {
-          buffer.push(node);
-        } else {
-          node.renderSync(context, buffer);
-        }
-
-        if (context.interrupts.length > 0) {
-          break;
-        }
-      }
-      return true;
-    }
-    return false;
-  }
-}
-
 export async function renderBlock(
   block: Block,
   context: RenderContext,

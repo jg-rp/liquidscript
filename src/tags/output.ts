@@ -11,6 +11,10 @@ export class OutputStatement implements Markup {
     readonly expression: Expression,
   ) {}
 
+  expressions(): Expression[] {
+    return [this.expression];
+  }
+
   async render(context: RenderContext, buffer: OutputBuffer): Promise<void> {
     buffer.push(
       context.env.serialize(
@@ -29,9 +33,5 @@ export class OutputStatement implements Markup {
         this.expression.span,
       ),
     );
-  }
-
-  expressions(): Expression[] {
-    return [this.expression];
   }
 }

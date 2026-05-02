@@ -31,6 +31,10 @@ export class CaptureTag implements Markup {
     return new CaptureTag(token, name, block);
   }
 
+  children(): Markup[] {
+    return this.block.filter((node) => !isString(node)) as Markup[];
+  }
+
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async render(context: RenderContext, buffer: OutputBuffer): Promise<void> {
     const buf = new context.env.bufferFactory();
@@ -49,9 +53,5 @@ export class CaptureTag implements Markup {
 
   templateScope(): Name[] {
     return [this.name];
-  }
-
-  children(): Markup[] {
-    return this.block.filter((node) => !isString(node)) as Markup[];
   }
 }

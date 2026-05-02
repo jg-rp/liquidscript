@@ -15,10 +15,12 @@
   "type": "module",
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@stylistic/eslint-plugin": "^5.10.0",
     "@types/bun": "latest",
     "@types/jest": "^30.0.0",
     "@typescript/native-preview": "^7.0.0-dev.20260421.2",
     "eslint": "^10.1.0",
+    "eslint-plugin-perfectionist": "^5.9.0",
     "globals": "^17.4.0",
     "tinybench": "^6.0.0",
     "typescript-eslint": "^8.58.0"

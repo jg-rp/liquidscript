@@ -23,16 +23,16 @@ export class AssignTag implements Markup {
     return new AssignTag(token, name, expression);
   }
 
+  expressions(): Expression[] {
+    return [this.expression];
+  }
+
   async render(context: RenderContext, buffer: OutputBuffer): Promise<void> {
     context.assign(this.name.value, await this.expression.evaluate(context));
   }
 
   renderSync(context: RenderContext, buffer: OutputBuffer): void {
     context.assign(this.name.value, this.expression.evaluateSync(context));
-  }
-
-  expressions(): Expression[] {
-    return [this.expression];
   }
 
   templateScope(): Name[] {
