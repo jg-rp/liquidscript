@@ -26,7 +26,7 @@ const SKIP = new Set([
 // );
 
 const golden: { tests: Case[] } = JSON.parse(
-  readFileSync("tests/golden_liquid/tests/filters/join.json", {
+  readFileSync("tests/golden_liquid/tests/tags/case.json", {
     encoding: "utf8",
   }),
 );
@@ -37,7 +37,7 @@ const skipped = golden.tests.filter((t) => SKIP.has(t.name));
 describe("golden liquid sync", () => {
   test.each<Case>(active)(
     "$name",
-    ({ name, template, templates, data, result, results, invalid }: Case) => {
+    ({ template, templates, data, result, results, invalid }: Case) => {
       if (invalid) {
         expect(() => renderSync(template, data)).toThrow(TemplateError);
       } else if (result) {

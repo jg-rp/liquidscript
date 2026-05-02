@@ -13,7 +13,7 @@ import {
 } from "./token";
 import * as expr from "./expression";
 
-const PRECEDENCE_LOWEST = 1;
+export const PRECEDENCE_LOWEST = 1;
 const PRECEDENCE_LOGICAL_RIGHT = 3;
 const PRECEDENCE_RELATIONAL = 4;
 const PRECEDENCE_MEMBERSHIP = 5;
@@ -220,7 +220,10 @@ export class LegacyParser extends Parser {
     return new expr.Empty(this.next());
   }
 
-  override parseExpression(precedence: number = PRECEDENCE_LOWEST): Expression {
+  override parseExpression(
+    precedence: number = PRECEDENCE_LOWEST,
+    infix: boolean = true,
+  ): Expression {
     const parseFunc = this.primaryMap.get(this.kind());
 
     if (!parseFunc) {
@@ -232,6 +235,11 @@ export class LegacyParser extends Parser {
     }
 
     let left = parseFunc();
+
+    if (!infix) {
+      return left;
+    }
+
     let kind: TokenKind;
 
     for (;;) {

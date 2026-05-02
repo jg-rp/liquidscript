@@ -203,6 +203,7 @@ export class Environment {
   setupTags(): void {
     this.tags["assign"] = tags.AssignTag;
     this.tags["capture"] = tags.CaptureTag;
+    this.tags["case"] = tags.CaseTag;
     this.tags["comment"] = tags.CommentTag;
     this.tags["for"] = tags.ForTag;
     this.tags["if"] = tags.IfTag;

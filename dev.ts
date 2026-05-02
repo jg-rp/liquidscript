@@ -2,10 +2,11 @@ import { Environment, render, renderSync } from "./src";
 import { StrictUndefined } from "./src/drops/undefined";
 import type { _Undefined } from "./src/environment";
 
-const source = `{{ a | reverse | join: '#' }}`;
+const source = `{% case title %}{% when 'Hello' %}foo{% when a, 'Hello' %}bar{% endcase %}`;
 
 const data = {
-  a: ["a", "b", 1, [], {}],
+  title: "Hello",
+  a: "Hello",
 };
 
 class MyEnv extends Environment {

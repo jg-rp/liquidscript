@@ -1,5 +1,6 @@
 export { AssignTag } from "./assign";
 export { CaptureTag } from "./capture";
+export { CaseTag } from "./case";
 export { CommentTag } from "./comment";
 export { ForTag, ContinueTag, BreakTag } from "./for";
 export { IfTag } from "./if";

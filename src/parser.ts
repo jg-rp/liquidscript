@@ -204,8 +204,9 @@ export abstract class Parser {
    * Parse a literal, variable or compound expression.
    *
    * @param precedence The binding power of this sub expression.
+   * @param infix If `true`, accept infix operators when parsing the expression.
    */
-  abstract parseExpression(precedence?: number): Expression;
+  abstract parseExpression(precedence?: number, infix?: boolean): Expression;
 
   /**
    * Parse an expression with optional filters.
