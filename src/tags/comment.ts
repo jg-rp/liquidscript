@@ -21,5 +21,6 @@ export class CommentTag implements Markup {
   }
 
   async render(context: RenderContext, buffer: OutputBuffer): Promise<void> {}
+
   renderSync(context: RenderContext, buffer: OutputBuffer): void {}
 }

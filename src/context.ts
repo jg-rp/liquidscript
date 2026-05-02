@@ -27,11 +27,19 @@ export type ContextCopyOptions = {
 };
 
 export class RenderContext {
-  public template: Template;
+  private counters: Namespace = {};
+
+  readonly disabledTags: Set<string> | undefined;
 
   readonly env: Environment;
-  readonly disabledTags: Set<string> | undefined;
+
   readonly forloops: ForLoop[] = [];
+
+  private globals: Namespace | Namespace[];
+
+  readonly interrupts: symbol[] = [];
+
+  private locals: Namespace = {};
 
   /**
    * Namespaces supporting stateful tags. It's OK to use this map for storing
@@ -39,12 +47,9 @@ export class RenderContext {
    */
   readonly registers = new Map<string | symbol, unknown>();
 
-  readonly interrupts: symbol[] = [];
-
-  private globals: Namespace | Namespace[];
-  private locals: Namespace = {};
-  private counters: Namespace = {};
   private scopes: Namespace[];
+
+  template: Template;
 
   constructor(template: Template, options: RenderContextOptions = {}) {
     this.template = template;
@@ -72,11 +77,92 @@ export class RenderContext {
     this.disabledTags = options.disabledTags;
   }
 
+  assign(name: string, value: unknown): void {
+    // TODO: resource limit
+    this.locals[name] = value;
+  }
+
+  copy(
+    namespace: { [index: string]: unknown },
+    options: ContextCopyOptions = {},
+  ): RenderContext {
+    // TODO: resource limits
+
+    let globals: Namespace[];
+
+    if (options.blockScope) {
+      globals = [...this.scopes, namespace];
+    } else if (isArray(this.globals)) {
+      globals = [...this.globals, namespace];
+    } else {
+      globals = [this.globals, namespace];
+    }
+
+    const ctx = new RenderContext(options.template ?? this.template, {
+      disabledTags: options.disabledTags,
+      globals,
+    });
+
+    for (const register of this.env.persistentRegisters) {
+      ctx.registers.set(register, this.registers.get(register));
+    }
+
+    return ctx;
+  }
+
+  async extend(
+    namespace: { [index: string]: unknown },
+    callback: () => Promise<void>,
+    template?: Template,
+  ) {
+    // TODO: resource limits
+
+    const originalTemplate = this.template;
+    if (template) {
+      this.template = template;
+    }
+
+    this.scopes.push(namespace);
+
+    try {
+      return await callback();
+    } finally {
+      if (template) {
+        this.template = originalTemplate;
+      }
+      this.scopes.pop();
+    }
+  }
+
+  extendSync(
+    namespace: { [index: string]: unknown },
+    callback: () => void,
+    template?: Template,
+  ) {
+    // TODO: resource limits
+
+    const originalTemplate = this.template;
+    if (template) {
+      this.template = template;
+    }
+
+    this.scopes.push(namespace);
+
+    try {
+      return callback();
+    } finally {
+      if (template) {
+        this.template = originalTemplate;
+      }
+      this.scopes.pop();
+    }
+  }
+
   /**
    * Lookup `name` in the current scope. Return the special `Nothing` value if
    * `name` is not defined.
    */
-  public resolve(name: string): unknown {
+  resolve(name: string): unknown {
     for (let i = this.scopes.length - 1; i >= 0; i--) {
       const scope = this.scopes[i] as { [index: string]: unknown };
       if (Object.prototype.hasOwnProperty.call(scope, name)) return scope[name];
@@ -89,7 +175,7 @@ export class RenderContext {
    * exist, the special `Nothing` value is returned along with the index of
    * the last segment to be successfully resolved.
    */
-  public async resolvePath(
+  async resolvePath(
     obj: unknown,
     segments: unknown[],
   ): Promise<[unknown, number]> {
@@ -172,7 +258,7 @@ export class RenderContext {
    * A sync version of `resolvePath`. The only difference is the handling of
    * the async Drop protocol.
    */
-  public resolvePathSync(obj: unknown, segments: unknown[]): [unknown, number] {
+  resolvePathSync(obj: unknown, segments: unknown[]): [unknown, number] {
     let segmentIndex = -1;
 
     for (let segment of segments) {
@@ -246,87 +332,6 @@ export class RenderContext {
     }
 
     return [obj, segmentIndex];
-  }
-
-  public assign(name: string, value: unknown): void {
-    // TODO: resource limit
-    this.locals[name] = value;
-  }
-
-  public async extend(
-    namespace: { [index: string]: unknown },
-    callback: () => Promise<void>,
-    template?: Template,
-  ) {
-    // TODO: resource limits
-
-    const originalTemplate = this.template;
-    if (template) {
-      this.template = template;
-    }
-
-    this.scopes.push(namespace);
-
-    try {
-      return await callback();
-    } finally {
-      if (template) {
-        this.template = originalTemplate;
-      }
-      this.scopes.pop();
-    }
-  }
-
-  public extendSync(
-    namespace: { [index: string]: unknown },
-    callback: () => void,
-    template?: Template,
-  ) {
-    // TODO: resource limits
-
-    const originalTemplate = this.template;
-    if (template) {
-      this.template = template;
-    }
-
-    this.scopes.push(namespace);
-
-    try {
-      return callback();
-    } finally {
-      if (template) {
-        this.template = originalTemplate;
-      }
-      this.scopes.pop();
-    }
-  }
-
-  public copy(
-    namespace: { [index: string]: unknown },
-    options: ContextCopyOptions = {},
-  ): RenderContext {
-    // TODO: resource limits
-
-    let globals: Namespace[];
-
-    if (options.blockScope) {
-      globals = [...this.scopes, namespace];
-    } else if (isArray(this.globals)) {
-      globals = [...this.globals, namespace];
-    } else {
-      globals = [this.globals, namespace];
-    }
-
-    const ctx = new RenderContext(options.template ?? this.template, {
-      disabledTags: options.disabledTags,
-      globals,
-    });
-
-    for (const register of this.env.persistentRegisters) {
-      ctx.registers.set(register, this.registers.get(register));
-    }
-
-    return ctx;
   }
 }
 

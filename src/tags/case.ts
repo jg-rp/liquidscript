@@ -83,7 +83,7 @@ export class WhenBlock implements Markup {
     return this.block.filter((node) => !isString(node)) as Markup[];
   }
 
-  public expressions(): Expression[] {
+  expressions(): Expression[] {
     return this.right;
   }
 

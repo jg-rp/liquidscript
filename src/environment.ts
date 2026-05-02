@@ -46,16 +46,21 @@ export interface BufferFactory {
 }
 
 export class Environment {
-  public lexer: _Lexer = LegacyLexer;
-  public parser: _Parser = LegacyParser;
-  public undefinedFactory: _Undefined = Undefined;
-  public bufferFactory: BufferFactory = Array;
+  bufferFactory: BufferFactory = Array;
 
-  public tags: { [key: string]: Tag };
-  public filters: { [key: string]: Filter };
+  filters: { [key: string]: Filter };
 
-  public persistentRegisters: Set<string> = new Set();
-  public strictFilters = true;
+  lexer: _Lexer = LegacyLexer;
+
+  parser: _Parser = LegacyParser;
+
+  persistentRegisters: Set<string> = new Set();
+
+  strictFilters = true;
+
+  tags: { [key: string]: Tag };
+
+  undefinedFactory: _Undefined = Undefined;
 
   constructor() {
     this.tags = {};
@@ -64,133 +69,7 @@ export class Environment {
     this.setupFilters();
   }
 
-  public parse(source: string): Template {
-    return new Template(this, source, this.parser.parse(this, source, 0));
-  }
-
-  public async render(
-    source: string,
-    data?: { [index: string]: unknown },
-  ): Promise<string> {
-    return await this.parse(source).render(data);
-  }
-
-  public renderSync(
-    source: string,
-    data?: { [index: string]: unknown },
-  ): string {
-    return this.parse(source).renderSync(data);
-  }
-
-  public setupTags(): void {
-    this.tags["assign"] = tags.AssignTag;
-    this.tags["capture"] = tags.CaptureTag;
-    this.tags["comment"] = tags.CommentTag;
-    this.tags["for"] = tags.ForTag;
-    this.tags["if"] = tags.IfTag;
-    this.tags["raw"] = tags.RawTag;
-    this.tags["continue"] = tags.ContinueTag;
-    this.tags["break"] = tags.BreakTag;
-  }
-
-  public setupFilters(): void {
-    this.filters["default"] = filters.default_;
-    this.filters["join"] = filters.join;
-    this.filters["reverse"] = filters.reverse;
-    this.filters["split"] = filters.split;
-    this.filters["upcase"] = filters.upcase;
-  }
-
-  public serialize(obj: unknown, context: RenderContext, token: Token): string {
-    return this.toString(obj, context, token);
-  }
-
-  public trim(value: string, left?: string, right?: string): string {
-    if (left === "-" && right === "-") {
-      return value.trim();
-    }
-
-    if (left === "-") {
-      return value.trimStart();
-    }
-
-    if (right === "-") {
-      return value.trimEnd();
-    }
-
-    return value;
-  }
-
-  // TODO: sync and async
-  public isTruthy(obj: unknown, context: RenderContext): boolean {
-    if (obj instanceof Drop) {
-      obj = obj[toLiquidSync]("boolean", context);
-    }
-
-    return !(obj === false || obj === null || obj === undefined);
-  }
-
-  public isEqual(
-    left: unknown,
-    right: unknown,
-    context: RenderContext,
-    token: Token,
-  ): boolean {
-    if (left instanceof Drop) {
-      return left[equals](right, context);
-    }
-
-    if (right instanceof Drop) {
-      return right[equals](left, context);
-    }
-
-    if (
-      (left === null || left === undefined) &&
-      (right === null || right === undefined)
-    ) {
-      return true;
-    }
-
-    if (isArray(left) && isArray(right)) {
-      return (
-        left.length === right.length && left.every((v, i) => v === right[i])
-      );
-    }
-
-    // TODO: number equality?
-    return left === right;
-  }
-
-  public isLessThan(
-    left: unknown,
-    right: unknown,
-    context: RenderContext,
-    token: Token,
-  ): boolean {
-    if (left instanceof Drop) {
-      return left[lessThanSync](right, context);
-    }
-
-    if (isString(left) && isString(right)) {
-      return left < right;
-    }
-
-    if (isBoolean(left) || isBoolean(right)) {
-      return false;
-    }
-
-    if (isNumber(left) && isNumber(right)) {
-      return left < right;
-    }
-
-    throw new TemplateTypeError(
-      `${left && left.constructor.name} and ${right && right.constructor.name} are not comparable`,
-      token,
-      context.template.source,
-    );
-  }
-
-  public contains(
+  contains(
     left: unknown,
     right: unknown,
     context: RenderContext,
@@ -225,13 +104,123 @@ export class Environment {
     );
   }
 
-  public toNumber(obj: unknown, context: RenderContext, token: Token): number {
-    const n = Number(obj);
-    if (isNaN(n)) return 0;
-    return n;
+  isEqual(
+    left: unknown,
+    right: unknown,
+    context: RenderContext,
+    token: Token,
+  ): boolean {
+    if (left instanceof Drop) {
+      return left[equals](right, context);
+    }
+
+    if (right instanceof Drop) {
+      return right[equals](left, context);
+    }
+
+    if (
+      (left === null || left === undefined) &&
+      (right === null || right === undefined)
+    ) {
+      return true;
+    }
+
+    if (isArray(left) && isArray(right)) {
+      return (
+        left.length === right.length && left.every((v, i) => v === right[i])
+      );
+    }
+
+    // TODO: number equality?
+    return left === right;
   }
 
-  public toInteger(obj: unknown, context: RenderContext, token: Token): number {
+  isLessThan(
+    left: unknown,
+    right: unknown,
+    context: RenderContext,
+    token: Token,
+  ): boolean {
+    if (left instanceof Drop) {
+      return left[lessThanSync](right, context);
+    }
+
+    if (isString(left) && isString(right)) {
+      return left < right;
+    }
+
+    if (isBoolean(left) || isBoolean(right)) {
+      return false;
+    }
+
+    if (isNumber(left) && isNumber(right)) {
+      return left < right;
+    }
+
+    throw new TemplateTypeError(
+      `${left && left.constructor.name} and ${right && right.constructor.name} are not comparable`,
+      token,
+      context.template.source,
+    );
+  }
+
+  // TODO: sync and async
+  isTruthy(obj: unknown, context: RenderContext): boolean {
+    if (obj instanceof Drop) {
+      obj = obj[toLiquidSync]("boolean", context);
+    }
+
+    return !(obj === false || obj === null || obj === undefined);
+  }
+
+  parse(source: string): Template {
+    return new Template(this, source, this.parser.parse(this, source, 0));
+  }
+
+  async render(
+    source: string,
+    data?: { [index: string]: unknown },
+  ): Promise<string> {
+    return await this.parse(source).render(data);
+  }
+
+  renderSync(source: string, data?: { [index: string]: unknown }): string {
+    return this.parse(source).renderSync(data);
+  }
+
+  serialize(obj: unknown, context: RenderContext, token: Token): string {
+    return this.toString(obj, context, token);
+  }
+
+  setupFilters(): void {
+    this.filters["default"] = filters.default_;
+    this.filters["join"] = filters.join;
+    this.filters["reverse"] = filters.reverse;
+    this.filters["split"] = filters.split;
+    this.filters["upcase"] = filters.upcase;
+  }
+
+  setupTags(): void {
+    this.tags["assign"] = tags.AssignTag;
+    this.tags["capture"] = tags.CaptureTag;
+    this.tags["comment"] = tags.CommentTag;
+    this.tags["for"] = tags.ForTag;
+    this.tags["if"] = tags.IfTag;
+    this.tags["raw"] = tags.RawTag;
+    this.tags["continue"] = tags.ContinueTag;
+    this.tags["break"] = tags.BreakTag;
+  }
+
+  toArray(obj: unknown, context: RenderContext, token: Token): unknown[] {
+    if (isArray(obj)) return obj;
+    if (isString(obj)) return [obj];
+    if (isObject(obj)) {
+      return isIterable(obj) ? Array.from(obj) : Object.entries(obj);
+    }
+    return [obj];
+  }
+
+  toInteger(obj: unknown, context: RenderContext, token: Token): number {
     if (isLiquidNumber(obj)) return obj.trunc().valueOf();
     if (isPrimitiveNumber(obj)) return Math.trunc(obj);
 
@@ -248,7 +237,22 @@ export class Environment {
     return Math.trunc(num);
   }
 
-  public toString(obj: unknown, context: RenderContext, token: Token): string {
+  toIterable(
+    obj: unknown,
+    context: RenderContext,
+    token: Token,
+  ): Iterable<unknown> {
+    // TODO:
+    throw new Error("not implemented");
+  }
+
+  toNumber(obj: unknown, context: RenderContext, token: Token): number {
+    const n = Number(obj);
+    if (isNaN(n)) return 0;
+    return n;
+  }
+
+  toString(obj: unknown, context: RenderContext, token: Token): string {
     if (obj instanceof Drop) {
       return obj[toLiquidSync]("string", context) as string;
     }
@@ -264,25 +268,19 @@ export class Environment {
     return String(obj);
   }
 
-  public toArray(
-    obj: unknown,
-    context: RenderContext,
-    token: Token,
-  ): unknown[] {
-    if (isArray(obj)) return obj;
-    if (isString(obj)) return [obj];
-    if (isObject(obj)) {
-      return isIterable(obj) ? Array.from(obj) : Object.entries(obj);
+  trim(value: string, left?: string, right?: string): string {
+    if (left === "-" && right === "-") {
+      return value.trim();
     }
-    return [obj];
-  }
 
-  public toIterable(
-    obj: unknown,
-    context: RenderContext,
-    token: Token,
-  ): Iterable<unknown> {
-    // TODO:
-    throw new Error("not implemented");
+    if (left === "-") {
+      return value.trimStart();
+    }
+
+    if (right === "-") {
+      return value.trimEnd();
+    }
+
+    return value;
   }
 }

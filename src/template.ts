@@ -11,14 +11,21 @@ export class Template {
     readonly nodes: Block,
   ) {}
 
-  public async render(data?: { [index: string]: unknown }): Promise<string> {
+  async render(data?: { [index: string]: unknown }): Promise<string> {
     const buffer: string[] = [];
     const context = new RenderContext(this, { globals: data });
     await this.renderWithContext(context, buffer);
     return buffer.join("");
   }
 
-  public async renderWithContext(
+  renderSync(data?: { [index: string]: unknown }): string {
+    const buffer: string[] = [];
+    const context = new RenderContext(this, { globals: data });
+    this.renderWithContextSync(context, buffer);
+    return buffer.join("");
+  }
+
+  async renderWithContext(
     context: RenderContext,
     buffer: OutputBuffer,
   ): Promise<void> {
@@ -31,17 +38,7 @@ export class Template {
     }
   }
 
-  public renderSync(data?: { [index: string]: unknown }): string {
-    const buffer: string[] = [];
-    const context = new RenderContext(this, { globals: data });
-    this.renderWithContextSync(context, buffer);
-    return buffer.join("");
-  }
-
-  public renderWithContextSync(
-    context: RenderContext,
-    buffer: OutputBuffer,
-  ): void {
+  renderWithContextSync(context: RenderContext, buffer: OutputBuffer): void {
     for (const node of this.nodes) {
       if (isString(node)) {
         buffer.push(node);

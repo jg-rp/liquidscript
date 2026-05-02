@@ -24,22 +24,19 @@ export class ElseBlock implements Markup {
     this.expression = new BooleanLiteral(token, true);
   }
 
-  public children(): Markup[] {
+  children(): Markup[] {
     return this.block.filter((node) => !isString(node)) as Markup[];
   }
 
-  public filterStrings(): void {
+  filterStrings(): void {
     this.block = this.block.filter((node) => !isString(node));
   }
 
-  public async render(
-    context: RenderContext,
-    buffer: OutputBuffer,
-  ): Promise<void> {
+  async render(context: RenderContext, buffer: OutputBuffer): Promise<void> {
     await renderBlock(this.block, context, buffer);
   }
 
-  public renderSync(context: RenderContext, buffer: OutputBuffer): void {
+  renderSync(context: RenderContext, buffer: OutputBuffer): void {
     renderBlockSync(this.block, context, buffer);
   }
 }

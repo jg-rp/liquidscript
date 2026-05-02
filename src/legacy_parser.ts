@@ -99,6 +99,45 @@ export class LegacyParser extends Parser {
     ]);
   }
 
+  override parseArguments(
+    requireCommas: boolean = true,
+  ): Array<Expression | expr.KeywordArgument> {
+    const args: Array<Expression | expr.KeywordArgument> = [];
+    let kind: TokenKind;
+
+    for (;;) {
+      kind = this.kind();
+
+      if (TERMINATE_EXPRESSION.has(kind)) {
+        break;
+      }
+
+      if (kind === T.IDENT && this.peek().kind === T.COLON) {
+        // Named argument.
+        const name = this.parseIdent();
+        this.eat(T.COLON);
+        args.push(
+          new expr.KeywordArgument(name.token, name, this.parseExpression()),
+        );
+      } else {
+        args.push(this.parseExpression());
+      }
+
+      kind = this.kind();
+      if (requireCommas && !TERMINATE_EXPRESSION.has(kind)) {
+        this.eat(T.COMMA);
+      } else if (kind == T.COMMA) {
+        this.pos += 1;
+      }
+    }
+
+    return args;
+  }
+
+  protected parseBlank(): Expression {
+    return new expr.Blank(this.next());
+  }
+
   override parseBlock(end?: Set<string>): Block {
     const nodes: Block = [];
     let token: Token;
@@ -138,6 +177,49 @@ export class LegacyParser extends Parser {
     }
   }
 
+  protected parseBracketedSegment(): expr.PathSegment {
+    this.eat(T.LBRACKET);
+    const token = this.next();
+    let segment: expr.PathSegment;
+
+    switch (token.kind) {
+      case T.INT:
+        segment = new expr.IntegerLiteral(
+          token,
+          Number(getTokenValue(token, this.source)),
+        );
+        break;
+      case T.IDENT:
+        this.pos -= 1;
+        segment = this.parsePath();
+        break;
+      case T.DOUBLE_QUOTE:
+      case T.SINGLE_QUOTE:
+        this.pos -= 1;
+        segment = this.parseStringLiteral();
+        break;
+      case T.RBRACKET:
+        throw new TemplateSyntaxError(
+          "empty bracketed segment",
+          token,
+          this.source,
+        );
+      default:
+        throw new TemplateSyntaxError(
+          "expected an integer, identifier or string",
+          token,
+          this.source,
+        );
+    }
+
+    this.eat(T.RBRACKET);
+    return segment;
+  }
+
+  protected parseEmpty(): Expression {
+    return new expr.Empty(this.next());
+  }
+
   override parseExpression(precedence: number = PRECEDENCE_LOWEST): Expression {
     const parseFunc = this.primaryMap.get(this.kind());
 
@@ -168,115 +250,8 @@ export class LegacyParser extends Parser {
     return left;
   }
 
-  override parseFilteredExpression(
-    precedence: number = PRECEDENCE_LOWEST,
-  ): Expression {
-    let expr = this.parseExpression(precedence);
-
-    if (this.kind() === T.PIPE) {
-      expr = this.parseFilters(expr);
-    }
-
-    return expr;
-  }
-
-  override parseIdent(): expr.Name {
-    const token = this.eat(T.IDENT);
-    if (PATH_PUNCTUATION.has(this.kind())) {
-      throw new TemplateSyntaxError(
-        "expected an identifier, found a path",
-        token,
-        this.source,
-      );
-    }
-    return new expr.Name(token, getTokenValue(token, this.source));
-  }
-
-  override parseName(): expr.Name {
-    let strExpr: expr.StringLiteral;
-
-    switch (this.kind()) {
-      case T.IDENT:
-        return this.parseIdent();
-      case T.SINGLE_QUOTE:
-      case T.DOUBLE_QUOTE:
-        strExpr = this.parseStringLiteral();
-        return new expr.Name(strExpr.token, strExpr.value);
-      default:
-        throw new TemplateSyntaxError(
-          "expected a string or identifier",
-          this.current(),
-          this.source,
-        );
-    }
-  }
-
-  override parseArguments(
-    requireCommas: boolean = true,
-  ): Array<Expression | expr.KeywordArgument> {
-    const args: Array<Expression | expr.KeywordArgument> = [];
-    let kind: TokenKind;
-
-    for (;;) {
-      kind = this.kind();
-
-      if (TERMINATE_EXPRESSION.has(kind)) {
-        break;
-      }
-
-      if (kind === T.IDENT && this.peek().kind === T.COLON) {
-        // Named argument.
-        const name = this.parseIdent();
-        this.eat(T.COLON);
-        args.push(
-          new expr.KeywordArgument(name.token, name, this.parseExpression()),
-        );
-      } else {
-        args.push(this.parseExpression());
-      }
-
-      kind = this.kind();
-      if (requireCommas && !TERMINATE_EXPRESSION.has(kind)) {
-        this.eat(T.COMMA);
-      } else if (kind == T.COMMA) {
-        this.pos += 1;
-      }
-    }
-
-    return args;
-  }
-
-  protected parseOutput(): OutputStatement {
-    const token = this.tokens[this.pos - 1] as Token;
-    this.skipWhitespaceControl();
-    const expr = this.parseFilteredExpression();
-    this.carryWhitespaceControl();
-    this.eat(T.OUT_END);
-    return new OutputStatement(token, expr);
-  }
-
-  protected parseTag(): Markup {
-    this.skipWhitespaceControl();
-    const token = this.eat(T.TAG_NAME, "missing tag name");
-    const tag = this.env.tags[getTokenValue(token, this.source)];
-
-    if (tag) {
-      return tag.parse(token, this);
-    }
-
-    throw new TemplateSyntaxError(
-      `unexpected tag ${getTokenValue(token, this.source)}`,
-      token,
-      this.source,
-    );
-  }
-
-  protected parseFilters(left: Expression): expr.FilteredExpression {
-    let filterExpr = this.parseFilter(left);
-    while (this.kind() == T.PIPE) {
-      filterExpr = this.parseFilter(filterExpr);
-    }
-    return filterExpr;
+  protected parseFalseLiteral(): Expression {
+    return new expr.BooleanLiteral(this.next(), false);
   }
 
   protected parseFilter(left: Expression): expr.FilteredExpression {
@@ -337,22 +312,95 @@ export class LegacyParser extends Parser {
     );
   }
 
-  protected parseStringLiteral(): expr.StringLiteral {
-    const token = this.next();
+  override parseFilteredExpression(
+    precedence: number = PRECEDENCE_LOWEST,
+  ): Expression {
+    let expr = this.parseExpression(precedence);
 
-    if (this.kind() === token.kind) {
-      // Empty string
-      this.eat(token.kind);
-      return new expr.StringLiteral(token, "");
+    if (this.kind() === T.PIPE) {
+      expr = this.parseFilters(expr);
     }
 
-    const result = new expr.StringLiteral(
+    return expr;
+  }
+
+  protected parseFilters(left: Expression): expr.FilteredExpression {
+    let filterExpr = this.parseFilter(left);
+    while (this.kind() == T.PIPE) {
+      filterExpr = this.parseFilter(filterExpr);
+    }
+    return filterExpr;
+  }
+
+  protected parseFloatLiteral(): Expression {
+    const token = this.next();
+    return new expr.FloatLiteral(
       token,
-      getTokenValue(this.eatOneOf(STRING_LITERAL_KINDS), this.source),
+      Number(getTokenValue(token, this.source)),
+    );
+  }
+
+  override parseIdent(): expr.Name {
+    const token = this.eat(T.IDENT);
+    if (PATH_PUNCTUATION.has(this.kind())) {
+      throw new TemplateSyntaxError(
+        "expected an identifier, found a path",
+        token,
+        this.source,
+      );
+    }
+    return new expr.Name(token, getTokenValue(token, this.source));
+  }
+
+  protected parseInfix(left: Expression): Expression {
+    const opToken = this.next();
+    const kind = opToken.kind;
+    const right = this.parseFilteredExpression(
+      PRECEDENCES.get(kind) || PRECEDENCE_LOWEST,
     );
 
-    this.eat(token.kind);
-    return result;
+    const infixCtor = INFIX_OPERATORS.get(kind) as InfixConstructor;
+    return new infixCtor(opToken, left, right);
+  }
+
+  protected parseIntLiteral(): Expression {
+    const token = this.next();
+    return new expr.IntegerLiteral(
+      token,
+      Number(getTokenValue(token, this.source)),
+    );
+  }
+
+  override parseName(): expr.Name {
+    let strExpr: expr.StringLiteral;
+
+    switch (this.kind()) {
+      case T.IDENT:
+        return this.parseIdent();
+      case T.SINGLE_QUOTE:
+      case T.DOUBLE_QUOTE:
+        strExpr = this.parseStringLiteral();
+        return new expr.Name(strExpr.token, strExpr.value);
+      default:
+        throw new TemplateSyntaxError(
+          "expected a string or identifier",
+          this.current(),
+          this.source,
+        );
+    }
+  }
+
+  protected parseNullLiteral(): Expression {
+    return new expr.NullLiteral(this.next());
+  }
+
+  protected parseOutput(): OutputStatement {
+    const token = this.tokens[this.pos - 1] as Token;
+    this.skipWhitespaceControl();
+    const expr = this.parseFilteredExpression();
+    this.carryWhitespaceControl();
+    this.eat(T.OUT_END);
+    return new OutputStatement(token, expr);
   }
 
   protected parsePath(): expr.Variable {
@@ -398,45 +446,6 @@ export class LegacyParser extends Parser {
     return segments;
   }
 
-  protected parseBracketedSegment(): expr.PathSegment {
-    this.eat(T.LBRACKET);
-    const token = this.next();
-    let segment: expr.PathSegment;
-
-    switch (token.kind) {
-      case T.INT:
-        segment = new expr.IntegerLiteral(
-          token,
-          Number(getTokenValue(token, this.source)),
-        );
-        break;
-      case T.IDENT:
-        this.pos -= 1;
-        segment = this.parsePath();
-        break;
-      case T.DOUBLE_QUOTE:
-      case T.SINGLE_QUOTE:
-        this.pos -= 1;
-        segment = this.parseStringLiteral();
-        break;
-      case T.RBRACKET:
-        throw new TemplateSyntaxError(
-          "empty bracketed segment",
-          token,
-          this.source,
-        );
-      default:
-        throw new TemplateSyntaxError(
-          "expected an integer, identifier or string",
-          token,
-          this.source,
-        );
-    }
-
-    this.eat(T.RBRACKET);
-    return segment;
-  }
-
   protected parseRangeLiteral(): Expression {
     const token = this.eat(T.LPAREN);
     const start = this.parseFilteredExpression();
@@ -446,50 +455,41 @@ export class LegacyParser extends Parser {
     return new expr.RangeLiteral(token, start, stop);
   }
 
+  protected parseStringLiteral(): expr.StringLiteral {
+    const token = this.next();
+
+    if (this.kind() === token.kind) {
+      // Empty string
+      this.eat(token.kind);
+      return new expr.StringLiteral(token, "");
+    }
+
+    const result = new expr.StringLiteral(
+      token,
+      getTokenValue(this.eatOneOf(STRING_LITERAL_KINDS), this.source),
+    );
+
+    this.eat(token.kind);
+    return result;
+  }
+
+  protected parseTag(): Markup {
+    this.skipWhitespaceControl();
+    const token = this.eat(T.TAG_NAME, "missing tag name");
+    const tag = this.env.tags[getTokenValue(token, this.source)];
+
+    if (tag) {
+      return tag.parse(token, this);
+    }
+
+    throw new TemplateSyntaxError(
+      `unexpected tag ${getTokenValue(token, this.source)}`,
+      token,
+      this.source,
+    );
+  }
+
   protected parseTrueLiteral(): Expression {
     return new expr.BooleanLiteral(this.next(), true);
-  }
-
-  protected parseFalseLiteral(): Expression {
-    return new expr.BooleanLiteral(this.next(), false);
-  }
-
-  protected parseNullLiteral(): Expression {
-    return new expr.NullLiteral(this.next());
-  }
-
-  protected parseBlank(): Expression {
-    return new expr.Blank(this.next());
-  }
-
-  protected parseEmpty(): Expression {
-    return new expr.Empty(this.next());
-  }
-
-  protected parseIntLiteral(): Expression {
-    const token = this.next();
-    return new expr.IntegerLiteral(
-      token,
-      Number(getTokenValue(token, this.source)),
-    );
-  }
-
-  protected parseFloatLiteral(): Expression {
-    const token = this.next();
-    return new expr.FloatLiteral(
-      token,
-      Number(getTokenValue(token, this.source)),
-    );
-  }
-
-  protected parseInfix(left: Expression): Expression {
-    const opToken = this.next();
-    const kind = opToken.kind;
-    const right = this.parseFilteredExpression(
-      PRECEDENCES.get(kind) || PRECEDENCE_LOWEST,
-    );
-
-    const infixCtor = INFIX_OPERATORS.get(kind) as InfixConstructor;
-    return new infixCtor(opToken, left, right);
   }
 }

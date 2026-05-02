@@ -7,68 +7,69 @@ Decimal.set({ precision: 16 });
 export type N = string | number | Number | LiquidNumber;
 
 export abstract class LiquidNumber {
-  public abstract float: boolean;
-  public readonly n: Decimal;
+  abstract float: boolean;
 
-  public constructor(val: string | number | Decimal) {
+  readonly n: Decimal;
+
+  constructor(val: string | number | Decimal) {
     this.n = new Decimal(val);
   }
 
-  public valueOf(): number {
-    return this.n.toNumber();
-  }
-
-  public abs(): LiquidNumber {
+  abs(): LiquidNumber {
     const result = this.n.abs();
     return isFloat(this) ? new Float(result) : new Integer(result);
   }
 
-  public ceil(): LiquidNumber {
+  ceil(): LiquidNumber {
     return new Integer(this.n.ceil());
   }
 
-  public div(n: N): LiquidNumber {
+  div(n: N): LiquidNumber {
     const _n = parseNumberT(n);
     return isInteger(this) && isInteger(_n)
       ? new Integer(this.n.dividedToIntegerBy(_n.n))
       : new Float(this.n.dividedBy(_n.n));
   }
 
-  public eq(n: N): boolean {
+  eq(n: N): boolean {
     return this.n.eq(parseNumberT(n).n);
   }
 
-  public floor(): LiquidNumber {
+  floor(): LiquidNumber {
     return new Integer(this.n.floor());
   }
 
-  public gt(n: N): boolean {
+  gt(n: N): boolean {
     return this.n.gt(parseNumberT(n).n);
   }
 
-  public gte(n: N): boolean {
+  gte(n: N): boolean {
     return this.n.gte(parseNumberT(n).n);
   }
 
-  public lt(n: N): boolean {
+  isFinite(): boolean {
+    return this.n.isFinite();
+  }
+
+  lt(n: N): boolean {
     return this.n.lt(parseNumberT(n).n);
   }
 
-  public lte(n: N): boolean {
+  lte(n: N): boolean {
     return this.n.lte(parseNumberT(n).n);
   }
 
-  public max(n: N): LiquidNumber {
+  max(n: N): LiquidNumber {
     const _n = parseNumberT(n);
     return _n.gt(this) ? _n : this;
   }
 
-  public min(n: N): LiquidNumber {
+  min(n: N): LiquidNumber {
     const _n = parseNumberT(n);
     return _n.lt(this) ? _n : this;
   }
 
-  public minus(n: N): LiquidNumber {
+  minus(n: N): LiquidNumber {
     const _n = parseNumberT(n);
     const result = this.n.minus(_n.n);
     return isFloat(this) || isFloat(_n)
@@ -76,7 +77,7 @@ export abstract class LiquidNumber {
       : new Integer(result);
   }
 
-  public mod(n: N): LiquidNumber {
+  mod(n: N): LiquidNumber {
     const _n = parseNumberT(n);
     const result = this.n.mod(_n.n);
     return isFloat(this) || isFloat(_n)
@@ -84,7 +85,7 @@ export abstract class LiquidNumber {
       : new Integer(result);
   }
 
-  public plus(n: N): LiquidNumber {
+  plus(n: N): LiquidNumber {
     const _n = parseNumberT(n);
     const result = this.n.plus(_n.n);
     return isFloat(this) || isFloat(_n)
@@ -92,7 +93,7 @@ export abstract class LiquidNumber {
       : new Integer(result);
   }
 
-  public round(decimalPlaces?: number): LiquidNumber {
+  round(decimalPlaces?: number): LiquidNumber {
     return decimalPlaces === undefined || this.n.eq(0)
       ? new Integer(this.n.toDecimalPlaces(0, Decimal.ROUND_HALF_CEIL))
       : new Float(
@@ -100,7 +101,7 @@ export abstract class LiquidNumber {
         );
   }
 
-  public times(n: N): LiquidNumber {
+  times(n: N): LiquidNumber {
     const _n = parseNumberT(n);
     const result = this.n.times(_n.n);
     return isFloat(this) || isFloat(_n)
@@ -108,28 +109,28 @@ export abstract class LiquidNumber {
       : new Integer(result);
   }
 
-  public trunc(): LiquidNumber {
+  trunc(): LiquidNumber {
     return new Integer(this.n.trunc());
   }
 
-  public isFinite(): boolean {
-    return this.n.isFinite();
+  valueOf(): number {
+    return this.n.toNumber();
   }
 }
 
 export class Float extends LiquidNumber {
-  public readonly float = true as const;
+  readonly float = true as const;
 
-  public override toString(): string {
+  override toString(): string {
     const s = this.n.toString();
     return s.toString().indexOf(".") === -1 ? `${s}.0` : s;
   }
 }
 
 export class Integer extends LiquidNumber {
-  public readonly float = false as const;
+  readonly float = false as const;
 
-  public override toString(): string {
+  override toString(): string {
     return this.n.toString();
   }
 }

@@ -4,9 +4,11 @@ import { T, type Token } from "./token";
 export type StateFn = () => StateFn | null;
 
 export abstract class Lexer {
-  readonly tokens: Token[] = [];
-  protected start: number;
   protected pos: number;
+
+  protected start: number;
+
+  readonly tokens: Token[] = [];
 
   constructor(
     protected env: Environment,
@@ -28,14 +30,37 @@ export abstract class Lexer {
     return lexer.tokens;
   }
 
-  public run(): void {
+  protected acceptWhitespaceControl(): boolean {
+    if (this.source[this.pos] === "-") {
+      this.pos += 1;
+      this.emit(T.WC);
+      return true;
+    }
+    return false;
+  }
+
+  protected emit(kind: (typeof T)[keyof typeof T]) {
+    this.tokens.push({ kind, start: this.start, end: this.pos });
+    this.start = this.pos;
+  }
+
+  /**
+   * Find the index of `pattern` starting from `this.pos`.
+   * @param pattern A regular expression with the `g` flag (global) set.
+   * @returns The index of the substring matched by `pattern`, or null if there was no match.
+   */
+  protected index(pattern: RegExp): number | undefined {
+    pattern.lastIndex = this.pos;
+    const match = pattern.exec(this.source);
+    return match?.index;
+  }
+
+  run(): void {
     let state: StateFn | null = this.scanMarkup;
     while (state) {
       state = state.apply(this);
     }
   }
-
-  abstract scanMarkup(): StateFn | null;
 
   /**
    * Try to match `pattern` at the current position. Advance the character pointer by the
@@ -52,6 +77,8 @@ export abstract class Lexer {
     }
   }
 
+  abstract scanMarkup(): StateFn | null;
+
   /**
    * Consume text up to but not including the substring matched by `pattern`. Update `this.pos`
    * on success.
@@ -66,17 +93,6 @@ export abstract class Lexer {
       return true;
     }
     return false;
-  }
-
-  /**
-   * Find the index of `pattern` starting from `this.pos`.
-   * @param pattern A regular expression with the `g` flag (global) set.
-   * @returns The index of the substring matched by `pattern`, or null if there was no match.
-   */
-  protected index(pattern: RegExp): number | undefined {
-    pattern.lastIndex = this.pos;
-    const match = pattern.exec(this.source);
-    return match?.index;
   }
 
   /**
@@ -107,19 +123,5 @@ export abstract class Lexer {
       this.pos = match.index;
       return match;
     }
-  }
-
-  protected emit(kind: (typeof T)[keyof typeof T]) {
-    this.tokens.push({ kind, start: this.start, end: this.pos });
-    this.start = this.pos;
-  }
-
-  protected acceptWhitespaceControl(): boolean {
-    if (this.source[this.pos] === "-") {
-      this.pos += 1;
-      this.emit(T.WC);
-      return true;
-    }
-    return false;
   }
 }

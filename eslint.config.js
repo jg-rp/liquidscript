@@ -30,6 +30,12 @@ export default defineConfig([
           exceptAfterSingleLine: false,
         },
       ],
+      "@typescript-eslint/explicit-member-accessibility": [
+        "error",
+        {
+          accessibility: "no-public",
+        },
+      ],
     },
   },
   tseslint.configs.recommended,

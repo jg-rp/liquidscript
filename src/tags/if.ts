@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/explicit-member-accessibility */
 import type { RenderContext } from "../context";
 import { type Expression } from "../expression";
 import {

@@ -53,103 +53,6 @@ const tokenMap: { [key: string]: (typeof T)[keyof typeof T] } = {
  * mode syntax and semantics.
  */
 export class LegacyLexer extends Lexer {
-  override scanMarkup(): StateFn | null {
-    let limit: number | undefined;
-
-    for (;;) {
-      switch (this.scan(reMarkup)) {
-        case "{{":
-          // Output statements can be closed by `}}`, `}` or `%}`.
-          // Markup delimiters are greedy and not string literal aware.
-          // This greediness will be an issue if we ever try to support
-          // JSON-style object literals.
-          limit = this.index(reOutEnd);
-
-          if (limit === undefined) {
-            // Not markup and no more '}'. Emit text to end of string.
-            this.pos = this.source.length;
-            this.emit(T.TEXT);
-            return null;
-          }
-
-          this.emit(T.OUT_START);
-          this.acceptWhitespaceControl();
-          this.acceptExpression(limit);
-          this.skip(reTrivia);
-          this.acceptWhitespaceControl();
-          this.scan(reOutEnd);
-          this.emit(T.OUT_END);
-          break;
-        case "{%":
-          // Tags must be closed by `%}`.
-          // Markup delimiters are greedy and not string literal aware.
-          limit = this.index(reTagEndIndex);
-
-          if (limit !== undefined) {
-            this.emit(T.TAG_START);
-            this.acceptWhitespaceControl();
-            this.skip(reTrivia);
-            this.acceptTag(limit);
-            break;
-          }
-
-        // No more `%}`, but there could be `{{` and `}}`. Fall through.
-        // eslint-disable-next-line no-fallthrough
-        default:
-          if (this.scanUntil(reMarkupStart)) {
-            this.emit(T.TEXT);
-          } else {
-            // No more markup. Emit text to end of string.
-            this.pos = this.source.length;
-            if (this.start < this.pos) {
-              this.emit(T.TEXT);
-            }
-            return null;
-          }
-      }
-    }
-  }
-
-  protected acceptTag(limit: number): void {
-    const tagName = this.scan(reTagName);
-
-    if (tagName) {
-      this.emit(T.TAG_NAME);
-    }
-
-    switch (tagName) {
-      case "#":
-        this.acceptInlineComment(limit);
-        break;
-      case "comment":
-        this.acceptBlockComment(limit);
-        break;
-      case "doc":
-        this.acceptDocComment(limit);
-        break;
-      case "raw":
-        this.acceptRawTag(limit);
-        break;
-      case "liquid":
-        this.acceptLineStatements(limit);
-        break;
-      default:
-        this.acceptExpression(limit);
-        this.skip(reTrivia);
-        this.acceptWhitespaceControl();
-        this.scan(reTagEnd);
-        this.emit(T.TAG_END);
-    }
-  }
-
-  protected acceptInlineComment(limit: number): void {
-    this.pos = limit;
-    this.emit(T.COMMENT);
-    this.acceptWhitespaceControl();
-    this.pos += 2;
-    this.emit(T.TAG_END);
-  }
-
   protected acceptBlockComment(limit: number): void {
     this.skip(reTrivia);
     // Ignore any "expression".
@@ -224,118 +127,6 @@ export class LegacyLexer extends Lexer {
     // Leave `{% enddoc %}` for scanMarkup.
   }
 
-  protected acceptRawTag(limit: number): void {
-    // Let the parser handle unexpected expression tokens.
-    this.acceptExpression(limit);
-    this.skip(reTrivia);
-    this.acceptWhitespaceControl();
-    this.scan(reTagEnd);
-    this.emit(T.TAG_END);
-
-    if (this.scanUntil(/\{%-?\s*endraw\s*-?%\}/g)) {
-      this.emit(T.TEXT);
-    }
-
-    // Leave `{% endraw %}` for scanMarkup.
-  }
-
-  protected acceptLineStatements(limit: number): void {
-    let lineLimit: number | undefined;
-
-    while (this.pos < limit) {
-      this.skip(reTrivia);
-      lineLimit = this.source.indexOf("\n", this.pos) || limit;
-
-      this.emit(T.TAG_START);
-
-      switch (this.scan(reTagName)) {
-        case "#":
-          this.emit(T.TAG_NAME);
-          this.pos = lineLimit;
-          this.emit(T.COMMENT);
-          this.emit(T.TAG_END);
-          break;
-        case "comment":
-          this.emit(T.TAG_NAME);
-          this.emit(T.TAG_END);
-          this.acceptLineBlockComment(limit);
-          break;
-        case "doc":
-          this.emit(T.TAG_NAME);
-          this.acceptLineDocComment(limit);
-          break;
-        case "raw":
-          this.emit(T.TAG_NAME);
-          this.acceptLineRawTag(limit);
-          break;
-        case undefined:
-          // Remove empty TAG_START.
-          this.tokens.pop();
-          break;
-        default:
-          this.emit(T.TAG_NAME);
-          this.acceptExpression(lineLimit, reLineTrivia);
-          this.emit(T.TAG_END);
-      }
-    }
-
-    this.skip(reTrivia);
-    this.acceptWhitespaceControl();
-    this.scan(reTagEnd);
-    this.emit(T.TAG_END);
-  }
-
-  protected acceptLineBlockComment(limit: number): void {
-    let commentDepth = 1;
-    let index: number | undefined;
-    let match: RegExpExecArray | undefined;
-
-    while (this.pos < limit) {
-      index = this.index(reLineCommentSegment);
-      if (!index || index >= limit) {
-        this.emit(T.UNKNOWN);
-        break;
-      }
-
-      match = this.skipUntil(reLineCommentSegment);
-
-      if (!match) {
-        this.emit(T.UNKNOWN);
-        break;
-      }
-
-      switch (match[1]) {
-        case "comment":
-          commentDepth += 1;
-          this.pos += match[0].length;
-          break;
-        case "endcomment":
-          commentDepth -= 1;
-          if (commentDepth > 0) {
-            this.pos += match[0].length;
-            continue;
-          }
-
-          this.emit(T.COMMENT);
-          return;
-        default:
-          throw new Error("unreachable");
-      }
-    }
-  }
-
-  protected acceptLineDocComment(limit: number): void {
-    // Shopify/liquid always raises a syntax error for `doc` in `{% liquid %}`.
-    this.pos = limit;
-    this.emit(T.UNKNOWN);
-  }
-
-  protected acceptLineRawTag(limit: number): void {
-    // Shopify/liquid always raises a syntax error for `raw` in `{% liquid %}`.
-    this.pos = limit;
-    this.emit(T.UNKNOWN);
-  }
-
   /**
    * Scan and emit expression tokens up to `limit`.
    *
@@ -402,6 +193,126 @@ export class LegacyLexer extends Lexer {
     }
   }
 
+  protected acceptInlineComment(limit: number): void {
+    this.pos = limit;
+    this.emit(T.COMMENT);
+    this.acceptWhitespaceControl();
+    this.pos += 2;
+    this.emit(T.TAG_END);
+  }
+
+  protected acceptLineBlockComment(limit: number): void {
+    let commentDepth = 1;
+    let index: number | undefined;
+    let match: RegExpExecArray | undefined;
+
+    while (this.pos < limit) {
+      index = this.index(reLineCommentSegment);
+      if (!index || index >= limit) {
+        this.emit(T.UNKNOWN);
+        break;
+      }
+
+      match = this.skipUntil(reLineCommentSegment);
+
+      if (!match) {
+        this.emit(T.UNKNOWN);
+        break;
+      }
+
+      switch (match[1]) {
+        case "comment":
+          commentDepth += 1;
+          this.pos += match[0].length;
+          break;
+        case "endcomment":
+          commentDepth -= 1;
+          if (commentDepth > 0) {
+            this.pos += match[0].length;
+            continue;
+          }
+
+          this.emit(T.COMMENT);
+          return;
+        default:
+          throw new Error("unreachable");
+      }
+    }
+  }
+
+  protected acceptLineDocComment(limit: number): void {
+    // Shopify/liquid always raises a syntax error for `doc` in `{% liquid %}`.
+    this.pos = limit;
+    this.emit(T.UNKNOWN);
+  }
+
+  protected acceptLineRawTag(limit: number): void {
+    // Shopify/liquid always raises a syntax error for `raw` in `{% liquid %}`.
+    this.pos = limit;
+    this.emit(T.UNKNOWN);
+  }
+
+  protected acceptLineStatements(limit: number): void {
+    let lineLimit: number | undefined;
+
+    while (this.pos < limit) {
+      this.skip(reTrivia);
+      lineLimit = this.source.indexOf("\n", this.pos) || limit;
+
+      this.emit(T.TAG_START);
+
+      switch (this.scan(reTagName)) {
+        case "#":
+          this.emit(T.TAG_NAME);
+          this.pos = lineLimit;
+          this.emit(T.COMMENT);
+          this.emit(T.TAG_END);
+          break;
+        case "comment":
+          this.emit(T.TAG_NAME);
+          this.emit(T.TAG_END);
+          this.acceptLineBlockComment(limit);
+          break;
+        case "doc":
+          this.emit(T.TAG_NAME);
+          this.acceptLineDocComment(limit);
+          break;
+        case "raw":
+          this.emit(T.TAG_NAME);
+          this.acceptLineRawTag(limit);
+          break;
+        case undefined:
+          // Remove empty TAG_START.
+          this.tokens.pop();
+          break;
+        default:
+          this.emit(T.TAG_NAME);
+          this.acceptExpression(lineLimit, reLineTrivia);
+          this.emit(T.TAG_END);
+      }
+    }
+
+    this.skip(reTrivia);
+    this.acceptWhitespaceControl();
+    this.scan(reTagEnd);
+    this.emit(T.TAG_END);
+  }
+
+  protected acceptRawTag(limit: number): void {
+    // Let the parser handle unexpected expression tokens.
+    this.acceptExpression(limit);
+    this.skip(reTrivia);
+    this.acceptWhitespaceControl();
+    this.scan(reTagEnd);
+    this.emit(T.TAG_END);
+
+    if (this.scanUntil(/\{%-?\s*endraw\s*-?%\}/g)) {
+      this.emit(T.TEXT);
+    }
+
+    // Leave `{% endraw %}` for scanMarkup.
+  }
+
   protected acceptStringLiteral(limit: number): void {
     const quote = this.source[this.pos] || "";
     this.pos += 1;
@@ -424,6 +335,95 @@ export class LegacyLexer extends Lexer {
     if (this.source[this.pos] === quote) {
       this.pos += 1;
       this.emit(kind);
+    }
+  }
+
+  protected acceptTag(limit: number): void {
+    const tagName = this.scan(reTagName);
+
+    if (tagName) {
+      this.emit(T.TAG_NAME);
+    }
+
+    switch (tagName) {
+      case "#":
+        this.acceptInlineComment(limit);
+        break;
+      case "comment":
+        this.acceptBlockComment(limit);
+        break;
+      case "doc":
+        this.acceptDocComment(limit);
+        break;
+      case "raw":
+        this.acceptRawTag(limit);
+        break;
+      case "liquid":
+        this.acceptLineStatements(limit);
+        break;
+      default:
+        this.acceptExpression(limit);
+        this.skip(reTrivia);
+        this.acceptWhitespaceControl();
+        this.scan(reTagEnd);
+        this.emit(T.TAG_END);
+    }
+  }
+
+  override scanMarkup(): StateFn | null {
+    let limit: number | undefined;
+
+    for (;;) {
+      switch (this.scan(reMarkup)) {
+        case "{{":
+          // Output statements can be closed by `}}`, `}` or `%}`.
+          // Markup delimiters are greedy and not string literal aware.
+          // This greediness will be an issue if we ever try to support
+          // JSON-style object literals.
+          limit = this.index(reOutEnd);
+
+          if (limit === undefined) {
+            // Not markup and no more '}'. Emit text to end of string.
+            this.pos = this.source.length;
+            this.emit(T.TEXT);
+            return null;
+          }
+
+          this.emit(T.OUT_START);
+          this.acceptWhitespaceControl();
+          this.acceptExpression(limit);
+          this.skip(reTrivia);
+          this.acceptWhitespaceControl();
+          this.scan(reOutEnd);
+          this.emit(T.OUT_END);
+          break;
+        case "{%":
+          // Tags must be closed by `%}`.
+          // Markup delimiters are greedy and not string literal aware.
+          limit = this.index(reTagEndIndex);
+
+          if (limit !== undefined) {
+            this.emit(T.TAG_START);
+            this.acceptWhitespaceControl();
+            this.skip(reTrivia);
+            this.acceptTag(limit);
+            break;
+          }
+
+        // No more `%}`, but there could be `{{` and `}}`. Fall through.
+        // eslint-disable-next-line no-fallthrough
+        default:
+          if (this.scanUntil(reMarkupStart)) {
+            this.emit(T.TEXT);
+          } else {
+            // No more markup. Emit text to end of string.
+            this.pos = this.source.length;
+            if (this.start < this.pos) {
+              this.emit(T.TEXT);
+            }
+            return null;
+          }
+      }
     }
   }
 }

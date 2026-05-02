@@ -40,6 +40,10 @@ export class FilteredExpression implements Expression {
     this.span = span(token, filter.span);
   }
 
+  children(context: StaticContext): Traversable[] {
+    return [this.left, this.filter];
+  }
+
   async evaluate(context: RenderContext): Promise<unknown> {
     const func = context.env.filters[this.filter.name.value];
     if (!func) {
@@ -119,10 +123,6 @@ export class FilteredExpression implements Expression {
     );
   }
 
-  children(context: StaticContext): Traversable[] {
-    return [this.left, this.filter];
-  }
-
   toString(): string {
     return `${this.left} | ${this.filter}`;
   }
@@ -139,6 +139,10 @@ export class OrExpression implements Expression {
     this.span = span(left.token, right.token);
   }
 
+  children(context: StaticContext): Traversable[] {
+    return [this.left, this.right];
+  }
+
   async evaluate(context: RenderContext): Promise<unknown> {
     const left = await this.left.evaluate(context);
     return context.env.isTruthy(left, context)
@@ -151,10 +155,6 @@ export class OrExpression implements Expression {
     return context.env.isTruthy(left, context)
       ? left
       : this.right.evaluateSync(context);
-  }
-
-  children(context: StaticContext): Traversable[] {
-    return [this.left, this.right];
   }
 
   toString(): string {
@@ -173,6 +173,10 @@ export class AndExpression implements Expression {
     this.span = span(left.token, right.token);
   }
 
+  children(context: StaticContext): Traversable[] {
+    return [this.left, this.right];
+  }
+
   async evaluate(context: RenderContext): Promise<unknown> {
     const left = await this.left.evaluate(context);
     return context.env.isTruthy(left, context)
@@ -185,10 +189,6 @@ export class AndExpression implements Expression {
     return context.env.isTruthy(left, context)
       ? this.right.evaluateSync(context)
       : left;
-  }
-
-  children(context: StaticContext): Traversable[] {
-    return [this.left, this.right];
   }
 
   toString(): string {
@@ -207,6 +207,10 @@ export class EqExpression implements Expression {
     this.span = span(left.token, right.token);
   }
 
+  children(context: StaticContext): Traversable[] {
+    return [this.left, this.right];
+  }
+
   async evaluate(context: RenderContext): Promise<unknown> {
     return context.env.isEqual(
       await this.left.evaluate(context),
@@ -223,10 +227,6 @@ export class EqExpression implements Expression {
       context,
       this.span,
     );
-  }
-
-  children(context: StaticContext): Traversable[] {
-    return [this.left, this.right];
   }
 
   toString(): string {
@@ -245,6 +245,10 @@ export class NeExpression implements Expression {
     this.span = span(left.token, right.token);
   }
 
+  children(context: StaticContext): Traversable[] {
+    return [this.left, this.right];
+  }
+
   async evaluate(context: RenderContext): Promise<unknown> {
     return !context.env.isEqual(
       await this.left.evaluate(context),
@@ -261,10 +265,6 @@ export class NeExpression implements Expression {
       context,
       this.span,
     );
-  }
-
-  children(context: StaticContext): Traversable[] {
-    return [this.left, this.right];
   }
 
   toString(): string {
@@ -283,6 +283,10 @@ export class LtExpression implements Expression {
     this.span = span(left.token, right.token);
   }
 
+  children(context: StaticContext): Traversable[] {
+    return [this.left, this.right];
+  }
+
   async evaluate(context: RenderContext): Promise<unknown> {
     return context.env.isLessThan(
       await this.left.evaluate(context),
@@ -299,10 +303,6 @@ export class LtExpression implements Expression {
       context,
       this.span,
     );
-  }
-
-  children(context: StaticContext): Traversable[] {
-    return [this.left, this.right];
   }
 
   toString(): string {
@@ -321,6 +321,10 @@ export class LeExpression implements Expression {
     this.span = span(left.token, right.token);
   }
 
+  children(context: StaticContext): Traversable[] {
+    return [this.left, this.right];
+  }
+
   async evaluate(context: RenderContext): Promise<unknown> {
     const left = await this.left.evaluate(context);
     const right = await this.right.evaluate(context);
@@ -337,10 +341,6 @@ export class LeExpression implements Expression {
       context.env.isLessThan(left, right, context, this.span) ||
       context.env.isEqual(left, right, context, this.span)
     );
-  }
-
-  children(context: StaticContext): Traversable[] {
-    return [this.left, this.right];
   }
 
   toString(): string {
@@ -359,6 +359,10 @@ export class GtExpression implements Expression {
     this.span = span(left.token, right.token);
   }
 
+  children(context: StaticContext): Traversable[] {
+    return [this.left, this.right];
+  }
+
   async evaluate(context: RenderContext): Promise<unknown> {
     return context.env.isLessThan(
       await this.right.evaluate(context),
@@ -377,10 +381,6 @@ export class GtExpression implements Expression {
     );
   }
 
-  children(context: StaticContext): Traversable[] {
-    return [this.left, this.right];
-  }
-
   toString(): string {
     return `${this.left} > ${this.right}`;
   }
@@ -395,6 +395,10 @@ export class GeExpression implements Expression {
     readonly right: Expression,
   ) {
     this.span = span(left.token, right.token);
+  }
+
+  children(context: StaticContext): Traversable[] {
+    return [this.left, this.right];
   }
 
   async evaluate(context: RenderContext): Promise<unknown> {
@@ -415,10 +419,6 @@ export class GeExpression implements Expression {
     );
   }
 
-  children(context: StaticContext): Traversable[] {
-    return [this.left, this.right];
-  }
-
   toString(): string {
     return `${this.left} >= ${this.right}`;
   }
@@ -433,6 +433,10 @@ export class ContainsExpression implements Expression {
     readonly right: Expression,
   ) {
     this.span = span(left.token, right.token);
+  }
+
+  children(context: StaticContext): Traversable[] {
+    return [this.left, this.right];
   }
 
   async evaluate(context: RenderContext): Promise<unknown> {
@@ -451,10 +455,6 @@ export class ContainsExpression implements Expression {
       context,
       this.span,
     );
-  }
-
-  children(context: StaticContext): Traversable[] {
-    return [this.left, this.right];
   }
 
   toString(): string {
@@ -474,6 +474,10 @@ export class Variable implements Expression {
       segments.length === 0
         ? token
         : span(token, (segments[segments.length - 1] as PathSegment).span);
+  }
+
+  children(context: StaticContext): Traversable[] {
+    return this.segments.filter((s) => s instanceof Variable);
   }
 
   async evaluate(context: RenderContext): Promise<unknown> {
@@ -526,14 +530,6 @@ export class Variable implements Expression {
     return obj;
   }
 
-  children(context: StaticContext): Traversable[] {
-    return this.segments.filter((s) => s instanceof Variable);
-  }
-
-  toString(): string {
-    return this.path(this.segments);
-  }
-
   private path(segments: PathSegment[]): string {
     const root = this.root instanceof Name ? `${this.root}` : `[${this.root}]`;
 
@@ -548,6 +544,10 @@ export class Variable implements Expression {
 
     return `${root}`;
   }
+
+  toString(): string {
+    return this.path(this.segments);
+  }
 }
 
 export class StringLiteral implements Expression {
@@ -560,16 +560,16 @@ export class StringLiteral implements Expression {
     this.span = token;
   }
 
+  children(context: StaticContext): Traversable[] {
+    return [];
+  }
+
   async evaluate(context: RenderContext): Promise<unknown> {
     return this.value;
   }
 
   evaluateSync(context: RenderContext): unknown {
     return this.value;
-  }
-
-  children(context: StaticContext): Traversable[] {
-    return [];
   }
 
   toString(): string {
@@ -589,16 +589,16 @@ export class IntegerLiteral implements Expression {
     this.span = token;
   }
 
+  children(context: StaticContext): Traversable[] {
+    return [];
+  }
+
   async evaluate(context: RenderContext): Promise<unknown> {
     return this.value;
   }
 
   evaluateSync(context: RenderContext): unknown {
     return this.value;
-  }
-
-  children(context: StaticContext): Traversable[] {
-    return [];
   }
 
   toString(): string {
@@ -616,16 +616,16 @@ export class FloatLiteral implements Expression {
     this.span = token;
   }
 
+  children(context: StaticContext): Traversable[] {
+    return [];
+  }
+
   async evaluate(context: RenderContext): Promise<unknown> {
     return this.value;
   }
 
   evaluateSync(context: RenderContext): unknown {
     return this.value;
-  }
-
-  children(context: StaticContext): Traversable[] {
-    return [];
   }
 
   toString(): string {
@@ -643,16 +643,16 @@ export class BooleanLiteral implements Expression {
     this.span = token;
   }
 
+  children(context: StaticContext): Traversable[] {
+    return [];
+  }
+
   async evaluate(context: RenderContext): Promise<unknown> {
     return this.value;
   }
 
   evaluateSync(context: RenderContext): unknown {
     return this.value;
-  }
-
-  children(context: StaticContext): Traversable[] {
-    return [];
   }
 
   toString(): string {
@@ -667,16 +667,16 @@ export class NullLiteral implements Expression {
     this.span = token;
   }
 
+  children(context: StaticContext): Traversable[] {
+    return [];
+  }
+
   async evaluate(context: RenderContext): Promise<unknown> {
     return null;
   }
 
   evaluateSync(context: RenderContext): unknown {
     return null;
-  }
-
-  children(context: StaticContext): Traversable[] {
-    return [];
   }
 
   toString(): string {
@@ -691,16 +691,16 @@ export class Blank implements Expression {
     this.span = token;
   }
 
+  children(context: StaticContext): Traversable[] {
+    return [];
+  }
+
   async evaluate(context: RenderContext): Promise<unknown> {
     return BLANK;
   }
 
   evaluateSync(context: RenderContext): unknown {
     return BLANK;
-  }
-
-  children(context: StaticContext): Traversable[] {
-    return [];
   }
 
   toString(): string {
@@ -715,16 +715,16 @@ export class Empty implements Expression {
     this.span = token;
   }
 
+  children(context: StaticContext): Traversable[] {
+    return [];
+  }
+
   async evaluate(context: RenderContext): Promise<unknown> {
     return EMPTY;
   }
 
   evaluateSync(context: RenderContext): unknown {
     return EMPTY;
-  }
-
-  children(context: StaticContext): Traversable[] {
-    return [];
   }
 
   toString(): string {
@@ -741,6 +741,10 @@ export class RangeLiteral implements Expression {
     readonly stop: Expression,
   ) {
     this.span = span(start.token, stop.token);
+  }
+
+  children(context: StaticContext): Traversable[] {
+    return [this.start, this.stop];
   }
 
   async evaluate(context: RenderContext): Promise<unknown> {
@@ -773,10 +777,6 @@ export class RangeLiteral implements Expression {
     );
 
     return range(start, stop);
-  }
-
-  children(context: StaticContext): Traversable[] {
-    return [this.start, this.stop];
   }
 
   toString(): string {

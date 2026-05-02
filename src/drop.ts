@@ -29,6 +29,58 @@ export const lessThan = Symbol.for("liquid.drop.lessThan");
 export const lessThanSync = Symbol.for("liquid.drop.lessThan.sync");
 
 export abstract class Drop {
+  async [contains](obj: unknown, context: RenderContext): Promise<boolean> {
+    return this[containsSync](obj, context);
+  }
+
+  [containsSync](obj: unknown, context: RenderContext): boolean {
+    return false;
+  }
+
+  async [dispatch](name: string, context: RenderContext): Promise<unknown> {
+    return this[dispatchSync](name, context);
+  }
+
+  [dispatchSync](name: string, context: RenderContext): unknown {
+    return Nothing;
+  }
+
+  [equals](obj: unknown, context: RenderContext): boolean {
+    return false;
+  }
+
+  [isInvocable](name: string): boolean {
+    return false;
+  }
+
+  [length](): number {
+    return 0;
+  }
+
+  async [lessThan](obj: unknown, context: RenderContext): Promise<boolean> {
+    return this[lessThanSync](obj, context);
+  }
+
+  [lessThanSync](obj: unknown, context: RenderContext): boolean {
+    return false;
+  }
+
+  async [slice](
+    offset?: number,
+    limit?: number,
+    reversed?: boolean,
+  ): Promise<Drop> {
+    return this[sliceSync](offset, limit, reversed);
+  }
+
+  [sliceSync](offset?: number, limit?: number, reversed?: boolean): Drop {
+    return this;
+  }
+
+  async *[Symbol.asyncIterator](): AsyncGenerator<unknown, void, void> {}
+
+  *[Symbol.iterator](): Iterator<unknown> {}
+
   async [toLiquid](
     hint: ContextHint,
     context: RenderContext,
@@ -47,58 +99,6 @@ export abstract class Drop {
       case "numeric":
         return 0;
     }
-  }
-
-  [isInvocable](name: string): boolean {
-    return false;
-  }
-
-  async [dispatch](name: string, context: RenderContext): Promise<unknown> {
-    return this[dispatchSync](name, context);
-  }
-
-  [dispatchSync](name: string, context: RenderContext): unknown {
-    return Nothing;
-  }
-
-  [equals](obj: unknown, context: RenderContext): boolean {
-    return false;
-  }
-
-  async *[Symbol.asyncIterator](): AsyncGenerator<unknown, void, void> {}
-
-  *[Symbol.iterator](): Iterator<unknown> {}
-
-  [length](): number {
-    return 0;
-  }
-
-  async [slice](
-    offset?: number,
-    limit?: number,
-    reversed?: boolean,
-  ): Promise<Drop> {
-    return this[sliceSync](offset, limit, reversed);
-  }
-
-  [sliceSync](offset?: number, limit?: number, reversed?: boolean): Drop {
-    return this;
-  }
-
-  async [contains](obj: unknown, context: RenderContext): Promise<boolean> {
-    return this[containsSync](obj, context);
-  }
-
-  [containsSync](obj: unknown, context: RenderContext): boolean {
-    return false;
-  }
-
-  async [lessThan](obj: unknown, context: RenderContext): Promise<boolean> {
-    return this[lessThanSync](obj, context);
-  }
-
-  [lessThanSync](obj: unknown, context: RenderContext): boolean {
-    return false;
   }
 
   toString(): string {
