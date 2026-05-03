@@ -205,6 +205,7 @@ export class Environment {
     this.tags["capture"] = tags.CaptureTag;
     this.tags["case"] = tags.CaseTag;
     this.tags["comment"] = tags.CommentTag;
+    this.tags["cycle"] = tags.CycleTag;
     this.tags["for"] = tags.ForTag;
     this.tags["if"] = tags.IfTag;
     this.tags["raw"] = tags.RawTag;

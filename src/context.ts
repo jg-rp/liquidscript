@@ -158,6 +158,14 @@ export class RenderContext {
     }
   }
 
+  getRegister<V>(key: string | symbol, defaultFactory: () => V): V {
+    if (!this.registers.has(key)) {
+      this.registers.set(key, defaultFactory());
+    }
+
+    return this.registers.get(key) as V;
+  }
+
   /**
    * Lookup `name` in the current scope. Return the special `Nothing` value if
    * `name` is not defined.

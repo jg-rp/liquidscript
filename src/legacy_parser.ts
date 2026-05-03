@@ -120,7 +120,7 @@ export class LegacyParser extends Parser {
           new expr.KeywordArgument(name.token, name, this.parseExpression()),
         );
       } else {
-        args.push(this.parseExpression());
+        args.push(this.parseExpression(PRECEDENCE_LOWEST, false));
       }
 
       kind = this.kind();
@@ -452,6 +452,28 @@ export class LegacyParser extends Parser {
     }
 
     return segments;
+  }
+
+  override parsePositionalArguments(requireCommas?: boolean): Expression[] {
+    const args: Expression[] = [];
+    let kind: TokenKind;
+
+    for (;;) {
+      if (TERMINATE_EXPRESSION.has(this.kind())) {
+        break;
+      }
+
+      args.push(this.parseExpression(PRECEDENCE_LOWEST, false));
+
+      kind = this.kind();
+      if (requireCommas && !TERMINATE_EXPRESSION.has(kind)) {
+        this.eat(T.COMMA);
+      } else if (kind == T.COMMA) {
+        this.pos += 1;
+      }
+    }
+
+    return args;
   }
 
   protected parseRangeLiteral(): Expression {

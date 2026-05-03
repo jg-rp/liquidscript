@@ -219,11 +219,11 @@ export class ForTag implements Markup {
     length: number,
     context: RenderContext,
   ): [number, number | undefined, Map<string, number>, string] {
-    if (!context.registers.has(FOR_STACK)) {
-      context.registers.set(FOR_STACK, new Map());
-    }
+    const offsets = context.getRegister(
+      FOR_STACK,
+      () => new Map<string, number>(),
+    );
 
-    const offsets = context.registers.get(FOR_STACK) as Map<string, number>;
     const offsetKey = `${this.name.value}-${this.expression}`;
 
     let normalizedOffset = 0;

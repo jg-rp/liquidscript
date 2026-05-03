@@ -229,6 +229,17 @@ export abstract class Parser {
   abstract parseName(): Name;
 
   /**
+   * Parse positional arguments.
+   *
+   * Assumes any leading commas have been consumed by the caller, if they are
+   * allowed.
+   *
+   * @param requireCommas When true, throw a syntax error if there is no comma
+   *   between each argument.
+   */
+  abstract parsePositionalArguments(requireCommas?: boolean): Array<Expression>;
+
+  /**
    * Return the token at self.pos + offset, or EOI if there are no tokens left.
    * Does not advance the token pointer.
    */
