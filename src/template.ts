@@ -9,7 +9,14 @@ export class Template {
     readonly env: Environment,
     readonly source: string,
     readonly nodes: Block,
-  ) {}
+  ) {
+    // TODO: name
+    // TODO: path
+    // TODO: globals
+    // TODO: overlay
+    // TODO: upToDate
+    // TODO: upToDateSync
+  }
 
   async render(data?: { [index: string]: unknown }): Promise<string> {
     const buffer: string[] = [];

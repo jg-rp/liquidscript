@@ -1,16 +1,8 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import type { Filter } from "./filter";
 import { LegacyLexer } from "./legacy_lexer";
 import { LegacyParser } from "./legacy_parser";
 import type { Block, Tag } from "./markup";
-import {
-  containsSync,
-  Drop,
-  equals,
-  lessThanSync,
-  toLiquid,
-  toLiquidSync,
-} from "./drop";
+import { containsSync, Drop, equals, lessThanSync, toLiquidSync } from "./drop";
 import * as tags from "./tags";
 import * as filters from "./filters";
 import { Template } from "./template";
@@ -24,10 +16,12 @@ import {
   isPropertyKey,
   isString,
 } from "./type_guards";
-import type { RenderContext } from "./context";
+import type { Namespace, RenderContext } from "./context";
 import { TemplateTypeError } from "./errors";
 import { Undefined } from "./drops/undefined";
-import { isInteger, isLiquidNumber, isPrimitiveNumber } from "./number";
+import { isLiquidNumber, isPrimitiveNumber } from "./number";
+import type { TemplateLoader } from "./loader";
+import { ObjectLoader } from "./loaders";
 
 export interface _Parser {
   parse(env: Environment, source: string, startIndex?: number): Block;
@@ -45,12 +39,46 @@ export interface BufferFactory {
   new (): string[];
 }
 
+export type TemplateMeta = {
+  /**
+   * Template name or identifier.
+   */
+  name: string;
+
+  /**
+   * Fully qualified path to `name`.
+   */
+  path?: string;
+
+  /**
+   * Additional template global variables.
+   */
+  overlay?: Namespace;
+
+  /**
+   * A function returning `true` if the template is up to date, or
+   * `false` if it needs to be loaded again.
+   */
+  upToDate?: () => Promise<boolean>;
+
+  /**
+   * A function returning `true` if the template is up to date, or
+   * `false` if it needs to be loaded again.
+   */
+  upToDateSync?: () => boolean;
+};
+
 export class Environment {
   bufferFactory: BufferFactory = Array;
 
   filters: { [key: string]: Filter };
 
+  globals: Namespace | undefined;
+
   lexer: _Lexer = LegacyLexer;
+
+  // TODO:
+  loader: TemplateLoader = new ObjectLoader();
 
   parser: _Parser = LegacyParser;
 
@@ -62,11 +90,15 @@ export class Environment {
 
   undefinedFactory: _Undefined = Undefined;
 
-  constructor() {
+  // TODO: env options
+  // TODO: loader
+  constructor(globals?: Namespace) {
     this.tags = {};
     this.filters = {};
     this.setupTags();
     this.setupFilters();
+
+    this.globals = globals;
   }
 
   contains(
@@ -102,6 +134,24 @@ export class Environment {
       token,
       context.template.source,
     );
+  }
+
+  async getTemplate(
+    name: string,
+    globals?: Namespace,
+    context?: RenderContext,
+    options?: { [index: string]: unknown },
+  ): Promise<Template> {
+    return await this.loader.load(this, name, globals, context, options);
+  }
+
+  getTemplateSync(
+    name: string,
+    globals?: Namespace,
+    context?: RenderContext,
+    options?: { [index: string]: unknown },
+  ): Template {
+    return this.loader.loadSync(this, name, globals, context, options);
   }
 
   isEqual(
@@ -173,7 +223,14 @@ export class Environment {
     return !(obj === false || obj === null || obj === undefined);
   }
 
-  parse(source: string): Template {
+  makeGlobals(namespace?: Namespace): Namespace | undefined {
+    if (namespace === undefined) return this.globals;
+    if (this.globals === undefined) return namespace;
+    return { ...this.globals, ...namespace };
+  }
+
+  parse(source: string, globals?: Namespace, meta?: TemplateMeta): Template {
+    // TODO:
     return new Template(this, source, this.parser.parse(this, source, 0));
   }
 
