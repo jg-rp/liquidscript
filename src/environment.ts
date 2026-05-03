@@ -196,6 +196,7 @@ export class Environment {
     this.filters["default"] = filters.default_;
     this.filters["join"] = filters.join;
     this.filters["reverse"] = filters.reverse;
+    this.filters["sort"] = filters.sort;
     this.filters["split"] = filters.split;
     this.filters["upcase"] = filters.upcase;
   }
@@ -206,8 +207,13 @@ export class Environment {
     this.tags["case"] = tags.CaseTag;
     this.tags["comment"] = tags.CommentTag;
     this.tags["cycle"] = tags.CycleTag;
+    this.tags["decrement"] = tags.DecrementTag;
+    this.tags["doc"] = tags.DocTag;
+    this.tags["echo"] = tags.EchoTag;
     this.tags["for"] = tags.ForTag;
     this.tags["if"] = tags.IfTag;
+    this.tags["ifchanged"] = tags.IfChangedTag;
+    this.tags["increment"] = tags.IncrementTag;
     this.tags["raw"] = tags.RawTag;
     this.tags["continue"] = tags.ContinueTag;
     this.tags["break"] = tags.BreakTag;

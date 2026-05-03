@@ -2,11 +2,10 @@ import { Environment, render, renderSync } from "./src";
 import { StrictUndefined } from "./src/drops/undefined";
 import type { _Undefined } from "./src/environment";
 
-const source = `{% cycle a: '1', '2' %}{% cycle a: '1', '2', '3' %}{% cycle a: '1' %}`;
+const source = `{{ a | sort: nosuchthing | join: '#' }}`;
 
 const data = {
-  title: "Hello",
-  a: "Hello",
+  a: ["b", "a"],
 };
 
 class MyEnv extends Environment {

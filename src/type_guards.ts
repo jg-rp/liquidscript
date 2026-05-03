@@ -1,3 +1,5 @@
+import { LiquidNumber } from "./number";
+
 /**
  * A type predicate for the primitive string.
  * @param value - Any value
@@ -74,4 +76,10 @@ export function isIterable(value: unknown): value is Iterable<unknown> {
  */
 export function isFunction(value: unknown): value is CallableFunction {
   return typeof value === "function";
+}
+
+export function isComparable(
+  value: unknown,
+): value is number | LiquidNumber | string {
+  return isNumber(value) || isString(value) || value instanceof LiquidNumber;
 }

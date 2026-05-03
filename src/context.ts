@@ -110,6 +110,18 @@ export class RenderContext {
     return ctx;
   }
 
+  decrement(name: string): number {
+    let val = this.counters[name] as number | undefined;
+
+    if (val === undefined) {
+      val = 0;
+    }
+
+    val -= 1;
+    this.counters[name] = val;
+    return val;
+  }
+
   async extend(
     namespace: { [index: string]: unknown },
     callback: () => Promise<void>,
@@ -164,6 +176,17 @@ export class RenderContext {
     }
 
     return this.registers.get(key) as V;
+  }
+
+  increment(name: string): number {
+    let val = this.counters[name] as number | undefined;
+
+    if (val === undefined) {
+      val = 0;
+    }
+
+    this.counters[name] = val + 1;
+    return val;
   }
 
   /**
