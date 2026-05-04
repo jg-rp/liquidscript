@@ -9,6 +9,7 @@ export type Block = Array<string | Markup>;
 
 export interface OutputBuffer {
   push(value: string): void;
+  join(separator: string): string;
 }
 
 export interface Markup {

@@ -29,7 +29,7 @@ export class IfChangedTag implements Markup {
   }
 
   async render(context: RenderContext, buffer: OutputBuffer): Promise<void> {
-    const buf = new context.env.bufferFactory(); // XXX: "new" and "factory"
+    const buf = context.env.bufferFactory();
     await renderBlock(this.block, context, buf);
     const buffered = buf.join("");
 
@@ -44,7 +44,7 @@ export class IfChangedTag implements Markup {
   }
 
   renderSync(context: RenderContext, buffer: OutputBuffer): void {
-    const buf = new context.env.bufferFactory(); // XXX: "new" and "factory"
+    const buf = context.env.bufferFactory();
     renderBlockSync(this.block, context, buf);
     const buffered = buf.join("");
 

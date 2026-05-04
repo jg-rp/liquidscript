@@ -1,7 +1,7 @@
 import type { Filter } from "./filter";
 import { LegacyLexer } from "./legacy_lexer";
 import { LegacyParser } from "./legacy_parser";
-import type { Block, Tag } from "./markup";
+import type { Block, OutputBuffer, Tag } from "./markup";
 import { containsSync, Drop, equals, lessThanSync, toLiquidSync } from "./drop";
 import * as tags from "./tags";
 import * as filters from "./filters";
@@ -21,7 +21,7 @@ import { TemplateTypeError } from "./errors";
 import { Undefined } from "./drops/undefined";
 import { isLiquidNumber, isPrimitiveNumber } from "./number";
 import type { TemplateLoader } from "./loader";
-import { ObjectLoader } from "./loaders";
+import { MapLoader } from "./loaders";
 
 export interface _Parser {
   parse(env: Environment, source: string, startIndex?: number): Block;
@@ -35,10 +35,11 @@ export interface _Undefined {
   new (path: string, token: Token, source: string): Undefined;
 }
 
-export interface BufferFactory {
-  new (): string[];
-}
+export type BufferFactory = () => OutputBuffer;
 
+/**
+ * Additional info attached accompanying template source code.
+ */
 export type TemplateMeta = {
   /**
    * Template name or identifier.
@@ -68,8 +69,39 @@ export type TemplateMeta = {
   upToDateSync?: () => boolean;
 };
 
+/**
+ * Options for the `Environment` constructor.
+ */
+export type EnvironmentOptions = {
+  /**
+   * An optional object who's properties will be added to the render context
+   * of every template rendered from this environment.
+   *
+   * `globals` is not copied, so updates to it after environment construction
+   * will be visible to templates.
+   * @defaultValue An empty `Object`.
+   */
+  globals?: Namespace;
+
+  /**
+   * A template loader. Used to load templates from a file system or database,
+   * for example.
+   * @defaultValue An empty `MapLoader`.
+   */
+  loader?: TemplateLoader;
+
+  /**
+   * A function returning a new, empty output buffer.
+   * @defaultValue `Array`.
+   */
+  bufferFactory?: BufferFactory;
+};
+
+/**
+ * Template engine configuration from which templates can be loaded and parsed.
+ */
 export class Environment {
-  bufferFactory: BufferFactory = Array;
+  bufferFactory: BufferFactory;
 
   filters: { [key: string]: Filter };
 
@@ -77,8 +109,7 @@ export class Environment {
 
   lexer: _Lexer = LegacyLexer;
 
-  // TODO:
-  loader: TemplateLoader = new ObjectLoader();
+  loader: TemplateLoader;
 
   parser: _Parser = LegacyParser;
 
@@ -90,15 +121,15 @@ export class Environment {
 
   undefinedFactory: _Undefined = Undefined;
 
-  // TODO: env options
-  // TODO: loader
-  constructor(globals?: Namespace) {
+  constructor(options?: EnvironmentOptions) {
     this.tags = {};
     this.filters = {};
     this.setupTags();
     this.setupFilters();
 
-    this.globals = globals;
+    this.globals = options?.globals;
+    this.loader = options?.loader ?? new MapLoader();
+    this.bufferFactory = options?.bufferFactory ?? Array;
   }
 
   contains(
@@ -226,12 +257,18 @@ export class Environment {
   makeGlobals(namespace?: Namespace): Namespace | undefined {
     if (namespace === undefined) return this.globals;
     if (this.globals === undefined) return namespace;
+    // TODO: chain object instead of new object
     return { ...this.globals, ...namespace };
   }
 
   parse(source: string, globals?: Namespace, meta?: TemplateMeta): Template {
-    // TODO:
-    return new Template(this, source, this.parser.parse(this, source, 0));
+    return new Template(
+      this,
+      source,
+      this.parser.parse(this, source, 0),
+      this.makeGlobals(globals),
+      meta,
+    );
   }
 
   async render(
@@ -300,15 +337,6 @@ export class Environment {
     }
 
     return Math.trunc(num);
-  }
-
-  toIterable(
-    obj: unknown,
-    context: RenderContext,
-    token: Token,
-  ): Iterable<unknown> {
-    // TODO:
-    throw new Error("not implemented");
   }
 
   toNumber(obj: unknown, context: RenderContext, token: Token): number {

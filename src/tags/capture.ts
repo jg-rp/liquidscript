@@ -37,7 +37,7 @@ export class CaptureTag implements Markup {
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async render(context: RenderContext, buffer: OutputBuffer): Promise<void> {
-    const buf = new context.env.bufferFactory();
+    const buf = context.env.bufferFactory();
     await renderBlock(this.block, context, buf);
     // TODO: auto escape?
     context.assign(this.name.value, buf.join(""));
@@ -45,7 +45,7 @@ export class CaptureTag implements Markup {
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   renderSync(context: RenderContext, buffer: OutputBuffer): void {
-    const buf = new context.env.bufferFactory();
+    const buf = context.env.bufferFactory();
     renderBlockSync(this.block, context, buf);
     // TODO: auto escape?
     context.assign(this.name.value, buf.join(""));
