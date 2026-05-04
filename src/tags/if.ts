@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-member-accessibility */
 import type { RenderContext } from "../context";
 import { type Expression } from "../expression";
+import { PRECEDENCE_LOWEST } from "../legacy_parser";
 import {
   isBlankBlock,
   renderBlock,
@@ -37,7 +38,7 @@ export class IfTag implements Markup {
   static parse(token: Token, parser: Parser): Markup {
     const blocks: Array<IfBlock | ElsIfBlock | ElseBlock> = [];
     parser.expectExpression();
-    const expression = parser.parseExpression();
+    const expression = parser.parseExpression(PRECEDENCE_LOWEST, true);
     parser.carryWhitespaceControl();
     parser.eat(T.TAG_END);
     const block = parser.parseBlock(END_IF_BLOCK);
@@ -67,7 +68,7 @@ export class IfTag implements Markup {
     parser.skipWhitespaceControl();
     const token = parser.eat(T.TAG_NAME);
     parser.expectExpression();
-    const expression = parser.parseExpression();
+    const expression = parser.parseExpression(PRECEDENCE_LOWEST, true);
     parser.carryWhitespaceControl();
     parser.eat(T.TAG_END);
     return new ElsIfBlock(token, expression, parser.parseBlock(END_IF_BLOCK));

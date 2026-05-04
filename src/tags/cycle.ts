@@ -1,7 +1,6 @@
 import type { RenderContext } from "../context";
 import { DefaultMap } from "../default_map";
 import type { Expression } from "../expression";
-import { PRECEDENCE_LOWEST } from "../legacy_parser";
 import type { Markup, OutputBuffer } from "../markup";
 import type { Parser } from "../parser";
 import { T, type Token } from "../token";
@@ -20,7 +19,7 @@ export class CycleTag implements Markup {
   static parse(token: Token, parser: Parser): Markup {
     let group: Expression | undefined = undefined;
     const items: Expression[] = [];
-    const first = parser.parseExpression(PRECEDENCE_LOWEST, false);
+    const first = parser.parseExpression();
 
     if (parser.kind() === T.COLON) {
       group = first;

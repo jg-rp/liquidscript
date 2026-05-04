@@ -58,6 +58,7 @@ export class Template {
   async renderWithContext(
     context: RenderContext,
     buffer: OutputBuffer,
+    options?: RenderTemplateOptions,
   ): Promise<void> {
     for (const node of this.nodes) {
       if (isString(node)) {
@@ -68,7 +69,11 @@ export class Template {
     }
   }
 
-  renderWithContextSync(context: RenderContext, buffer: OutputBuffer): void {
+  renderWithContextSync(
+    context: RenderContext,
+    buffer: OutputBuffer,
+    options?: RenderTemplateOptions,
+  ): void {
     for (const node of this.nodes) {
       if (isString(node)) {
         buffer.push(node);
@@ -78,3 +83,8 @@ export class Template {
     }
   }
 }
+
+export type RenderTemplateOptions = {
+  partial?: boolean;
+  blockScope?: boolean;
+};

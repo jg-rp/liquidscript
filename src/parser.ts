@@ -222,6 +222,16 @@ export abstract class Parser {
   abstract parseIdent(): Name;
 
   /**
+   * Parse zero or more named arguments.
+   *
+   * Assumes any leading commas have been consumed by the caller, if they are
+   * allowed.
+   */
+  abstract parseKeywordArguments(
+    requireCommas?: boolean,
+  ): Array<KeywordArgument>;
+
+  /**
    * Parse an identifier, possibly surrounded by quotes.
    *
    * Raises a syntax error if the identifier is followed by path segments.

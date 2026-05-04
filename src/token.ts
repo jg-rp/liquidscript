@@ -75,6 +75,9 @@ export const T = {
   SPAN: 63,
   BLANK: 64,
   EMPTY: 65,
+  FOR: 66,
+  WITH: 67,
+  AS: 67,
 } as const;
 
 export const REVERSE_T = Object.fromEntries(

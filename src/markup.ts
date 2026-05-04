@@ -1,7 +1,7 @@
 import type { RenderContext } from "./context";
 import type { Token } from "./token";
 import type { Parser } from "./parser";
-import type { Expression } from "./expression";
+import type { Expression, Name } from "./expression";
 import { isString } from "./type_guards";
 
 export type Node = string | Markup | Expression;
@@ -21,6 +21,18 @@ export interface Markup {
 export interface Tag {
   parse(token: Token, parser: Parser): Markup;
 }
+
+export const Scope = {
+  SHARED: 1,
+  ISOLATED: 2,
+  INHERITED: 3,
+} as const;
+
+export type Partial = {
+  name: string;
+  scopeKind: (typeof Scope)[keyof typeof Scope];
+  inScope: Name[];
+};
 
 export async function renderBlock(
   block: Block,

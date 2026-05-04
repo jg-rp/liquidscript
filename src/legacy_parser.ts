@@ -120,7 +120,7 @@ export class LegacyParser extends Parser {
           new expr.KeywordArgument(name.token, name, this.parseExpression()),
         );
       } else {
-        args.push(this.parseExpression(PRECEDENCE_LOWEST, false));
+        args.push(this.parseExpression());
       }
 
       kind = this.kind();
@@ -222,7 +222,7 @@ export class LegacyParser extends Parser {
 
   override parseExpression(
     precedence: number = PRECEDENCE_LOWEST,
-    infix: boolean = true,
+    infix: boolean = false,
   ): Expression {
     const parseFunc = this.primaryMap.get(this.kind());
 
@@ -379,6 +379,36 @@ export class LegacyParser extends Parser {
     );
   }
 
+  override parseKeywordArguments(
+    requireCommas?: boolean,
+  ): Array<expr.KeywordArgument> {
+    const args: Array<expr.KeywordArgument> = [];
+    let kind: TokenKind;
+
+    for (;;) {
+      kind = this.kind();
+
+      if (TERMINATE_EXPRESSION.has(kind)) {
+        break;
+      }
+
+      const name = this.parseIdent();
+      this.eat(T.COLON);
+      args.push(
+        new expr.KeywordArgument(name.token, name, this.parseExpression()),
+      );
+
+      kind = this.kind();
+      if (requireCommas && !TERMINATE_EXPRESSION.has(kind)) {
+        this.eat(T.COMMA);
+      } else if (kind == T.COMMA) {
+        this.pos += 1;
+      }
+    }
+
+    return args;
+  }
+
   override parseName(): expr.Name {
     let strExpr: expr.StringLiteral;
 
@@ -463,7 +493,7 @@ export class LegacyParser extends Parser {
         break;
       }
 
-      args.push(this.parseExpression(PRECEDENCE_LOWEST, false));
+      args.push(this.parseExpression());
 
       kind = this.kind();
       if (requireCommas && !TERMINATE_EXPRESSION.has(kind)) {
