@@ -1,10 +1,13 @@
 import type { RenderContext } from "../context";
+import { TemplateSyntaxError } from "../errors";
 import type { Markup, OutputBuffer } from "../markup";
 import type { Parser } from "../parser";
 import { getTokenValue, T, type Token } from "../token";
 
-export class CommentTag implements Markup {
+export class InlineCommentTag implements Markup {
   readonly blank = true;
+
+  protected static RE_INVALID_INLINE_COMMENT = /\n\s*[^#\s]/m;
 
   constructor(
     readonly token: Token,
@@ -12,11 +15,20 @@ export class CommentTag implements Markup {
   ) {}
 
   static parse(token: Token, parser: Parser): Markup {
+    const textToken = parser.eat(T.COMMENT);
+    const text = getTokenValue(textToken, parser.source);
     parser.carryWhitespaceControl();
     parser.eat(T.TAG_END);
-    const comment = parser.eat(T.COMMENT);
-    parser.eatEmptyTag("endcomment");
-    return new CommentTag(token, getTokenValue(comment, parser.source));
+
+    if (text.search(this.RE_INVALID_INLINE_COMMENT) !== -1) {
+      throw new TemplateSyntaxError(
+        "every line of an inline comment must start with a '#' character",
+        token,
+        parser.source,
+      );
+    }
+
+    return new InlineCommentTag(token, text);
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
