@@ -425,7 +425,7 @@ export class LegacyParser extends Parser {
         break;
       } else {
         throw new TemplateSyntaxError(
-          `unexpected ${REVERSE_T[kind]}`,
+          `unexpected ${REVERSE_T[kind]} (${JSON.stringify(getTokenValue(token, this.source))})`,
           token,
           this.source,
         );

@@ -1,5 +1,7 @@
 import Decimal from "decimal.js";
 import { isString } from "./type_guards";
+import { Drop, toLiquidSync } from "./drop";
+import type { RenderContext } from "./context";
 
 Decimal.set({ precision: 16 });
 
@@ -25,14 +27,14 @@ export abstract class LiquidNumber {
   }
 
   div(n: N): LiquidNumber {
-    const _n = parseNumberT(n);
+    const _n = _toLiquidNumber(n);
     return isInteger(this) && isInteger(_n)
       ? new Integer(this.n.dividedToIntegerBy(_n.n))
       : new Float(this.n.dividedBy(_n.n));
   }
 
   eq(n: N): boolean {
-    return this.n.eq(parseNumberT(n).n);
+    return this.n.eq(_toLiquidNumber(n).n);
   }
 
   floor(): LiquidNumber {
@@ -40,11 +42,11 @@ export abstract class LiquidNumber {
   }
 
   gt(n: N): boolean {
-    return this.n.gt(parseNumberT(n).n);
+    return this.n.gt(_toLiquidNumber(n).n);
   }
 
   gte(n: N): boolean {
-    return this.n.gte(parseNumberT(n).n);
+    return this.n.gte(_toLiquidNumber(n).n);
   }
 
   isFinite(): boolean {
@@ -52,25 +54,25 @@ export abstract class LiquidNumber {
   }
 
   lt(n: N): boolean {
-    return this.n.lt(parseNumberT(n).n);
+    return this.n.lt(_toLiquidNumber(n).n);
   }
 
   lte(n: N): boolean {
-    return this.n.lte(parseNumberT(n).n);
+    return this.n.lte(_toLiquidNumber(n).n);
   }
 
   max(n: N): LiquidNumber {
-    const _n = parseNumberT(n);
+    const _n = _toLiquidNumber(n);
     return _n.gt(this) ? _n : this;
   }
 
   min(n: N): LiquidNumber {
-    const _n = parseNumberT(n);
+    const _n = _toLiquidNumber(n);
     return _n.lt(this) ? _n : this;
   }
 
   minus(n: N): LiquidNumber {
-    const _n = parseNumberT(n);
+    const _n = _toLiquidNumber(n);
     const result = this.n.minus(_n.n);
     return isFloat(this) || isFloat(_n)
       ? new Float(result)
@@ -78,7 +80,7 @@ export abstract class LiquidNumber {
   }
 
   mod(n: N): LiquidNumber {
-    const _n = parseNumberT(n);
+    const _n = _toLiquidNumber(n);
     const result = this.n.mod(_n.n);
     return isFloat(this) || isFloat(_n)
       ? new Float(result)
@@ -86,7 +88,7 @@ export abstract class LiquidNumber {
   }
 
   plus(n: N): LiquidNumber {
-    const _n = parseNumberT(n);
+    const _n = _toLiquidNumber(n);
     const result = this.n.plus(_n.n);
     return isFloat(this) || isFloat(_n)
       ? new Float(result)
@@ -102,7 +104,7 @@ export abstract class LiquidNumber {
   }
 
   times(n: N): LiquidNumber {
-    const _n = parseNumberT(n);
+    const _n = _toLiquidNumber(n);
     const result = this.n.times(_n.n);
     return isFloat(this) || isFloat(_n)
       ? new Float(result)
@@ -123,7 +125,7 @@ export class Float extends LiquidNumber {
 
   override toString(): string {
     const s = this.n.toString();
-    return s.toString().indexOf(".") === -1 ? `${s}.0` : s;
+    return s.indexOf(".") === -1 ? `${s}.0` : s;
   }
 }
 
@@ -163,28 +165,28 @@ export function isPrimitiveNumber(value: unknown): value is number {
 export const ZERO = new Integer(0);
 export const NAN = new Integer(NaN);
 
-function _stringToNumberT(s: string): LiquidNumber {
+function _stringToLiquidNumber(s: string): LiquidNumber {
   return s.indexOf(".") === -1 ? new Integer(Number(s)) : new Float(Number(s));
 }
 
 /**
- * A type predicate for valid inputs to the `parseNumberT` function.
+ * A type predicate for valid inputs to the `_toLiquidNumber` function.
  *
  * @param val - Any value.
- * @returns `true` if the input value can be passed to `parseNumberT`.
+ * @returns `true` if the input value can be passed to `_toLiquidNumber`.
  */
 export function isN(val: unknown): val is N {
   return isLiquidNumber(val) || isString(val) || isFinite(val as number);
 }
 
 /**
- * Parse a string, primitive number or Number object to a Liquid
+ * Coerce a string, primitive number or Number object to a Liquid
  * integer or float.
  *
  * @param n - A number or string representation of a number.
  * @returns A wrapped number representing a Liquid integer or float.
  */
-export function parseNumberT(n: N): LiquidNumber {
+function _toLiquidNumber(n: N): LiquidNumber {
   if (n instanceof LiquidNumber) {
     return n;
   }
@@ -199,5 +201,24 @@ export function parseNumberT(n: N): LiquidNumber {
     return Number.isInteger(n) ? new Integer(n) : new Float(n);
   }
 
-  return _stringToNumberT(n);
+  return _stringToLiquidNumber(n);
+}
+
+/**
+ * Coerce obj to a liquid number.
+ */
+export function toLiquidNumber(
+  obj: unknown,
+  context: RenderContext,
+): LiquidNumber {
+  if (obj instanceof Drop) {
+    obj = obj[toLiquidSync]("numeric", context);
+  }
+
+  if (isN(obj)) {
+    const num = _toLiquidNumber(obj);
+    return num.isFinite() ? num : ZERO;
+  }
+
+  return ZERO;
 }

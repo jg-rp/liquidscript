@@ -19,7 +19,7 @@ import {
 import type { Namespace, RenderContext } from "./context";
 import { TemplateTypeError } from "./errors";
 import { Undefined } from "./drops/undefined";
-import { isLiquidNumber, isPrimitiveNumber } from "./number";
+import { isLiquidNumber, isPrimitiveNumber, LiquidNumber } from "./number";
 import type { TemplateLoader } from "./loader";
 import { MapLoader } from "./loaders";
 
@@ -296,11 +296,13 @@ export class Environment {
   }
 
   setupFilters(): void {
+    this.filters["abs"] = filters.abs;
     this.filters["default"] = filters.default_;
     this.filters["join"] = filters.join;
     this.filters["reverse"] = filters.reverse;
     this.filters["sort"] = filters.sort;
     this.filters["split"] = filters.split;
+    this.filters["times"] = filters.times;
     this.filters["upcase"] = filters.upcase;
   }
 
@@ -366,6 +368,10 @@ export class Environment {
 
     if (isArray(obj)) {
       return obj.map((item) => this.toString(item, context, token)).join("");
+    }
+
+    if (obj instanceof LiquidNumber) {
+      return obj.toString();
     }
 
     if (isObject(obj)) {
