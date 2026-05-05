@@ -409,6 +409,32 @@ export class LegacyParser extends Parser {
     return args;
   }
 
+  override parseLineStatements(): Block {
+    const nodes: Block = [];
+    let token: Token;
+    let kind: TokenKind;
+
+    for (;;) {
+      token = this.current();
+      kind = token.kind;
+
+      if (kind === T.TAG_START) {
+        this.pos += 1;
+        nodes.push(this.parseTag());
+      } else if (kind === T.WC || kind === T.TAG_END) {
+        break;
+      } else {
+        throw new TemplateSyntaxError(
+          `unexpected ${REVERSE_T[kind]}`,
+          token,
+          this.source,
+        );
+      }
+    }
+
+    return nodes;
+  }
+
   override parseName(): expr.Name {
     let strExpr: expr.StringLiteral;
 

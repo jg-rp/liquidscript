@@ -95,6 +95,14 @@ export type EnvironmentOptions = {
    * @defaultValue `Array`.
    */
   bufferFactory?: BufferFactory;
+
+  /**
+   * When `true`, a `NoSuchFilterError` will be raised if a template attempts
+   * to use an undefined filter. When `false`, undefined filters are silently
+   * ignored.
+   * @defaultValue `true`
+   */
+  strictFilters?: boolean;
 };
 
 /**
@@ -115,7 +123,7 @@ export class Environment {
 
   persistentRegisters: Set<string> = new Set();
 
-  strictFilters = true;
+  strictFilters: boolean;
 
   tags: { [key: string]: Tag };
 
@@ -130,6 +138,7 @@ export class Environment {
     this.globals = options?.globals;
     this.loader = options?.loader ?? new MapLoader();
     this.bufferFactory = options?.bufferFactory ?? Array;
+    this.strictFilters = options?.strictFilters ?? true;
   }
 
   contains(
@@ -309,11 +318,13 @@ export class Environment {
     this.tags["ifchanged"] = tags.IfChangedTag;
     this.tags["include"] = tags.IncludeTag;
     this.tags["increment"] = tags.IncrementTag;
+    this.tags["liquid"] = tags.LiquidTag;
     this.tags["#"] = tags.InlineCommentTag;
     this.tags["raw"] = tags.RawTag;
     this.tags["render"] = tags.RenderTag;
     this.tags["continue"] = tags.ContinueTag;
     this.tags["break"] = tags.BreakTag;
+    this.tags["unless"] = tags.UnlessTag;
   }
 
   toArray(obj: unknown, context: RenderContext, token: Token): unknown[] {

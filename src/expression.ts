@@ -46,10 +46,13 @@ export class FilteredExpression implements Expression {
 
   async evaluate(context: RenderContext): Promise<unknown> {
     const func = context.env.filters[this.filter.name.value];
+    // Like Shopify/liquid, filter strictness is applied at render time,
+    // and only on rendered markup. Unknown filters in unreached markup will
+    // not throw an error.
     if (!func) {
       if (context.env.strictFilters) {
         throw new UnknownFilterError(
-          `unknown filter ${this.filter.name.value}`,
+          `unknown filter ${JSON.stringify(this.filter.name.value)}`,
           this.filter.token,
           context.template.source,
         );
@@ -90,7 +93,7 @@ export class FilteredExpression implements Expression {
     if (!func) {
       if (context.env.strictFilters) {
         throw new UnknownFilterError(
-          `unknown filter ${this.filter.name.value}`,
+          `unknown filter ${JSON.stringify(this.filter.name.value)}`,
           this.filter.token,
           context.template.source,
         );

@@ -6,7 +6,7 @@ const reFloat = /-?\d+\.\d+/y;
 const reIdent = /[a-zA-Z_][a-zA-Z0-9_s-]*\??/y;
 const reInt = /-?\d+/y;
 const reLineCommentSegment = /\n\s*(comment|endcomment).*/g;
-const reLineTrivia = /[ \t\f]+/y;
+const reLineTrivia = /[ \t\f\r]+/y;
 const reMarkup = /\{[%{]/y;
 const reMarkupStart = /\{[%{]/g;
 const reOutEnd = /-?(\}\}?|%\}(?!\}))/g;
@@ -257,7 +257,8 @@ export class LegacyLexer extends Lexer {
 
     while (this.pos < limit) {
       this.skip(reTrivia);
-      lineLimit = this.source.indexOf("\n", this.pos) || limit;
+      lineLimit = this.source.indexOf("\n", this.pos);
+      if (lineLimit === -1) lineLimit = limit;
 
       this.emit(T.TAG_START);
 
@@ -328,7 +329,8 @@ export class LegacyLexer extends Lexer {
       return;
     }
 
-    const index = this.source.indexOf(quote, this.pos);
+    let index = this.source.indexOf(quote, this.pos);
+    if (index === -1) index = limit;
     this.pos = Math.min(index, limit);
     this.emit(double ? T.DOUBLE_QUOTED : T.SINGLE_QUOTED);
 

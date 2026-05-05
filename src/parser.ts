@@ -92,7 +92,8 @@ export abstract class Parser {
       //   }),
       // );
       throw new TemplateSyntaxError(
-        message || `unexpected ${REVERSE_T[token.kind]}`,
+        message ||
+          `unexpected ${REVERSE_T[token.kind]} (${JSON.stringify(getTokenValue(token, this.source))})`,
         token,
         this.source,
       );
@@ -237,6 +238,11 @@ export abstract class Parser {
   abstract parseKeywordArguments(
     requireCommas?: boolean,
   ): Array<KeywordArgument>;
+
+  /**
+   * Parse newline terminated markup from the `{% liquid %}` tag.
+   */
+  abstract parseLineStatements(): Block;
 
   /**
    * Parse an identifier, possibly surrounded by quotes.

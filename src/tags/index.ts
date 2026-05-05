@@ -12,6 +12,8 @@ export { IfTag } from "./if";
 export { IncludeTag } from "./include";
 export { IncrementTag } from "./increment";
 export { InlineCommentTag } from "./inline_comment";
+export { LiquidTag } from "./liquid";
 export { OutputStatement } from "./output";
 export { RawTag } from "./raw";
 export { RenderTag } from "./render";
+export { UnlessTag } from "./unless";
