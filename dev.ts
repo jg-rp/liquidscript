@@ -3,19 +3,30 @@ import { StrictUndefined } from "./src/drops/undefined";
 import type { _Undefined } from "./src/environment";
 import { ObjectLoader } from "./src/loaders";
 
-const source = `{{ a | sort: nosuchthing | join: '#' }}`;
+const source = `{% include 'product-title' with collection.products[1] %}`;
 
 const data = {
-  a: ["b", "a"],
+  collection: {
+    products: [
+      {
+        title: "bike",
+      },
+      {
+        title: "car",
+      },
+    ],
+  },
 };
 
-const loader = new ObjectLoader({ foo: "Hello, {{ you }}!" });
+const loader = new ObjectLoader({
+  "product-title": "{{ product-title.title }}",
+});
 
 const env = new Environment({ loader });
 
-const template = env.getTemplateSync("foo", { you: "World" });
+// const template = env.getTemplateSync("foo", { you: "World" });
 
 // env.render(source, data).then(console.log);
 // console.log(env.renderSync(source, data));
 
-console.log(template.renderSync({ you: "Sue" }));
+console.log(env.renderSync(source, data));

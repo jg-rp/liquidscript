@@ -307,8 +307,10 @@ export class Environment {
     this.tags["for"] = tags.ForTag;
     this.tags["if"] = tags.IfTag;
     this.tags["ifchanged"] = tags.IfChangedTag;
+    this.tags["include"] = tags.IncludeTag;
     this.tags["increment"] = tags.IncrementTag;
     this.tags["raw"] = tags.RawTag;
+    this.tags["render"] = tags.RenderTag;
     this.tags["continue"] = tags.ContinueTag;
     this.tags["break"] = tags.BreakTag;
   }

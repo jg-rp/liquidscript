@@ -1,6 +1,7 @@
 import { readFileSync } from "fs";
-import { render, renderSync } from "../src";
+import { Environment } from "../src";
 import { TemplateError } from "../src/errors";
+import { ObjectLoader } from "../src/loaders";
 
 type Case = {
   name: string;
@@ -26,7 +27,7 @@ const SKIP = new Set([
 // );
 
 const golden: { tests: Case[] } = JSON.parse(
-  readFileSync("tests/golden_liquid/tests/tags/ifchanged.json", {
+  readFileSync("tests/golden_liquid/tests/tags/render.json", {
     encoding: "utf8",
   }),
 );
@@ -38,14 +39,14 @@ describe("golden liquid sync", () => {
   test.each<Case>(active)(
     "$name",
     ({ template, templates, data, result, results, invalid }: Case) => {
+      const env = new Environment({ loader: new ObjectLoader(templates) });
+
       if (invalid) {
-        expect(() => renderSync(template, data)).toThrow(TemplateError);
+        expect(() => env.renderSync(template, data)).toThrow(TemplateError);
       } else if (result) {
-        // TODO: loader with templates
-        expect(renderSync(template, data)).toStrictEqual(result);
+        expect(env.renderSync(template, data)).toStrictEqual(result);
       } else if (results) {
-        // TODO: loader with templates
-        expect(results).toContainEqual(renderSync(template, data));
+        expect(results).toContainEqual(env.renderSync(template, data));
       }
     },
   );
@@ -58,14 +59,14 @@ describe("golden liquid async", () => {
   test.each<Case>(active)(
     "$name",
     async ({ template, templates, data, result, results, invalid }: Case) => {
+      const env = new Environment({ loader: new ObjectLoader(templates) });
+
       if (invalid) {
-        await expect(() => render(template, data)).toThrow(TemplateError);
+        expect(() => env.render(template, data)).toThrow(TemplateError);
       } else if (result) {
-        // TODO: loader with templates
-        await expect(render(template, data)).resolves.toStrictEqual(result);
+        await expect(env.render(template, data)).resolves.toStrictEqual(result);
       } else if (results) {
-        // TODO: loader with templates
-        expect(results).toContainEqual(await render(template, data));
+        expect(results).toContainEqual(await env.render(template, data));
       }
     },
   );

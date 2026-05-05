@@ -69,6 +69,13 @@ export abstract class Parser {
   }
 
   /**
+   * Return the current token's value. The substring represented by the token.
+   */
+  currentValue(): string {
+    return getTokenValue(this.current(), this.source);
+  }
+
+  /**
    * Assert and consume a token of kind `kind`.
    * Raises a syntax error if the current token's kind is not `kind`.
    */

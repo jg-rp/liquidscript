@@ -1,17 +1,21 @@
 import type { Namespace, RenderContext } from "../context";
+import { ForLoop } from "../drops";
 import type { Expression, KeywordArgument, Name } from "../expression";
 import type { Markup, OutputBuffer, Partial } from "../markup";
 import type { Parser } from "../parser";
-import { isNothing } from "../runtime";
+import { isNothing, Nothing } from "../runtime";
 import { T, type Token } from "../token";
 import { isArray } from "../type_guards";
 
-export class IncludeTag implements Markup {
+const DISABLED_TAGS = new Set(["include"]);
+
+export class RenderTag implements Markup {
   readonly blank = false;
 
   constructor(
     readonly token: Token,
     readonly name: Expression,
+    readonly loop: boolean,
     readonly variable: Expression | undefined,
     readonly alias: Name | undefined,
     readonly args: KeywordArgument[],
@@ -20,6 +24,7 @@ export class IncludeTag implements Markup {
   static parse(token: Token, parser: Parser): Markup {
     const nameExpr = parser.parseExpression();
 
+    let loop = false;
     let variable: Expression | undefined = undefined;
     let alias: Name | undefined = undefined;
 
@@ -27,6 +32,7 @@ export class IncludeTag implements Markup {
     const ident = parser.currentValue();
     if (ident == "for" || ident == "with") {
       parser.next();
+      if (ident == "for") loop = true;
       variable = parser.parseExpression();
     }
 
@@ -40,7 +46,7 @@ export class IncludeTag implements Markup {
 
     parser.carryWhitespaceControl();
     parser.eat(T.TAG_END);
-    return new IncludeTag(token, nameExpr, variable, alias, args);
+    return new RenderTag(token, nameExpr, loop, variable, alias, args);
   }
 
   children(
@@ -90,28 +96,34 @@ export class IncludeTag implements Markup {
       scope[arg.name.value] = await arg.expr.evaluate(context);
     }
 
-    await context.extend(
-      scope,
-      async () => {
-        if (isArray(bindValue)) {
-          // TODO: raise for loop limit
-          for (const item of bindValue) {
-            scope[bindKey] = item;
-            await template.renderWithContext(context, buffer, {
-              partial: true,
-              blockScope: false,
-            });
-          }
-        } else {
-          scope[bindKey] = bindValue;
-          await template.renderWithContext(context, buffer, {
-            partial: true,
-            blockScope: false,
-          });
-        }
-      },
+    const ctx = context.copy(scope, {
+      disabledTags: DISABLED_TAGS,
+      blockScope: false,
       template,
-    );
+    });
+
+    if (this.loop && isArray(bindValue)) {
+      // TODO: support looping over drops
+      // TODO: raise for loop limit
+
+      const forloop = new ForLoop(bindKey, bindValue.length, Nothing);
+      scope.forloop = forloop;
+
+      for (const item of bindValue) {
+        scope[bindKey] = item;
+        forloop.step();
+        await template.renderWithContext(ctx, buffer, {
+          partial: true,
+          blockScope: false,
+        });
+      }
+    } else {
+      scope[bindKey] = bindValue;
+      await template.renderWithContext(ctx, buffer, {
+        partial: true,
+        blockScope: false,
+      });
+    }
   }
 
   renderSync(context: RenderContext, buffer: OutputBuffer): void {
@@ -141,27 +153,33 @@ export class IncludeTag implements Markup {
       scope[arg.name.value] = arg.expr.evaluateSync(context);
     }
 
-    context.extendSync(
-      scope,
-      () => {
-        if (isArray(bindValue)) {
-          // TODO: raise for loop limit
-          for (const item of bindValue) {
-            scope[bindKey] = item;
-            template.renderWithContextSync(context, buffer, {
-              partial: true,
-              blockScope: false,
-            });
-          }
-        } else {
-          scope[bindKey] = bindValue;
-          template.renderWithContextSync(context, buffer, {
-            partial: true,
-            blockScope: false,
-          });
-        }
-      },
+    const ctx = context.copy(scope, {
+      disabledTags: DISABLED_TAGS,
+      blockScope: false,
       template,
-    );
+    });
+
+    if (this.loop && isArray(bindValue)) {
+      // TODO: support looping over drops
+      // TODO: raise for loop limit
+
+      const forloop = new ForLoop(bindKey, bindValue.length, Nothing);
+      scope.forloop = forloop;
+
+      for (const item of bindValue) {
+        scope[bindKey] = item;
+        forloop.step();
+        template.renderWithContextSync(ctx, buffer, {
+          partial: true,
+          blockScope: false,
+        });
+      }
+    } else {
+      scope[bindKey] = bindValue;
+      template.renderWithContextSync(ctx, buffer, {
+        partial: true,
+        blockScope: false,
+      });
+    }
   }
 }

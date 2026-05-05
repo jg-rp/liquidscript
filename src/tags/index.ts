@@ -9,6 +9,8 @@ export { EchoTag } from "./echo";
 export { ForTag, ContinueTag, BreakTag } from "./for";
 export { IfChangedTag } from "./ifchanged";
 export { IfTag } from "./if";
+export { IncludeTag } from "./include";
 export { IncrementTag } from "./increment";
 export { OutputStatement } from "./output";
 export { RawTag } from "./raw";
+export { RenderTag } from "./render";
