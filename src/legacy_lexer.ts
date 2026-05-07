@@ -285,8 +285,7 @@ export class LegacyLexer extends Lexer {
           break;
         case "liquid":
           this.emit(T.TAG_NAME);
-          this.acceptNestedLiquid(limit);
-          this.emit(T.TAG_END);
+          this.acceptLineStatements(lineLimit);
           break;
         case undefined:
           // Remove empty TAG_START.
@@ -302,30 +301,6 @@ export class LegacyLexer extends Lexer {
     this.skip(reTrivia);
     this.acceptWhitespaceControl();
     this.scan(reTagEnd);
-    this.emit(T.TAG_END);
-  }
-
-  protected acceptNestedLiquid(limit: number): void {
-    this.emit(T.TAG_START);
-    this.skip(reTrivia);
-    const tagName = this.scan(reTagName);
-
-    if (tagName) {
-      // TODO: fixme
-      // TODO: nested comments and raw
-      this.emit(T.TAG_NAME);
-      this.skip(reLineTrivia);
-      if (tagName === "liquid") {
-        this.acceptNestedLiquid(limit);
-      }
-    }
-
-    let lineLimit = this.source.indexOf("\n", this.pos);
-    if (lineLimit === -1) lineLimit = limit;
-    lineLimit = Math.min(lineLimit, limit);
-
-    this.acceptExpression(lineLimit, reLineTrivia);
-    this.skip(reLineTrivia);
     this.emit(T.TAG_END);
   }
 

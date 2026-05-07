@@ -4,7 +4,7 @@ import type { _Undefined } from "./src/environment";
 import { ObjectLoader } from "./src/loaders";
 import { getTokenValue, REVERSE_T } from "./src/token";
 
-const source = `{%- liquid liquid liquid echo "foo" -%}`;
+const source = `{%- liquid\n  liquid\n  echo "foo"\n-%}`;
 
 const data = {
   array: [1, 2, 3],
@@ -30,4 +30,4 @@ for (const token of tokens) {
 // env.render(source, data).then(console.log);
 // console.log(env.renderSync(source, data));
 
-// console.log(env.renderSync(source, data));
+console.log(env.renderSync(source, data));

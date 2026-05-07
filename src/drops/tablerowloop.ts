@@ -8,11 +8,8 @@ import {
   toLiquidSync,
 } from "../drop";
 
-export class ForLoop extends Drop {
-  private _index: number = -1;
-
+export class TableRowLoop extends Drop {
   private static _keys = new Set([
-    "name",
     "length",
     "index",
     "index0",
@@ -20,68 +17,83 @@ export class ForLoop extends Drop {
     "rindex0",
     "first",
     "last",
-    "parentloop",
+    "col",
+    "col0",
+    "col_first",
+    "col_last",
+    "row",
   ]);
 
-  private _length: number;
+  #col: number = 1;
 
-  private _name: string;
+  #cols: number;
 
-  private _parentloop: ForLoop | typeof Nothing;
+  #index: number = 0;
 
-  constructor(
-    name: string,
-    length: number,
-    parentloop: ForLoop | typeof Nothing,
-  ) {
+  #length: number;
+
+  #row: number = 1;
+
+  constructor(length: number, cols: number) {
     super();
-    this._name = name;
-    this._length = length;
-    this._parentloop = parentloop;
+    this.#length = length;
+    this.#cols = cols;
+  }
+
+  col(): number {
+    return this.#col;
+  }
+
+  col_first(): boolean {
+    return this.#col === 1;
+  }
+
+  col_last(): boolean {
+    return this.#col === this.#cols;
+  }
+
+  col0(): number {
+    return this.#col - 1;
   }
 
   first(): boolean {
-    return this._index === 0;
+    return this.#index === 0;
   }
 
   index(): number {
-    return this._index + 1;
+    return this.#index + 1;
   }
 
   index0(): number {
-    return this._index;
+    return this.#index;
   }
 
   override [isInvocable](name: string): boolean {
-    return ForLoop._keys.has(name);
+    return TableRowLoop._keys.has(name);
   }
 
   last(): boolean {
-    return this._index === this._length - 1;
+    return this.#index === this.#length - 1;
   }
 
   length(): number {
-    return this._length;
-  }
-
-  name(): string {
-    return this._name;
-  }
-
-  parentloop(): ForLoop | typeof Nothing {
-    return this._parentloop;
+    return this.#length;
   }
 
   rindex(): number {
-    return this._length - this._index;
+    return this.#length - this.#index;
   }
 
   rindex0(): number {
-    return this._length - this._index - 1;
+    return this.#length - this.#index - 1;
+  }
+
+  row(): number {
+    return this.#row;
   }
 
   step(): void {
-    this._index += 1;
+    this.#index += 1;
   }
 
   override async [toLiquid](
@@ -107,6 +119,6 @@ export class ForLoop extends Drop {
   }
 
   override toString(): string {
-    return "Liquid::ForLoopDrop";
+    return "Liquid::TableRowDrop";
   }
 }
