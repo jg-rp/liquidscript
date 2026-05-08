@@ -6,8 +6,8 @@ export function split(
   sep: unknown,
 ): string[] {
   assertArgs(this, arguments.length, 2);
-  const _left = this.context.env.toString(left, this.context, this.span);
-  const _sep = this.context.env.toString(sep, this.context, this.span);
-  if (!_left || _left === _sep) return [];
+  const _left = this.toString(left, "");
+  let _sep: string | RegExp = this.toString(sep, "");
+  if (_sep === " ") _sep = /\s/; // This is what Ruby does.
   return _left.split(_sep);
 }

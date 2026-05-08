@@ -1,5 +1,6 @@
 export { abs } from "./abs";
 export { default_ } from "./default";
+export { first } from "./first";
 export { join } from "./join";
 export { reverse } from "./reverse";
 export { sort } from "./sort";

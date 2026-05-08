@@ -6,6 +6,7 @@ import { Nothing } from "./runtime";
 import { range } from "./drops/range";
 import { span, T, type Token } from "./token";
 import { isString } from "./type_guards";
+import { FilterContext } from "./filter";
 
 export type PathSegment = Name | StringLiteral | IntegerLiteral | Variable;
 
@@ -65,7 +66,7 @@ export class FilteredExpression implements Expression {
 
     if (!this.filter.args.length) {
       // TODO: async filter
-      return func.call({ context, span: this.span, options: {} }, left);
+      return func.call(new FilterContext(context, this.span, {}), left);
     }
 
     const args: unknown[] = [];
@@ -82,7 +83,7 @@ export class FilteredExpression implements Expression {
     // TODO: async filter
 
     return func.call(
-      { context, span: this.span, options: kwargs },
+      new FilterContext(context, this.span, kwargs),
       left,
       ...args,
     );
@@ -105,7 +106,7 @@ export class FilteredExpression implements Expression {
     const left = this.left.evaluateSync(context);
 
     if (!this.filter.args.length) {
-      return func.call({ context, span: this.span, options: {} }, left);
+      return func.call(new FilterContext(context, this.span, {}), left);
     }
 
     const args: unknown[] = [];
@@ -120,7 +121,7 @@ export class FilteredExpression implements Expression {
     }
 
     return func.call(
-      { context, span: this.span, options: kwargs },
+      new FilterContext(context, this.span, kwargs),
       left,
       ...args,
     );

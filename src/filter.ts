@@ -7,22 +7,19 @@ export type Filter = {
   (this: FilterContext, left: unknown, ...args: unknown[]): unknown;
 };
 
-export type FilterContext = {
-  /**
-   * The active render context.
-   */
-  context: RenderContext;
+export class FilterContext {
+  constructor(
+    readonly context: RenderContext,
+    readonly span: Token,
+    readonly options: { [index: string]: unknown },
+  ) {}
 
-  /**
-   * A span into the source string covering the filter.
-   */
-  span: Token;
-
-  /**
-   * Keyword/named filter arguments. As used by the `default` filter.
-   */
-  options: { [index: string]: unknown };
-};
+  toString<T>(obj: unknown, default_: T): string | T {
+    return obj === undefined
+      ? default_
+      : this.context.env.toString(obj, this.context, this.span);
+  }
+}
 
 /**
  * Assert that `len` is between `min` and `max`. Raise an `ArgumentError` if it is not.

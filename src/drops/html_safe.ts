@@ -1,4 +1,3 @@
-import type { RenderContext } from "../context";
 import { Drop, toLiquid, toLiquidSync, type ContextHint } from "../drop";
 import { Nothing } from "../runtime";
 import { escape } from "../escape";
@@ -11,31 +10,24 @@ export class HTMLSafeString extends Drop {
     this.#s = s;
   }
 
-  static from(s: string | HTMLSafeString): HTMLSafeString {
-    return s instanceof HTMLSafeString ? s : new HTMLSafeString(s);
-  }
-
   static escape(value: string | HTMLSafeString): HTMLSafeString {
     if (value instanceof HTMLSafeString) return value;
     return new HTMLSafeString(escape(value));
   }
 
+  static from(s: string | HTMLSafeString): HTMLSafeString {
+    return s instanceof HTMLSafeString ? s : new HTMLSafeString(s);
+  }
+
   get [Symbol.toStringTag]() {
-    return "HTMLSageString";
+    return "HTMLSafeString";
   }
 
-  public override async [toLiquid](
-    hint: ContextHint,
-    context: RenderContext,
-  ): Promise<unknown> {
-    return this[toLiquidSync](hint, context);
+  override async [toLiquid](hint: ContextHint): Promise<unknown> {
+    return this[toLiquidSync](hint);
   }
 
-  public override [toLiquidSync](
-    hint: ContextHint,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    context: RenderContext,
-  ): unknown {
+  override [toLiquidSync](hint: ContextHint): unknown {
     switch (hint) {
       case "string":
       case "data":

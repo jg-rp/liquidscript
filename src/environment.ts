@@ -298,6 +298,7 @@ export class Environment {
   setupFilters(): void {
     this.filters["abs"] = filters.abs;
     this.filters["default"] = filters.default_;
+    this.filters["first"] = filters.first;
     this.filters["join"] = filters.join;
     this.filters["reverse"] = filters.reverse;
     this.filters["sort"] = filters.sort;
@@ -363,6 +364,10 @@ export class Environment {
   }
 
   toString(obj: unknown, context: RenderContext, token: Token): string {
+    if (obj === null || obj === undefined) {
+      return "";
+    }
+
     if (obj instanceof Drop) {
       return obj[toLiquidSync]("string", context) as string;
     }
