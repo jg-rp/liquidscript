@@ -307,10 +307,13 @@ export class Environment {
   }
 
   setupTags(): void {
+    this.tags["#"] = tags.InlineCommentTag;
     this.tags["assign"] = tags.AssignTag;
+    this.tags["break"] = tags.BreakTag;
     this.tags["capture"] = tags.CaptureTag;
     this.tags["case"] = tags.CaseTag;
     this.tags["comment"] = tags.CommentTag;
+    this.tags["continue"] = tags.ContinueTag;
     this.tags["cycle"] = tags.CycleTag;
     this.tags["decrement"] = tags.DecrementTag;
     this.tags["doc"] = tags.DocTag;
@@ -321,11 +324,9 @@ export class Environment {
     this.tags["include"] = tags.IncludeTag;
     this.tags["increment"] = tags.IncrementTag;
     this.tags["liquid"] = tags.LiquidTag;
-    this.tags["#"] = tags.InlineCommentTag;
     this.tags["raw"] = tags.RawTag;
     this.tags["render"] = tags.RenderTag;
-    this.tags["continue"] = tags.ContinueTag;
-    this.tags["break"] = tags.BreakTag;
+    this.tags["tablerow"] = tags.TableRowTag;
     this.tags["unless"] = tags.UnlessTag;
   }
 

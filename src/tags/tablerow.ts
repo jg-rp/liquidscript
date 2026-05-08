@@ -1,10 +1,18 @@
-import type { RenderContext } from "../context";
+import type { Namespace, RenderContext } from "../context";
+import { TableRowLoop } from "../drops/tablerowloop";
 import { TemplateSyntaxError } from "../errors";
 import { KeywordArgument, Name, type Expression } from "../expression";
-import type { Block, Markup, OutputBuffer } from "../markup";
+import {
+  renderBlock,
+  renderBlockSync,
+  type Block,
+  type Markup,
+  type OutputBuffer,
+} from "../markup";
 import type { Parser } from "../parser";
 import { T, type Token } from "../token";
 import { isString } from "../type_guards";
+import { BREAK } from "./for";
 
 const END_TABLEROW_BLOCK = new Set(["endtablerow"]);
 
@@ -104,12 +112,84 @@ export class TableRowTag implements Markup {
   }
 
   async render(context: RenderContext, buffer: OutputBuffer): Promise<void> {
-    // TODO
-    throw new Error("not implemented");
+    const name = this.name.value;
+    const array = await context.toArray(this.expression);
+
+    const a = array.slice(
+      await context.toInteger(this.offset, 0),
+      await context.toInteger(this.limit, undefined),
+    );
+
+    const length = a.length;
+
+    const tablerowloop = new TableRowLoop(
+      length,
+      await context.toInteger(this.cols, length),
+    );
+
+    const namespace: Namespace = { tablerowloop };
+
+    await context.extend(namespace, async () => {
+      buffer.push('<tr class="row1">\n');
+
+      for (const item of a) {
+        namespace[name] = item;
+
+        buffer.push(`<td class="col${tablerowloop.col()}">`);
+        await renderBlock(this.block, context, buffer);
+        buffer.push("</td>");
+
+        if (context.interrupts.pop() === BREAK) break;
+
+        if (tablerowloop.col_last() && !tablerowloop.last()) {
+          buffer.push(`</tr>\n<tr class="row${tablerowloop.row() + 1}">`);
+        }
+
+        tablerowloop.step();
+      }
+
+      buffer.push("</tr>\n");
+    });
   }
 
   renderSync(context: RenderContext, buffer: OutputBuffer): void {
-    // TODO
-    throw new Error("not implemented");
+    const name = this.name.value;
+    const array = context.toArraySync(this.expression);
+
+    const a = array.slice(
+      context.toIntegerSync(this.offset, 0),
+      context.toIntegerSync(this.limit, undefined),
+    );
+
+    const length = a.length;
+
+    const tablerowloop = new TableRowLoop(
+      length,
+      context.toIntegerSync(this.cols, length),
+    );
+
+    const namespace: Namespace = { tablerowloop };
+
+    context.extendSync(namespace, () => {
+      buffer.push('<tr class="row1">\n');
+
+      for (const item of a) {
+        namespace[name] = item;
+
+        buffer.push(`<td class="col${tablerowloop.col()}">`);
+        renderBlockSync(this.block, context, buffer);
+        buffer.push("</td>");
+
+        if (context.interrupts.pop() === BREAK) break;
+
+        if (tablerowloop.col_last() && !tablerowloop.last()) {
+          buffer.push(`</tr>\n<tr class="row${tablerowloop.row() + 1}">`);
+        }
+
+        tablerowloop.step();
+      }
+
+      buffer.push("</tr>\n");
+    });
   }
 }

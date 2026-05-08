@@ -16,4 +16,5 @@ export { LiquidTag } from "./liquid";
 export { OutputStatement } from "./output";
 export { RawTag } from "./raw";
 export { RenderTag } from "./render";
+export { TableRowTag } from "./tablerow";
 export { UnlessTag } from "./unless";

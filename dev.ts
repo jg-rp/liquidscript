@@ -4,10 +4,12 @@ import type { _Undefined } from "./src/environment";
 import { ObjectLoader } from "./src/loaders";
 import { getTokenValue, REVERSE_T } from "./src/token";
 
-const source = `{%- liquid\n  liquid\n  echo "foo"\n-%}`;
+const source = `"{% tablerow label in collection.labels %}{{ label }}{% endtablerow %}`;
 
 const data = {
-  array: [1, 2, 3],
+  collection: {
+    labels: ["label1", "label2", "label3", "label4"],
+  },
 };
 
 const loader = new ObjectLoader({
@@ -16,14 +18,14 @@ const loader = new ObjectLoader({
 
 const env = new Environment({ loader, strictFilters: true });
 
-const tokens = env.lexer.tokenize(env, source);
+// const tokens = env.lexer.tokenize(env, source);
 
-for (const token of tokens) {
-  console.log({
-    kind: REVERSE_T[token.kind],
-    value: getTokenValue(token, source),
-  });
-}
+// for (const token of tokens) {
+//   console.log({
+//     kind: REVERSE_T[token.kind],
+//     value: getTokenValue(token, source),
+//   });
+// }
 
 // const template = env.getTemplateSync("foo", { you: "World" });
 

@@ -94,6 +94,13 @@ export class TableRowLoop extends Drop {
 
   step(): void {
     this.#index += 1;
+
+    if (this.#col === this.#cols) {
+      this.#col = 1;
+      this.#row += 1;
+    } else {
+      this.#col += 1;
+    }
   }
 
   override async [toLiquid](

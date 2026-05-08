@@ -26,6 +26,7 @@ import { Undefined } from "../drops/undefined";
 const END_FOR_BLOCK = new Set(["else", "endfor"]);
 const FOR_STACK = Symbol.for("liquid.tags.for");
 
+// TODO: move these to context or somewhere central?
 export const BREAK = Symbol.for("liquid.runtime.break");
 export const CONTINUE = Symbol.for("liquid.runtime.continue");
 
@@ -213,6 +214,8 @@ export class ForTag implements Markup {
     return it;
   }
 
+  // TODO: rename me
+  // TODO: use context.toInteger and context.toIntegerSync
   private normalizedOffsetAndLimit(
     offset: unknown,
     limit: unknown,

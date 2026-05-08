@@ -12,6 +12,7 @@ import {
 } from "./type_guards";
 import type { ForLoop } from "./drops";
 import * as drop from "./drop";
+import type { Expression } from "./expression";
 
 export type Namespace = { [index: string]: unknown };
 
@@ -363,6 +364,40 @@ export class RenderContext {
     }
 
     return [obj, segmentIndex];
+  }
+
+  async toArray(expression: Expression | undefined): Promise<unknown[]> {
+    return expression
+      ? this.env.toArray(await expression.evaluate(this), this, expression.span)
+      : [];
+  }
+
+  toArraySync(expression: Expression | undefined): unknown[] {
+    return expression
+      ? this.env.toArray(expression.evaluateSync(this), this, expression.span)
+      : [];
+  }
+
+  async toInteger<T>(
+    expression: Expression | undefined,
+    default_: T,
+  ): Promise<number | T> {
+    return expression
+      ? this.env.toInteger(
+          await expression.evaluate(this),
+          this,
+          expression.span,
+        )
+      : default_;
+  }
+
+  toIntegerSync<T>(
+    expression: Expression | undefined,
+    default_: T,
+  ): number | T {
+    return expression
+      ? this.env.toInteger(expression.evaluateSync(this), this, expression.span)
+      : default_;
   }
 }
 
