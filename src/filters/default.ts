@@ -1,11 +1,11 @@
-import { assertArgs, type FilterContext } from "../filter";
+import { type FilterContext } from "../filter";
 
 export function default_(
   this: FilterContext,
   left: unknown,
   _default: unknown = "",
 ): unknown {
-  assertArgs(this, arguments.length, 2);
+  this.assertArgs(arguments.length, 2);
 
   if (
     this.context.env.isTruthy(this.options["allow_false"], this.context) &&

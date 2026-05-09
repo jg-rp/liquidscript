@@ -5,12 +5,20 @@ import { ObjectLoader } from "./src/loaders";
 import { getTokenValue, REVERSE_T } from "./src/token";
 
 const source =
-  '{% assign a = "a b\nc" | split: " " %}{% for i in a %}#{{ forloop.index0 }}{{ i }}{% endfor %}';
+  "{% assign x = a | where: 'title', nosuchthing %}{% for obj in x %}{% for i in obj %}({{ i[0] }},{{ i[1] }}){% endfor %}{% endfor %}";
 
 const data = {
-  collection: {
-    labels: ["label1", "label2", "label3", "label4"],
-  },
+  a: [
+    {
+      title: "foo",
+    },
+    {
+      title: "bar",
+    },
+    {
+      title: null,
+    },
+  ],
 };
 
 const loader = new ObjectLoader({

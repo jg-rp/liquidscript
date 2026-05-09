@@ -1,6 +1,7 @@
 import type { FilterContext } from "../filter";
 
 export function upcase(this: FilterContext, left: unknown): string {
-  const _left = this.context.env.toString(left, this.context, this.span);
+  this.assertArgs(arguments.length, 1);
+  const _left = this.toString(left, "");
   return _left.toUpperCase();
 }

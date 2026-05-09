@@ -1,4 +1,4 @@
-import { assertArgs, type FilterContext } from "../filter";
+import { type FilterContext } from "../filter";
 import { LiquidNumber, toLiquidNumber } from "../number";
 
 /**
@@ -6,6 +6,6 @@ import { LiquidNumber, toLiquidNumber } from "../number";
  * an integer or float, `0` will be returned.
  */
 export function abs(this: FilterContext, left: unknown): LiquidNumber {
-  assertArgs(this, arguments.length, 1);
+  this.assertArgs(arguments.length, 1);
   return toLiquidNumber(left, this.context).abs();
 }

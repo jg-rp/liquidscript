@@ -21,9 +21,12 @@ export function range(...args: number[]): Range {
 
 export class Range extends Drop implements Iterable<number> {
   protected length: number;
+
   readonly start: number;
-  readonly stop: number;
+
   protected step: number = 1;
+
+  readonly stop: number;
 
   constructor(start: number, stop: number) {
     super();
@@ -32,12 +35,7 @@ export class Range extends Drop implements Iterable<number> {
     this.length = this.stop < this.start ? 0 : this.stop - this.start + 1;
   }
 
-  public override *[Symbol.iterator](): Iterator<number> {
-    // Ranges are inclusive of stop.
-    for (let i = this.start; i <= this.stop; i += this.step) yield i;
-  }
-
-  public override [drop.equals](other: unknown): boolean {
+  override [drop.equals](other: unknown): boolean {
     return (
       other instanceof Range &&
       this.start === other.start &&
@@ -45,41 +43,11 @@ export class Range extends Drop implements Iterable<number> {
     );
   }
 
-  public override toString(): string {
-    return `${this.start}..${this.stop}`;
-  }
-
-  public override async [drop.toLiquid](
-    hint: ContextHint,
-    context: RenderContext,
-  ): Promise<unknown> {
-    return this[drop.toLiquidSync](hint, context);
-  }
-
-  public override [drop.toLiquidSync](
-    hint: ContextHint,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    context: RenderContext,
-  ): unknown {
-    switch (hint) {
-      case "string":
-        return this.toString();
-      case "data":
-        return Array.from({ length: this.length }, (_, i) => this.start + i);
-      case "boolean":
-        return this.length > 0;
-      case "numeric":
-        return Nothing;
-      default:
-        return Nothing;
-    }
-  }
-
-  public override [drop.length]() {
+  override [drop.length]() {
     return this.length;
   }
 
-  public override [drop.sliceSync](
+  override [drop.sliceSync](
     offset?: number,
     limit?: number,
     reversed?: boolean,
@@ -104,6 +72,41 @@ export class Range extends Drop implements Iterable<number> {
     }
 
     return reversed ? new DescendingRange(stop, start) : new Range(start, stop);
+  }
+
+  override async [drop.toLiquid](
+    hint: ContextHint,
+    context: RenderContext,
+  ): Promise<unknown> {
+    return this[drop.toLiquidSync](hint, context);
+  }
+
+  override [drop.toLiquidSync](
+    hint: ContextHint,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    context: RenderContext,
+  ): unknown {
+    switch (hint) {
+      case "string":
+        return this.toString();
+      case "data":
+        return Array.from({ length: this.length }, (_, i) => this.start + i);
+      case "boolean":
+        return this.length > 0;
+      case "numeric":
+        return Nothing;
+      default:
+        return Nothing;
+    }
+  }
+
+  override *[Symbol.iterator](): Iterator<number> {
+    // Ranges are inclusive of stop.
+    for (let i = this.start; i <= this.stop; i += this.step) yield i;
+  }
+
+  override toString(): string {
+    return `${this.start}..${this.stop}`;
   }
 }
 

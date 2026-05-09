@@ -297,14 +297,21 @@ export class Environment {
 
   setupFilters(): void {
     this.filters["abs"] = filters.abs;
+    this.filters["compact"] = filters.compact;
+    this.filters["concat"] = filters.concat;
     this.filters["default"] = filters.default_;
     this.filters["first"] = filters.first;
     this.filters["join"] = filters.join;
+    this.filters["last"] = filters.last;
+    this.filters["map"] = filters.map;
     this.filters["reverse"] = filters.reverse;
     this.filters["sort"] = filters.sort;
+    this.filters["sort_natural"] = filters.sortNatural;
     this.filters["split"] = filters.split;
     this.filters["times"] = filters.times;
+    this.filters["uniq"] = filters.uniq;
     this.filters["upcase"] = filters.upcase;
+    this.filters["where"] = filters.where;
   }
 
   setupTags(): void {

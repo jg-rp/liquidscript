@@ -1,10 +1,8 @@
 import { Undefined } from "../drops/undefined";
-import { TemplateTypeError } from "../errors";
 import { type FilterContext } from "../filter";
 import { Nothing } from "../runtime";
-import { isComparable } from "../type_guards";
 
-export function sort(
+export function sortNatural(
   this: FilterContext,
   left: unknown,
   key?: unknown,
@@ -23,20 +21,9 @@ export function sort(
     if (isNil(a) && !isNil(b)) return 1;
     if (!isNil(a) && isNil(b)) return -1;
 
-    if (typeof a !== typeof b)
-      throw new TemplateTypeError(
-        `comparison with ${typeof a} and ${typeof b} failed`,
-        this.span,
-        this.context.template.source,
-      );
-
-    if (isComparable(a) && isComparable(b)) return a < b ? -1 : a > b ? 1 : 0;
-
-    throw new TemplateTypeError(
-      `comparison with ${typeof a} and ${typeof b} failed`,
-      this.span,
-      this.context.template.source,
-    );
+    const _a = this.toString(a, "").toLowerCase();
+    const _b = this.toString(b, "").toLowerCase();
+    return _a < _b ? -1 : _a > _b ? 1 : 0;
   }
 
   this.assertArgs(arguments.length, 1, 2);

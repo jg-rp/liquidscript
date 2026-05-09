@@ -1,9 +1,16 @@
 export { abs } from "./abs";
+export { compact } from "./compact";
+export { concat } from "./concat";
 export { default_ } from "./default";
 export { first } from "./first";
 export { join } from "./join";
+export { last } from "./last";
+export { map } from "./map";
 export { reverse } from "./reverse";
 export { sort } from "./sort";
+export { sortNatural } from "./sort_natural";
 export { split } from "./split";
 export { times } from "./times";
+export { uniq } from "./uniq";
 export { upcase } from "./upcase";
+export { where } from "./where";
