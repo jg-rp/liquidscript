@@ -1,5 +1,5 @@
 import { type FilterContext } from "../filter";
-import { LiquidNumber, toLiquidNumber } from "../number";
+import { LiquidNumber, ZERO } from "../number";
 
 /**
  * Return the absolute value of a number. Given a value that can't be cast to
@@ -7,5 +7,5 @@ import { LiquidNumber, toLiquidNumber } from "../number";
  */
 export function abs(this: FilterContext, left: unknown): LiquidNumber {
   this.assertArgs(arguments.length, 1);
-  return toLiquidNumber(left, this.context).abs();
+  return this.toLiquidNumber(left, ZERO).abs();
 }

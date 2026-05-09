@@ -10,6 +10,7 @@ export { reverse } from "./reverse";
 export { sort } from "./sort";
 export { sortNatural } from "./sort_natural";
 export { split } from "./split";
+export { sum } from "./sum";
 export { times } from "./times";
 export { uniq } from "./uniq";
 export { upcase } from "./upcase";

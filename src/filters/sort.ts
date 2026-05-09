@@ -1,7 +1,6 @@
 import { Undefined } from "../drops/undefined";
 import { TemplateTypeError } from "../errors";
 import { type FilterContext } from "../filter";
-import { Nothing } from "../runtime";
 import { isComparable } from "../type_guards";
 
 export function sort(
@@ -9,19 +8,10 @@ export function sort(
   left: unknown,
   key?: unknown,
 ): unknown[] {
-  function isNil(obj: unknown) {
-    return (
-      obj === undefined ||
-      obj == null ||
-      obj === Nothing ||
-      obj instanceof Undefined
-    );
-  }
-
   function compare(this: FilterContext, a: unknown, b: unknown): -1 | 0 | 1 {
-    if (isNil(a) && isNil(b)) return 0;
-    if (isNil(a) && !isNil(b)) return 1;
-    if (!isNil(a) && isNil(b)) return -1;
+    if (this.isNil(a) && this.isNil(b)) return 0;
+    if (this.isNil(a) && !this.isNil(b)) return 1;
+    if (!this.isNil(a) && this.isNil(b)) return -1;
 
     if (typeof a !== typeof b)
       throw new TemplateTypeError(

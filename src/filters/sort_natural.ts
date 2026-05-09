@@ -1,25 +1,15 @@
 import { Undefined } from "../drops/undefined";
 import { type FilterContext } from "../filter";
-import { Nothing } from "../runtime";
 
 export function sortNatural(
   this: FilterContext,
   left: unknown,
   key?: unknown,
 ): unknown[] {
-  function isNil(obj: unknown) {
-    return (
-      obj === undefined ||
-      obj == null ||
-      obj === Nothing ||
-      obj instanceof Undefined
-    );
-  }
-
   function compare(this: FilterContext, a: unknown, b: unknown): -1 | 0 | 1 {
-    if (isNil(a) && isNil(b)) return 0;
-    if (isNil(a) && !isNil(b)) return 1;
-    if (!isNil(a) && isNil(b)) return -1;
+    if (this.isNil(a) && this.isNil(b)) return 0;
+    if (this.isNil(a) && !this.isNil(b)) return 1;
+    if (!this.isNil(a) && this.isNil(b)) return -1;
 
     const _a = this.toString(a, "").toLowerCase();
     const _b = this.toString(b, "").toLowerCase();

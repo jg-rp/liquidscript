@@ -207,18 +207,19 @@ function _toLiquidNumber(n: N): LiquidNumber {
 /**
  * Coerce obj to a liquid number.
  */
-export function toLiquidNumber(
+export function toLiquidNumber<T>(
   obj: unknown,
   context: RenderContext,
-): LiquidNumber {
+  default_: T,
+): LiquidNumber | T {
   if (obj instanceof Drop) {
     obj = obj[toLiquidSync]("numeric", context);
   }
 
   if (isN(obj)) {
     const num = _toLiquidNumber(obj);
-    return num.isFinite() ? num : ZERO;
+    return num.isFinite() ? num : default_;
   }
 
-  return ZERO;
+  return default_;
 }

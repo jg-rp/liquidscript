@@ -1,5 +1,7 @@
 import type { RenderContext } from "./context";
+import { Undefined } from "./drops/undefined";
 import { ArgumentError } from "./errors";
+import { toLiquidNumber, type LiquidNumber } from "./number";
 import { Nothing } from "./runtime";
 import type { Token } from "./token";
 import { isArray, isIterable, isObject } from "./type_guards";
@@ -64,8 +66,21 @@ export class FilterContext {
     return [obj];
   }
 
+  isNil(obj: unknown): boolean {
+    return (
+      obj === undefined ||
+      obj == null ||
+      obj === Nothing ||
+      obj instanceof Undefined
+    );
+  }
+
   isTruthy(obj: unknown): boolean {
     return this.context.env.isTruthy(obj, this.context);
+  }
+
+  toLiquidNumber<T>(obj: unknown, default_: T): LiquidNumber | T {
+    return toLiquidNumber(obj, this.context, default_);
   }
 
   toString<T>(obj: unknown, default_: T): string | T {

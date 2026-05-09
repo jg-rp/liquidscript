@@ -1,6 +1,4 @@
-import { Undefined } from "../drops/undefined";
 import { type FilterContext } from "../filter";
-import { Nothing } from "../runtime";
 
 export function where(
   this: FilterContext,
@@ -10,12 +8,7 @@ export function where(
 ): unknown[] {
   this.assertArgs(arguments.length, 2, 3);
 
-  if (
-    value === undefined ||
-    value == null ||
-    value === Nothing ||
-    value instanceof Undefined
-  ) {
+  if (this.isNil(value)) {
     return this.inputArray(left).filter((v) =>
       this.isTruthy(this.getItem(v, prop, undefined)),
     );

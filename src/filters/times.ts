@@ -1,5 +1,5 @@
 import { type FilterContext } from "../filter";
-import { LiquidNumber, toLiquidNumber } from "../number";
+import { LiquidNumber, ZERO } from "../number";
 
 export function times(
   this: FilterContext,
@@ -7,7 +7,7 @@ export function times(
   right: unknown,
 ): LiquidNumber {
   this.assertArgs(arguments.length, 2);
-  return toLiquidNumber(left, this.context).times(
-    toLiquidNumber(right, this.context),
+  return this.toLiquidNumber(left, ZERO).times(
+    this.toLiquidNumber(right, ZERO),
   );
 }

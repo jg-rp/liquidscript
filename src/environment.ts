@@ -308,6 +308,7 @@ export class Environment {
     this.filters["sort"] = filters.sort;
     this.filters["sort_natural"] = filters.sortNatural;
     this.filters["split"] = filters.split;
+    this.filters["sum"] = filters.sum;
     this.filters["times"] = filters.times;
     this.filters["uniq"] = filters.uniq;
     this.filters["upcase"] = filters.upcase;
