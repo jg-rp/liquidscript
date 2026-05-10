@@ -343,10 +343,15 @@ export class Environment {
     this.filters["split"] = filters.split;
     this.filters["strip"] = filters.strip;
     this.filters["strip_html"] = filters.stripHTML;
+    this.filters["strip_newlines"] = filters.stripNewlines;
     this.filters["sum"] = filters.sum;
     this.filters["times"] = filters.times;
+    this.filters["truncate"] = filters.truncate;
+    this.filters["truncatewords"] = filters.truncateWords;
     this.filters["uniq"] = filters.uniq;
     this.filters["upcase"] = filters.upcase;
+    this.filters["url_decode"] = filters.urlDecode;
+    this.filters["url_encode"] = filters.urlEncode;
     this.filters["where"] = filters.where;
   }
 
@@ -389,7 +394,7 @@ export class Environment {
 
     const num = Number(String(obj));
 
-    if (isNaN(num)) {
+    if (obj instanceof Undefined || isNaN(num)) {
       throw new TemplateTypeError(
         "invalid integer",
         token,

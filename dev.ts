@@ -4,7 +4,7 @@ import type { _Undefined } from "./src/environment";
 import { ObjectLoader } from "./src/loaders";
 import { getTokenValue, REVERSE_T } from "./src/token";
 
-const source = "{{ 10 | divided_by: 2.0 }}";
+const source = '{{ "Ground control to Major Tom." | truncate: nosuchthing }}';
 
 const data = {
   a: [
