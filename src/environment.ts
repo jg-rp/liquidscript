@@ -74,6 +74,12 @@ export type TemplateMeta = {
  */
 export type EnvironmentOptions = {
   /**
+   * When `true`, render context variables will be HTML escaped before output.
+   * @defaultValue `false`
+   */
+  autoEscape?: boolean;
+
+  /**
    * An optional object who's properties will be added to the render context
    * of every template rendered from this environment.
    *
@@ -109,6 +115,8 @@ export type EnvironmentOptions = {
  * Template engine configuration from which templates can be loaded and parsed.
  */
 export class Environment {
+  autoEscape: boolean;
+
   bufferFactory: BufferFactory;
 
   filters: { [key: string]: Filter };
@@ -135,6 +143,7 @@ export class Environment {
     this.setupTags();
     this.setupFilters();
 
+    this.autoEscape = options?.autoEscape ?? false;
     this.globals = options?.globals;
     this.loader = options?.loader ?? new MapLoader();
     this.bufferFactory = options?.bufferFactory ?? Array;
@@ -297,13 +306,18 @@ export class Environment {
 
   setupFilters(): void {
     this.filters["abs"] = filters.abs;
+    this.filters["append"] = filters.append;
     this.filters["at_least"] = filters.atLeast;
     this.filters["at_most"] = filters.atMost;
+    this.filters["capitalize"] = filters.capitalize;
     this.filters["ceil"] = filters.ceil;
     this.filters["compact"] = filters.compact;
     this.filters["concat"] = filters.concat;
     this.filters["default"] = filters.default_;
     this.filters["divided_by"] = filters.dividedBy;
+    this.filters["downcase"] = filters.downcase;
+    this.filters["escape"] = filters.escape;
+    this.filters["escape_once"] = filters.escapeOnce;
     this.filters["first"] = filters.first;
     this.filters["floor"] = filters.floor;
     this.filters["join"] = filters.join;

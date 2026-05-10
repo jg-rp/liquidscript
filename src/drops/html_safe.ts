@@ -39,4 +39,8 @@ export class HTMLSafeString extends Drop {
         return Nothing;
     }
   }
+
+  override valueOf(): string {
+    return this.#s;
+  }
 }

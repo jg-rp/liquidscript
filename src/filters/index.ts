@@ -1,11 +1,16 @@
 export { abs } from "./abs";
+export { append } from "./append";
 export { atLeast } from "./at_least";
 export { atMost } from "./at_most";
+export { capitalize } from "./capitalize";
 export { ceil } from "./ceil";
 export { compact } from "./compact";
 export { concat } from "./concat";
 export { default_ } from "./default";
 export { dividedBy } from "./divided_by";
+export { downcase } from "./downcase";
+export { escape } from "./escape";
+export { escapeOnce } from "./escape_once";
 export { first } from "./first";
 export { floor } from "./floor";
 export { join } from "./join";

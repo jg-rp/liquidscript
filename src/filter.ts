@@ -1,4 +1,5 @@
 import type { RenderContext } from "./context";
+import { HTMLSafeString } from "./drops/html_safe";
 import { Undefined } from "./drops/undefined";
 import { ArgumentError } from "./errors";
 import { toLiquidNumber, type LiquidNumber } from "./number";
@@ -84,6 +85,14 @@ export class FilterContext {
   }
 
   toString<T>(obj: unknown, default_: T): string | T {
+    return obj === undefined
+      ? default_
+      : this.context.env.toString(obj, this.context, this.span);
+  }
+
+  toStringSafe<T>(obj: unknown, default_: T): string | HTMLSafeString | T {
+    if (obj instanceof HTMLSafeString) return obj;
+
     return obj === undefined
       ? default_
       : this.context.env.toString(obj, this.context, this.span);
