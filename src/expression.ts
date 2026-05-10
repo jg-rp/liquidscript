@@ -7,11 +7,13 @@ import { range } from "./drops/range";
 import { span, T, type Token } from "./token";
 import { isString } from "./type_guards";
 import { FilterContext } from "./filter";
+import type { Float, Integer } from "./number";
 
-export type PathSegment = Name | StringLiteral | IntegerLiteral | Variable;
+export type PathSegment = Name | StringLiteral | IndexSelector | Variable;
 
 export type Literal =
   | IntegerLiteral
+  | IndexSelector
   | FloatLiteral
   | StringLiteral
   | BooleanLiteral
@@ -554,6 +556,33 @@ export class Variable implements Expression {
   }
 }
 
+export class IndexSelector implements Expression {
+  readonly span: Token;
+
+  constructor(
+    readonly token: Token,
+    readonly value: number,
+  ) {
+    this.span = token;
+  }
+
+  children(context: StaticContext): Traversable[] {
+    return [];
+  }
+
+  async evaluate(context: RenderContext): Promise<unknown> {
+    return this.value;
+  }
+
+  evaluateSync(context: RenderContext): unknown {
+    return this.value;
+  }
+
+  toString(): string {
+    return `${this.value}`;
+  }
+}
+
 export class StringLiteral implements Expression {
   readonly span: Token;
 
@@ -588,7 +617,7 @@ export class IntegerLiteral implements Expression {
 
   constructor(
     readonly token: Token,
-    readonly value: number,
+    readonly value: Integer,
   ) {
     this.span = token;
   }
@@ -615,7 +644,7 @@ export class FloatLiteral implements Expression {
 
   constructor(
     readonly token: Token,
-    readonly value: number,
+    readonly value: Float,
   ) {
     this.span = token;
   }

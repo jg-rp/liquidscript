@@ -12,6 +12,7 @@ import {
   type TokenKind,
 } from "./token";
 import * as expr from "./expression";
+import { Float, Integer } from "./number";
 
 export const PRECEDENCE_LOWEST = 1;
 const PRECEDENCE_LOGICAL_RIGHT = 3;
@@ -184,7 +185,7 @@ export class LegacyParser extends Parser {
 
     switch (token.kind) {
       case T.INT:
-        segment = new expr.IntegerLiteral(
+        segment = new expr.IndexSelector(
           token,
           Number(getTokenValue(token, this.source)),
         );
@@ -344,7 +345,7 @@ export class LegacyParser extends Parser {
     const token = this.next();
     return new expr.FloatLiteral(
       token,
-      Number(getTokenValue(token, this.source)),
+      new Float(getTokenValue(token, this.source)),
     );
   }
 
@@ -375,7 +376,7 @@ export class LegacyParser extends Parser {
     const token = this.next();
     return new expr.IntegerLiteral(
       token,
-      Number(getTokenValue(token, this.source)),
+      new Integer(getTokenValue(token, this.source)),
     );
   }
 

@@ -4,8 +4,7 @@ import type { _Undefined } from "./src/environment";
 import { ObjectLoader } from "./src/loaders";
 import { getTokenValue, REVERSE_T } from "./src/token";
 
-const source =
-  "{% assign x = a | where: 'title', nosuchthing %}{% for obj in x %}{% for i in obj %}({{ i[0] }},{{ i[1] }}){% endfor %}{% endfor %}";
+const source = "{{ 10 | divided_by: 2.0 }}";
 
 const data = {
   a: [
