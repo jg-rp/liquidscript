@@ -322,10 +322,16 @@ export class Environment {
     this.filters["floor"] = filters.floor;
     this.filters["join"] = filters.join;
     this.filters["last"] = filters.last;
+    this.filters["lstrip"] = filters.lStrip;
     this.filters["map"] = filters.map;
     this.filters["minus"] = filters.minus;
     this.filters["modulo"] = filters.modulo;
+    this.filters["newline_to_br"] = filters.newlineToBr;
     this.filters["plus"] = filters.plus;
+    this.filters["prepend"] = filters.prepend;
+    this.filters["remove"] = filters.remove;
+    this.filters["remove_first"] = filters.removeFirst;
+    this.filters["remove_last"] = filters.removeLast;
     this.filters["reverse"] = filters.reverse;
     this.filters["round"] = filters.round;
     this.filters["sort"] = filters.sort;

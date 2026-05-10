@@ -27,7 +27,7 @@ const SKIP = new Set([
 // );
 
 const golden: { tests: Case[] } = JSON.parse(
-  readFileSync("tests/golden_liquid/tests/filters/escape_once.json", {
+  readFileSync("tests/golden_liquid/tests/filters/remove_last.json", {
     encoding: "utf8",
   }),
 );
