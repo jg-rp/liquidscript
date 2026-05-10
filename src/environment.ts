@@ -332,11 +332,17 @@ export class Environment {
     this.filters["remove"] = filters.remove;
     this.filters["remove_first"] = filters.removeFirst;
     this.filters["remove_last"] = filters.removeLast;
+    this.filters["replace"] = filters.replace;
+    this.filters["replace_first"] = filters.replaceFirst;
+    this.filters["replace_last"] = filters.replaceLast;
     this.filters["reverse"] = filters.reverse;
     this.filters["round"] = filters.round;
+    this.filters["rstrip"] = filters.rStrip;
     this.filters["sort"] = filters.sort;
     this.filters["sort_natural"] = filters.sortNatural;
     this.filters["split"] = filters.split;
+    this.filters["strip"] = filters.strip;
+    this.filters["strip_html"] = filters.stripHTML;
     this.filters["sum"] = filters.sum;
     this.filters["times"] = filters.times;
     this.filters["uniq"] = filters.uniq;
