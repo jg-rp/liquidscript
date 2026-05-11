@@ -18,6 +18,7 @@
     "@stylistic/eslint-plugin": "^5.10.0",
     "@types/bun": "latest",
     "@types/jest": "^30.0.0",
+    "@types/luxon": "^3.7.1",
     "@typescript/native-preview": "^7.0.0-dev.20260421.2",
     "eslint": "^10.1.0",
     "eslint-plugin-perfectionist": "^5.9.0",
@@ -29,6 +30,7 @@
     "typescript": "^5"
   },
   "dependencies": {
-    "decimal.js": "^10.6.0"
+    "decimal.js": "^10.6.0",
+    "luxon": "^3.7.2"
   }
 }

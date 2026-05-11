@@ -313,6 +313,7 @@ export class Environment {
     this.filters["ceil"] = filters.ceil;
     this.filters["compact"] = filters.compact;
     this.filters["concat"] = filters.concat;
+    this.filters["date"] = filters.date;
     this.filters["default"] = filters.default_;
     this.filters["divided_by"] = filters.dividedBy;
     this.filters["downcase"] = filters.downcase;
@@ -338,6 +339,7 @@ export class Environment {
     this.filters["reverse"] = filters.reverse;
     this.filters["round"] = filters.round;
     this.filters["rstrip"] = filters.rStrip;
+    this.filters["size"] = filters.size;
     this.filters["sort"] = filters.sort;
     this.filters["sort_natural"] = filters.sortNatural;
     this.filters["split"] = filters.split;

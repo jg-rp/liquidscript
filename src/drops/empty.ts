@@ -10,27 +10,6 @@ import {
 import { isArray, isObject, isString } from "../type_guards";
 
 export class Empty extends Drop {
-  override [toLiquidSync](hint: ContextHint, context?: RenderContext): unknown {
-    switch (hint) {
-      case "string":
-      case "data":
-        return "";
-      default:
-        return this;
-    }
-  }
-
-  override async [toLiquid](
-    hint: ContextHint,
-    context?: RenderContext,
-  ): Promise<unknown> {
-    return this[toLiquidSync](hint, context);
-  }
-
-  override toString(): string {
-    return "";
-  }
-
   override [equals](obj: unknown, context: RenderContext): boolean {
     if (obj instanceof Empty) return true;
     if (obj === null) return false;
@@ -41,6 +20,27 @@ export class Empty extends Drop {
       return true;
     }
     return false;
+  }
+
+  override async [toLiquid](
+    hint: ContextHint,
+    context?: RenderContext,
+  ): Promise<unknown> {
+    return this[toLiquidSync](hint, context);
+  }
+
+  override [toLiquidSync](hint: ContextHint, context?: RenderContext): unknown {
+    switch (hint) {
+      case "string":
+      case "data":
+        return "";
+      default:
+        return this;
+    }
+  }
+
+  override toString(): string {
+    return "";
   }
 }
 

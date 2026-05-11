@@ -1,21 +1,23 @@
-import { type FilterContext } from "../filter";
+import { Drop, equals, toLiquidSync } from "../drop";
+import { EMPTY } from "../drops";
+import type { FilterContext } from "../filter";
 
 export function default_(
   this: FilterContext,
   left: unknown,
-  _default: unknown = "",
+  right: unknown = "",
 ): unknown {
-  this.assertArgs(arguments.length, 2);
+  this.assertArgs(arguments.length, 1, 2);
 
-  if (
-    this.context.env.isTruthy(this.options["allow_false"], this.context) &&
-    left === false
-  ) {
+  const left_ =
+    left instanceof Drop ? left[toLiquidSync]("boolean", this.context) : left;
+
+  if (this.options["allow_false"] && left_ === false) {
     return left;
   }
 
-  if (!this.context.env.isTruthy(left, this.context)) {
-    return _default;
+  if (!this.isTruthy(left_) || EMPTY[equals](left_, this.context)) {
+    return right;
   }
 
   return left;
