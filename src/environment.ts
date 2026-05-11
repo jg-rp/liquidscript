@@ -244,6 +244,10 @@ export class Environment {
       return left[lessThanSync](right, context);
     }
 
+    if (right instanceof Drop) {
+      return right[lessThanSync](left, context);
+    }
+
     if (isString(left) && isString(right)) {
       return left < right;
     }

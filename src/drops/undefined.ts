@@ -13,6 +13,7 @@ import {
 } from "../drop";
 import { UndefinedVariableError } from "../errors";
 import type { Token } from "../token";
+import { Blank } from "./blank";
 
 export class Undefined extends Drop {
   constructor(
@@ -23,23 +24,18 @@ export class Undefined extends Drop {
     super();
   }
 
-  override toString(): string {
-    return "";
-  }
-
-  override valueOf(): unknown {
-    return "";
-  }
-
   override [dispatchSync](name: string, context: RenderContext): unknown {
     return this;
   }
 
   override [equals](obj: unknown, context: RenderContext): boolean {
-    return obj === null || obj === undefined || obj instanceof Undefined;
+    return (
+      obj === null ||
+      obj === undefined ||
+      obj instanceof Undefined ||
+      obj instanceof Blank
+    );
   }
-
-  poke(): void {}
 
   get first() {
     return this;
@@ -49,29 +45,23 @@ export class Undefined extends Drop {
     return this;
   }
 
+  poke(): void {}
+
   get size() {
     return this;
+  }
+
+  override toString(): string {
+    return "";
+  }
+
+  override valueOf(): unknown {
+    return "";
   }
 }
 
 export class StrictUndefined extends Undefined {
-  protected error(): never {
-    throw new UndefinedVariableError(
-      `'${this.path}' is undefined`,
-      this.token,
-      this.source,
-    );
-  }
-
-  override toString(): string {
-    this.error();
-  }
-
-  override valueOf() {
-    this.error();
-  }
-
-  override [toLiquidSync](hint: ContextHint, context: RenderContext): unknown {
+  override [containsSync](obj: unknown, context: RenderContext): boolean {
     this.error();
   }
 
@@ -80,6 +70,34 @@ export class StrictUndefined extends Undefined {
   }
 
   override [equals](obj: unknown, context: RenderContext): boolean {
+    this.error();
+  }
+
+  protected error(): never {
+    throw new UndefinedVariableError(
+      `'${this.path}' is undefined`,
+      this.token,
+      this.source,
+    );
+  }
+
+  override [length](): number {
+    this.error();
+  }
+
+  override [lessThanSync](obj: unknown, context: RenderContext): boolean {
+    this.error();
+  }
+
+  override poke(): void {
+    this.error();
+  }
+
+  override [sliceSync](
+    offset?: number,
+    limit?: number,
+    reversed?: boolean,
+  ): Drop {
     this.error();
   }
 
@@ -97,27 +115,15 @@ export class StrictUndefined extends Undefined {
     yield;
   }
 
-  override [length](): number {
+  override [toLiquidSync](hint: ContextHint, context: RenderContext): unknown {
     this.error();
   }
 
-  override [sliceSync](
-    offset?: number,
-    limit?: number,
-    reversed?: boolean,
-  ): Drop {
+  override toString(): string {
     this.error();
   }
 
-  override [containsSync](obj: unknown, context: RenderContext): boolean {
-    this.error();
-  }
-
-  override [lessThanSync](obj: unknown, context: RenderContext): boolean {
-    this.error();
-  }
-
-  override poke(): void {
+  override valueOf() {
     this.error();
   }
 }
