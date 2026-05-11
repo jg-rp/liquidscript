@@ -80,6 +80,10 @@ export class FilterContext {
     return this.context.env.isTruthy(obj, this.context);
   }
 
+  toInteger(obj: unknown): number {
+    return this.context.env.toInteger(obj, this.context, this.span);
+  }
+
   toLiquidNumber<T>(obj: unknown, default_: T): LiquidNumber | T {
     return toLiquidNumber(obj, this.context, default_);
   }

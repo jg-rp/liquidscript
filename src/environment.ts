@@ -309,6 +309,10 @@ export class Environment {
     this.filters["append"] = filters.append;
     this.filters["at_least"] = filters.atLeast;
     this.filters["at_most"] = filters.atMost;
+    this.filters["base64_encode"] = filters.base64Encode;
+    this.filters["base64_url_safe_encode"] = filters.base64URLSafeEncode;
+    this.filters["base64_decode"] = filters.base64Decode;
+    this.filters["base64_url_safe_decode"] = filters.base64URLSafeDecode;
     this.filters["capitalize"] = filters.capitalize;
     this.filters["ceil"] = filters.ceil;
     this.filters["compact"] = filters.compact;
@@ -340,6 +344,7 @@ export class Environment {
     this.filters["round"] = filters.round;
     this.filters["rstrip"] = filters.rStrip;
     this.filters["size"] = filters.size;
+    this.filters["slice"] = filters.slice;
     this.filters["sort"] = filters.sort;
     this.filters["sort_natural"] = filters.sortNatural;
     this.filters["split"] = filters.split;

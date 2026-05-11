@@ -14,28 +14,16 @@ type Case = {
 };
 
 const SKIP = new Set([
-  "malformed tags are not parsed", // TODO: remove me
-  "incomplete tags are not parsed", // TODO: remove me
   "tags, comment, malformed tags are not parsed", // TODO: rename me
   "tags, comment, incomplete tags are not parsed", // TODO: rename me
-  "well formed string", // TODO: remove me
-  "literal percent", // TODO: remove me
-  "negative timestamp string", // TODO: remove me
-  "seconds since epoch format directive", // TODO: remove me
   "filters, date, well formed string",
   "filters, date, literal percent",
   "filters, date, negative timestamp string",
   "filters, date, seconds since epoch format directive",
 ]);
 
-// const golden: {"tests": Case[]} = JSON.parse(
-//   readFileSync("tests/golden_liquid/golden_liquid.json", {
-//     encoding: "utf8",
-//   }),
-// );
-
 const golden: { tests: Case[] } = JSON.parse(
-  readFileSync("tests/golden_liquid/tests/filters/date.json", {
+  readFileSync("tests/golden_liquid/golden_liquid.json", {
     encoding: "utf8",
   }),
 );

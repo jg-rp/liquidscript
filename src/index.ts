@@ -1,3 +1,5 @@
+import "es-arraybuffer-base64/auto";
+
 import { Environment } from "./environment";
 
 export { Environment };

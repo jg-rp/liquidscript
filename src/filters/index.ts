@@ -2,6 +2,12 @@ export { abs } from "./abs";
 export { append } from "./append";
 export { atLeast } from "./at_least";
 export { atMost } from "./at_most";
+export {
+  base64Encode,
+  base64URLSafeEncode,
+  base64Decode,
+  base64URLSafeDecode,
+} from "./base64";
 export { capitalize } from "./capitalize";
 export { ceil } from "./ceil";
 export { compact } from "./compact";
@@ -33,6 +39,7 @@ export { reverse } from "./reverse";
 export { round } from "./round";
 export { rStrip } from "./rstrip";
 export { size } from "./size";
+export { slice } from "./slice";
 export { sort } from "./sort";
 export { sortNatural } from "./sort_natural";
 export { split } from "./split";
