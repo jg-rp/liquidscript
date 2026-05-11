@@ -4,20 +4,15 @@ import type { _Undefined } from "./src/environment";
 import { ObjectLoader } from "./src/loaders";
 import { getTokenValue, REVERSE_T } from "./src/token";
 
-const source = '{{ "Ground control to Major Tom." | truncate: nosuchthing }}';
+const source =
+  "{% assign b = h | reject: 'bar' %}{% for obj in b %}{% for itm in obj %}({{ itm[0] }},{{ itm[1] }}), {% endfor %}{% endfor %}";
 
 const data = {
-  a: [
-    {
-      title: "foo",
-    },
-    {
-      title: "bar",
-    },
-    {
-      title: null,
-    },
-  ],
+  h: {
+    foo: 1,
+    bar: null,
+    baz: 3,
+  },
 };
 
 const loader = new ObjectLoader({

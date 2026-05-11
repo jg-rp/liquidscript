@@ -323,8 +323,11 @@ export class Environment {
     this.filters["downcase"] = filters.downcase;
     this.filters["escape"] = filters.escape;
     this.filters["escape_once"] = filters.escapeOnce;
+    this.filters["find"] = filters.find;
+    this.filters["find_index"] = filters.findIndex;
     this.filters["first"] = filters.first;
     this.filters["floor"] = filters.floor;
+    this.filters["has"] = filters.has;
     this.filters["join"] = filters.join;
     this.filters["last"] = filters.last;
     this.filters["lstrip"] = filters.lStrip;
@@ -334,6 +337,7 @@ export class Environment {
     this.filters["newline_to_br"] = filters.newlineToBr;
     this.filters["plus"] = filters.plus;
     this.filters["prepend"] = filters.prepend;
+    this.filters["reject"] = filters.reject;
     this.filters["remove"] = filters.remove;
     this.filters["remove_first"] = filters.removeFirst;
     this.filters["remove_last"] = filters.removeLast;

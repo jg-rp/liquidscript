@@ -2,10 +2,16 @@ import type { RenderContext } from "./context";
 import { HTMLSafeString } from "./drops/html_safe";
 import { Undefined } from "./drops/undefined";
 import { ArgumentError } from "./errors";
-import { toLiquidNumber, type LiquidNumber } from "./number";
+import { isLiquidNumber, toLiquidNumber, type LiquidNumber } from "./number";
 import { Nothing } from "./runtime";
 import type { Token } from "./token";
-import { isArray, isIterable, isObject } from "./type_guards";
+import {
+  isArray,
+  isIterable,
+  isNumber,
+  isObject,
+  isString,
+} from "./type_guards";
 
 export type Filter = {
   (this: FilterContext, left: unknown, ...args: unknown[]): unknown;
@@ -33,12 +39,32 @@ export class FilterContext {
   }
 
   getItem(obj: unknown, key: unknown, default_?: unknown): unknown {
-    if (!isObject(obj))
+    if (this.isNil(obj)) {
       throw new ArgumentError(
         `can't read property ${obj}[${key}]`,
         this.span,
         this.context.template.source,
       );
+    }
+
+    if (isString(obj) && isString(key)) {
+      return obj.indexOf(key) !== -1 ? key : null;
+    }
+
+    if (
+      (isNumber(obj) || isLiquidNumber(obj)) &&
+      (isNumber(key) || isLiquidNumber(key))
+    ) {
+      return obj == key;
+    }
+
+    if (!isObject(obj)) {
+      throw new ArgumentError(
+        `can't read property ${obj}[${key}]`,
+        this.span,
+        this.context.template.source,
+      );
+    }
 
     if (obj instanceof Map) {
       return obj.get(key);
@@ -70,7 +96,7 @@ export class FilterContext {
   isNil(obj: unknown): boolean {
     return (
       obj === undefined ||
-      obj == null ||
+      obj === null ||
       obj === Nothing ||
       obj instanceof Undefined
     );
