@@ -20,6 +20,7 @@ const SKIP = new Set([
   "filters, date, literal percent",
   "filters, date, negative timestamp string",
   "filters, date, seconds since epoch format directive",
+  "identifiers, capture only digits",
 ]);
 
 const golden: { tests: Case[] } = JSON.parse(

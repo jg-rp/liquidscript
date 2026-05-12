@@ -11,7 +11,7 @@
     "type": "git",
     "url": "https://github.com/jg-rp/liquidscript.git"
   },
-  "module": "index.ts",
+  "module": "src/index.ts",
   "type": "module",
   "devDependencies": {
     "@eslint/js": "^10.0.1",

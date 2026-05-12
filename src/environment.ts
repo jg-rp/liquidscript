@@ -256,8 +256,24 @@ export class Environment {
       return false;
     }
 
+    // TODO: optimize
+
     if (isNumber(left) && isNumber(right)) {
       return left < right;
+    }
+
+    if (
+      left instanceof LiquidNumber &&
+      (isNumber(right) || right instanceof LiquidNumber)
+    ) {
+      return left.lt(right);
+    }
+
+    if (
+      right instanceof LiquidNumber &&
+      (isNumber(left) || left instanceof LiquidNumber)
+    ) {
+      return right.gt(left);
     }
 
     throw new TemplateTypeError(

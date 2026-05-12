@@ -13,6 +13,7 @@ import {
 import type { ForLoop } from "./drops";
 import * as drop from "./drop";
 import type { Expression } from "./expression";
+import { LiquidNumber } from "./number";
 
 export type Namespace = { [index: string]: unknown };
 
@@ -216,6 +217,10 @@ export class RenderContext {
     for (let segment of segments) {
       segmentIndex += 1;
 
+      if (segment instanceof LiquidNumber) {
+        segment = segment.valueOf();
+      }
+
       if (obj instanceof Drop) {
         if (segment instanceof Drop) {
           segment = await segment[drop.toLiquid]("string", this);
@@ -295,6 +300,10 @@ export class RenderContext {
 
     for (let segment of segments) {
       segmentIndex += 1;
+
+      if (segment instanceof LiquidNumber) {
+        segment = segment.valueOf();
+      }
 
       if (obj instanceof Drop) {
         if (segment instanceof Drop) {
