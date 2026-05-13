@@ -1,5 +1,5 @@
 import type { Environment } from "./environment";
-import { isNothing, Nothing } from "./runtime";
+import { Nothing } from "./runtime";
 import { Drop } from "./drop";
 import type { Template } from "./template";
 import {
@@ -29,7 +29,7 @@ export type ContextCopyOptions = {
 };
 
 export class RenderContext {
-  private counters: Namespace = {};
+  private counters: Namespace = Object.create(null);
 
   readonly disabledTags: Set<string> | undefined;
 
@@ -41,7 +41,7 @@ export class RenderContext {
 
   readonly interrupts: symbol[] = [];
 
-  private locals: Namespace = {};
+  private locals: Namespace = Object.create(null);
 
   /**
    * Namespaces supporting stateful tags. It's OK to use this map for storing
@@ -53,12 +53,12 @@ export class RenderContext {
 
   template: Template;
 
-  constructor(template: Template, options: RenderContextOptions = {}) {
+  constructor(template: Template, options?: RenderContextOptions) {
     this.template = template;
     this.env = template.env;
 
     // Scopes are searched from right to left. New scopes are push on the right.
-    this.globals = options.globals ?? {};
+    this.globals = options?.globals ?? {};
 
     if (isArray(this.globals)) {
       this.scopes = this.scopes = [
@@ -76,7 +76,7 @@ export class RenderContext {
       ];
     }
 
-    this.disabledTags = options.disabledTags;
+    this.disabledTags = options?.disabledTags;
   }
 
   assign(name: string, value: unknown): void {
@@ -226,66 +226,40 @@ export class RenderContext {
           segment = await segment[drop.toLiquid]("string", this);
         }
 
-        if (
-          segment === "__proto__" ||
-          segment === "constructor" ||
-          !isString(segment)
-        ) {
-          return [Nothing, segmentIndex];
-        }
-
-        if (segment in obj) {
-          const prop = obj[segment as keyof typeof obj] as unknown;
+        if (isProperty(obj, segment)) {
+          const prop = obj[segment];
 
           if (isFunction(prop)) {
             if (obj[drop.isInvocable](segment)) {
-              obj = await Reflect.apply(prop, obj, []);
+              obj = Reflect.apply(prop, obj, []);
             } else {
-              return [Nothing, segmentIndex];
+              obj = Nothing;
             }
           } else {
             obj = prop;
           }
-        } else {
+        } else if (isString(segment)) {
           obj = await obj[drop.dispatch](segment, this);
-          if (isNothing(obj)) {
-            return [Nothing, segmentIndex];
-          }
+        } else {
+          obj = Nothing;
         }
       } else if (isArray(obj)) {
         if (segment instanceof Drop) {
           segment = await segment[drop.toLiquid]("numeric", this);
         }
 
-        const normIndex = normalizeIndex(segment, obj.length);
-        if (normIndex === undefined) {
-          return [Nothing, segmentIndex];
-        }
-
-        if (normIndex in obj) {
-          obj = obj[normIndex];
-        } else {
-          return [Nothing, segmentIndex];
-        }
+        obj = resolveArraySegment(obj, segment);
+      } else if (isString(obj)) {
+        obj = resolveStringSegment(obj, segment);
       } else if (isObject(obj)) {
         if (segment instanceof Drop) {
           segment = await segment[drop.toLiquid]("data", this);
         }
 
-        if (
-          segment === "__proto__" ||
-          segment === "constructor" ||
-          !isPropertyKey(segment)
-        ) {
-          return [Nothing, segmentIndex];
-        }
-
-        if (segment in obj) {
-          obj = obj[segment as keyof typeof obj];
-        } else {
-          return [Nothing, segmentIndex];
-        }
+        obj = resolveObjectSegment(obj, segment);
       }
+
+      if (obj === Nothing) return [Nothing, segmentIndex];
     }
 
     return [obj, segmentIndex];
@@ -310,66 +284,42 @@ export class RenderContext {
           segment = segment[drop.toLiquidSync]("string", this);
         }
 
-        if (
-          segment === "__proto__" ||
-          segment === "constructor" ||
-          !isString(segment)
-        ) {
-          return [Nothing, segmentIndex];
-        }
-
-        if (segment in obj) {
-          const prop = obj[segment as keyof typeof obj] as unknown;
+        if (isProperty(obj, segment)) {
+          const prop = obj[segment];
 
           if (isFunction(prop)) {
             if (obj[drop.isInvocable](segment)) {
               obj = Reflect.apply(prop, obj, []);
             } else {
-              return [Nothing, segmentIndex];
+              obj = Nothing;
             }
           } else {
             obj = prop;
           }
-        } else {
+        } else if (isString(segment)) {
           obj = obj[drop.dispatchSync](segment, this);
-          if (isNothing(obj)) {
-            return [Nothing, segmentIndex];
-          }
+        } else {
+          obj = Nothing;
         }
       } else if (isArray(obj)) {
         if (segment instanceof Drop) {
           segment = segment[drop.toLiquidSync]("numeric", this);
         }
 
-        const normIndex = normalizeIndex(segment, obj.length);
-        if (normIndex === undefined) {
-          return [Nothing, segmentIndex];
-        }
-
-        if (normIndex in obj) {
-          obj = obj[normIndex];
-        } else {
-          return [Nothing, segmentIndex];
-        }
+        obj = resolveArraySegment(obj, segment);
+      } else if (isString(obj)) {
+        obj = resolveStringSegment(obj, segment);
       } else if (isObject(obj)) {
         if (segment instanceof Drop) {
-          segment = segment[drop.toLiquidSync]("data", this);
+          segment = segment[drop.toLiquidSync]("string", this);
         }
 
-        if (
-          segment === "__proto__" ||
-          segment === "constructor" ||
-          !isPropertyKey(segment)
-        ) {
-          return [Nothing, segmentIndex];
-        }
-
-        if (segment in obj) {
-          obj = obj[segment as keyof typeof obj];
-        } else {
-          return [Nothing, segmentIndex];
-        }
+        obj = resolveObjectSegment(obj, segment);
+      } else {
+        obj = Nothing;
       }
+
+      if (obj === Nothing) return [Nothing, segmentIndex];
     }
 
     return [obj, segmentIndex];
@@ -427,4 +377,90 @@ function normalizeIndex(index: unknown, length: number): number | undefined {
 
   if (index < 0 && length >= Math.abs(index)) return length + index;
   return index;
+}
+
+/**
+ * Return true of `obj` or an object in the prototype chain of `obj` contains `key`.
+ * Excludes `Object.prototype` and function valued properties. Getters are OK.
+ */
+function hasNonFunctionProperty(
+  obj: object,
+  key: unknown,
+): key is keyof typeof obj {
+  if (!isPropertyKey(key)) return false;
+
+  for (let p = obj; p && p !== Object.prototype; p = Object.getPrototypeOf(p)) {
+    if (Object.hasOwn(p, key) && !isFunction(obj[key as keyof typeof obj])) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * Return true if `obj` or an object in the prototype chain of `obj` contains `key`.
+ * Excludes `Object.prototype`. Properties may be functions.
+ */
+function isProperty(obj: object, key: unknown): key is keyof typeof obj {
+  if (!isPropertyKey(key)) return false;
+
+  for (let p = obj; p && p !== Object.prototype; p = Object.getPrototypeOf(p)) {
+    if (Object.hasOwn(p, key)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+function resolveArraySegment(obj: unknown[], segment: unknown): unknown {
+  const normIndex = normalizeIndex(segment, obj.length);
+
+  if (normIndex === undefined) {
+    switch (segment) {
+      case "first":
+        return obj[0];
+      case "last":
+        return obj[obj.length - 1];
+      case "size":
+        return obj.length;
+      default:
+        return Nothing;
+    }
+  }
+
+  if (normIndex in obj) {
+    return obj[normIndex];
+  }
+
+  return Nothing;
+}
+
+function resolveStringSegment(obj: string, segment: unknown): unknown {
+  switch (segment) {
+    case "first":
+      return obj[0];
+    case "last":
+      return obj[obj.length - 1];
+    case "size":
+      return obj.length;
+    default:
+      return Nothing;
+  }
+}
+
+function resolveObjectSegment(obj: object, segment: unknown): unknown {
+  if (hasNonFunctionProperty(obj, segment)) {
+    return obj[segment as keyof typeof obj];
+  }
+
+  switch (segment) {
+    case "first":
+      return Object.entries(obj)[0];
+    case "size":
+      return Object.keys(obj).length;
+    default:
+      return Nothing;
+  }
 }

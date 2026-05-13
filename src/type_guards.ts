@@ -40,6 +40,13 @@ export function isNumber(value: unknown): value is number {
 }
 
 /**
+ * A type predicate for primitive or Liquid numbers.
+ */
+export function isNumeric(value: unknown): value is number | LiquidNumber {
+  return typeof value === "number" || value instanceof LiquidNumber;
+}
+
+/**
  * A type predicate for the primitive boolean.
  * @param value - Any value
  * @returns `true` if the value is a primitive boolean.

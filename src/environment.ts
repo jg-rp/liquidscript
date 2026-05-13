@@ -138,8 +138,8 @@ export class Environment {
   undefinedFactory: _Undefined = Undefined;
 
   constructor(options?: EnvironmentOptions) {
-    this.tags = {};
-    this.filters = {};
+    this.tags = Object.create(null);
+    this.filters = Object.create(null);
     this.setupTags();
     this.setupFilters();
 

@@ -91,7 +91,7 @@ export class RenderTag implements Markup {
       if (isNothing(bindValue)) bindValue = undefined;
     }
 
-    const scope: Namespace = {};
+    const scope: Namespace = Object.create(null);
     for (const arg of this.args) {
       scope[arg.name.value] = await arg.expr.evaluate(context);
     }
@@ -148,7 +148,7 @@ export class RenderTag implements Markup {
       if (isNothing(bindValue)) bindValue = undefined;
     }
 
-    const scope: Namespace = {};
+    const scope: Namespace = Object.create(null);
     for (const arg of this.args) {
       scope[arg.name.value] = arg.expr.evaluateSync(context);
     }

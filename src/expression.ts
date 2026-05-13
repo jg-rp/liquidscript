@@ -72,7 +72,7 @@ export class FilteredExpression implements Expression {
     }
 
     const args: unknown[] = [];
-    const kwargs: { [key: string]: unknown } = {};
+    const kwargs: { [key: string]: unknown } = Object.create(null);
 
     for (const arg of this.filter.args) {
       if (arg instanceof KeywordArgument) {
@@ -112,7 +112,7 @@ export class FilteredExpression implements Expression {
     }
 
     const args: unknown[] = [];
-    const kwargs: { [key: string]: unknown } = {};
+    const kwargs: { [key: string]: unknown } = Object.create(null);
 
     for (const arg of this.filter.args) {
       if (arg instanceof KeywordArgument) {
