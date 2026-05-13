@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import type { RenderContext } from "../context";
+import { TemplateSyntaxError } from "../errors";
 import type { Expression, Name } from "../expression";
 import type { Markup, OutputBuffer } from "../markup";
 import type { Parser } from "../parser";
@@ -16,6 +17,14 @@ export class AssignTag implements Markup {
 
   static parse(token: Token, parser: Parser): Markup {
     const name = parser.parseIdent();
+    if (name.value[name.value.length - 1] === "?") {
+      throw new TemplateSyntaxError(
+        "invalid variable name",
+        name.span,
+        parser.source,
+      );
+    }
+
     parser.eat(T.ASSIGN, "bad identifier or missing assignment operator");
     const expression = parser.parseFilteredExpression();
     parser.carryWhitespaceControl();

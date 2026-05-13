@@ -2,7 +2,7 @@
 import type { RenderContext } from "../context";
 import type { Markup, OutputBuffer } from "../markup";
 import type { Parser } from "../parser";
-import type { Token } from "../token";
+import { getTokenValue, T, type Token } from "../token";
 
 export class RawTag implements Markup {
   readonly blank = false;
@@ -13,7 +13,11 @@ export class RawTag implements Markup {
   ) {}
 
   static parse(token: Token, parser: Parser): Markup {
-    throw new Error("not implemented");
+    parser.carryWhitespaceControl();
+    parser.eat(T.TAG_END);
+    const textToken = parser.eat(T.TEXT);
+    parser.eatEmptyTag("endraw");
+    return new RawTag(token, getTokenValue(textToken, parser.source));
   }
 
   async render(context: RenderContext, buffer: OutputBuffer): Promise<void> {

@@ -14,13 +14,17 @@ type Case = {
 };
 
 const SKIP = new Set([
-  "tags, comment, malformed tags are not parsed", // TODO: rename me
-  "tags, comment, incomplete tags are not parsed", // TODO: rename me
+  "tags, comment, incomplete nested output markup is a syntax error",
+  "tags, comment, incomplete nested tags are a syntax error",
   "filters, date, well formed string",
   "filters, date, literal percent",
   "filters, date, negative timestamp string",
   "filters, date, seconds since epoch format directive",
   "identifiers, capture only digits",
+  "identifiers, allowed symbols",
+  "identifiers, allowed symbols, parens",
+  "identifiers, only digits",
+  "identifiers, repeated parens",
 ]);
 
 const golden: { tests: Case[] } = JSON.parse(

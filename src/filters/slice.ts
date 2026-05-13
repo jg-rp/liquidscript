@@ -1,5 +1,7 @@
 import type { HTMLSafeString } from "../drops/html_safe";
+import { ArgumentError } from "../errors";
 import type { FilterContext } from "../filter";
+import { Integer } from "../number";
 import { isArray } from "../type_guards";
 
 // This range is smaller than the reference implementation.
@@ -20,8 +22,31 @@ export function slice(
   this.assertArgs(arguments.length, 2, 3);
 
   const left_ = isArray(left) ? left : this.toString(left, "");
-  const offset_ = clamp(this.toInteger(offset));
-  const length_ = clamp(this.isNil(length) ? 1 : this.toInteger(length));
+  const offset_ = clamp(integerOrThrow.call(this, offset));
+  const length_ = clamp(
+    this.isNil(length) ? 1 : integerOrThrow.call(this, length),
+  );
   const start = offset_ < 0 ? left_.length + offset_ : offset_;
   return left_.slice(start, start + length_);
+}
+
+function integerOrThrow(this: FilterContext, obj: unknown): number {
+  if (this.isNil(obj)) {
+    throw new ArgumentError(
+      "invalid integer",
+      this.span,
+      this.context.template.source,
+    );
+  }
+
+  const n = this.toLiquidNumber(obj, undefined);
+  if (n instanceof Integer) {
+    return n.valueOf();
+  }
+
+  throw new ArgumentError(
+    "invalid integer",
+    this.span,
+    this.context.template.source,
+  );
 }

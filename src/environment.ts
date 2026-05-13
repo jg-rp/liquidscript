@@ -230,7 +230,20 @@ export class Environment {
       );
     }
 
-    // TODO: number equality?
+    if (
+      left instanceof LiquidNumber &&
+      (isNumber(right) || right instanceof LiquidNumber)
+    ) {
+      return left.eq(right);
+    }
+
+    if (
+      right instanceof LiquidNumber &&
+      (isNumber(left) || left instanceof LiquidNumber)
+    ) {
+      return right.eq(left);
+    }
+
     return left === right;
   }
 

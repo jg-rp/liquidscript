@@ -5,7 +5,7 @@ import { ObjectLoader } from "./src/loaders";
 import { getTokenValue, REVERSE_T } from "./src/token";
 
 const source =
-  "{% assign b = h | reject: 'bar' %}{% for obj in b %}{% for itm in obj %}({{ itm[0] }},{{ itm[1] }}), {% endfor %}{% endfor %}";
+  "!{% assign x = 1 %}{% case x %}\n\n  {% when 1 %}\n    {% assign foo = 'bar' %}\n\n  {% when 2 %}\n    {{ '' }}\n\n{% endcase %}!";
 
 const data = {
   h: {
