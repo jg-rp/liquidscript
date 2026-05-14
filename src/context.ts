@@ -14,12 +14,47 @@ import type { ForLoop } from "./drops";
 import * as drop from "./drop";
 import type { Expression } from "./expression";
 import { LiquidNumber } from "./number";
+import { ContextDepthError } from "./errors";
 
 export type Namespace = { [index: string]: unknown };
 
 export type RenderContextOptions = {
+  /**
+   * Global template variables passed down from the Environment, Template,
+   * Loader and arguments to `.render()` or `.renderSync()`.
+   */
   globals?: Namespace | Namespace[];
+
+  /**
+   * A set of tag names that are disallowed in this render context. For
+   * example, the `include` tag is not allowed in templates rendered
+   * with the `render` tag.
+   */
   disabledTags?: Set<string>;
+
+  /**
+   * The number of times this render context has been copied or extended. This
+   * helps us guard against recursive use of `include` and `render` tags.
+   */
+  contextDepth?: number;
+
+  /**
+   * The cumulative assign score (approximate bytes in the local scope) carried
+   * from parent render contexts.
+   */
+  assignScoreCarry?: number;
+
+  /**
+   * The cumulative render score (nodes rendered) carried from parent render
+   * contexts.
+   */
+  renderScoreCarry?: number;
+
+  /**
+   * The cumulative write score (bytes written) carried from parent render
+   * contexts.
+   */
+  writeScoreCarry?: number;
 };
 
 export type ContextCopyOptions = {
@@ -29,6 +64,10 @@ export type ContextCopyOptions = {
 };
 
 export class RenderContext {
+  private assignScore: number;
+
+  private contextDepth: number;
+
   private counters: Namespace = Object.create(null);
 
   readonly disabledTags: Set<string> | undefined;
@@ -49,9 +88,13 @@ export class RenderContext {
    */
   readonly registers = new Map<string | symbol, unknown>();
 
+  private renderScore: number;
+
   private scopes: Namespace[];
 
   template: Template;
+
+  private writeScore: number;
 
   constructor(template: Template, options?: RenderContextOptions) {
     this.template = template;
@@ -77,6 +120,10 @@ export class RenderContext {
     }
 
     this.disabledTags = options?.disabledTags;
+    this.contextDepth = options?.contextDepth ?? 0;
+    this.assignScore = options?.assignScoreCarry ?? 0;
+    this.renderScore = options?.renderScoreCarry ?? 0;
+    this.writeScore = options?.writeScoreCarry ?? 0;
   }
 
   assign(name: string, value: unknown): void {
@@ -88,8 +135,7 @@ export class RenderContext {
     namespace: { [index: string]: unknown },
     options: ContextCopyOptions = {},
   ): RenderContext {
-    // TODO: resource limits
-
+    this.throwForContextDepth();
     let globals: Namespace[];
 
     if (options.blockScope) {
@@ -103,6 +149,7 @@ export class RenderContext {
     const ctx = new RenderContext(options.template ?? this.template, {
       disabledTags: options.disabledTags,
       globals,
+      contextDepth: this.contextDepth + 1,
     });
 
     for (const register of this.env.persistentRegisters) {
@@ -129,7 +176,7 @@ export class RenderContext {
     callback: () => Promise<void>,
     template?: Template,
   ) {
-    // TODO: resource limits
+    this.throwForContextDepth();
 
     const originalTemplate = this.template;
     if (template) {
@@ -137,14 +184,14 @@ export class RenderContext {
     }
 
     this.scopes.push(namespace);
+    this.contextDepth += 1;
 
     try {
       return await callback();
     } finally {
-      if (template) {
-        this.template = originalTemplate;
-      }
+      if (template) this.template = originalTemplate;
       this.scopes.pop();
+      this.contextDepth -= 1;
     }
   }
 
@@ -153,7 +200,7 @@ export class RenderContext {
     callback: () => void,
     template?: Template,
   ) {
-    // TODO: resource limits
+    this.throwForContextDepth();
 
     const originalTemplate = this.template;
     if (template) {
@@ -161,14 +208,14 @@ export class RenderContext {
     }
 
     this.scopes.push(namespace);
+    this.contextDepth += 1;
 
     try {
       return callback();
     } finally {
-      if (template) {
-        this.template = originalTemplate;
-      }
+      if (template) this.template = originalTemplate;
       this.scopes.pop();
+      this.contextDepth -= 1;
     }
   }
 
@@ -323,6 +370,14 @@ export class RenderContext {
     }
 
     return [obj, segmentIndex];
+  }
+
+  private throwForContextDepth(): void {
+    if (this.contextDepth + 1 > this.env.maxContextDepth) {
+      throw new ContextDepthError(
+        "maximum context depth reached, possible recursive render",
+      );
+    }
   }
 
   async toArray(expression: Expression | undefined): Promise<unknown[]> {

@@ -25,10 +25,6 @@ const SKIP: Set<string> = new Set([
   "basics__error_handling__empty_filter_chain_lax",
   "basics__error_handling__malformed_syntax_invalid_filter_separator",
   "basics__error_handling__parse_error_shows_line_number_precise",
-  "basics__interrupts__break_in_if_outside_loop",
-  "basics__interrupts__break_outside_loop_stops_rendering",
-  "basics__interrupts__continue_outside_loop_stops_rendering",
-  "basics__partials__include_for_propagates_break_to_outer",
 ]);
 
 const spec: { tests: Case[] } = JSON.parse(

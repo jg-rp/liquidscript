@@ -6,8 +6,8 @@ import {
   renderBlockSync,
   type Block,
   type Markup,
-  type OutputBuffer,
 } from "../markup";
+import type { OutputBuffer } from "../output";
 import type { Token } from "../token";
 import { isString } from "../type_guards";
 
@@ -15,6 +15,8 @@ export class ElseBlock implements Markup {
   readonly blank: boolean;
 
   readonly expression: Expression;
+
+  readonly tag = "else";
 
   constructor(
     readonly token: Token,

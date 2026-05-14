@@ -47,6 +47,19 @@ export class UnknownFilterError extends TemplateError {
   }
 }
 
+export class DisabledTagError extends TemplateError {
+  constructor(
+    override readonly message: string,
+    override readonly token: Token,
+    override readonly source: string,
+  ) {
+    super(message, token, source);
+    Object.setPrototypeOf(this, new.target.prototype);
+    this.name = "DisabledTagError";
+    // TODO: this.message = withErrorContext(message, token);
+  }
+}
+
 export class ArgumentError extends TemplateError {
   constructor(
     override readonly message: string,
@@ -104,5 +117,13 @@ export class TemplateNotFoundError extends LiquidError {
     super(message);
     Object.setPrototypeOf(this, new.target.prototype);
     this.name = "TemplateNotFoundError";
+  }
+}
+
+export class ContextDepthError extends LiquidError {
+  constructor(override readonly message: string) {
+    super(message);
+    Object.setPrototypeOf(this, new.target.prototype);
+    this.name = "ContextDepthError";
   }
 }

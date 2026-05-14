@@ -1,6 +1,7 @@
 import type { Namespace, RenderContext } from "../context";
 import type { Expression, KeywordArgument, Name } from "../expression";
-import type { Markup, OutputBuffer, Partial } from "../markup";
+import type { Markup, Partial } from "../markup";
+import type { OutputBuffer } from "../output";
 import type { Parser } from "../parser";
 import { isNothing } from "../runtime";
 import { T, type Token } from "../token";
@@ -8,6 +9,8 @@ import { isArray } from "../type_guards";
 
 export class IncludeTag implements Markup {
   readonly blank = false;
+
+  readonly tag = "include";
 
   constructor(
     readonly token: Token,

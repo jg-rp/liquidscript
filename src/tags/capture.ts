@@ -5,8 +5,8 @@ import {
   renderBlockSync,
   type Block,
   type Markup,
-  type OutputBuffer,
 } from "../markup";
+import type { OutputBuffer } from "../output";
 import type { Parser } from "../parser";
 import { T, type Token } from "../token";
 import { isString } from "../type_guards";
@@ -15,6 +15,8 @@ const END_CAPTURE_BLOCK = new Set(["endcapture"]);
 
 export class CaptureTag implements Markup {
   readonly blank = true;
+
+  readonly tag = "capture";
 
   constructor(
     readonly token: Token,

@@ -1,7 +1,13 @@
 import type { Namespace, RenderContext } from "../context";
 import { ForLoop } from "../drops";
-import type { Expression, KeywordArgument, Name } from "../expression";
-import type { Markup, OutputBuffer, Partial } from "../markup";
+import type {
+  Expression,
+  KeywordArgument,
+  Name,
+  StringLiteral,
+} from "../expression";
+import type { Markup, Partial } from "../markup";
+import type { OutputBuffer } from "../output";
 import type { Parser } from "../parser";
 import { isNothing, Nothing } from "../runtime";
 import { T, type Token } from "../token";
@@ -12,9 +18,11 @@ const DISABLED_TAGS = new Set(["include"]);
 export class RenderTag implements Markup {
   readonly blank = false;
 
+  readonly tag = "render";
+
   constructor(
     readonly token: Token,
-    readonly name: Expression,
+    readonly name: StringLiteral,
     readonly loop: boolean,
     readonly variable: Expression | undefined,
     readonly alias: Name | undefined,
@@ -22,7 +30,7 @@ export class RenderTag implements Markup {
   ) {}
 
   static parse(token: Token, parser: Parser): Markup {
-    const nameExpr = parser.parseExpression();
+    const nameExpr = parser.parseStringLiteral();
 
     let loop = false;
     let variable: Expression | undefined = undefined;
@@ -58,7 +66,7 @@ export class RenderTag implements Markup {
   }
 
   expressions(): Expression[] {
-    const result = [this.name];
+    const result = [];
     if (this.variable) result.push(this.variable);
     result.push(...this.args.map((arg) => arg.expr));
     return result;

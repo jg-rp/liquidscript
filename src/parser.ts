@@ -1,6 +1,11 @@
 import type { Environment } from "./environment";
 import { TemplateSyntaxError } from "./errors";
-import type { Expression, KeywordArgument, Name } from "./expression";
+import type {
+  Expression,
+  KeywordArgument,
+  Name,
+  StringLiteral,
+} from "./expression";
 import type { Block } from "./markup";
 import "./tags";
 import {
@@ -261,6 +266,11 @@ export abstract class Parser {
    *   between each argument.
    */
   abstract parsePositionalArguments(requireCommas?: boolean): Array<Expression>;
+
+  /**
+   * Parser a literal string surrounded by single or double quotes.
+   */
+  abstract parseStringLiteral(): StringLiteral;
 
   /**
    * Return the token at self.pos + offset, or EOI if there are no tokens left.

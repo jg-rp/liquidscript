@@ -2,12 +2,15 @@
 import type { RenderContext } from "../context";
 import { TemplateSyntaxError } from "../errors";
 import type { Expression, Name } from "../expression";
-import type { Markup, OutputBuffer } from "../markup";
+import type { Markup } from "../markup";
+import type { OutputBuffer } from "../output";
 import type { Parser } from "../parser";
 import { T, type Token } from "../token";
 
 export class AssignTag implements Markup {
   readonly blank = true;
+
+  readonly tag = "assign";
 
   constructor(
     readonly token: Token,

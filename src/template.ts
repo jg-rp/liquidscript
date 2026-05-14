@@ -1,8 +1,7 @@
 import { RenderContext, type Namespace } from "./context";
 import type { Environment, TemplateMeta } from "./environment";
-import type { Block } from "./markup";
-import type { OutputBuffer } from "./markup";
-import { isString } from "./type_guards";
+import { renderBlock, renderBlockSync, type Block } from "./markup";
+import type { OutputBuffer } from "./output";
 
 export class Template {
   globals: Namespace;
@@ -60,13 +59,7 @@ export class Template {
     buffer: OutputBuffer,
     options?: RenderTemplateOptions,
   ): Promise<void> {
-    for (const node of this.nodes) {
-      if (isString(node)) {
-        buffer.push(node);
-      } else {
-        await node.render(context, buffer);
-      }
-    }
+    await renderBlock(this.nodes, context, buffer);
   }
 
   renderWithContextSync(
@@ -74,13 +67,7 @@ export class Template {
     buffer: OutputBuffer,
     options?: RenderTemplateOptions,
   ): void {
-    for (const node of this.nodes) {
-      if (isString(node)) {
-        buffer.push(node);
-      } else {
-        node.renderSync(context, buffer);
-      }
-    }
+    renderBlockSync(this.nodes, context, buffer);
   }
 }
 

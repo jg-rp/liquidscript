@@ -1,6 +1,7 @@
 import type { RenderContext } from "../context";
 import { TemplateSyntaxError } from "../errors";
-import type { Markup, OutputBuffer } from "../markup";
+import type { Markup } from "../markup";
+import type { OutputBuffer } from "../output";
 import type { Parser } from "../parser";
 import { getTokenValue, T, type Token } from "../token";
 
@@ -8,6 +9,8 @@ export class InlineCommentTag implements Markup {
   readonly blank = true;
 
   protected static RE_INVALID_INLINE_COMMENT = /\n\s*[^#\s]/m;
+
+  readonly tag = "#";
 
   constructor(
     readonly token: Token,

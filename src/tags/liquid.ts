@@ -5,13 +5,15 @@ import {
   renderBlockSync,
   type Block,
   type Markup,
-  type OutputBuffer,
 } from "../markup";
+import type { OutputBuffer } from "../output";
 import type { Parser } from "../parser";
 import { T, type Token } from "../token";
 
 export class LiquidTag implements Markup {
   readonly blank: boolean;
+
+  readonly tag = "liquid";
 
   constructor(
     readonly token: Token,

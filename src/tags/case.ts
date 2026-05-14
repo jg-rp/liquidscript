@@ -7,8 +7,8 @@ import {
   renderBlockSync,
   type Block,
   type Markup,
-  type OutputBuffer,
 } from "../markup";
+import type { OutputBuffer } from "../output";
 import type { Parser } from "../parser";
 import { T, type Token, type TokenKind } from "../token";
 import { isString } from "../type_guards";
@@ -20,6 +20,8 @@ const WHEN_DELIMITERS: Set<TokenKind> = new Set([T.COMMA, T.OR]);
 
 export class CaseTag implements Markup {
   readonly blank;
+
+  readonly tag = "case";
 
   constructor(
     readonly token: Token,
@@ -158,6 +160,8 @@ export class CaseTag implements Markup {
 
 export class WhenBlock implements Markup {
   readonly blank: boolean;
+
+  readonly tag = "when";
 
   constructor(
     readonly token: Token,

@@ -1,7 +1,7 @@
 import type { Filter } from "./filter";
 import { LegacyLexer } from "./legacy_lexer";
 import { LegacyParser } from "./legacy_parser";
-import type { Block, OutputBuffer, Tag } from "./markup";
+import type { Block, Tag } from "./markup";
 import { containsSync, Drop, equals, lessThanSync, toLiquidSync } from "./drop";
 import * as tags from "./tags";
 import * as filters from "./filters";
@@ -23,6 +23,7 @@ import { isLiquidNumber, isPrimitiveNumber, LiquidNumber } from "./number";
 import type { TemplateLoader } from "./loader";
 import { MapLoader } from "./loaders";
 import { Nothing } from "./runtime";
+import type { BufferFactory } from "./output";
 
 export interface _Parser {
   parse(env: Environment, source: string, startIndex?: number): Block;
@@ -35,8 +36,6 @@ export interface _Lexer {
 export interface _Undefined {
   new (path: string, token: Token, source: string): Undefined;
 }
-
-export type BufferFactory = () => OutputBuffer;
 
 /**
  * Additional info accompanying template source code.
@@ -98,6 +97,13 @@ export type EnvironmentOptions = {
   loader?: TemplateLoader;
 
   /**
+   * The maximum number of times a render context can be copied or extended
+   * before throwing a resource limit error.
+   * @defaultValue 30
+   */
+  maxContextDepth?: number;
+
+  /**
    * A function returning a new, empty output buffer.
    * @defaultValue `Array`.
    */
@@ -128,6 +134,8 @@ export class Environment {
 
   loader: TemplateLoader;
 
+  maxContextDepth: number;
+
   parser: _Parser = LegacyParser;
 
   persistentRegisters: Set<string> = new Set();
@@ -147,6 +155,7 @@ export class Environment {
     this.autoEscape = options?.autoEscape ?? false;
     this.globals = options?.globals;
     this.loader = options?.loader ?? new MapLoader();
+    this.maxContextDepth = options?.maxContextDepth ?? 30;
     this.bufferFactory = options?.bufferFactory ?? Array;
     this.strictFilters = options?.strictFilters ?? true;
   }

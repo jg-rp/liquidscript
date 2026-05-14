@@ -1,11 +1,14 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import type { RenderContext } from "../context";
-import type { Markup, OutputBuffer } from "../markup";
+import type { Markup } from "../markup";
+import type { OutputBuffer } from "../output";
 import type { Parser } from "../parser";
 import { getTokenValue, T, type Token } from "../token";
 
 export class DocTag implements Markup {
   readonly blank = true;
+
+  readonly tag = "doc";
 
   constructor(
     readonly token: Token,

@@ -1,11 +1,14 @@
 import type { RenderContext } from "../context";
 import type { Name } from "../expression";
-import type { Markup, OutputBuffer } from "../markup";
+import type { Markup } from "../markup";
+import type { OutputBuffer } from "../output";
 import type { Parser } from "../parser";
 import { T, type Token } from "../token";
 
 export class IncrementTag implements Markup {
   readonly blank = false;
+
+  readonly tag = "increment";
 
   constructor(
     readonly token: Token,

@@ -578,7 +578,7 @@ export class LegacyParser extends Parser {
     return new expr.RangeLiteral(token, start, stop);
   }
 
-  protected parseStringLiteral(): expr.StringLiteral {
+  parseStringLiteral(): expr.StringLiteral {
     const token = this.next();
 
     if (this.kind() === token.kind) {

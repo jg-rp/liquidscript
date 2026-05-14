@@ -7,8 +7,8 @@ import {
   renderBlockSync,
   type Block,
   type Markup,
-  type OutputBuffer,
 } from "../markup";
+import type { OutputBuffer } from "../output";
 import type { Parser } from "../parser";
 import { T, type Token } from "../token";
 import { isString } from "../type_guards";
@@ -18,6 +18,8 @@ const END_TABLEROW_BLOCK = new Set(["endtablerow"]);
 
 export class TableRowTag implements Markup {
   readonly blank = false;
+
+  readonly tag = "tablerow";
 
   constructor(
     readonly token: Token,

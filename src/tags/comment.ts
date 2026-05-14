@@ -1,10 +1,13 @@
 import type { RenderContext } from "../context";
-import type { Markup, OutputBuffer } from "../markup";
+import type { Markup } from "../markup";
+import type { OutputBuffer } from "../output";
 import type { Parser } from "../parser";
 import { getTokenValue, T, type Token } from "../token";
 
 export class CommentTag implements Markup {
   readonly blank = true;
+
+  readonly tag = "comment";
 
   constructor(
     readonly token: Token,

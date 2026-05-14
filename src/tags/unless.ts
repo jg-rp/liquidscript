@@ -8,8 +8,8 @@ import {
   renderBlockSync,
   type Block,
   type Markup,
-  type OutputBuffer,
 } from "../markup";
+import type { OutputBuffer } from "../output";
 import type { Parser } from "../parser";
 import { T, type Token } from "../token";
 import { isString } from "../type_guards";
@@ -21,6 +21,8 @@ const IF_BLOCKS = new Set(["else", "elsif"]);
 
 export class UnlessTag implements Markup {
   readonly blank: boolean;
+
+  readonly tag = "unless";
 
   constructor(
     readonly token: Token,
@@ -125,6 +127,8 @@ export class UnlessTag implements Markup {
 export class UnlessBlock implements Markup {
   readonly blank: boolean;
 
+  readonly tag = "unless";
+
   constructor(
     readonly token: Token,
     readonly expression: Expression,
@@ -154,4 +158,6 @@ export class UnlessBlock implements Markup {
   }
 }
 
-export class ElsIfBlock extends IfBlock {}
+export class ElsIfBlock extends IfBlock {
+  override readonly tag: string = "elsif";
+}

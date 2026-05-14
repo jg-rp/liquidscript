@@ -12,7 +12,6 @@ import {
   renderBlockSync,
   type Block,
   type Markup,
-  type OutputBuffer,
 } from "../markup";
 import type { Parser } from "../parser";
 import { T, type Token } from "../token";
@@ -22,6 +21,7 @@ import { Nothing } from "../runtime";
 import { Drop } from "../drop";
 import * as drop from "../drop";
 import { Undefined } from "../drops/undefined";
+import type { OutputBuffer } from "../output";
 
 const END_FOR_BLOCK = new Set(["else", "endfor"]);
 const FOR_STACK = Symbol.for("liquid.tags.for");
@@ -31,6 +31,8 @@ export const BREAK = Symbol.for("liquid.runtime.break");
 export const CONTINUE = Symbol.for("liquid.runtime.continue");
 
 export class ForTag implements Markup {
+  readonly tag = "for";
+
   constructor(
     readonly token: Token,
     readonly name: Name,
@@ -521,6 +523,8 @@ export class ForTag implements Markup {
 export class BreakTag implements Markup {
   readonly blank = true;
 
+  readonly tag = "break";
+
   constructor(readonly token: Token) {}
 
   static parse(token: Token, parser: Parser): Markup {
@@ -542,6 +546,8 @@ export class BreakTag implements Markup {
 
 export class ContinueTag implements Markup {
   readonly blank = true;
+
+  readonly tag = "continue";
 
   constructor(readonly token: Token) {}
 

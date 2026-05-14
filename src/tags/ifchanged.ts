@@ -4,8 +4,8 @@ import {
   renderBlockSync,
   type Block,
   type Markup,
-  type OutputBuffer,
 } from "../markup";
+import type { OutputBuffer } from "../output";
 import type { Parser } from "../parser";
 import { T, type Token } from "../token";
 
@@ -14,6 +14,8 @@ const IFCHANGED = Symbol.for("liquid.tags.ifchanged");
 
 export class IfChangedTag implements Markup {
   readonly blank = false;
+
+  readonly tag = "ifchanged";
 
   constructor(
     readonly token: Token,

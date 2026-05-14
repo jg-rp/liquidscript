@@ -3,19 +3,18 @@ import type { Token } from "./token";
 import type { Parser } from "./parser";
 import type { Expression, Name } from "./expression";
 import { isString } from "./type_guards";
+import type { OutputBuffer } from "./output";
+import { DisabledTagError } from "./errors";
 
 export type Node = string | Markup | Expression;
 export type Block = Array<string | Markup>;
-
-export interface OutputBuffer {
-  push(value: string): void;
-  join(separator: string): string;
-}
 
 export interface Markup {
   render(context: RenderContext, buffer: OutputBuffer): Promise<void>;
   renderSync(context: RenderContext, buffer: OutputBuffer): void;
   blank: boolean;
+  tag: string;
+  token: Token;
 }
 
 export interface Tag {
@@ -43,6 +42,13 @@ export async function renderBlock(
     if (isString(node)) {
       buffer.push(node);
     } else {
+      if (context.disabledTags && context.disabledTags.has(node.tag)) {
+        throw new DisabledTagError(
+          `'${node.tag}' is not allowed in this context`,
+          node.token,
+          context.template.source,
+        );
+      }
       await node.render(context, buffer);
     }
 
@@ -61,6 +67,13 @@ export function renderBlockSync(
     if (isString(node)) {
       buffer.push(node);
     } else {
+      if (context.disabledTags && context.disabledTags.has(node.tag)) {
+        throw new DisabledTagError(
+          `'${node.tag}' is not allowed in this context`,
+          node.token,
+          context.template.source,
+        );
+      }
       node.renderSync(context, buffer);
     }
 

@@ -1,7 +1,8 @@
 import type { RenderContext } from "../context";
 import { DefaultMap } from "../default_map";
 import { Variable, type Expression } from "../expression";
-import type { Markup, OutputBuffer } from "../markup";
+import type { Markup } from "../markup";
+import type { OutputBuffer } from "../output";
 import type { Parser } from "../parser";
 import { T, type Token } from "../token";
 
@@ -13,6 +14,8 @@ export class CycleTag implements Markup {
   readonly blank = false;
 
   private staticKey: string = "";
+
+  readonly tag = "cycle";
 
   constructor(
     readonly token: Token,
