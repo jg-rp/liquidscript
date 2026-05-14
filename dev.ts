@@ -4,16 +4,9 @@ import type { _Undefined } from "./src/environment";
 import { ObjectLoader } from "./src/loaders";
 import { getTokenValue, REVERSE_T } from "./src/token";
 
-const source =
-  "!{% assign x = 1 %}{% case x %}\n\n  {% when 1 %}\n    {% assign foo = 'bar' %}\n\n  {% when 2 %}\n    {{ '' }}\n\n{% endcase %}!";
+const source = "{{ text | split: ',' | size }}";
 
-const data = {
-  h: {
-    foo: 1,
-    bar: null,
-    baz: 3,
-  },
-};
+const data = { text: "" };
 
 const loader = new ObjectLoader({
   "product-title": "{{ product-title.title }}",

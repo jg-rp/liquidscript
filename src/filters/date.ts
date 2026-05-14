@@ -13,23 +13,30 @@ const FORMAT_TOKENS = new DefaultMap<string, string>(
     ["%A", "cccc"],
     ["%b", "LLL"],
     ["%B", "LLLL"],
-    ["%c", "DDD tt"],
+    ["%c", "ccc LLL d TT y"],
     ["%d", "dd"],
+    ["%D", "LL/dd/yy"],
+    ["%F", "yyyy-LL-dd"],
+    ["%G", "kkkk"],
     ["%H", "HH"],
     ["%I", "hh"],
     ["%j", "ooo"],
     ["%m", "LL"],
     ["%M", "mm"],
     ["%p", "a"],
+    ["%R", "HH:mm"],
     ["%s", "X"],
     ["%S", "ss"],
+    ["%T", "HH:mm:ss"],
+    ["%V", "WW"],
     ["%W", "WW"],
     ["%w", "c"],
     ["%x", "DDD"],
-    ["%X", "tt"],
+    ["%X", "TT"],
     ["%y", "yy"],
     ["%Y", "yyyy"],
     ["%Z", "ZZZZ"],
+    ["%:z", "ZZ"],
   ],
 );
 
@@ -84,10 +91,12 @@ export function date(
   if (isPrimitiveNumber(left) || isLiquidNumber(left)) left = left.toString();
 
   if (isString(left)) {
-    if (left === "now" || left === "today") {
+    if (left.length === 0) return left;
+    const left_ = left.toLowerCase();
+    if (left_ === "now" || left_ === "today") {
       _date = DateTime.now();
     } else {
-      _date = parseDateString(left);
+      _date = parseDateString(left_);
     }
   } else if (left instanceof Date) {
     _date = DateTime.fromJSDate(left);
@@ -99,6 +108,10 @@ export function date(
       this.span,
       this.context.template.source,
     );
+  }
+
+  if (format === "") {
+    format = "%Y-%m-%d %H:%M:%S";
   }
 
   return _date.toFormat(replaceDateFormat(this.toString(format, "")));

@@ -22,6 +22,7 @@ import { Undefined } from "./drops/undefined";
 import { isLiquidNumber, isPrimitiveNumber, LiquidNumber } from "./number";
 import type { TemplateLoader } from "./loader";
 import { MapLoader } from "./loaders";
+import { Nothing } from "./runtime";
 
 export interface _Parser {
   parse(env: Environment, source: string, startIndex?: number): Block;
@@ -38,7 +39,7 @@ export interface _Undefined {
 export type BufferFactory = () => OutputBuffer;
 
 /**
- * Additional info attached accompanying template source code.
+ * Additional info accompanying template source code.
  */
 export type TemplateMeta = {
   /**
@@ -207,6 +208,7 @@ export class Environment {
     left: unknown,
     right: unknown,
     context: RenderContext,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     token: Token,
   ): boolean {
     if (left instanceof Drop) {
@@ -296,6 +298,15 @@ export class Environment {
     );
   }
 
+  isNil(obj: unknown): boolean {
+    return (
+      obj === undefined ||
+      obj === null ||
+      obj === Nothing ||
+      obj instanceof Undefined
+    );
+  }
+
   // TODO: sync and async
   isTruthy(obj: unknown, context: RenderContext): boolean {
     if (obj instanceof Drop) {
@@ -342,10 +353,10 @@ export class Environment {
     this.filters["append"] = filters.append;
     this.filters["at_least"] = filters.atLeast;
     this.filters["at_most"] = filters.atMost;
-    this.filters["base64_encode"] = filters.base64Encode;
-    this.filters["base64_url_safe_encode"] = filters.base64URLSafeEncode;
     this.filters["base64_decode"] = filters.base64Decode;
+    this.filters["base64_encode"] = filters.base64Encode;
     this.filters["base64_url_safe_decode"] = filters.base64URLSafeDecode;
+    this.filters["base64_url_safe_encode"] = filters.base64URLSafeEncode;
     this.filters["capitalize"] = filters.capitalize;
     this.filters["ceil"] = filters.ceil;
     this.filters["compact"] = filters.compact;
@@ -354,10 +365,10 @@ export class Environment {
     this.filters["default"] = filters.default_;
     this.filters["divided_by"] = filters.dividedBy;
     this.filters["downcase"] = filters.downcase;
-    this.filters["escape"] = filters.escape;
     this.filters["escape_once"] = filters.escapeOnce;
-    this.filters["find"] = filters.find;
+    this.filters["escape"] = filters.escape;
     this.filters["find_index"] = filters.findIndex;
+    this.filters["find"] = filters.find;
     this.filters["first"] = filters.first;
     this.filters["floor"] = filters.floor;
     this.filters["has"] = filters.has;
@@ -371,23 +382,24 @@ export class Environment {
     this.filters["plus"] = filters.plus;
     this.filters["prepend"] = filters.prepend;
     this.filters["reject"] = filters.reject;
-    this.filters["remove"] = filters.remove;
     this.filters["remove_first"] = filters.removeFirst;
     this.filters["remove_last"] = filters.removeLast;
-    this.filters["replace"] = filters.replace;
+    this.filters["remove"] = filters.remove;
     this.filters["replace_first"] = filters.replaceFirst;
     this.filters["replace_last"] = filters.replaceLast;
+    this.filters["replace"] = filters.replace;
     this.filters["reverse"] = filters.reverse;
     this.filters["round"] = filters.round;
     this.filters["rstrip"] = filters.rStrip;
     this.filters["size"] = filters.size;
     this.filters["slice"] = filters.slice;
-    this.filters["sort"] = filters.sort;
     this.filters["sort_natural"] = filters.sortNatural;
+    this.filters["sort"] = filters.sort;
     this.filters["split"] = filters.split;
-    this.filters["strip"] = filters.strip;
+    this.filters["squish"] = filters.squish;
     this.filters["strip_html"] = filters.stripHTML;
     this.filters["strip_newlines"] = filters.stripNewlines;
+    this.filters["strip"] = filters.strip;
     this.filters["sum"] = filters.sum;
     this.filters["times"] = filters.times;
     this.filters["truncate"] = filters.truncate;
@@ -423,12 +435,14 @@ export class Environment {
     this.tags["unless"] = tags.UnlessTag;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   toArray(obj: unknown, context: RenderContext, token: Token): unknown[] {
     if (isArray(obj)) return obj;
     if (isString(obj)) return [obj];
     if (isObject(obj)) {
       return isIterable(obj) ? Array.from(obj) : Object.entries(obj);
     }
+    if (this.isNil(obj)) return [];
     return [obj];
   }
 
@@ -449,6 +463,7 @@ export class Environment {
     return Math.trunc(num);
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   toNumber(obj: unknown, context: RenderContext, token: Token): number {
     const n = Number(obj);
     if (isNaN(n)) return 0;

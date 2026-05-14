@@ -96,7 +96,7 @@ export abstract class LiquidNumber {
   }
 
   round(decimalPlaces?: number): LiquidNumber {
-    return decimalPlaces === undefined || this.n.eq(0)
+    return isInteger(this) || decimalPlaces === undefined || this.n.eq(0)
       ? new Integer(this.n.toDecimalPlaces(0, Decimal.ROUND_HALF_CEIL))
       : new Float(
           this.n.toDecimalPlaces(decimalPlaces, Decimal.ROUND_HALF_CEIL),
@@ -212,6 +212,8 @@ export function toLiquidNumber<T>(
   context: RenderContext,
   default_: T,
 ): LiquidNumber | T {
+  if (context.env.isNil(obj)) return default_;
+
   if (obj instanceof Drop) {
     obj = obj[toLiquidSync]("numeric", context);
   }

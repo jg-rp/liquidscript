@@ -1,6 +1,6 @@
 import type { RenderContext } from "../context";
 import { DefaultMap } from "../default_map";
-import type { Expression } from "../expression";
+import { Variable, type Expression } from "../expression";
 import type { Markup, OutputBuffer } from "../markup";
 import type { Parser } from "../parser";
 import { T, type Token } from "../token";
@@ -8,13 +8,26 @@ import { T, type Token } from "../token";
 const CYCLES = Symbol.for("liquid.tags.cycle");
 
 export class CycleTag implements Markup {
+  static #nextId = 1;
+
   readonly blank = false;
+
+  private staticKey: string = "";
 
   constructor(
     readonly token: Token,
     readonly items: Expression[],
     readonly group?: Expression,
-  ) {}
+  ) {
+    if (!group) {
+      // This mimics Shopify/liquid by giving every Variable a unique ID.
+      this.staticKey = items
+        .map((item) =>
+          item instanceof Variable ? `${item}:${CycleTag.#nextId++}` : item,
+        )
+        .toString();
+    }
+  }
 
   static parse(token: Token, parser: Parser): Markup {
     let group: Expression | undefined = undefined;
@@ -59,7 +72,7 @@ export class CycleTag implements Markup {
           context,
           this.group.span,
         )
-      : this.items.toString();
+      : this.staticKey;
 
     let index = cycles.get(key);
     const expr = this.items[index] as Expression;
@@ -90,7 +103,7 @@ export class CycleTag implements Markup {
           context,
           this.group.span,
         )
-      : this.items.toString();
+      : this.staticKey;
 
     let index = cycles.get(key);
     const expr = this.items[index];

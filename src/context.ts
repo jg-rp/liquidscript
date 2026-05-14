@@ -360,12 +360,9 @@ export class RenderContext {
   }
 }
 
-/**
- * An object implementing the special, built-in `now` and `today` objects.
- */
-export const BuiltIn = {
-  now: () => new Date(),
-  today: () => new Date(),
+export const BuiltIn: Namespace = {
+  // now: () => new Date(),
+  // today: () => new Date(),
 };
 
 export class StaticContext {}

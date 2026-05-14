@@ -61,7 +61,8 @@ export class FilteredExpression implements Expression {
         );
       }
 
-      return Nothing;
+      // Pass the input value through.
+      return await this.left.evaluate(context);
     }
 
     const left = await this.left.evaluate(context);
@@ -102,7 +103,8 @@ export class FilteredExpression implements Expression {
         );
       }
 
-      return Nothing;
+      // Pass the input value through.
+      return this.left.evaluateSync(context);
     }
 
     const left = this.left.evaluateSync(context);

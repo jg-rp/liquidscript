@@ -136,7 +136,14 @@ export class LegacyParser extends Parser {
   }
 
   protected parseBlank(): Expression {
-    return new expr.Blank(this.next());
+    // `blank` is a reserved word when it is not followed by segments.
+    switch (this.peek(1).kind) {
+      case T.LBRACKET:
+      case T.DOT:
+        return this.parsePath();
+      default:
+        return new expr.Blank(this.next());
+    }
   }
 
   override parseBlock(end?: Set<string>): Block {
@@ -218,7 +225,14 @@ export class LegacyParser extends Parser {
   }
 
   protected parseEmpty(): Expression {
-    return new expr.Empty(this.next());
+    // `empty` is a reserved word when it is not followed by segments.
+    switch (this.peek(1).kind) {
+      case T.LBRACKET:
+      case T.DOT:
+        return this.parsePath();
+      default:
+        return new expr.Empty(this.next());
+    }
   }
 
   override parseExpression(
@@ -260,7 +274,14 @@ export class LegacyParser extends Parser {
   }
 
   protected parseFalseLiteral(): Expression {
-    return new expr.BooleanLiteral(this.next(), false);
+    // `false` is a reserved word when it is not followed by segments.
+    switch (this.peek(1).kind) {
+      case T.LBRACKET:
+      case T.DOT:
+        return this.parsePath();
+      default:
+        return new expr.BooleanLiteral(this.next(), false);
+    }
   }
 
   protected parseFilter(left: Expression): expr.FilteredExpression {
@@ -456,7 +477,14 @@ export class LegacyParser extends Parser {
   }
 
   protected parseNullLiteral(): Expression {
-    return new expr.NullLiteral(this.next());
+    // `nil` and `null` are not reserved words when they are followed by segments.
+    switch (this.peek(1).kind) {
+      case T.LBRACKET:
+      case T.DOT:
+        return this.parsePath();
+      default:
+        return new expr.NullLiteral(this.next());
+    }
   }
 
   protected parseOutput(): OutputStatement {
@@ -472,18 +500,26 @@ export class LegacyParser extends Parser {
     const token = this.current();
     let root: expr.Name | expr.StringLiteral | expr.Variable;
 
-    if (token.kind === T.IDENT) {
-      this.pos += 1;
-      root = new expr.Name(token, getTokenValue(token, this.source));
-    } else {
-      this.eat(T.LBRACKET);
-      if (this.kind() == T.IDENT) {
-        root = this.parsePath();
-      } else {
-        root = this.parseStringLiteral();
-      }
+    switch (token.kind) {
+      case T.IDENT:
+      case T.BLANK:
+      case T.EMPTY:
+      case T.FALSE:
+      case T.TRUE:
+      case T.NULL:
+      case T.NIL:
+        this.pos += 1;
+        root = new expr.Name(token, getTokenValue(token, this.source));
+        break;
+      default:
+        this.eat(T.LBRACKET);
+        if (this.kind() == T.IDENT) {
+          root = this.parsePath();
+        } else {
+          root = this.parseStringLiteral();
+        }
 
-      this.eat(T.RBRACKET);
+        this.eat(T.RBRACKET);
     }
 
     return new expr.Variable(token, root, this.parsePathSegments());
@@ -577,6 +613,13 @@ export class LegacyParser extends Parser {
   }
 
   protected parseTrueLiteral(): Expression {
-    return new expr.BooleanLiteral(this.next(), true);
+    // `true` is a reserved word when it is not followed by segments.
+    switch (this.peek(1).kind) {
+      case T.LBRACKET:
+      case T.DOT:
+        return this.parsePath();
+      default:
+        return new expr.BooleanLiteral(this.next(), true);
+    }
   }
 }

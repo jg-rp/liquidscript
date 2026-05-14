@@ -50,6 +50,7 @@ export { split } from "./split";
 export { strip } from "./strip";
 export { stripHTML } from "./strip_html";
 export { stripNewlines } from "./strip_newlines";
+export { squish } from "./squish";
 export { sum } from "./sum";
 export { times } from "./times";
 export { truncate } from "./truncate";

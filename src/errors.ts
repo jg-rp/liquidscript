@@ -1,6 +1,6 @@
 import type { Token } from "./token";
 
-export abstract class LiquidError extends Error {
+export class LiquidError extends Error {
   constructor(override readonly message: string) {
     super(message);
     Object.setPrototypeOf(this, new.target.prototype);
