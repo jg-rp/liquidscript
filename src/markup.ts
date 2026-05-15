@@ -4,7 +4,7 @@ import type { Parser } from "./parser";
 import type { Expression, Name } from "./expression";
 import { isString } from "./type_guards";
 import type { OutputBuffer } from "./output";
-import { DisabledTagError } from "./errors";
+import { DisabledTagError, ResourceLimitError } from "./errors";
 
 export type Node = string | Markup | Expression;
 export type Block = Array<string | Markup>;
@@ -38,6 +38,20 @@ export async function renderBlock(
   context: RenderContext,
   buffer: OutputBuffer,
 ) {
+  if (context.env.maxRenderScore || context.env.maxRenderScoreCumulative) {
+    context.renderScore += block.length;
+    context.renderScoreCumulative += block.length;
+
+    if (
+      (context.env.maxRenderScore &&
+        context.renderScore > context.env.maxRenderScore) ||
+      (context.env.maxRenderScoreCumulative &&
+        context.renderScoreCumulative > context.env.maxRenderScoreCumulative)
+    ) {
+      throw new ResourceLimitError("memory limits reached");
+    }
+  }
+
   for (const node of block) {
     if (isString(node)) {
       buffer.push(node);
@@ -55,6 +69,13 @@ export async function renderBlock(
     if (context.interrupts.length > 0) {
       break;
     }
+
+    if (
+      context.env.maxRenderBytes &&
+      buffer.length > context.env.maxRenderBytes
+    ) {
+      throw new ResourceLimitError("memory limits exceeded");
+    }
   }
 }
 
@@ -63,6 +84,20 @@ export function renderBlockSync(
   context: RenderContext,
   buffer: OutputBuffer,
 ) {
+  if (context.env.maxRenderScore || context.env.maxRenderScoreCumulative) {
+    context.renderScore += block.length;
+    context.renderScoreCumulative += block.length;
+
+    if (
+      (context.env.maxRenderScore &&
+        context.renderScore > context.env.maxRenderScore) ||
+      (context.env.maxRenderScoreCumulative &&
+        context.renderScoreCumulative > context.env.maxRenderScoreCumulative)
+    ) {
+      throw new ResourceLimitError("memory limits reached");
+    }
+  }
+
   for (const node of block) {
     if (isString(node)) {
       buffer.push(node);
@@ -79,6 +114,13 @@ export function renderBlockSync(
 
     if (context.interrupts.length > 0) {
       return;
+    }
+
+    if (
+      context.env.maxRenderBytes &&
+      buffer.length > context.env.maxRenderBytes
+    ) {
+      throw new ResourceLimitError("memory limits exceeded");
     }
   }
 }

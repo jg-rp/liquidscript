@@ -120,7 +120,15 @@ export class TemplateNotFoundError extends LiquidError {
   }
 }
 
-export class ContextDepthError extends LiquidError {
+export class ResourceLimitError extends LiquidError {
+  constructor(override readonly message: string) {
+    super(message);
+    Object.setPrototypeOf(this, new.target.prototype);
+    this.name = "ResourceLimitError";
+  }
+}
+
+export class ContextDepthError extends ResourceLimitError {
   constructor(override readonly message: string) {
     super(message);
     Object.setPrototypeOf(this, new.target.prototype);

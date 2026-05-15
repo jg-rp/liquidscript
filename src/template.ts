@@ -59,6 +59,8 @@ export class Template {
     buffer: OutputBuffer,
     options?: RenderTemplateOptions,
   ): Promise<void> {
+    // Note that `renderBlock` handles interrupts, even if we're not inside a
+    // tag that intuitively could produce an interrupt.
     await renderBlock(this.nodes, context, buffer);
   }
 
@@ -67,6 +69,8 @@ export class Template {
     buffer: OutputBuffer,
     options?: RenderTemplateOptions,
   ): void {
+    // Note that `renderBlockSync` handles interrupts, even if we're not
+    // inside a tag that intuitively could produce an interrupt.
     renderBlockSync(this.nodes, context, buffer);
   }
 }

@@ -23,7 +23,7 @@ import { isLiquidNumber, isPrimitiveNumber, LiquidNumber } from "./number";
 import type { TemplateLoader } from "./loader";
 import { MapLoader } from "./loaders";
 import { Nothing } from "./runtime";
-import type { BufferFactory } from "./output";
+import { sizedOutputBufferFactory, type BufferFactory } from "./output";
 
 export interface _Parser {
   parse(env: Environment, source: string, startIndex?: number): Block;
@@ -97,6 +97,18 @@ export type EnvironmentOptions = {
   loader?: TemplateLoader;
 
   /**
+   * The maximum assign score allowed per template before a resource limit
+   * error is thrown.
+   */
+  maxAssignScore?: number;
+
+  /**
+   * The maximum combined assign score allowed for a template and any rendered
+   * partial templates before a resource limit error is thrown.
+   */
+  maxAssignScoreCumulative?: number;
+
+  /**
    * The maximum number of times a render context can be copied or extended
    * before throwing a resource limit error.
    * @defaultValue 30
@@ -104,10 +116,22 @@ export type EnvironmentOptions = {
   maxContextDepth?: number;
 
   /**
-   * A function returning a new, empty output buffer.
-   * @defaultValue `Array`.
+   * The maximum number of bytes that can be written to an output buffer before
+   * a resource limit error is thrown.
    */
-  bufferFactory?: BufferFactory;
+  maxRenderBytes?: number;
+
+  /**
+   * The maximum render score allowed per template before a resource limit
+   * error is thrown.
+   */
+  maxRenderScore?: number;
+
+  /**
+   * The maximum combined render score allowed for a template and any rendered
+   * partial templates before a resource limit error is thrown.
+   */
+  maxRenderScoreCumulative?: number;
 
   /**
    * When `true`, a `NoSuchFilterError` will be raised if a template attempts
@@ -134,7 +158,17 @@ export class Environment {
 
   loader: TemplateLoader;
 
+  maxAssignScore?: number;
+
+  maxAssignScoreCumulative?: number;
+
   maxContextDepth: number;
+
+  maxRenderBytes?: number;
+
+  maxRenderScore?: number;
+
+  maxRenderScoreCumulative?: number;
 
   parser: _Parser = LegacyParser;
 
@@ -155,8 +189,15 @@ export class Environment {
     this.autoEscape = options?.autoEscape ?? false;
     this.globals = options?.globals;
     this.loader = options?.loader ?? new MapLoader();
+    this.maxAssignScore = options?.maxAssignScore;
+    this.maxAssignScoreCumulative = options?.maxAssignScoreCumulative;
     this.maxContextDepth = options?.maxContextDepth ?? 30;
-    this.bufferFactory = options?.bufferFactory ?? Array;
+    this.maxRenderBytes = options?.maxRenderBytes;
+    this.maxRenderScore = options?.maxRenderScore;
+    this.maxRenderScoreCumulative = options?.maxRenderScoreCumulative;
+    this.bufferFactory = options?.maxRenderBytes
+      ? sizedOutputBufferFactory
+      : Array;
     this.strictFilters = options?.strictFilters ?? true;
   }
 

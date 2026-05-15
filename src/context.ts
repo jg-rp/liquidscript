@@ -5,6 +5,7 @@ import type { Template } from "./template";
 import {
   isArray,
   isFunction,
+  isIterable,
   isNumber,
   isObject,
   isPropertyKey,
@@ -14,7 +15,7 @@ import type { ForLoop } from "./drops";
 import * as drop from "./drop";
 import type { Expression } from "./expression";
 import { LiquidNumber } from "./number";
-import { ContextDepthError } from "./errors";
+import { ContextDepthError, ResourceLimitError } from "./errors";
 
 export type Namespace = { [index: string]: unknown };
 
@@ -64,7 +65,9 @@ export type ContextCopyOptions = {
 };
 
 export class RenderContext {
-  private assignScore: number;
+  assignScore: number = 0;
+
+  assignScoreCumulative: number;
 
   private contextDepth: number;
 
@@ -88,13 +91,15 @@ export class RenderContext {
    */
   readonly registers = new Map<string | symbol, unknown>();
 
-  private renderScore: number;
+  renderScore: number = 0;
+
+  renderScoreCumulative: number;
 
   private scopes: Namespace[];
 
   template: Template;
 
-  private writeScore: number;
+  writeScore: number;
 
   constructor(template: Template, options?: RenderContextOptions) {
     this.template = template;
@@ -121,13 +126,26 @@ export class RenderContext {
 
     this.disabledTags = options?.disabledTags;
     this.contextDepth = options?.contextDepth ?? 0;
-    this.assignScore = options?.assignScoreCarry ?? 0;
-    this.renderScore = options?.renderScoreCarry ?? 0;
+    this.assignScoreCumulative = options?.assignScoreCarry ?? 0;
+    this.renderScoreCumulative = options?.renderScoreCarry ?? 0;
     this.writeScore = options?.writeScoreCarry ?? 0;
   }
 
   assign(name: string, value: unknown): void {
-    // TODO: resource limit
+    if (this.env.maxAssignScore || this.env.maxAssignScoreCumulative) {
+      const score = assignScoreOf(value);
+      this.assignScore += score;
+      this.assignScoreCumulative += score;
+      if (
+        (this.env.maxAssignScore &&
+          this.assignScore > this.env.maxAssignScore) ||
+        (this.env.maxAssignScoreCumulative &&
+          this.assignScoreCumulative > this.env.maxAssignScoreCumulative)
+      ) {
+        throw new ResourceLimitError("memory limits exceeded");
+      }
+    }
+
     this.locals[name] = value;
   }
 
@@ -150,6 +168,8 @@ export class RenderContext {
       disabledTags: options.disabledTags,
       globals,
       contextDepth: this.contextDepth + 1,
+      assignScoreCarry: this.assignScoreCumulative,
+      renderScoreCarry: this.renderScoreCumulative,
     });
 
     for (const register of this.env.persistentRegisters) {
@@ -178,6 +198,8 @@ export class RenderContext {
   ) {
     this.throwForContextDepth();
 
+    const originalAssignScore = this.assignScore;
+    const originalRenderScore = this.renderScore;
     const originalTemplate = this.template;
     if (template) {
       this.template = template;
@@ -185,6 +207,8 @@ export class RenderContext {
 
     this.scopes.push(namespace);
     this.contextDepth += 1;
+    this.assignScore = 0;
+    this.renderScore = 0;
 
     try {
       return await callback();
@@ -192,6 +216,8 @@ export class RenderContext {
       if (template) this.template = originalTemplate;
       this.scopes.pop();
       this.contextDepth -= 1;
+      this.assignScore = originalAssignScore;
+      this.renderScore = originalRenderScore;
     }
   }
 
@@ -202,6 +228,8 @@ export class RenderContext {
   ) {
     this.throwForContextDepth();
 
+    const originalAssignScore = this.assignScore;
+    const originalRenderScore = this.renderScore;
     const originalTemplate = this.template;
     if (template) {
       this.template = template;
@@ -209,6 +237,8 @@ export class RenderContext {
 
     this.scopes.push(namespace);
     this.contextDepth += 1;
+    this.assignScore = 0;
+    this.renderScore = 0;
 
     try {
       return callback();
@@ -216,6 +246,8 @@ export class RenderContext {
       if (template) this.template = originalTemplate;
       this.scopes.pop();
       this.contextDepth -= 1;
+      this.assignScore = originalAssignScore;
+      this.renderScore = originalRenderScore;
     }
   }
 
@@ -435,7 +467,7 @@ function normalizeIndex(index: unknown, length: number): number | undefined {
  * Return true of `obj` or an object in the prototype chain of `obj` contains `key`.
  * Excludes `Object.prototype` and function valued properties. Getters are OK.
  */
-function hasNonFunctionProperty(
+function isNonFunctionProperty(
   obj: object,
   key: unknown,
 ): key is keyof typeof obj {
@@ -503,7 +535,7 @@ function resolveStringSegment(obj: string, segment: unknown): unknown {
 }
 
 function resolveObjectSegment(obj: object, segment: unknown): unknown {
-  if (hasNonFunctionProperty(obj, segment)) {
+  if (isNonFunctionProperty(obj, segment)) {
     return obj[segment as keyof typeof obj];
   }
 
@@ -515,4 +547,56 @@ function resolveObjectSegment(obj: object, segment: unknown): unknown {
     default:
       return Nothing;
   }
+}
+
+export function assignScoreOf(obj: unknown): number {
+  // TODO: drop protocol override?
+  if (isString(obj)) return obj.length * 2;
+  if (isArray(obj)) {
+    return obj.reduce((a: number, b: unknown) => a + assignScoreOf(b), 0);
+  }
+  if (obj instanceof Set) {
+    let sum = 0;
+    for (const val of obj.keys()) {
+      sum += assignScoreOf(val);
+    }
+    return sum;
+  }
+  if (obj instanceof Map) {
+    let sum = 0;
+    for (const val of obj.entries()) {
+      sum += assignScoreOf(val);
+    }
+    return sum;
+  }
+  if (isIterable(obj)) {
+    let sum = 0;
+    for (const val of obj) {
+      sum += assignScoreOf(val);
+    }
+    return sum;
+  }
+  if (isObject(obj)) {
+    const seen: Set<object> = new Set();
+    const stack: object[] = [obj];
+    let sum = 0;
+
+    while (stack.length) {
+      const val = stack.pop();
+      if (typeof val === "object") {
+        if (!seen.has(val)) {
+          seen.add(val);
+          for (const [k, v] of Object.entries(obj)) {
+            sum += assignScoreOf(k);
+            stack.push(v);
+          }
+        }
+      } else {
+        sum += assignScoreOf(val);
+      }
+    }
+
+    return sum;
+  }
+  return 1;
 }
