@@ -132,6 +132,8 @@ export class RenderTag implements Markup {
         blockScope: false,
       });
     }
+
+    context.renderScoreCumulative += ctx.renderScore;
   }
 
   renderSync(context: RenderContext, buffer: OutputBuffer): void {
@@ -189,5 +191,7 @@ export class RenderTag implements Markup {
         blockScope: false,
       });
     }
+
+    context.renderScoreCumulative += ctx.renderScore;
   }
 }

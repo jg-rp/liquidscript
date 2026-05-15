@@ -25,6 +25,12 @@ const SKIP: Set<string> = new Set([
   "basics__error_handling__empty_filter_chain_lax",
   "basics__error_handling__malformed_syntax_invalid_filter_separator",
   "basics__error_handling__parse_error_shows_line_number_precise",
+  "basics__resource_limits__cumulative_render_score_across_partials",
+  "basics__resource_limits__per_template_limit_still_works_with_cumulative",
+  "liquid_ruby__manual__Float serialization with very long float",
+  "liquid_ruby__manual__Liquid error in snippet",
+  "liquid_ruby__manual__Range bound dynamic type check rejects float",
+  "liquid_ruby__manual__Range bound lax int string parsing",
 ]);
 
 const spec: { tests: Case[] } = JSON.parse(

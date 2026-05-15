@@ -4,9 +4,12 @@ import type { _Undefined } from "./src/environment";
 import { ObjectLoader } from "./src/loaders";
 import { getTokenValue, REVERSE_T } from "./src/token";
 
-const source = "{{ text | split: ',' | size }}";
+const source =
+  "{% tablerow item in items limit:2 offset:1 %}{{ item }}{% endtablerow %}";
 
-const data = { text: "" };
+const data = {
+  items: ["a", "b", "c", "d", "e"],
+};
 
 const loader = new ObjectLoader({
   "product-title": "{{ product-title.title }}",

@@ -35,6 +35,17 @@ export class Range extends Drop implements Iterable<number> {
     this.length = this.stop < this.start ? 0 : this.stop - this.start + 1;
   }
 
+  override [drop.dispatchSync](name: string): unknown {
+    switch (name) {
+      case "first":
+        return this.start;
+      case "last":
+        return this.stop;
+      default:
+        return Nothing;
+    }
+  }
+
   override [drop.equals](other: unknown): boolean {
     return (
       other instanceof Range &&
@@ -118,5 +129,10 @@ class DescendingRange extends Range {
   constructor(start: number, stop: number) {
     super(start, stop);
     this.length = Math.abs(this.start - this.stop);
+  }
+
+  override *[Symbol.iterator](): Iterator<number> {
+    // Ranges are inclusive of stop.
+    for (let i = this.start; i >= this.stop; i += this.step) yield i;
   }
 }

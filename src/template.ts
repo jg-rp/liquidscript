@@ -37,7 +37,7 @@ export class Template {
   }
 
   async render(data?: { [index: string]: unknown }): Promise<string> {
-    const buffer: string[] = [];
+    const buffer = this.env.bufferFactory();
     const context = new RenderContext(this, {
       globals: this.makeGlobals(data),
     });
@@ -46,7 +46,7 @@ export class Template {
   }
 
   renderSync(data?: { [index: string]: unknown }): string {
-    const buffer: string[] = [];
+    const buffer = this.env.bufferFactory();
     const context = new RenderContext(this, {
       globals: this.makeGlobals(data),
     });

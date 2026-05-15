@@ -119,7 +119,7 @@ export type EnvironmentOptions = {
    * The maximum number of bytes that can be written to an output buffer before
    * a resource limit error is thrown.
    */
-  maxRenderBytes?: number;
+  maxRenderSize?: number;
 
   /**
    * The maximum render score allowed per template before a resource limit
@@ -164,11 +164,11 @@ export class Environment {
 
   maxContextDepth: number;
 
-  maxRenderBytes?: number;
-
   maxRenderScore?: number;
 
   maxRenderScoreCumulative?: number;
+
+  maxRenderSize?: number;
 
   parser: _Parser = LegacyParser;
 
@@ -192,10 +192,10 @@ export class Environment {
     this.maxAssignScore = options?.maxAssignScore;
     this.maxAssignScoreCumulative = options?.maxAssignScoreCumulative;
     this.maxContextDepth = options?.maxContextDepth ?? 30;
-    this.maxRenderBytes = options?.maxRenderBytes;
+    this.maxRenderSize = options?.maxRenderSize;
     this.maxRenderScore = options?.maxRenderScore;
     this.maxRenderScoreCumulative = options?.maxRenderScoreCumulative;
-    this.bufferFactory = options?.maxRenderBytes
+    this.bufferFactory = options?.maxRenderSize
       ? sizedOutputBufferFactory
       : Array;
     this.strictFilters = options?.strictFilters ?? true;

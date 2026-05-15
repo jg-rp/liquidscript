@@ -116,11 +116,9 @@ export class TableRowTag implements Markup {
   async render(context: RenderContext, buffer: OutputBuffer): Promise<void> {
     const name = this.name.value;
     const array = await context.toArray(this.expression);
-
-    const a = array.slice(
-      await context.toInteger(this.offset, 0),
-      await context.toInteger(this.limit, undefined),
-    );
+    const offset = await context.toInteger(this.offset, 0);
+    const limit = await context.toInteger(this.limit, array.length);
+    const a = array.slice(offset, offset + limit);
 
     const length = a.length;
 
@@ -157,12 +155,9 @@ export class TableRowTag implements Markup {
   renderSync(context: RenderContext, buffer: OutputBuffer): void {
     const name = this.name.value;
     const array = context.toArraySync(this.expression);
-
-    const a = array.slice(
-      context.toIntegerSync(this.offset, 0),
-      context.toIntegerSync(this.limit, undefined),
-    );
-
+    const offset = context.toIntegerSync(this.offset, 0);
+    const limit = context.toIntegerSync(this.limit, array.length);
+    const a = array.slice(offset, offset + limit);
     const length = a.length;
 
     const tablerowloop = new TableRowLoop(

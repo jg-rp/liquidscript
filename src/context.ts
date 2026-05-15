@@ -149,6 +149,12 @@ export class RenderContext {
     this.locals[name] = value;
   }
 
+  /**
+   * Return a new render context with render state from this context.
+   *
+   * The caller is responsible for updating renderScoreCumulative when the new
+   * context is no longer needed.
+   */
   copy(
     namespace: { [index: string]: unknown },
     options: ContextCopyOptions = {},
@@ -156,6 +162,7 @@ export class RenderContext {
     this.throwForContextDepth();
     let globals: Namespace[];
 
+    // TODO: chain object instead of merge?
     if (options.blockScope) {
       globals = [...this.scopes, namespace];
     } else if (isArray(this.globals)) {

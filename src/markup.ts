@@ -71,8 +71,8 @@ export async function renderBlock(
     }
 
     if (
-      context.env.maxRenderBytes &&
-      buffer.length > context.env.maxRenderBytes
+      context.env.maxRenderSize &&
+      buffer.length > context.env.maxRenderSize
     ) {
       throw new ResourceLimitError("memory limits exceeded");
     }
@@ -117,8 +117,8 @@ export function renderBlockSync(
     }
 
     if (
-      context.env.maxRenderBytes &&
-      buffer.length > context.env.maxRenderBytes
+      context.env.maxRenderSize &&
+      buffer.length > context.env.maxRenderSize
     ) {
       throw new ResourceLimitError("memory limits exceeded");
     }
