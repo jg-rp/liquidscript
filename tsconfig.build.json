@@ -2,12 +2,17 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "noEmit": false,
-    "emitDeclarationOnly": true,
+
     "declaration": true,
+    "emitDeclarationOnly": true,
     "declarationMap": true,
 
-    "allowImportingTsExtensions": false,
+    "outDir": "./dist",
+    "rootDir": "./src",
 
-    "moduleResolution": "node"
-  }
+    "module": "ESNext",
+
+    "allowImportingTsExtensions": false
+  },
+  "include": ["src"]
 }
