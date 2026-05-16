@@ -7,6 +7,7 @@ import {
   isFunction,
   isIterable,
   isNumber,
+  isNumeric,
   isObject,
   isPropertyKey,
   isString,
@@ -343,6 +344,8 @@ export class RenderContext {
         }
 
         obj = resolveObjectSegment(obj, segment);
+      } else {
+        obj = resolveUnknownSegment(obj, segment);
       }
 
       if (obj === Nothing) return [Nothing, segmentIndex];
@@ -402,7 +405,7 @@ export class RenderContext {
 
         obj = resolveObjectSegment(obj, segment);
       } else {
-        obj = Nothing;
+        obj = resolveUnknownSegment(obj, segment);
       }
 
       if (obj === Nothing) return [Nothing, segmentIndex];
@@ -551,6 +554,16 @@ function resolveObjectSegment(obj: object, segment: unknown): unknown {
       return Object.entries(obj)[0];
     case "size":
       return Object.keys(obj).length;
+    default:
+      return Nothing;
+  }
+}
+
+function resolveUnknownSegment(obj: unknown, segment: unknown): unknown {
+  switch (segment) {
+    case "size":
+      if (isNumeric(obj)) return 8; // Close enough, most of the time.
+      return Nothing;
     default:
       return Nothing;
   }

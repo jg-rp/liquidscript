@@ -395,6 +395,9 @@ export class Environment {
   }
 
   serialize(obj: unknown, context: RenderContext, token: Token): string {
+    if (isArray(obj)) {
+      return obj.map((item) => this.toString(item, context, token)).join("");
+    }
     return this.toString(obj, context, token);
   }
 
@@ -417,6 +420,7 @@ export class Environment {
     this.filters["downcase"] = filters.downcase;
     this.filters["escape_once"] = filters.escapeOnce;
     this.filters["escape"] = filters.escape;
+    this.filters["h"] = filters.escape;
     this.filters["find_index"] = filters.findIndex;
     this.filters["find"] = filters.find;
     this.filters["first"] = filters.first;
@@ -530,7 +534,7 @@ export class Environment {
     }
 
     if (isArray(obj)) {
-      return obj.map((item) => this.toString(item, context, token)).join("");
+      return JSON.stringify(obj);
     }
 
     if (obj instanceof LiquidNumber) {

@@ -41,6 +41,8 @@ export class Range extends Drop implements Iterable<number> {
         return this.start;
       case "last":
         return this.stop;
+      case "size":
+        return this.stop + 1 - this.start;
       default:
         return Nothing;
     }

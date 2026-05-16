@@ -176,7 +176,7 @@ function _stringToLiquidNumber(s: string): LiquidNumber {
  * @returns `true` if the input value can be passed to `_toLiquidNumber`.
  */
 export function isN(val: unknown): val is N {
-  return isLiquidNumber(val) || isString(val) || isFinite(val as number);
+  return isLiquidNumber(val) || isString(val) || isPrimitiveNumber(val);
 }
 
 /**

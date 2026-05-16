@@ -4,11 +4,11 @@ import type { _Undefined } from "./src/environment";
 import { ObjectLoader } from "./src/loaders";
 import { getTokenValue, REVERSE_T } from "./src/token";
 
-const source =
-  "{% tablerow item in items limit:2 offset:1 %}{{ item }}{% endtablerow %}";
+const source = "{% if a == true or b == false %} YES {% endif %}";
 
 const data = {
-  items: ["a", "b", "c", "d", "e"],
+  a: true,
+  b: true,
 };
 
 const loader = new ObjectLoader({

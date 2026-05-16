@@ -144,7 +144,7 @@ export class OrExpression implements Expression {
     readonly left: Expression,
     readonly right: Expression,
   ) {
-    this.span = span(left.token, right.token);
+    this.span = span(left.span, right.span);
   }
 
   children(context: StaticContext): Traversable[] {
@@ -178,7 +178,7 @@ export class AndExpression implements Expression {
     readonly left: Expression,
     readonly right: Expression,
   ) {
-    this.span = span(left.token, right.token);
+    this.span = span(left.span, right.span);
   }
 
   children(context: StaticContext): Traversable[] {
@@ -212,7 +212,7 @@ export class EqExpression implements Expression {
     readonly left: Expression,
     readonly right: Expression,
   ) {
-    this.span = span(left.token, right.token);
+    this.span = span(left.span, right.span);
   }
 
   children(context: StaticContext): Traversable[] {
@@ -250,7 +250,7 @@ export class NeExpression implements Expression {
     readonly left: Expression,
     readonly right: Expression,
   ) {
-    this.span = span(left.token, right.token);
+    this.span = span(left.span, right.span);
   }
 
   children(context: StaticContext): Traversable[] {
@@ -288,7 +288,7 @@ export class LtExpression implements Expression {
     readonly left: Expression,
     readonly right: Expression,
   ) {
-    this.span = span(left.token, right.token);
+    this.span = span(left.span, right.span);
   }
 
   children(context: StaticContext): Traversable[] {
@@ -326,7 +326,7 @@ export class LeExpression implements Expression {
     readonly left: Expression,
     readonly right: Expression,
   ) {
-    this.span = span(left.token, right.token);
+    this.span = span(left.span, right.span);
   }
 
   children(context: StaticContext): Traversable[] {
@@ -364,7 +364,7 @@ export class GtExpression implements Expression {
     readonly left: Expression,
     readonly right: Expression,
   ) {
-    this.span = span(left.token, right.token);
+    this.span = span(left.span, right.span);
   }
 
   children(context: StaticContext): Traversable[] {
@@ -402,7 +402,7 @@ export class GeExpression implements Expression {
     readonly left: Expression,
     readonly right: Expression,
   ) {
-    this.span = span(left.token, right.token);
+    this.span = span(left.span, right.span);
   }
 
   children(context: StaticContext): Traversable[] {
@@ -440,7 +440,7 @@ export class ContainsExpression implements Expression {
     readonly left: Expression,
     readonly right: Expression,
   ) {
-    this.span = span(left.token, right.token);
+    this.span = span(left.span, right.span);
   }
 
   children(context: StaticContext): Traversable[] {

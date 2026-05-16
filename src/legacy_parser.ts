@@ -385,8 +385,9 @@ export class LegacyParser extends Parser {
   protected parseInfix(left: Expression): Expression {
     const opToken = this.next();
     const kind = opToken.kind;
-    const right = this.parseFilteredExpression(
+    const right = this.parseExpression(
       PRECEDENCES.get(kind) || PRECEDENCE_LOWEST,
+      true,
     );
 
     const infixCtor = INFIX_OPERATORS.get(kind) as InfixConstructor;
