@@ -5,7 +5,7 @@ import { Filter, Variable, type Traversable } from "./expression";
 import { Scope, type Markup } from "./markup";
 import { OutputStatement } from "./tags";
 import type { Template } from "./template";
-import type { Token } from "./token";
+import { getTokenValue, type Token } from "./token";
 import { isArray, isString } from "./type_guards";
 
 /**
@@ -58,6 +58,13 @@ export class Location {
       this.lineCol(source, this.token.start),
       this.lineCol(source, this.token.end),
     ];
+  }
+
+  /**
+   * Return the substring in `source` at this location.
+   */
+  value(source: string): string {
+    return getTokenValue(this.token, source);
   }
 }
 
@@ -284,10 +291,10 @@ export async function analyze(
       }
 
       partialScope.pop();
-    }
-
-    if (node.blockScope !== undefined) {
-      scope.push(new Set(node.blockScope().map((n) => n.value)));
+    } else {
+      if (node.blockScope !== undefined) {
+        scope.push(new Set(node.blockScope().map((n) => n.value)));
+      }
 
       if (node.children !== undefined) {
         for (const child of await node.children(
@@ -433,10 +440,10 @@ export function analyzeSync(
       }
 
       partialScope.pop();
-    }
-
-    if (node.blockScope !== undefined) {
-      scope.push(new Set(node.blockScope().map((n) => n.value)));
+    } else {
+      if (node.blockScope !== undefined) {
+        scope.push(new Set(node.blockScope().map((n) => n.value)));
+      }
 
       if (node.childrenSync !== undefined) {
         for (const child of node.childrenSync(
@@ -497,20 +504,20 @@ function analyzeVariables(
     if (!scope.has(expression.root.toString())) {
       globals.add(v);
     }
+  }
 
-    // XXX: This is where we'd handle lambda scoping, or any expression that
-    // affects scope.
+  // XXX: This is where we'd handle lambda scoping, or any expression that
+  // affects scope.
 
-    for (const expr of expression.children(staticContext)) {
-      analyzeVariables(
-        expr,
-        templateName,
-        scope,
-        globals,
-        variables,
-        staticContext,
-      );
-    }
+  for (const expr of expression.children(staticContext)) {
+    analyzeVariables(
+      expr,
+      templateName,
+      scope,
+      globals,
+      variables,
+      staticContext,
+    );
   }
 }
 

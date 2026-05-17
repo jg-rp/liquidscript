@@ -4,7 +4,7 @@ import type { _Undefined } from "./src/environment";
 import { ObjectLoader } from "./src/loaders";
 import { getTokenValue, REVERSE_T } from "./src/token";
 
-const source = "Hello, {{ you[foo.baz[1]].bar }}!";
+const source = `{% increment x %}`;
 
 const data = {
   you: "World",
@@ -34,6 +34,10 @@ const env = new Environment({ loader, strictFilters: true });
 
 const template = env.parse(source);
 
-console.log(template.variablesSync());
-console.log(template.variablePathsSync());
-console.log(template.variableSegmentsSync());
+const a = template.analyzeSync();
+
+console.log("!!", a.locals);
+
+// console.log(template.variablesSync());
+// console.log(template.variablePathsSync());
+// console.log(template.variableSegmentsSync());

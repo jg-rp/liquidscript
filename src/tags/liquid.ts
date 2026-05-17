@@ -9,6 +9,7 @@ import {
 import type { OutputBuffer } from "../output";
 import type { Parser } from "../parser";
 import { T, type Token } from "../token";
+import { isString } from "../type_guards";
 
 export class LiquidTag implements Markup {
   readonly blank: boolean;
@@ -35,5 +36,9 @@ export class LiquidTag implements Markup {
 
   renderSync(context: RenderContext, buffer: OutputBuffer): void {
     renderBlockSync(this.block, context, buffer);
+  }
+
+  childrenSync(): Markup[] {
+    return this.block.filter((node) => !isString(node)) as Markup[];
   }
 }

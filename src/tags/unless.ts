@@ -87,10 +87,6 @@ export class UnlessTag implements Markup {
     return this.alts;
   }
 
-  expressions(): Expression[] {
-    return this.alts.map((block) => block.expression);
-  }
-
   async render(context: RenderContext, buffer: OutputBuffer): Promise<void> {
     for (const alt of this.alts) {
       if (alt instanceof UnlessBlock) {

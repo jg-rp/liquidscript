@@ -143,9 +143,11 @@ export class Template {
     options: AnalysisOptions = { includePartials: true },
   ): Promise<string[]> {
     return Array.from(
-      (await this.analyze(options)).variables
-        .values()
-        .flatMap((s) => s.map((v) => v.toString())),
+      new Set(
+        (await this.analyze(options)).variables
+          .values()
+          .flatMap((s) => s.map((v) => v.toString())),
+      ),
     );
   }
 
@@ -162,9 +164,11 @@ export class Template {
     options: AnalysisOptions = { includePartials: true },
   ): string[] {
     return Array.from(
-      this.analyzeSync(options)
-        .variables.values()
-        .flatMap((s) => s.map((v) => v.toString())),
+      new Set(
+        this.analyzeSync(options)
+          .variables.values()
+          .flatMap((s) => s.map((v) => v.toString())),
+      ),
     );
   }
 
@@ -181,9 +185,11 @@ export class Template {
     options: AnalysisOptions = { includePartials: true },
   ): Promise<Segments[]> {
     return Array.from(
-      (await this.analyze(options)).variables
-        .values()
-        .flatMap((s) => s.map((v) => v.segments)),
+      new Set(
+        (await this.analyze(options)).variables
+          .values()
+          .flatMap((s) => s.map((v) => v.segments)),
+      ),
     );
   }
 
@@ -200,9 +206,11 @@ export class Template {
     options: AnalysisOptions = { includePartials: true },
   ): Segments[] {
     return Array.from(
-      this.analyzeSync(options)
-        .variables.values()
-        .flatMap((s) => s.map((v) => v.segments)),
+      new Set(
+        this.analyzeSync(options)
+          .variables.values()
+          .flatMap((s) => s.map((v) => v.segments)),
+      ),
     );
   }
 
