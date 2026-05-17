@@ -4,11 +4,10 @@ import type { _Undefined } from "./src/environment";
 import { ObjectLoader } from "./src/loaders";
 import { getTokenValue, REVERSE_T } from "./src/token";
 
-const source = "{% if a == true or b == false %} YES {% endif %}";
+const source = "Hello, {{ you[foo.baz[1]].bar }}!";
 
 const data = {
-  a: true,
-  b: true,
+  you: "World",
 };
 
 const loader = new ObjectLoader({
@@ -31,4 +30,10 @@ const env = new Environment({ loader, strictFilters: true });
 // env.render(source, data).then(console.log);
 // console.log(env.renderSync(source, data));
 
-console.log(JSON.stringify(env.renderSync(source, data)));
+// console.log(JSON.stringify(env.renderSync(source, data)));
+
+const template = env.parse(source);
+
+console.log(template.variablesSync());
+console.log(template.variablePathsSync());
+console.log(template.variableSegmentsSync());

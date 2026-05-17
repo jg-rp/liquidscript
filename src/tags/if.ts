@@ -76,7 +76,7 @@ export class IfTag implements Markup {
     return new ElsIfBlock(token, expression, parser.parseBlock(END_IF_BLOCK));
   }
 
-  children(): Markup[] {
+  childrenSync(): Markup[] {
     return this.alts;
   }
 
@@ -116,7 +116,7 @@ export class IfBlock implements Markup {
     this.blank = isBlankBlock(block);
   }
 
-  children(): Markup[] {
+  childrenSync(): Markup[] {
     return this.block.filter((node) => !isString(node)) as Markup[];
   }
 

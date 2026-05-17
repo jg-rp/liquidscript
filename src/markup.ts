@@ -12,6 +12,18 @@ export type Block = Array<string | Markup>;
 export interface Markup {
   render(context: RenderContext, buffer: OutputBuffer): Promise<void>;
   renderSync(context: RenderContext, buffer: OutputBuffer): void;
+  children?(
+    staticContext: RenderContext,
+    includePartials: boolean,
+  ): Promise<Markup[]>;
+  childrenSync?(
+    staticContext: RenderContext,
+    includePartials: boolean,
+  ): Markup[];
+  expressions?(): Expression[];
+  blockScope?(): Name[];
+  templateScope?(): Name[];
+  partialScope?(): Partial;
   blank: boolean;
   tag: string;
   token: Token;
@@ -28,9 +40,10 @@ export const Scope = {
 } as const;
 
 export type Partial = {
-  name: string;
+  name: string | Expression;
   scopeKind: (typeof Scope)[keyof typeof Scope];
   inScope: Name[];
+  key: number;
 };
 
 export async function renderBlock(

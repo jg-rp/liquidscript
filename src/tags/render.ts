@@ -57,7 +57,7 @@ export class RenderTag implements Markup {
     return new RenderTag(token, nameExpr, loop, variable, alias, args);
   }
 
-  children(
+  childrenSync(
     staticContext: RenderContext,
     options?: { includePartials?: boolean },
   ): Markup[] {

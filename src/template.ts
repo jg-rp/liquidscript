@@ -2,6 +2,13 @@ import { RenderContext, type Namespace } from "./context";
 import type { Environment, TemplateMeta } from "./environment";
 import { renderBlock, renderBlockSync, type Block } from "./markup";
 import type { OutputBuffer } from "./output";
+import {
+  analyze,
+  analyzeSync,
+  type AnalysisOptions,
+  type Segments,
+  type TemplateAnalysis,
+} from "./static_analysis";
 
 export class Template {
   globals: Namespace;
@@ -57,25 +64,151 @@ export class Template {
   async renderWithContext(
     context: RenderContext,
     buffer: OutputBuffer,
-    options?: RenderTemplateOptions,
   ): Promise<void> {
     // Note that `renderBlock` handles interrupts, even if we're not inside a
     // tag that intuitively could produce an interrupt.
     await renderBlock(this.nodes, context, buffer);
   }
 
-  renderWithContextSync(
-    context: RenderContext,
-    buffer: OutputBuffer,
-    options?: RenderTemplateOptions,
-  ): void {
+  renderWithContextSync(context: RenderContext, buffer: OutputBuffer): void {
     // Note that `renderBlockSync` handles interrupts, even if we're not
     // inside a tag that intuitively could produce an interrupt.
     renderBlockSync(this.nodes, context, buffer);
   }
-}
 
-export type RenderTemplateOptions = {
-  partial?: boolean;
-  blockScope?: boolean;
-};
+  /**
+   * Statically analyze this template.
+   *
+   * When the `includePartials` option is true, attempt to load and analyze
+   * included/rendered templates too.
+   */
+  async analyze(
+    options: AnalysisOptions = { includePartials: true },
+  ): Promise<TemplateAnalysis> {
+    return await analyze(this, options);
+  }
+
+  /**
+   * Statically analyze this template.
+   *
+   * When the `includePartials` option is true, attempt to load and analyze
+   * included/rendered templates too.
+   */
+  analyzeSync(
+    options: AnalysisOptions = { includePartials: true },
+  ): TemplateAnalysis {
+    return analyzeSync(this, options);
+  }
+
+  /**
+   * Return a list of variables used in this template without path segments.
+   *
+   * Includes variables that are _local_ to the template, like those created
+   * with `{% assign %}` and `{% capture %}`.
+   *
+   * When the `includePartials` option is true, attempt to load and analyze
+   * included/rendered templates too.
+   */
+  async variables(
+    options: AnalysisOptions = { includePartials: true },
+  ): Promise<string[]> {
+    return Array.from((await this.analyze(options)).variables.keys());
+  }
+
+  /**
+   * Return a list of variables used in this template without path segments.
+   *
+   * Includes variables that are _local_ to the template, like those created
+   * with `{% assign %}` and `{% capture %}`.
+   *
+   * When the `includePartials` option is true, attempt to load and analyze
+   * included/rendered templates too.
+   */
+  variablesSync(
+    options: AnalysisOptions = { includePartials: true },
+  ): string[] {
+    return Array.from(this.analyzeSync(options).variables.keys());
+  }
+
+  /**
+   * Return a list of variables used in this template including path segments.
+   *
+   * Includes variables that are _local_ to the template, like those created
+   * with `{% assign %}` and `{% capture %}`.
+   *
+   * When the `includePartials` option is true, attempt to load and analyze
+   * included/rendered templates too.
+   */
+  async variablePaths(
+    options: AnalysisOptions = { includePartials: true },
+  ): Promise<string[]> {
+    return Array.from(
+      (await this.analyze(options)).variables
+        .values()
+        .flatMap((s) => s.map((v) => v.toString())),
+    );
+  }
+
+  /**
+   * Return a list of variables used in this template including path segments.
+   *
+   * Includes variables that are _local_ to the template, like those created
+   * with `{% assign %}` and `{% capture %}`.
+   *
+   * When the `includePartials` option is true, attempt to load and analyze
+   * included/rendered templates too.
+   */
+  variablePathsSync(
+    options: AnalysisOptions = { includePartials: true },
+  ): string[] {
+    return Array.from(
+      this.analyzeSync(options)
+        .variables.values()
+        .flatMap((s) => s.map((v) => v.toString())),
+    );
+  }
+
+  /**
+   * Return a list of variables used in this template, each as a list of segments.
+   *
+   * Includes variables that are _local_ to the template, like those created
+   * with `{% assign %}` and `{% capture %}`.
+   *
+   * When the `includePartials` option is true, attempt to load and analyze
+   * included/rendered templates too.
+   */
+  async variableSegments(
+    options: AnalysisOptions = { includePartials: true },
+  ): Promise<Segments[]> {
+    return Array.from(
+      (await this.analyze(options)).variables
+        .values()
+        .flatMap((s) => s.map((v) => v.segments)),
+    );
+  }
+
+  /**
+   * Return a list of variables used in this template, each as a list of segments.
+   *
+   * Includes variables that are _local_ to the template, like those created
+   * with `{% assign %}` and `{% capture %}`.
+   *
+   * When the `includePartials` option is true, attempt to load and analyze
+   * included/rendered templates too.
+   */
+  variableSegmentsSync(
+    options: AnalysisOptions = { includePartials: true },
+  ): Segments[] {
+    return Array.from(
+      this.analyzeSync(options)
+        .variables.values()
+        .flatMap((s) => s.map((v) => v.segments)),
+    );
+  }
+
+  // TODO: same for globals
+  // TODO: filterNames
+  // TODO: tagNames
+  // TODO: comments
+  // TODO: docs
+}

@@ -33,7 +33,7 @@ export class CaptureTag implements Markup {
     return new CaptureTag(token, name, block);
   }
 
-  children(): Markup[] {
+  childrenSync(): Markup[] {
     return this.block.filter((node) => !isString(node)) as Markup[];
   }
 

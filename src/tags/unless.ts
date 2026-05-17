@@ -83,7 +83,7 @@ export class UnlessTag implements Markup {
     );
   }
 
-  children(): Markup[] {
+  childrenSync(): Markup[] {
     return this.alts;
   }
 
@@ -137,7 +137,7 @@ export class UnlessBlock implements Markup {
     this.blank = isBlankBlock(block);
   }
 
-  children(): Markup[] {
+  childrenSync(): Markup[] {
     return this.block.filter((node) => !isString(node)) as Markup[];
   }
 

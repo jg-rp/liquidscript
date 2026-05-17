@@ -93,7 +93,7 @@ export class CaseTag implements Markup {
     return new WhenBlock(token, right, block);
   }
 
-  children(): Markup[] {
+  childrenSync(): Markup[] {
     return this.blocks;
   }
 
@@ -171,7 +171,7 @@ export class WhenBlock implements Markup {
     this.blank = isBlankBlock(block);
   }
 
-  children(): Markup[] {
+  childrenSync(): Markup[] {
     return this.block.filter((node) => !isString(node)) as Markup[];
   }
 

@@ -15,6 +15,7 @@ export default defineConfig([
       "perfectionist/sort-classes": [
         "error",
         {
+          alphabetical: "unsorted",
           groups: [
             "property", // instance properties
             "constructor", // constructor
@@ -27,7 +28,7 @@ export default defineConfig([
         "error",
         "always",
         {
-          exceptAfterSingleLine: false,
+          exceptAfterSingleLine: true,
         },
       ],
       "@typescript-eslint/explicit-member-accessibility": [

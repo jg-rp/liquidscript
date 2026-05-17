@@ -86,7 +86,7 @@ export class TableRowTag implements Markup {
     return [this.name];
   }
 
-  children(): Markup[] {
+  childrenSync(): Markup[] {
     // TODO: TableRowBlock
     const result: Markup[] = [];
 

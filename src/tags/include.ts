@@ -46,7 +46,7 @@ export class IncludeTag implements Markup {
     return new IncludeTag(token, nameExpr, variable, alias, args);
   }
 
-  children(
+  childrenSync(
     staticContext: RenderContext,
     options?: { includePartials?: boolean },
   ): Markup[] {

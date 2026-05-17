@@ -137,7 +137,7 @@ export class ForTag implements Markup {
     return [this.name];
   }
 
-  children(): Markup[] {
+  childrenSync(): Markup[] {
     const result: Markup[] = [];
 
     for (const node of this.block) {

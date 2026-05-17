@@ -26,7 +26,7 @@ export class ElseBlock implements Markup {
     this.expression = new BooleanLiteral(token, true);
   }
 
-  children(): Markup[] {
+  childrenSync(): Markup[] {
     return this.block.filter((node) => !isString(node)) as Markup[];
   }
 
