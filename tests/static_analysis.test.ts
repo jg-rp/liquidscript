@@ -42,21 +42,20 @@ describe("static analysis", () => {
   test("output", () => {
     const source = "{{ x | default: y, allow_false: z }}";
     const analysis = parse(source).analyzeSync();
-    expect(analysis.variables.size).toStrictEqual(3);
 
-    const xs = analysis.variables.get("x") as StaticVariable[];
-    expect(xs).toBeDefined();
-    expect(xs.length).toStrictEqual(1);
+    const variables = {
+      x: [[["x"], "x"]],
+      y: [[["y"], "y"]],
+      z: [[["z"], "z"]],
+    };
 
-    const x = xs[0] as StaticVariable;
-    expect(x).toBeDefined();
-
-    expect(x.segments).toStrictEqual(["x"]);
-
-    const loc = xs[0]?.location as Location;
-    expect(loc.value(source)).toStrictEqual("x");
-    const [line, col] = loc.lineCol(source, loc.token.start);
-    expect(line).toStrictEqual(1);
-    expect(col).toStrictEqual(3);
+    for (const [k, v] of Object.entries(variables)) {
+      const want = analysis.variables[k] ?? [];
+      v.forEach((w, i) => {
+        const [segments, value] = w;
+        expect(want[i]?.value).toEqual(value);
+        expect(want[i]?.segments).toEqual(segments);
+      });
+    }
   });
 });

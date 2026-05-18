@@ -27,16 +27,20 @@ export class Location {
    * Return the line and column number of the given index.
    */
   lineCol(source: string, index: number): [number, number] {
-    const lines = source.match(/[^\r\n]+(?:\r?\n|\r|$)/g);
+    const lines = source.split(/(?<=\n)/);
+    if (lines[lines.length - 1] === "") {
+      lines.pop();
+    }
+
     if (!lines) throw new LiquidError("index is out of bounds");
 
     let cumulativeLength = 0;
     let targetLineIndex = -1;
 
-    for (const [index, line] of lines.entries()) {
+    for (const [i, line] of lines.entries()) {
       cumulativeLength += line.length;
       if (index < cumulativeLength) {
-        targetLineIndex = index;
+        targetLineIndex = i;
         break;
       }
     }
@@ -68,8 +72,35 @@ export class Location {
   }
 }
 
-const RE_PROPERTY = /[\u0080-\uFFFFa-zA-Z_][\u0080-\uFFFFa-zA-Z0-9_-]*/;
+export type Loc = {
+  startIndex: number;
+  endIndex: number;
+  startLine: number;
+  startColumn: number;
+  endLine: number;
+  endColumn: number;
+  value: string;
+  templateName: string;
+};
+
 export type Segments = Array<number | string | Segments>;
+
+export type Var = Loc & {
+  segments: Segments;
+  path: string;
+};
+
+/**
+ * A mapping of variable names to their locations along with any path segments.
+ */
+export type Vars = Record<string, Var[]>;
+
+/**
+ * A mapping of filter or tag names to their locations.
+ */
+export type Locations = Record<string, Loc[]>;
+
+const RE_PROPERTY = /[\u0080-\uFFFFa-zA-Z_][\u0080-\uFFFFa-zA-Z0-9_-]*/;
 
 /**
  * A variable as a sequence of segments and its location.
@@ -154,6 +185,38 @@ class VariableMap {
     if (!this.data.has(k)) this.data.set(k, []);
     return this.data.get(k);
   }
+
+  toObject(source: string, templateName: string): Vars {
+    const obj: Vars = {};
+
+    for (const [k, v] of this.data.entries()) {
+      const a: Var[] = [];
+
+      for (const sv of v) {
+        // XXX: repeatedly splitting `source` into lines is wasteful.
+        // TODO: we should split `source` once and batch line/col calc
+        const [[startLine, startColumn], [endLine, endColumn]] =
+          sv.location.span(source);
+
+        a.push({
+          segments: sv.segments,
+          path: sv.toString(),
+          startIndex: sv.location.token.start,
+          endIndex: sv.location.token.end,
+          startLine,
+          startColumn,
+          endLine,
+          endColumn,
+          value: sv.location.value(source),
+          templateName,
+        });
+      }
+
+      obj[k] = a;
+    }
+
+    return obj;
+  }
 }
 
 /**
@@ -161,11 +224,11 @@ class VariableMap {
  */
 export class TemplateAnalysis {
   constructor(
-    readonly variables: Map<string, StaticVariable[]>,
-    readonly locals: Map<string, StaticVariable[]>,
-    readonly globals: Map<string, StaticVariable[]>,
-    readonly filters: Map<string, Location[]>,
-    readonly tags: Map<string, Location[]>,
+    readonly variables: Vars,
+    readonly locals: Vars,
+    readonly globals: Vars,
+    readonly filters: Locations,
+    readonly tags: Locations,
   ) {}
 }
 
@@ -322,11 +385,11 @@ export async function analyze(
   }
 
   return new TemplateAnalysis(
-    variables.data,
-    locals.data,
-    globals.data,
-    filters,
-    tags,
+    variables.toObject(template.source, template.name),
+    locals.toObject(template.source, template.name),
+    globals.toObject(template.source, template.name),
+    toLocations(filters, template.source, template.name),
+    toLocations(tags, template.source, template.name),
   );
 }
 
@@ -463,11 +526,11 @@ export function analyzeSync(
   }
 
   return new TemplateAnalysis(
-    variables.data,
-    locals.data,
-    globals.data,
-    filters,
-    tags,
+    variables.toObject(template.source, template.name),
+    locals.toObject(template.source, template.name),
+    globals.toObject(template.source, template.name),
+    toLocations(filters, template.source, template.name),
+    toLocations(tags, template.source, template.name),
   );
 }
 
@@ -539,4 +602,37 @@ function segments(variable: Variable, templateName: string): Segments {
   }
 
   return segments_;
+}
+
+function toLocations(
+  map: DefaultMap<string, Location[]>,
+  source: string,
+  templateName: string,
+): Locations {
+  const obj: Locations = {};
+
+  for (const [k, v] of map.entries()) {
+    const a: Loc[] = [];
+
+    for (const l of v) {
+      // XXX: repeatedly splitting `source` into lines is wasteful.
+      // TODO: we should split `source` once and batch line/col calc
+      const [[startLine, startColumn], [endLine, endColumn]] = l.span(source);
+
+      a.push({
+        startIndex: l.token.start,
+        endIndex: l.token.end,
+        startLine,
+        startColumn,
+        endLine,
+        endColumn,
+        value: l.value(source),
+        templateName,
+      });
+    }
+
+    obj[k] = a;
+  }
+
+  return obj;
 }

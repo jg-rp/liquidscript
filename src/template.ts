@@ -112,7 +112,7 @@ export class Template {
   async variables(
     options: AnalysisOptions = { includePartials: true },
   ): Promise<string[]> {
-    return Array.from((await this.analyze(options)).variables.keys());
+    return Array.from(Object.keys((await this.analyze(options)).variables));
   }
 
   /**
@@ -127,7 +127,7 @@ export class Template {
   variablesSync(
     options: AnalysisOptions = { includePartials: true },
   ): string[] {
-    return Array.from(this.analyzeSync(options).variables.keys());
+    return Array.from(Object.keys(this.analyzeSync(options).variables));
   }
 
   /**
@@ -142,11 +142,9 @@ export class Template {
   async variablePaths(
     options: AnalysisOptions = { includePartials: true },
   ): Promise<string[]> {
-    return Array.from(
-      new Set(
-        (await this.analyze(options)).variables
-          .values()
-          .flatMap((s) => s.map((v) => v.toString())),
+    return unique(
+      Object.values((await this.analyze(options)).variables).flatMap((s) =>
+        s.map((v) => v.path),
       ),
     );
   }
@@ -163,11 +161,9 @@ export class Template {
   variablePathsSync(
     options: AnalysisOptions = { includePartials: true },
   ): string[] {
-    return Array.from(
-      new Set(
-        this.analyzeSync(options)
-          .variables.values()
-          .flatMap((s) => s.map((v) => v.toString())),
+    return unique(
+      Object.values(this.analyzeSync(options).variables).flatMap((s) =>
+        s.map((v) => v.path),
       ),
     );
   }
@@ -184,11 +180,9 @@ export class Template {
   async variableSegments(
     options: AnalysisOptions = { includePartials: true },
   ): Promise<Segments[]> {
-    return Array.from(
-      new Set(
-        (await this.analyze(options)).variables
-          .values()
-          .flatMap((s) => s.map((v) => v.segments)),
+    return unique(
+      Object.values((await this.analyze(options)).variables).flatMap((s) =>
+        s.map((v) => v.segments),
       ),
     );
   }
@@ -205,11 +199,9 @@ export class Template {
   variableSegmentsSync(
     options: AnalysisOptions = { includePartials: true },
   ): Segments[] {
-    return Array.from(
-      new Set(
-        this.analyzeSync(options)
-          .variables.values()
-          .flatMap((s) => s.map((v) => v.segments)),
+    return unique(
+      Object.values(this.analyzeSync(options).variables).flatMap((s) =>
+        s.map((v) => v.segments),
       ),
     );
   }
@@ -219,4 +211,18 @@ export class Template {
   // TODO: tagNames
   // TODO: comments
   // TODO: docs
+}
+
+function unique<T>(a: T[]): T[] {
+  const seen = new Map<string, T>();
+
+  for (const item of a) {
+    const key = JSON.stringify(item);
+
+    if (!seen.has(key)) {
+      seen.set(key, item);
+    }
+  }
+
+  return Array.from(seen.values());
 }
