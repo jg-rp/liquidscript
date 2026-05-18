@@ -1,6 +1,13 @@
-import { Drop, toLiquid, toLiquidSync, type ContextHint } from "../drop";
+import {
+  Drop,
+  toHTMLSafeStringSync,
+  toLiquid,
+  toLiquidSync,
+  type ContextHint,
+} from "../drop";
 import { Nothing } from "../runtime";
 import { escape } from "../escape";
+import type { RenderContext } from "../context";
 
 export class HTMLSafeString extends Drop {
   #s: string;
@@ -38,6 +45,10 @@ export class HTMLSafeString extends Drop {
       default:
         return Nothing;
     }
+  }
+
+  override [toHTMLSafeStringSync](context: RenderContext): string {
+    return this.#s;
   }
 
   override valueOf(): string {

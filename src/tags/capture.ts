@@ -1,4 +1,5 @@
 import type { RenderContext } from "../context";
+import { HTMLSafeString } from "../drops/html_safe";
 import type { Name } from "../expression";
 import {
   renderBlock,
@@ -41,16 +42,20 @@ export class CaptureTag implements Markup {
   async render(context: RenderContext, buffer: OutputBuffer): Promise<void> {
     const buf = context.env.bufferFactory();
     await renderBlock(this.block, context, buf);
-    // TODO: auto escape?
-    context.assign(this.name.value, buf.join(""));
+    context.assign(
+      this.name.value,
+      context.env.autoEscape ? HTMLSafeString.from(buf.join("")) : buf.join(""),
+    );
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   renderSync(context: RenderContext, buffer: OutputBuffer): void {
     const buf = context.env.bufferFactory();
     renderBlockSync(this.block, context, buf);
-    // TODO: auto escape?
-    context.assign(this.name.value, buf.join(""));
+    context.assign(
+      this.name.value,
+      context.env.autoEscape ? HTMLSafeString.from(buf.join("")) : buf.join(""),
+    );
   }
 
   templateScope(): Name[] {

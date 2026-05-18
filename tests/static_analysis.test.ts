@@ -466,4 +466,10 @@ endfor %}`;
   });
 
   // TODO: partials
+  // TODO: comment
+  // TODO: inline comment
+  // TODO: doc
+  // TODO: raw
+  // TODO: ifchanged?
+  // TODO: tablerow?
 });

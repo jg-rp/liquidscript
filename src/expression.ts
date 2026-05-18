@@ -8,6 +8,7 @@ import { span, T, type Token } from "./token";
 import { isString } from "./type_guards";
 import { FilterContext } from "./filter";
 import type { Float, Integer } from "./number";
+import { HTMLSafeString } from "./drops/html_safe";
 
 export type PathSegment = Name | StringLiteral | IndexSelector | Variable;
 
@@ -620,11 +621,15 @@ export class StringLiteral implements Expression {
   }
 
   async evaluate(context: RenderContext): Promise<unknown> {
-    return this.value;
+    return context.env.autoEscape
+      ? HTMLSafeString.from(this.value)
+      : this.value;
   }
 
   evaluateSync(context: RenderContext): unknown {
-    return this.value;
+    return context.env.autoEscape
+      ? HTMLSafeString.from(this.value)
+      : this.value;
   }
 
   toString(): string {

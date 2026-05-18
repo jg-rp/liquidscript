@@ -2,7 +2,14 @@ import type { Filter } from "./filter";
 import { LegacyLexer } from "./legacy_lexer";
 import { LegacyParser } from "./legacy_parser";
 import type { Block, Tag } from "./markup";
-import { containsSync, Drop, equals, lessThanSync, toLiquidSync } from "./drop";
+import {
+  containsSync,
+  Drop,
+  equals,
+  lessThanSync,
+  toHTMLSafeStringSync,
+  toLiquidSync,
+} from "./drop";
 import * as tags from "./tags";
 import * as filters from "./filters";
 import { Template } from "./template";
@@ -12,6 +19,7 @@ import {
   isBoolean,
   isIterable,
   isNumber,
+  isNumeric,
   isObject,
   isPropertyKey,
   isString,
@@ -24,6 +32,7 @@ import type { TemplateLoader } from "./loader";
 import { MapLoader } from "./loaders";
 import { Nothing } from "./runtime";
 import { sizedOutputBufferFactory, type BufferFactory } from "./output";
+import { escape } from "./escape";
 
 export interface _Parser {
   parse(env: Environment, source: string, startIndex?: number): Block;
@@ -221,8 +230,19 @@ export class Environment {
     }
 
     if (isArray(left)) {
+      let i = left.indexOf(right);
+
+      if (i === -1 && right instanceof LiquidNumber) {
+        for (const [index, item] of Object.entries(left)) {
+          if (isNumeric(item) && right.eq(item)) {
+            i = Number(index);
+            break;
+          }
+        }
+      }
+
       // NOTE: In Shopify/liquid, falsy values always return false.
-      return left.indexOf(right) !== -1 && this.isTruthy(right, context);
+      return i !== -1 && this.isTruthy(right, context);
     }
 
     if (isObject(left) && isPropertyKey(right)) {
@@ -395,10 +415,17 @@ export class Environment {
   }
 
   serialize(obj: unknown, context: RenderContext, token: Token): string {
-    if (isArray(obj)) {
-      return obj.map((item) => this.toString(item, context, token)).join("");
+    if (this.autoEscape && obj instanceof Drop) {
+      const htmlSafe = obj[toHTMLSafeStringSync](context);
+      if (htmlSafe !== undefined) {
+        return htmlSafe;
+      }
     }
-    return this.toString(obj, context, token);
+
+    const s = isArray(obj)
+      ? obj.map((item) => this.toString(item, context, token)).join("")
+      : this.toString(obj, context, token);
+    return this.autoEscape ? escape(s) : s;
   }
 
   setupFilters(): void {

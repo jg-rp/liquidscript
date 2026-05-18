@@ -10,6 +10,9 @@ export type ContextHint = "data" | "numeric" | "string" | "boolean";
 export const toLiquid = Symbol.for("liquid.drop");
 export const toLiquidSync = Symbol.for("liquid.drop.sync");
 
+export const toHTMLSafeString = Symbol.for("liquid.drop.HTMLSafe");
+export const toHTMLSafeStringSync = Symbol.for("liquid.drop.HTMLSafe.sync");
+
 export const isInvocable = Symbol.for("liquid.drop.invocable");
 
 export const dispatch = Symbol.for("liquid.drop.dispatch");
@@ -99,6 +102,16 @@ export abstract class Drop {
       case "numeric":
         return 0;
     }
+  }
+
+  async [toHTMLSafeString](
+    context: RenderContext,
+  ): Promise<string | undefined> {
+    return this[toHTMLSafeStringSync](context);
+  }
+
+  [toHTMLSafeStringSync](context: RenderContext): string | undefined {
+    return undefined;
   }
 
   toString(): string {
