@@ -1,5 +1,6 @@
 import { RenderContext, type Namespace } from "./context";
 import type { Environment, TemplateMeta } from "./environment";
+import { LiquidError } from "./errors";
 import { renderBlock, renderBlockSync, type Block } from "./markup";
 import type { OutputBuffer } from "./output";
 import {
@@ -22,6 +23,8 @@ export class Template {
   readonly upToDate: (() => Promise<boolean>) | undefined;
 
   readonly upToDateSync: (() => boolean) | undefined;
+
+  #lines: string[] | undefined;
 
   constructor(
     readonly env: Environment,
@@ -74,6 +77,22 @@ export class Template {
     // Note that `renderBlockSync` handles interrupts, even if we're not
     // inside a tag that intuitively could produce an interrupt.
     renderBlockSync(this.nodes, context, buffer);
+  }
+
+  /**
+   * This template's source code split into lines.
+   */
+  get lines(): string[] {
+    if (this.#lines === undefined) {
+      const lines = this.source.split(/(?<=\n)/);
+      if (lines[lines.length - 1] === "") {
+        lines.pop();
+      }
+
+      this.#lines = lines;
+    }
+
+    return this.#lines;
   }
 
   /**

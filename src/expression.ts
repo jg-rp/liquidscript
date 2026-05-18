@@ -471,7 +471,7 @@ export class ContainsExpression implements Expression {
 }
 
 export class Variable implements Expression {
-  readonly span: Token;
+  span: Token;
 
   constructor(
     readonly token: Token,
@@ -480,11 +480,14 @@ export class Variable implements Expression {
   ) {
     this.span =
       segments.length === 0
-        ? token
-        : span(token, (segments[segments.length - 1] as PathSegment).span);
+        ? root.span
+        : span(root.span, (segments[segments.length - 1] as PathSegment).span);
   }
 
   children(context: StaticContext): Traversable[] {
+    if (this.root instanceof Variable) {
+      return [this.root, ...this.segments.filter((s) => s instanceof Variable)];
+    }
     return this.segments.filter((s) => s instanceof Variable);
   }
 
@@ -556,10 +559,18 @@ export class Variable implements Expression {
   toString(): string {
     return this.path(this.segments);
   }
+
+  /**
+   * Return this expression with a new span covering `endToken`.
+   */
+  with(endToken: Token): Variable {
+    this.span = span(this.root.span, endToken);
+    return this;
+  }
 }
 
 export class IndexSelector implements Expression {
-  readonly span: Token;
+  span: Token;
 
   constructor(
     readonly token: Token,
@@ -583,16 +594,25 @@ export class IndexSelector implements Expression {
   toString(): string {
     return `${this.value}`;
   }
+
+  /**
+   * Return this expression with a new span covering `endToken`.
+   */
+  with(endToken: Token): IndexSelector {
+    this.span = span(this.token, endToken);
+    return this;
+  }
 }
 
 export class StringLiteral implements Expression {
-  readonly span: Token;
+  span: Token;
 
   constructor(
     readonly token: Token,
     readonly value: string,
+    endToken: Token,
   ) {
-    this.span = token;
+    this.span = span(token, endToken);
   }
 
   children(context: StaticContext): Traversable[] {
@@ -611,6 +631,14 @@ export class StringLiteral implements Expression {
     return this.token.kind === T.DOUBLE_QUOTED
       ? `"${this.value}"`
       : `'${this.value}'`;
+  }
+
+  /**
+   * Return this expression with a new span covering `endToken`.
+   */
+  with(endToken: Token): StringLiteral {
+    this.span = span(this.token, endToken);
+    return this;
   }
 }
 
@@ -832,7 +860,7 @@ export class Filter implements Traversable {
         ? token
         : span(
             token,
-            (args[args.length - 1] as Expression | KeywordArgument).token,
+            (args[args.length - 1] as Expression | KeywordArgument).span,
           );
   }
 
@@ -850,7 +878,7 @@ export class Filter implements Traversable {
 }
 
 export class Name {
-  readonly span: Token;
+  span: Token;
 
   constructor(
     readonly token: Token,
@@ -870,14 +898,26 @@ export class Name {
   toString(): string {
     return this.value;
   }
+
+  /**
+   * Return this expression with a new span covering `endToken`.
+   */
+  with(endToken: Token): Name {
+    this.span = span(this.token, endToken);
+    return this;
+  }
 }
 
 export class KeywordArgument implements Traversable {
+  readonly span: Token;
+
   constructor(
     readonly token: Token,
     readonly name: Name,
     readonly expr: Expression,
-  ) {}
+  ) {
+    this.span = span(token, expr.span);
+  }
 
   children(context: StaticContext): Traversable[] {
     return [this.expr];

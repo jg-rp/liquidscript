@@ -26,14 +26,7 @@ export class Location {
   /**
    * Return the line and column number of the given index.
    */
-  lineCol(source: string, index: number): [number, number] {
-    const lines = source.split(/(?<=\n)/);
-    if (lines[lines.length - 1] === "") {
-      lines.pop();
-    }
-
-    if (!lines) throw new LiquidError("index is out of bounds");
-
+  lineCol(lines: string[], index: number): [number, number] {
     let cumulativeLength = 0;
     let targetLineIndex = -1;
 
@@ -57,10 +50,10 @@ export class Location {
    * Return line and column number for the start and end index spanning
    * this location.
    */
-  span(source: string): [[number, number], [number, number]] {
+  span(lines: string[]): [[number, number], [number, number]] {
     return [
-      this.lineCol(source, this.token.start),
-      this.lineCol(source, this.token.end),
+      this.lineCol(lines, this.token.start),
+      this.lineCol(lines, this.token.end),
     ];
   }
 
@@ -186,17 +179,15 @@ class VariableMap {
     return this.data.get(k);
   }
 
-  toObject(source: string, templateName: string): Vars {
+  toObject(template: Template): Vars {
     const obj: Vars = {};
 
     for (const [k, v] of this.data.entries()) {
       const a: Var[] = [];
 
       for (const sv of v) {
-        // XXX: repeatedly splitting `source` into lines is wasteful.
-        // TODO: we should split `source` once and batch line/col calc
         const [[startLine, startColumn], [endLine, endColumn]] =
-          sv.location.span(source);
+          sv.location.span(template.lines);
 
         a.push({
           segments: sv.segments,
@@ -207,8 +198,8 @@ class VariableMap {
           startColumn,
           endLine,
           endColumn,
-          value: sv.location.value(source),
-          templateName,
+          value: sv.location.value(template.source),
+          templateName: template.name,
         });
       }
 
@@ -384,12 +375,19 @@ export async function analyze(
     if (!isString(node)) visit(node, template.name, rootScope);
   }
 
+  const lines = template.source.split(/(?<=\n)/);
+  if (lines[lines.length - 1] === "") {
+    lines.pop();
+  }
+
+  if (!lines) throw new LiquidError("index is out of bounds");
+
   return new TemplateAnalysis(
-    variables.toObject(template.source, template.name),
-    locals.toObject(template.source, template.name),
-    globals.toObject(template.source, template.name),
-    toLocations(filters, template.source, template.name),
-    toLocations(tags, template.source, template.name),
+    variables.toObject(template),
+    locals.toObject(template),
+    globals.toObject(template),
+    toLocations(filters, template),
+    toLocations(tags, template),
   );
 }
 
@@ -525,12 +523,19 @@ export function analyzeSync(
     if (!isString(node)) visit(node, template.name, rootScope);
   }
 
+  const lines = template.source.split(/(?<=\n)/);
+  if (lines[lines.length - 1] === "") {
+    lines.pop();
+  }
+
+  if (!lines) throw new LiquidError("index is out of bounds");
+
   return new TemplateAnalysis(
-    variables.toObject(template.source, template.name),
-    locals.toObject(template.source, template.name),
-    globals.toObject(template.source, template.name),
-    toLocations(filters, template.source, template.name),
-    toLocations(tags, template.source, template.name),
+    variables.toObject(template),
+    locals.toObject(template),
+    globals.toObject(template),
+    toLocations(filters, template),
+    toLocations(tags, template),
   );
 }
 
@@ -556,7 +561,10 @@ function analyzeVariables(
   variables: VariableMap,
   staticContext: RenderContext,
 ): void {
-  if (expression instanceof Variable) {
+  if (
+    expression instanceof Variable &&
+    !(expression.root instanceof Variable)
+  ) {
     const v = new StaticVariable(
       segments(expression, templateName),
       new Location(templateName, expression.span),
@@ -606,8 +614,7 @@ function segments(variable: Variable, templateName: string): Segments {
 
 function toLocations(
   map: DefaultMap<string, Location[]>,
-  source: string,
-  templateName: string,
+  template: Template,
 ): Locations {
   const obj: Locations = {};
 
@@ -615,9 +622,9 @@ function toLocations(
     const a: Loc[] = [];
 
     for (const l of v) {
-      // XXX: repeatedly splitting `source` into lines is wasteful.
-      // TODO: we should split `source` once and batch line/col calc
-      const [[startLine, startColumn], [endLine, endColumn]] = l.span(source);
+      const [[startLine, startColumn], [endLine, endColumn]] = l.span(
+        template.lines,
+      );
 
       a.push({
         startIndex: l.token.start,
@@ -626,8 +633,8 @@ function toLocations(
         startColumn,
         endLine,
         endColumn,
-        value: l.value(source),
-        templateName,
+        value: l.value(template.source),
+        templateName: template.name,
       });
     }
 

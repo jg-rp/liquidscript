@@ -195,16 +195,18 @@ export class LegacyParser extends Parser {
         segment = new expr.IndexSelector(
           token,
           Number(getTokenValue(token, this.source)),
-        );
+        ).with(this.eat(T.RBRACKET));
         break;
       case T.IDENT:
+        // TODO: or reserved word
         this.pos -= 1;
         segment = this.parsePath();
+        this.eat(T.RBRACKET);
         break;
       case T.DOUBLE_QUOTE:
       case T.SINGLE_QUOTE:
         this.pos -= 1;
-        segment = this.parseStringLiteral();
+        segment = this.parseStringLiteral().with(this.eat(T.RBRACKET));
         break;
       case T.RBRACKET:
         throw new TemplateSyntaxError(
@@ -220,7 +222,6 @@ export class LegacyParser extends Parser {
         );
     }
 
-    this.eat(T.RBRACKET);
     return segment;
   }
 
@@ -516,11 +517,10 @@ export class LegacyParser extends Parser {
         this.eat(T.LBRACKET);
         if (this.kind() == T.IDENT) {
           root = this.parsePath();
+          this.eat(T.RBRACKET);
         } else {
-          root = this.parseStringLiteral();
+          root = this.parseStringLiteral().with(this.eat(T.RBRACKET));
         }
-
-        this.eat(T.RBRACKET);
     }
 
     return new expr.Variable(token, root, this.parsePathSegments());
@@ -584,16 +584,15 @@ export class LegacyParser extends Parser {
 
     if (this.kind() === token.kind) {
       // Empty string
-      this.eat(token.kind);
-      return new expr.StringLiteral(token, "");
+      return new expr.StringLiteral(token, "", this.eat(token.kind));
     }
 
     const result = new expr.StringLiteral(
       token,
       getTokenValue(this.eatOneOf(STRING_LITERAL_KINDS), this.source),
+      this.eat(token.kind),
     );
 
-    this.eat(token.kind);
     return result;
   }
 
