@@ -112,7 +112,11 @@ export class StaticVariable {
   }
 
   root(): string {
-    return this.segments[0]?.toString() ?? "";
+    const segment = this.segments[0] ?? "";
+    if (isArray(segment)) {
+      return this.toStringInner(segment);
+    }
+    return segment.toString();
   }
 
   toString(): string {
@@ -262,7 +266,8 @@ export async function analyze(
     }
 
     // Update tags
-    if (!(node instanceof OutputStatement)) {
+    // Markup with empty `node.tag` is silenced.
+    if (node.tag.length > 0) {
       tags.get(node.tag).push(new Location(templateName, node.token));
     }
 
@@ -426,7 +431,8 @@ export function analyzeSync(
     }
 
     // Update tags
-    if (!(node instanceof OutputStatement)) {
+    // Markup with empty `node.tag` is silenced.
+    if (node.tag.length > 0) {
       tags.get(node.tag).push(new Location(templateName, node.token));
     }
 
@@ -561,10 +567,7 @@ function analyzeVariables(
   variables: VariableMap,
   staticContext: RenderContext,
 ): void {
-  if (
-    expression instanceof Variable &&
-    !(expression.root instanceof Variable)
-  ) {
+  if (expression instanceof Variable) {
     const v = new StaticVariable(
       segments(expression, templateName),
       new Location(templateName, expression.span),

@@ -21,7 +21,7 @@ const IF_BLOCKS = new Set(["else", "elsif"]);
 export class IfTag implements Markup {
   readonly blank: boolean;
 
-  readonly tag = "if";
+  readonly tag = "";
 
   constructor(
     readonly token: Token,
@@ -133,4 +133,6 @@ export class IfBlock implements Markup {
   }
 }
 
-export class ElsIfBlock extends IfBlock {}
+export class ElsIfBlock extends IfBlock {
+  override readonly tag: string = "elsif";
+}

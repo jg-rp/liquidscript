@@ -4,7 +4,15 @@ import type { _Undefined } from "./src/environment";
 import { ObjectLoader } from "./src/loaders";
 import { getTokenValue, REVERSE_T } from "./src/token";
 
-const source = "{{ [a.b] }}";
+const source = [
+  "{% if x %}",
+  "  {{ a }}",
+  "{% elsif y %}",
+  "  {{ b }}",
+  "{% else %}",
+  "  {{ c }}",
+  "{% endif %}",
+].join("\n");
 
 const data = {
   you: "World",

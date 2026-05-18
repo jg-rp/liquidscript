@@ -7,7 +7,7 @@ import type { Token } from "../token";
 export class OutputStatement implements Markup {
   readonly blank = false;
 
-  readonly tag = "output";
+  readonly tag = "";
 
   constructor(
     readonly token: Token,

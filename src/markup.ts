@@ -25,6 +25,11 @@ export interface Markup {
   templateScope?(): Name[];
   partialScope?(): Partial;
   blank: boolean;
+
+  /**
+   * Name of the tag used for static analysis. Set tag to an empty string
+   * if it's not a tag or to silence it.
+   */
   tag: string;
   token: Token;
 }

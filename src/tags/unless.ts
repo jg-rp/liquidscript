@@ -22,7 +22,7 @@ const IF_BLOCKS = new Set(["else", "elsif"]);
 export class UnlessTag implements Markup {
   readonly blank: boolean;
 
-  readonly tag = "unless";
+  readonly tag = "";
 
   constructor(
     readonly token: Token,
