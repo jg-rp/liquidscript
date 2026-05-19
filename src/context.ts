@@ -17,6 +17,7 @@ import * as drop from "./drop";
 import type { Expression } from "./expression";
 import { LiquidNumber } from "./number";
 import { ContextDepthError, ResourceLimitError } from "./errors";
+import { ChainPop, ChainPush, ReadOnlyChainMap } from "./chain_map";
 
 export type Namespace = Record<string, unknown>;
 
@@ -25,7 +26,7 @@ export type RenderContextOptions = {
    * Global template variables passed down from the Environment, Template,
    * Loader and arguments to `.render()` or `.renderSync()`.
    */
-  globals?: Namespace | Namespace[];
+  globals?: Namespace;
 
   /**
    * A set of tag names that are disallowed in this render context. For
@@ -80,7 +81,7 @@ export class RenderContext {
 
   readonly forloops: ForLoop[] = [];
 
-  private globals: Namespace | Namespace[];
+  private globals: Namespace;
 
   readonly interrupts: symbol[] = [];
 
@@ -96,7 +97,7 @@ export class RenderContext {
 
   renderScoreCumulative: number;
 
-  private scopes: Namespace[];
+  private scopes: ReadOnlyChainMap;
 
   template: Template;
 
@@ -109,21 +110,12 @@ export class RenderContext {
     // Scopes are searched from right to left. New scopes are push on the right.
     this.globals = options?.globals ?? {};
 
-    if (isArray(this.globals)) {
-      this.scopes = this.scopes = [
-        this.counters,
-        BuiltIn,
-        ...this.globals,
-        this.locals,
-      ];
-    } else {
-      this.scopes = this.scopes = [
-        this.counters,
-        BuiltIn,
-        this.globals,
-        this.locals,
-      ];
-    }
+    this.scopes = new ReadOnlyChainMap(
+      this.locals,
+      this.globals,
+      BuiltIn,
+      this.counters,
+    );
 
     this.disabledTags = options?.disabledTags;
     this.contextDepth = options?.contextDepth ?? 0;
@@ -157,19 +149,16 @@ export class RenderContext {
    * context is no longer needed.
    */
   copy(
-    namespace: { [index: string]: unknown },
+    namespace: Record<string, unknown>,
     options: ContextCopyOptions = {},
   ): RenderContext {
     this.throwForContextDepth();
-    let globals: Namespace[];
+    let globals: Namespace;
 
-    // TODO: chain object instead of merge?
     if (options.blockScope) {
-      globals = [...this.scopes, namespace];
-    } else if (isArray(this.globals)) {
-      globals = [...this.globals, namespace];
+      globals = new ReadOnlyChainMap(namespace, this.scopes);
     } else {
-      globals = [this.globals, namespace];
+      globals = new ReadOnlyChainMap(namespace, this.globals);
     }
 
     const ctx = new RenderContext(options.template ?? this.template, {
@@ -200,7 +189,7 @@ export class RenderContext {
   }
 
   async extend(
-    namespace: { [index: string]: unknown },
+    namespace: Record<string, unknown>,
     callback: () => Promise<void>,
     template?: Template,
   ) {
@@ -213,7 +202,7 @@ export class RenderContext {
       this.template = template;
     }
 
-    this.scopes.push(namespace);
+    this.scopes[ChainPush](namespace);
     this.contextDepth += 1;
     this.assignScore = 0;
     this.renderScore = 0;
@@ -222,7 +211,7 @@ export class RenderContext {
       return await callback();
     } finally {
       if (template) this.template = originalTemplate;
-      this.scopes.pop();
+      this.scopes[ChainPop]();
       this.contextDepth -= 1;
       this.assignScore = originalAssignScore;
       this.renderScore = originalRenderScore;
@@ -230,7 +219,7 @@ export class RenderContext {
   }
 
   extendSync(
-    namespace: { [index: string]: unknown },
+    namespace: Record<string, unknown>,
     callback: () => void,
     template?: Template,
   ) {
@@ -243,7 +232,7 @@ export class RenderContext {
       this.template = template;
     }
 
-    this.scopes.push(namespace);
+    this.scopes[ChainPush](namespace);
     this.contextDepth += 1;
     this.assignScore = 0;
     this.renderScore = 0;
@@ -252,7 +241,7 @@ export class RenderContext {
       return callback();
     } finally {
       if (template) this.template = originalTemplate;
-      this.scopes.pop();
+      this.scopes[ChainPop]();
       this.contextDepth -= 1;
       this.assignScore = originalAssignScore;
       this.renderScore = originalRenderScore;
@@ -283,11 +272,7 @@ export class RenderContext {
    * `name` is not defined.
    */
   resolve(name: string): unknown {
-    for (let i = this.scopes.length - 1; i >= 0; i--) {
-      const scope = this.scopes[i] as { [index: string]: unknown };
-      if (Object.prototype.hasOwnProperty.call(scope, name)) return scope[name];
-    }
-    return Nothing;
+    return this.scopes[name];
   }
 
   /**

@@ -5,8 +5,6 @@
  */
 export const Nothing = Symbol.for("liquid.context.nothing");
 
-export function isNothing(obj: unknown): boolean {
-  // TODO: Nothing type
-  // TODO: type guard
+export function isNothing(obj: unknown): obj is typeof Nothing {
   return obj === Nothing;
 }

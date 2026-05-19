@@ -4,22 +4,12 @@ import type { _Undefined } from "./src/environment";
 import { ObjectLoader } from "./src/loaders";
 import { getTokenValue, REVERSE_T } from "./src/token";
 
-const source = [
-  "{% if x %}",
-  "  {{ a }}",
-  "{% elsif y %}",
-  "  {{ b }}",
-  "{% else %}",
-  "  {{ c }}",
-  "{% endif %}",
-].join("\n");
+const source = "{% render 'product-args', foo: 'hello' %}{{ foo }}";
 
-const data = {
-  you: "World",
-};
+const data = {};
 
 const loader = new ObjectLoader({
-  "product-title": "{{ product-title.title }}",
+  "product-args": "{{ foo }}{% assign foo='goodbye' %} {{ foo }}",
 });
 
 const env = new Environment({ loader, strictFilters: true });
@@ -38,13 +28,13 @@ const env = new Environment({ loader, strictFilters: true });
 // env.render(source, data).then(console.log);
 // console.log(env.renderSync(source, data));
 
-// console.log(JSON.stringify(env.renderSync(source, data)));
+console.log(JSON.stringify(env.renderSync(source, data)));
 
-const template = env.parse(source);
+// const template = env.parse(source);
 
-const a = template.analyzeSync();
+// const a = template.analyzeSync();
 
-console.dir(a, { depth: null });
+// console.dir(a, { depth: null });
 
 // console.log(template.variablesSync());
 // console.dir(template.variablePathsSync(), { depth: null });

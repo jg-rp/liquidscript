@@ -64,12 +64,14 @@ describe("read only chain map", () => {
   });
 
   test("nested chains", () => {
-    const chain = new ReadOnlyChainMap({
-      a: 1,
-      b: new ReadOnlyChainMap({ c: 3, d: 4 }),
-    });
+    const chain = new ReadOnlyChainMap(
+      { a: 1 },
+      new ReadOnlyChainMap({ c: 3, d: 4 }),
+      new ReadOnlyChainMap({ x: 99 }),
+    );
     expect(chain.a).toBe(1);
-    expect(chain.b.c).toBe(3);
+    expect(chain.d).toBe(4);
+    expect(chain.x).toBe(99);
   });
 
   test("size of chain", () => {

@@ -1,3 +1,4 @@
+import { ReadOnlyChainMap } from "./chain_map";
 import { RenderContext, type Namespace } from "./context";
 import type { Environment, TemplateMeta } from "./environment";
 import { LiquidError } from "./errors";
@@ -42,8 +43,9 @@ export class Template {
   }
 
   protected makeGlobals(namespace?: Namespace): Namespace {
-    // TODO: chain object
-    return { ...this.globals, ...this.overlay, ...(namespace || {}) };
+    return namespace
+      ? new ReadOnlyChainMap(namespace, this.overlay, this.globals)
+      : new ReadOnlyChainMap(this.overlay, this.globals);
   }
 
   async render(data?: { [index: string]: unknown }): Promise<string> {

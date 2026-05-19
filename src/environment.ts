@@ -33,6 +33,7 @@ import { MapLoader } from "./loaders";
 import { Nothing } from "./runtime";
 import { sizedOutputBufferFactory, type BufferFactory } from "./output";
 import { escape } from "./escape";
+import { ReadOnlyChainMap } from "./chain_map";
 
 export interface _Parser {
   parse(env: Environment, source: string, startIndex?: number): Block;
@@ -389,8 +390,7 @@ export class Environment {
   makeGlobals(namespace?: Namespace): Namespace | undefined {
     if (namespace === undefined) return this.globals;
     if (this.globals === undefined) return namespace;
-    // TODO: chain object instead of new object
-    return { ...this.globals, ...namespace };
+    return new ReadOnlyChainMap(namespace, this.globals);
   }
 
   parse(source: string, globals?: Namespace, meta?: TemplateMeta): Template {

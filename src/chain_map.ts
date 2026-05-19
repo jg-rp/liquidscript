@@ -33,7 +33,10 @@ export class ReadOnlyChainMap {
         if (typeof prop === "string") {
           for (let i = target._maps.length - 1; i >= 0; i--) {
             const map = target._maps[i] as Record<string, unknown>;
-            if (Object.prototype.hasOwnProperty.call(map, prop)) {
+            if (
+              Object.prototype.hasOwnProperty.call(map, prop) ||
+              (map instanceof ReadOnlyChainMap && prop in map)
+            ) {
               return map[prop];
             }
           }
@@ -46,7 +49,11 @@ export class ReadOnlyChainMap {
       has(target, prop) {
         if (typeof prop === "string") {
           for (let i = target._maps.length - 1; i >= 0; i--) {
-            if (Object.prototype.hasOwnProperty.call(target._maps[i], prop)) {
+            const map = target._maps[i] as Record<string, unknown>;
+            if (
+              Object.prototype.hasOwnProperty.call(map, prop) ||
+              (map instanceof ReadOnlyChainMap && prop in map)
+            ) {
               return true;
             }
           }
@@ -68,17 +75,15 @@ export class ReadOnlyChainMap {
 
   [ChainHas](key: string): boolean {
     for (let i = this._maps.length - 1; i >= 0; i--) {
-      if (Object.prototype.hasOwnProperty.call(this._maps[i], key)) {
+      const map = this._maps[i] as Record<string, unknown>;
+      if (
+        Object.prototype.hasOwnProperty.call(map, key) ||
+        (map instanceof ReadOnlyChainMap && key in map)
+      ) {
         return true;
       }
     }
     return false;
-  }
-
-  [ChainFlatten](): Record<string, unknown> {
-    return this._maps.reduce<Record<string, unknown>>((acc, current) => {
-      return { ...acc, ...current };
-    }, {});
   }
 
   get [ChainKeys](): string[] {
