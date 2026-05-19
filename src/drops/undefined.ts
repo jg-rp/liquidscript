@@ -135,4 +135,12 @@ export class FalsyStrictUndefined extends StrictUndefined {
     }
     this.error();
   }
+
+  override [containsSync](obj: unknown, context: RenderContext): boolean {
+    return false;
+  }
+
+  override [equals](obj: unknown, context: RenderContext): boolean {
+    return context.env.isNil(obj);
+  }
 }

@@ -1,5 +1,6 @@
 import { Drop, equals, toLiquidSync } from "../drop";
 import { EMPTY } from "../drops";
+import { FalsyStrictUndefined, Undefined } from "../drops/undefined";
 import type { FilterContext } from "../filter";
 
 export function default_(
@@ -9,10 +10,14 @@ export function default_(
 ): unknown {
   this.assertArgs(arguments.length, 1, 2);
 
+  if (left instanceof FalsyStrictUndefined) {
+    return right;
+  }
+
   const left_ =
     left instanceof Drop ? left[toLiquidSync]("boolean", this.context) : left;
 
-  if (this.options["allow_false"] && left_ === false) {
+  if (this.options["allow_false"] && left === false) {
     return left;
   }
 

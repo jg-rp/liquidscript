@@ -1,10 +1,10 @@
 import { Environment, render, renderSync } from "./src";
-import { StrictUndefined } from "./src/drops/undefined";
+import { FalsyStrictUndefined, StrictUndefined } from "./src/drops/undefined";
 import type { _Undefined } from "./src/environment";
 import { ObjectLoader } from "./src/loaders";
 import { getTokenValue, REVERSE_T } from "./src/token";
 
-const source = "{% render 'product-args', foo: 'hello' %}{{ foo }}";
+const source = "{{ nosuchthing | default: 'hello', allow_false: true }}";
 
 const data = {};
 
@@ -12,7 +12,11 @@ const loader = new ObjectLoader({
   "product-args": "{{ foo }}{% assign foo='goodbye' %} {{ foo }}",
 });
 
-const env = new Environment({ loader, strictFilters: true });
+const env = new Environment({
+  loader,
+  strictFilters: true,
+  undefinedType: FalsyStrictUndefined,
+});
 
 // const tokens = env.lexer.tokenize(env, source);
 

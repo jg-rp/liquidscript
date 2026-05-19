@@ -150,6 +150,12 @@ export type EnvironmentOptions = {
    * @defaultValue `true`
    */
   strictFilters?: boolean;
+
+  /**
+   * The `Undefined` type used when a variable or property can not be resolved.
+   * @defaultValue `Undefined`
+   */
+  undefinedType?: _Undefined;
 };
 
 /**
@@ -188,7 +194,7 @@ export class Environment {
 
   tags: { [key: string]: Tag };
 
-  undefinedFactory: _Undefined = Undefined;
+  undefinedType: _Undefined;
 
   constructor(options?: EnvironmentOptions) {
     this.tags = Object.create(null);
@@ -209,6 +215,7 @@ export class Environment {
       ? sizedOutputBufferFactory
       : Array;
     this.strictFilters = options?.strictFilters ?? true;
+    this.undefinedType = options?.undefinedType ?? Undefined;
   }
 
   contains(

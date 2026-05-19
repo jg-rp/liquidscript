@@ -508,7 +508,7 @@ export class Variable implements Expression {
     );
 
     if (obj === Nothing) {
-      return new context.env.undefinedFactory(
+      return new context.env.undefinedType(
         this.path(this.segments.slice(0, index + 1)),
         this.span,
         context.template.source,
@@ -532,7 +532,7 @@ export class Variable implements Expression {
     );
 
     if (obj === Nothing) {
-      return new context.env.undefinedFactory(
+      return new context.env.undefinedType(
         this.path(this.segments.slice(0, index + 1)),
         this.span,
         context.template.source,
