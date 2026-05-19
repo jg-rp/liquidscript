@@ -79,9 +79,10 @@ export class LegacyParser extends Parser {
   constructor(
     override readonly env: Environment,
     override readonly source: string,
+    override readonly templateName: string,
     override readonly tokens: Token[],
   ) {
-    super(env, source, tokens);
+    super(env, source, templateName, tokens);
 
     this.primaryMap = new Map([
       [T.SINGLE_QUOTE, this.parseStringLiteral.bind(this)],
@@ -180,6 +181,7 @@ export class LegacyParser extends Parser {
             `unexpected ${REVERSE_T[token.kind]}`,
             token,
             this.source,
+            this.templateName,
           );
       }
     }
@@ -213,12 +215,14 @@ export class LegacyParser extends Parser {
           "empty bracketed segment",
           token,
           this.source,
+          this.templateName,
         );
       default:
         throw new TemplateSyntaxError(
           "expected an integer, identifier or string",
           token,
           this.source,
+          this.templateName,
         );
     }
 
@@ -247,6 +251,7 @@ export class LegacyParser extends Parser {
         `unexpected ${REVERSE_T[this.kind()]}`,
         this.current(),
         this.source,
+        this.templateName,
       );
     }
 
@@ -378,6 +383,7 @@ export class LegacyParser extends Parser {
         "expected an identifier, found a path",
         token,
         this.source,
+        this.templateName,
       );
     }
     return new expr.Name(token, getTokenValue(token, this.source));
@@ -452,6 +458,7 @@ export class LegacyParser extends Parser {
           `unexpected ${REVERSE_T[kind]} (${JSON.stringify(getTokenValue(token, this.source))})`,
           token,
           this.source,
+          this.templateName,
         );
       }
     }
@@ -474,6 +481,7 @@ export class LegacyParser extends Parser {
           "expected a string or identifier",
           this.current(),
           this.source,
+          this.templateName,
         );
     }
   }
@@ -606,9 +614,10 @@ export class LegacyParser extends Parser {
     }
 
     throw new TemplateSyntaxError(
-      `unexpected tag ${getTokenValue(token, this.source)}`,
+      `unexpected tag ${JSON.stringify(getTokenValue(token, this.source))}`,
       token,
       this.source,
+      this.templateName,
     );
   }
 

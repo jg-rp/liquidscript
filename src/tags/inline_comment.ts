@@ -28,6 +28,7 @@ export class InlineCommentTag implements Markup {
         "every line of an inline comment must start with a '#' character",
         token,
         parser.source,
+        parser.templateName,
       );
     }
 

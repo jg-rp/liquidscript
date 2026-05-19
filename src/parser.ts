@@ -38,20 +38,28 @@ export abstract class Parser {
   constructor(
     readonly env: Environment,
     readonly source: string,
+    readonly templateName: string,
     readonly tokens: Token[],
   ) {
     this.eoi = { kind: T.EOI, start: source.length, end: source.length };
   }
 
   static parse<P extends Parser>(
-    this: new (env: Environment, source: string, tokens: Token[]) => P,
+    this: new (
+      env: Environment,
+      source: string,
+      templateName: string,
+      tokens: Token[],
+    ) => P,
     env: Environment,
     source: string,
+    templateName: string,
     startIndex: number = 0,
   ): Block {
     return new this(
       env,
       source,
+      templateName,
       env.lexer.tokenize(env, source, startIndex),
     ).parseBlock();
   }
@@ -101,6 +109,7 @@ export abstract class Parser {
           `unexpected ${REVERSE_T[token.kind]} (${JSON.stringify(getTokenValue(token, this.source))})`,
         token,
         this.source,
+        this.templateName,
       );
     }
     this.pos += 1;
@@ -117,6 +126,7 @@ export abstract class Parser {
         `unexpected tag ${REVERSE_T[token.kind]}`,
         token,
         this.source,
+        this.templateName,
       );
     }
 
@@ -136,6 +146,7 @@ export abstract class Parser {
         `unexpected ${REVERSE_T[token.kind]}`,
         token,
         this.source,
+        this.templateName,
       );
     }
     return token;
@@ -151,6 +162,7 @@ export abstract class Parser {
         `unexpected tag ${REVERSE_T[token.kind]}`,
         token,
         this.source,
+        this.templateName,
       );
     }
 
@@ -170,6 +182,7 @@ export abstract class Parser {
         "missing expression",
         this.current(),
         this.source,
+        this.templateName,
       );
     }
   }
@@ -285,7 +298,12 @@ export abstract class Parser {
     if (token.kind === T.WC) token = this.peek();
 
     if (token.kind !== T.TAG_NAME) {
-      throw new TemplateSyntaxError("missing tag name", token, this.source);
+      throw new TemplateSyntaxError(
+        "missing tag name",
+        token,
+        this.source,
+        this.templateName,
+      );
     }
 
     return getTokenValue(token, this.source);

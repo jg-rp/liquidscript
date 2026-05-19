@@ -20,6 +20,7 @@ export class Undefined extends Drop {
     readonly path: string,
     protected token: Token,
     protected source: string,
+    protected templateName: string,
   ) {
     super();
   }
@@ -78,6 +79,7 @@ export class StrictUndefined extends Undefined {
       `'${this.path}' is undefined`,
       this.token,
       this.source,
+      this.templateName,
     );
   }
 

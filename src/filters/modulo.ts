@@ -15,6 +15,7 @@ export function modulo(
       "can't divide by zero",
       this.span,
       this.context.template.source,
+      this.context.template.name,
     );
   }
 

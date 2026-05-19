@@ -34,6 +34,7 @@ export class FilterContext {
         `Expected ${min}-${max} arguments, got ${len}`,
         this.span,
         this.context.template.source,
+        this.context.template.name,
       );
     }
   }
@@ -44,6 +45,7 @@ export class FilterContext {
         `can't read property ${obj}[${key}]`,
         this.span,
         this.context.template.source,
+        this.context.template.name,
       );
     }
 
@@ -63,6 +65,7 @@ export class FilterContext {
         `can't read property ${obj}[${key}]`,
         this.span,
         this.context.template.source,
+        this.context.template.name,
       );
     }
 

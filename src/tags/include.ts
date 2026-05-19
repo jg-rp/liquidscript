@@ -69,6 +69,7 @@ export class IncludeTag implements Markup {
   async render(context: RenderContext, buffer: OutputBuffer): Promise<void> {
     const templateName = `${await this.name.evaluate(context)}`;
 
+    // TODO: promote TemplateNotFoundError to NoSuchTemplateError
     const template = await context.env.getTemplate(
       templateName,
       undefined,
@@ -114,6 +115,7 @@ export class IncludeTag implements Markup {
   renderSync(context: RenderContext, buffer: OutputBuffer): void {
     const templateName = `${this.name.evaluateSync(context)}`;
 
+    // TODO: promote TemplateNotFoundError to NoSuchTemplateError
     const template = context.env.getTemplateSync(
       templateName,
       undefined,

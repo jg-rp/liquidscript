@@ -75,6 +75,7 @@ export class TableRowTag implements Markup {
           `unknown argument '${arg.name.value}'`,
           arg.name.token,
           parser.source,
+          parser.templateName,
         );
       }
     }

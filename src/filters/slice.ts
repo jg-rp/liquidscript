@@ -36,6 +36,7 @@ function integerOrThrow(this: FilterContext, obj: unknown): number {
       "invalid integer",
       this.span,
       this.context.template.source,
+      this.context.template.name,
     );
   }
 
@@ -48,5 +49,6 @@ function integerOrThrow(this: FilterContext, obj: unknown): number {
     "invalid integer",
     this.span,
     this.context.template.source,
+    this.context.template.name,
   );
 }

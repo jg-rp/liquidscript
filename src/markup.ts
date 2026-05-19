@@ -79,6 +79,7 @@ export async function renderBlock(
           `'${node.tag}' is not allowed in this context`,
           node.token,
           context.template.source,
+          context.template.name,
         );
       }
       await node.render(context, buffer);
@@ -125,6 +126,7 @@ export function renderBlockSync(
           `'${node.tag}' is not allowed in this context`,
           node.token,
           context.template.source,
+          context.template.name,
         );
       }
       node.renderSync(context, buffer);

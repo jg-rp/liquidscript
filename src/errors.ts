@@ -1,137 +1,143 @@
+import type { RenderContext } from "./context";
 import type { Token } from "./token";
 
+export interface Diagnostic {
+  span: Token;
+  source: string;
+  templateName: string;
+  context?: RenderContext;
+  code?: string; // Unused
+  hint?: string; // Unused
+}
+
+export function formatDetailedMessage(err: DiagnosticError): string {
+  const d = err.diagnostic;
+  const lines = d.source.split(/\r?\n/);
+  const [line, column] = lineCol(d.span.start, lines);
+  const lineText = lines[line - 1] ?? "";
+  const pointer =
+    " ".repeat(column - 1) + "^".repeat(Math.max(d.span.end - d.span.start, 1));
+
+  const location = d.templateName.length
+    ? `${d.templateName}:${line}:${column}`
+    : `${line}:${column}`;
+
+  let out = "";
+
+  if (d.code) {
+    out += `[${d.code}] `;
+  }
+
+  out += `${err.label}: ${err.message}\n`;
+  out += ` --> ${location}\n`;
+  out += `  |\n`;
+  out += `${String(line).padStart(2)} | ${lineText}\n`;
+  out += `  | ${pointer}\n`;
+
+  if (d.hint) {
+    out += `  |\n`;
+    out += `  = hint: ${d.hint}\n`;
+  }
+
+  return out;
+}
+
+export function lineCol(index: number, lines: string[]): [number, number] {
+  let cumulativeLength = 0;
+  let targetLineIndex = -1;
+
+  for (const [i, line] of lines.entries()) {
+    cumulativeLength += line.length;
+    if (index < cumulativeLength) {
+      targetLineIndex = i;
+      break;
+    }
+  }
+
+  if (targetLineIndex === -1) throw new LiquidError("index is out of bounds");
+
+  const lineNumber = targetLineIndex + 1;
+  const line = lines[targetLineIndex] || "";
+  const columnNumber = index - (cumulativeLength - line.length);
+  return [lineNumber, columnNumber];
+}
+
 export class LiquidError extends Error {
-  constructor(override readonly message: string) {
+  constructor(override message: string) {
     super(message);
+    this.name = new.target.name;
     Object.setPrototypeOf(this, new.target.prototype);
-    this.name = "LiquidError";
   }
 }
 
-export class TemplateError extends LiquidError {
+export class DiagnosticError extends LiquidError {
   constructor(
-    override readonly message: string,
-    readonly token: Token,
+    message: string,
+    readonly diagnostic: Diagnostic,
+  ) {
+    super(message);
+    this.name = new.target.name;
+    Object.setPrototypeOf(this, new.target.prototype);
+    Error.captureStackTrace?.(this, new.target);
+    this.stack = undefined;
+  }
+
+  render(): string {
+    return formatDetailedMessage(this);
+  }
+
+  get label(): string {
+    return "error";
+  }
+}
+
+export class DetailedLiquidError extends DiagnosticError {
+  constructor(
+    message: string,
+    readonly span: Token,
     readonly source: string,
+    readonly templateName: string,
   ) {
-    super(message);
-    Object.setPrototypeOf(this, new.target.prototype);
-    this.name = "TemplateError";
-    // TODO: this.message = withErrorContext(message, token);
+    super(message, { span, source, templateName });
   }
 }
 
-export class TemplateSyntaxError extends TemplateError {
-  constructor(
-    override readonly message: string,
-    override readonly token: Token,
-    override readonly source: string,
-  ) {
-    super(message, token, source);
-    Object.setPrototypeOf(this, new.target.prototype);
-    this.name = "TemplateSyntaxError";
-    // TODO: this.message = withErrorContext(message, token);
+export class TemplateSyntaxError extends DetailedLiquidError {
+  override get label(): string {
+    return "syntax error";
+  }
+}
+export class UnknownFilterError extends DetailedLiquidError {
+  override get label(): string {
+    return "unknown filter";
+  }
+}
+export class DisabledTagError extends DetailedLiquidError {}
+
+export class ArgumentError extends DetailedLiquidError {
+  override get label(): string {
+    return "argument error";
   }
 }
 
-export class UnknownFilterError extends TemplateError {
-  constructor(
-    override readonly message: string,
-    override readonly token: Token,
-    override readonly source: string,
-  ) {
-    super(message, token, source);
-    Object.setPrototypeOf(this, new.target.prototype);
-    this.name = "UnknownFilterError";
-    // TODO: this.message = withErrorContext(message, token);
+export class TemplateTypeError extends DetailedLiquidError {
+  override get label(): string {
+    return "type error";
   }
 }
 
-export class DisabledTagError extends TemplateError {
-  constructor(
-    override readonly message: string,
-    override readonly token: Token,
-    override readonly source: string,
-  ) {
-    super(message, token, source);
-    Object.setPrototypeOf(this, new.target.prototype);
-    this.name = "DisabledTagError";
-    // TODO: this.message = withErrorContext(message, token);
+export class UndefinedVariableError extends DetailedLiquidError {
+  override get label(): string {
+    return "name error";
   }
 }
 
-export class ArgumentError extends TemplateError {
-  constructor(
-    override readonly message: string,
-    override readonly token: Token,
-    override readonly source: string,
-  ) {
-    super(message, token, source);
-    Object.setPrototypeOf(this, new.target.prototype);
-    this.name = "ArgumentError";
-    // TODO: this.message = withErrorContext(message, token);
+export class NoSuchTemplateError extends DetailedLiquidError {
+  override get label(): string {
+    return "template not found";
   }
 }
 
-export class TemplateTypeError extends TemplateError {
-  constructor(
-    override readonly message: string,
-    override readonly token: Token,
-    override readonly source: string,
-  ) {
-    super(message, token, source);
-    Object.setPrototypeOf(this, new.target.prototype);
-    this.name = "TemplateTypeError";
-    // TODO: this.message = withErrorContext(message, token);
-  }
-}
-
-export class UndefinedVariableError extends TemplateError {
-  constructor(
-    override readonly message: string,
-    override readonly token: Token,
-    override readonly source: string,
-  ) {
-    super(message, token, source);
-    Object.setPrototypeOf(this, new.target.prototype);
-    this.name = "UndefinedVariableError";
-    // TODO: this.message = withErrorContext(message, token);
-  }
-}
-
-export class NoSuchTemplateError extends TemplateError {
-  constructor(
-    override readonly message: string,
-    override readonly token: Token,
-    override readonly source: string,
-  ) {
-    super(message, token, source);
-    Object.setPrototypeOf(this, new.target.prototype);
-    this.name = "NoSuchTemplateError";
-    // TODO: this.message = withErrorContext(message, token);
-  }
-}
-
-export class TemplateNotFoundError extends LiquidError {
-  constructor(override readonly message: string) {
-    super(message);
-    Object.setPrototypeOf(this, new.target.prototype);
-    this.name = "TemplateNotFoundError";
-  }
-}
-
-export class ResourceLimitError extends LiquidError {
-  constructor(override readonly message: string) {
-    super(message);
-    Object.setPrototypeOf(this, new.target.prototype);
-    this.name = "ResourceLimitError";
-  }
-}
-
-export class ContextDepthError extends ResourceLimitError {
-  constructor(override readonly message: string) {
-    super(message);
-    Object.setPrototypeOf(this, new.target.prototype);
-    this.name = "ContextDepthError";
-  }
-}
+export class TemplateNotFoundError extends LiquidError {}
+export class ResourceLimitError extends LiquidError {}
+export class ContextDepthError extends ResourceLimitError {}

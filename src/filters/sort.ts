@@ -18,6 +18,7 @@ export function sort(
         `comparison with ${typeof a} and ${typeof b} failed`,
         this.span,
         this.context.template.source,
+        this.context.template.name,
       );
 
     if (isComparable(a) && isComparable(b)) return a < b ? -1 : a > b ? 1 : 0;
@@ -26,6 +27,7 @@ export function sort(
       `comparison with ${typeof a} and ${typeof b} failed`,
       this.span,
       this.context.template.source,
+      this.context.template.name,
     );
   }
 

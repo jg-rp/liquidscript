@@ -112,6 +112,7 @@ export class ForTag implements Markup {
             `unknown argument '${arg.name.value}'`,
             arg.name.token,
             parser.source,
+            parser.templateName,
           );
         }
       } else if (
@@ -126,6 +127,7 @@ export class ForTag implements Markup {
           "unexpected argument",
           arg.token,
           parser.source,
+          parser.templateName,
         );
       }
     }

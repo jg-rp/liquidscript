@@ -56,9 +56,10 @@ export class FilteredExpression implements Expression {
     if (!func) {
       if (context.env.strictFilters) {
         throw new UnknownFilterError(
-          `unknown filter ${JSON.stringify(this.filter.name.value)}`,
+          `${JSON.stringify(this.filter.name.value)}`,
           this.filter.token,
           context.template.source,
+          context.template.name,
         );
       }
 
@@ -98,9 +99,10 @@ export class FilteredExpression implements Expression {
     if (!func) {
       if (context.env.strictFilters) {
         throw new UnknownFilterError(
-          `unknown filter ${JSON.stringify(this.filter.name.value)}`,
+          `${JSON.stringify(this.filter.name.value)}`,
           this.filter.token,
           context.template.source,
+          context.template.name,
         );
       }
 
@@ -512,6 +514,7 @@ export class Variable implements Expression {
         this.path(this.segments.slice(0, index + 1)),
         this.span,
         context.template.source,
+        context.template.name,
       );
     }
 
@@ -536,6 +539,7 @@ export class Variable implements Expression {
         this.path(this.segments.slice(0, index + 1)),
         this.span,
         context.template.source,
+        context.template.name,
       );
     }
 

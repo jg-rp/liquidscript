@@ -36,7 +36,12 @@ import { escape } from "./escape";
 import { ReadOnlyChainMap } from "./chain_map";
 
 export interface _Parser {
-  parse(env: Environment, source: string, startIndex?: number): Block;
+  parse(
+    env: Environment,
+    source: string,
+    templateName: string,
+    startIndex?: number,
+  ): Block;
 }
 
 export interface _Lexer {
@@ -44,7 +49,12 @@ export interface _Lexer {
 }
 
 export interface _Undefined {
-  new (path: string, token: Token, source: string): Undefined;
+  new (
+    path: string,
+    token: Token,
+    source: string,
+    templateName: string,
+  ): Undefined;
 }
 
 /**
@@ -261,6 +271,7 @@ export class Environment {
       `${left} is not a container`,
       token,
       context.template.source,
+      context.template.name,
     );
   }
 
@@ -373,6 +384,7 @@ export class Environment {
       `${left && left.constructor.name} and ${right && right.constructor.name} are not comparable`,
       token,
       context.template.source,
+      context.template.name,
     );
   }
 
@@ -404,7 +416,7 @@ export class Environment {
     return new Template(
       this,
       source,
-      this.parser.parse(this, source, 0),
+      this.parser.parse(this, source, meta?.name ?? "", 0),
       this.makeGlobals(globals),
       meta,
     );
@@ -545,6 +557,7 @@ export class Environment {
         "invalid integer",
         token,
         context.template.source,
+        context.template.name,
       );
     }
 

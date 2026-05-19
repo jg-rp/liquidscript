@@ -1,10 +1,11 @@
 import { Environment, render, renderSync } from "./src";
 import { FalsyStrictUndefined, StrictUndefined } from "./src/drops/undefined";
 import type { _Undefined } from "./src/environment";
+import { DiagnosticError } from "./src/errors";
 import { ObjectLoader } from "./src/loaders";
 import { getTokenValue, REVERSE_T } from "./src/token";
 
-const source = "{{ nosuchthing | default: 'hello', allow_false: true }}";
+const source = "{% foo 'bar' %}";
 
 const data = {};
 
@@ -32,7 +33,15 @@ const env = new Environment({
 // env.render(source, data).then(console.log);
 // console.log(env.renderSync(source, data));
 
-console.log(JSON.stringify(env.renderSync(source, data)));
+try {
+  console.log(JSON.stringify(env.renderSync(source, data)));
+} catch (err) {
+  if (err instanceof DiagnosticError) {
+    console.error(err.render());
+    process.exit(1);
+  }
+  throw err;
+}
 
 // const template = env.parse(source);
 

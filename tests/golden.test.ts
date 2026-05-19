@@ -1,6 +1,6 @@
 import { readFileSync } from "fs";
 import { Environment } from "../src";
-import { TemplateError } from "../src/errors";
+import { DetailedLiquidError } from "../src/errors";
 import { ObjectLoader } from "../src/loaders";
 
 type Case = {
@@ -49,7 +49,9 @@ describe("golden liquid sync", () => {
       const env = new Environment({ loader: new ObjectLoader(templates) });
 
       if (invalid) {
-        expect(() => env.renderSync(template, data)).toThrow(TemplateError);
+        expect(() => env.renderSync(template, data)).toThrow(
+          DetailedLiquidError,
+        );
       } else if (result) {
         expect(env.renderSync(template, data)).toStrictEqual(result);
       } else if (results) {
@@ -69,7 +71,7 @@ describe("golden liquid async", () => {
       const env = new Environment({ loader: new ObjectLoader(templates) });
 
       if (invalid) {
-        expect(() => env.render(template, data)).toThrow(TemplateError);
+        expect(() => env.render(template, data)).toThrow(DetailedLiquidError);
       } else if (result) {
         await expect(env.render(template, data)).resolves.toStrictEqual(result);
       } else if (results) {

@@ -25,6 +25,7 @@ export class AssignTag implements Markup {
         "invalid variable name",
         name.span,
         parser.source,
+        parser.templateName,
       );
     }
 

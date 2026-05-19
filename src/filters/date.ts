@@ -107,6 +107,7 @@ export function date(
       `expected a date, found ${left}`,
       this.span,
       this.context.template.source,
+      this.context.template.name,
     );
   }
 

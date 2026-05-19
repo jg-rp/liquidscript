@@ -33,6 +33,7 @@ export function base64Decode(this: FilterContext, left: unknown): string {
       "invalid base64",
       this.span,
       this.context.template.source,
+      this.context.template.name,
     );
   }
 
@@ -56,6 +57,7 @@ export function base64URLSafeDecode(
       "invalid base64",
       this.span,
       this.context.template.source,
+      this.context.template.name,
     );
   }
 

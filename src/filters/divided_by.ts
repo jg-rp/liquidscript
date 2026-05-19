@@ -15,6 +15,7 @@ export function dividedBy(
       "can't divide by zero",
       this.span,
       this.context.template.source,
+      this.context.template.name,
     );
   }
 

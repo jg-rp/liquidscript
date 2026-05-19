@@ -15,6 +15,7 @@ export function concat(
       `concat filter requires an array argument`,
       this.span,
       this.context.template.source,
+      this.context.template.name,
     );
   }
 

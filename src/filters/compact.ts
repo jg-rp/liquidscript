@@ -20,6 +20,7 @@ export function compact(
         `can't read property '${prop}' of ${this.toString(v, "")}`,
         this.span,
         this.context.template.source,
+        this.context.template.name,
       );
     }
     return _v !== undefined && _v !== null;
