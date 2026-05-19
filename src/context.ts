@@ -18,7 +18,7 @@ import type { Expression } from "./expression";
 import { LiquidNumber } from "./number";
 import { ContextDepthError, ResourceLimitError } from "./errors";
 
-export type Namespace = { [index: string]: unknown };
+export type Namespace = Record<string, unknown>;
 
 export type RenderContextOptions = {
   /**

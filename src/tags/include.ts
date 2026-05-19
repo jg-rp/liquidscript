@@ -48,7 +48,7 @@ export class IncludeTag implements Markup {
 
   childrenSync(
     staticContext: RenderContext,
-    options?: { includePartials?: boolean },
+    includePartials: boolean,
   ): Markup[] {
     // TODO:
     throw new Error("not implemented");
@@ -100,17 +100,11 @@ export class IncludeTag implements Markup {
           // TODO: raise for loop limit
           for (const item of bindValue) {
             scope[bindKey] = item;
-            await template.renderWithContext(context, buffer, {
-              partial: true,
-              blockScope: false,
-            });
+            await template.renderWithContext(context, buffer);
           }
         } else {
           scope[bindKey] = bindValue;
-          await template.renderWithContext(context, buffer, {
-            partial: true,
-            blockScope: false,
-          });
+          await template.renderWithContext(context, buffer);
         }
       },
       template,
@@ -151,17 +145,11 @@ export class IncludeTag implements Markup {
           // TODO: raise for loop limit
           for (const item of bindValue) {
             scope[bindKey] = item;
-            template.renderWithContextSync(context, buffer, {
-              partial: true,
-              blockScope: false,
-            });
+            template.renderWithContextSync(context, buffer);
           }
         } else {
           scope[bindKey] = bindValue;
-          template.renderWithContextSync(context, buffer, {
-            partial: true,
-            blockScope: false,
-          });
+          template.renderWithContextSync(context, buffer);
         }
       },
       template,

@@ -5,6 +5,7 @@ export const ChainFlatten = Symbol("ChainFlatten");
 export const ChainKeys = Symbol("ChainKeys");
 export const ChainPush = Symbol("ChainPush");
 export const ChainPop = Symbol("ChainPop");
+export const ChainSize = Symbol("ChainSize");
 
 export class ReadOnlyChainMap {
   private readonly _maps: Record<string, unknown>[];
@@ -20,7 +21,8 @@ export class ReadOnlyChainMap {
           prop === ChainFlatten ||
           prop === ChainKeys ||
           prop === ChainPush ||
-          prop === ChainPop
+          prop === ChainPop ||
+          prop === ChainSize
         ) {
           const value = target[prop as keyof typeof target];
           return typeof value === "function"
@@ -30,7 +32,7 @@ export class ReadOnlyChainMap {
 
         if (typeof prop === "string") {
           for (let i = target._maps.length - 1; i >= 0; i--) {
-            const map = target._maps[i];
+            const map = target._maps[i] as Record<string, unknown>;
             if (Object.prototype.hasOwnProperty.call(map, prop)) {
               return map[prop];
             }
@@ -87,6 +89,10 @@ export class ReadOnlyChainMap {
       }
     }
     return Array.from(uniqueKeys);
+  }
+
+  [ChainSize](): number {
+    return this._maps.length;
   }
 
   [key: string]: any;

@@ -59,7 +59,7 @@ export class RenderTag implements Markup {
 
   childrenSync(
     staticContext: RenderContext,
-    options?: { includePartials?: boolean },
+    includePartials: boolean,
   ): Markup[] {
     // TODO:
     throw new Error("not implemented");
@@ -120,17 +120,11 @@ export class RenderTag implements Markup {
       for (const item of bindValue) {
         scope[bindKey] = item;
         forloop.step();
-        await template.renderWithContext(ctx, buffer, {
-          partial: true,
-          blockScope: false,
-        });
+        await template.renderWithContext(ctx, buffer);
       }
     } else {
       scope[bindKey] = bindValue;
-      await template.renderWithContext(ctx, buffer, {
-        partial: true,
-        blockScope: false,
-      });
+      await template.renderWithContext(ctx, buffer);
     }
 
     context.renderScoreCumulative += ctx.renderScore;
@@ -179,17 +173,11 @@ export class RenderTag implements Markup {
       for (const item of bindValue) {
         scope[bindKey] = item;
         forloop.step();
-        template.renderWithContextSync(ctx, buffer, {
-          partial: true,
-          blockScope: false,
-        });
+        template.renderWithContextSync(ctx, buffer);
       }
     } else {
       scope[bindKey] = bindValue;
-      template.renderWithContextSync(ctx, buffer, {
-        partial: true,
-        blockScope: false,
-      });
+      template.renderWithContextSync(ctx, buffer);
     }
 
     context.renderScoreCumulative += ctx.renderScore;
