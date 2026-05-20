@@ -5,7 +5,7 @@ import { DiagnosticError } from "./src/errors";
 import { ObjectLoader } from "./src/loaders";
 import { getTokenValue, REVERSE_T } from "./src/token";
 
-const source = "{% foo 'bar' %}";
+const source = "{% assign foo.bar = 'hello there'%}{{ foo.bar }}";
 
 const data = {};
 
@@ -33,8 +33,10 @@ const env = new Environment({
 // env.render(source, data).then(console.log);
 // console.log(env.renderSync(source, data));
 
+// console.log(JSON.stringify(env.renderSync(source, data)));
+
 try {
-  console.log(JSON.stringify(env.renderSync(source, data)));
+  const template = env.parse(source, {}, { name: "index.liquid" });
 } catch (err) {
   if (err instanceof DiagnosticError) {
     console.error(err.render());

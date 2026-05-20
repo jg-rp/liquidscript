@@ -110,6 +110,11 @@ export class RenderContext {
     // Scopes are searched from right to left. New scopes are push on the right.
     this.globals = options?.globals ?? {};
 
+    // NOTE: The use of ReadOnlyChainMap instead of an array and merge approach
+    // results in a significant performance penalty for small scopes. We're
+    // expecting that penalty to be less or reversed for larger, real world
+    // scopes, and keeping it so developers can manipulate nested namespaces
+    // after they've been "merged".
     this.scopes = new ReadOnlyChainMap(
       this.locals,
       this.globals,

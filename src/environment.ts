@@ -31,7 +31,7 @@ import { isLiquidNumber, isPrimitiveNumber, LiquidNumber } from "./number";
 import type { TemplateLoader } from "./loader";
 import { MapLoader } from "./loaders";
 import { Nothing } from "./runtime";
-import { sizedOutputBufferFactory, type BufferFactory } from "./output";
+import { stringOutputBufferFactory, type BufferFactory } from "./output";
 import { escape } from "./escape";
 import { ReadOnlyChainMap } from "./chain_map";
 
@@ -221,9 +221,7 @@ export class Environment {
     this.maxRenderSize = options?.maxRenderSize;
     this.maxRenderScore = options?.maxRenderScore;
     this.maxRenderScoreCumulative = options?.maxRenderScoreCumulative;
-    this.bufferFactory = options?.maxRenderSize
-      ? sizedOutputBufferFactory
-      : Array;
+    this.bufferFactory = stringOutputBufferFactory;
     this.strictFilters = options?.strictFilters ?? true;
     this.undefinedType = options?.undefinedType ?? Undefined;
   }
@@ -279,7 +277,7 @@ export class Environment {
     name: string,
     globals?: Namespace,
     context?: RenderContext,
-    options?: { [index: string]: unknown },
+    options?: Record<string, unknown>,
   ): Promise<Template> {
     return await this.loader.load(this, name, globals, context, options);
   }
@@ -288,7 +286,7 @@ export class Environment {
     name: string,
     globals?: Namespace,
     context?: RenderContext,
-    options?: { [index: string]: unknown },
+    options?: Record<string, unknown>,
   ): Template {
     return this.loader.loadSync(this, name, globals, context, options);
   }
@@ -424,12 +422,12 @@ export class Environment {
 
   async render(
     source: string,
-    data?: { [index: string]: unknown },
+    data?: Record<string, unknown>,
   ): Promise<string> {
     return await this.parse(source).render(data);
   }
 
-  renderSync(source: string, data?: { [index: string]: unknown }): string {
+  renderSync(source: string, data?: Record<string, unknown>): string {
     return this.parse(source).renderSync(data);
   }
 

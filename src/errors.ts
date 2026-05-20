@@ -1,22 +1,21 @@
 import type { RenderContext } from "./context";
-import type { Token } from "./token";
+import { getTokenValue, type Token } from "./token";
 
 export interface Diagnostic {
   span: Token;
   source: string;
   templateName: string;
-  context?: RenderContext;
-  code?: string; // Unused
-  hint?: string; // Unused
 }
 
 export function formatDetailedMessage(err: DiagnosticError): string {
   const d = err.diagnostic;
-  const lines = d.source.split(/\r?\n/);
+  const lines = splitLines(d.source);
   const [line, column] = lineCol(d.span.start, lines);
-  const lineText = lines[line - 1] ?? "";
-  const pointer =
-    " ".repeat(column - 1) + "^".repeat(Math.max(d.span.end - d.span.start, 1));
+  const currentLine = lines[line - 1] ?? "";
+  const value = getTokenValue(d.span, d.source);
+
+  const pad = " ".repeat(String(line).length);
+  const pointer = " ".repeat(column) + "^".repeat(Math.max(value.length, 1));
 
   const location = d.templateName.length
     ? `${d.templateName}:${line}:${column}`
@@ -24,25 +23,26 @@ export function formatDetailedMessage(err: DiagnosticError): string {
 
   let out = "";
 
-  if (d.code) {
-    out += `[${d.code}] `;
-  }
-
   out += `${err.label}: ${err.message}\n`;
-  out += ` --> ${location}\n`;
-  out += `  |\n`;
-  out += `${String(line).padStart(2)} | ${lineText}\n`;
-  out += `  | ${pointer}\n`;
-
-  if (d.hint) {
-    out += `  |\n`;
-    out += `  = hint: ${d.hint}\n`;
-  }
+  out += `${pad} -> ${location}\n`;
+  out += `${pad} |\n`;
+  out += `${line} | ${currentLine.trim()}\n`;
+  out += `${pad} | ${pointer} ${err.message}\n`;
 
   return out;
 }
 
+export function splitLines(source: string): string[] {
+  const lines = source.split(/(?<=\n)/);
+  if (lines[lines.length - 1] === "") {
+    lines.pop();
+  }
+  return lines;
+}
+
 export function lineCol(index: number, lines: string[]): [number, number] {
+  if (lines.length === 0) return [1, 1];
+
   let cumulativeLength = 0;
   let targetLineIndex = -1;
 
@@ -54,7 +54,8 @@ export function lineCol(index: number, lines: string[]): [number, number] {
     }
   }
 
-  if (targetLineIndex === -1) throw new LiquidError("index is out of bounds");
+  if (targetLineIndex === -1)
+    return [lines.length, (lines[lines.length - 1] ?? " ").length];
 
   const lineNumber = targetLineIndex + 1;
   const line = lines[targetLineIndex] || "";

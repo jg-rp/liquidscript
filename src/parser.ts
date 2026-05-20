@@ -123,7 +123,7 @@ export abstract class Parser {
 
     if (getTokenValue(token, this.source) !== name) {
       throw new TemplateSyntaxError(
-        `unexpected tag ${REVERSE_T[token.kind]}`,
+        `unexpected tag ${JSON.stringify(REVERSE_T[token.kind])}`,
         token,
         this.source,
         this.templateName,
@@ -143,7 +143,7 @@ export abstract class Parser {
     const token = this.next();
     if (!kinds.has(token.kind)) {
       throw new TemplateSyntaxError(
-        `unexpected ${REVERSE_T[token.kind]}`,
+        `unexpected ${JSON.stringify(REVERSE_T[token.kind])}`,
         token,
         this.source,
         this.templateName,

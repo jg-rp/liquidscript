@@ -6,23 +6,22 @@ export interface OutputBuffer {
 
 export type BufferFactory = () => OutputBuffer;
 
-/**
- * An output buffer that keeps track of its size in bytes.
- */
-export class SizedOutputBuffer implements OutputBuffer {
-  #buf: string[] = [];
-
-  length: number = 0;
+export class StringOutputBuffer implements OutputBuffer {
+  #buf: string = "";
 
   join(separator: string): string {
-    return this.#buf.join(separator);
+    return this.#buf;
   }
 
   push(value: string): void {
     // Two bytes per UTF-16 code unit should be close enough.
-    this.length += value.length * 2;
-    this.#buf.push(value);
+    // this.length += value.length * 2;
+    this.#buf += value;
+  }
+
+  get length(): number {
+    return this.#buf.length * 2;
   }
 }
 
-export const sizedOutputBufferFactory = () => new SizedOutputBuffer();
+export const stringOutputBufferFactory = () => new StringOutputBuffer();
