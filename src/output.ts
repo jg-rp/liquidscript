@@ -1,3 +1,7 @@
+// This interface was initially modelled on a plain olf Array, but benchmarks
+// show string concatenation to be significantly faster than Array.push and
+// Array.join.
+
 export interface OutputBuffer {
   push(value: string): void;
   join(separator: string): string;
@@ -14,12 +18,11 @@ export class StringOutputBuffer implements OutputBuffer {
   }
 
   push(value: string): void {
-    // Two bytes per UTF-16 code unit should be close enough.
-    // this.length += value.length * 2;
     this.#buf += value;
   }
 
   get length(): number {
+    // Two bytes per UTF-16 code unit should be close enough.
     return this.#buf.length * 2;
   }
 }

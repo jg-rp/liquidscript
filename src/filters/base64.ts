@@ -1,6 +1,12 @@
 import { ArgumentError } from "../errors";
 import type { FilterContext } from "../filter";
 
+const BASE64_ALPHABET =
+  "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+const BASE64URL_ALPHABET =
+  "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+
 const RE_BASE64 =
   /^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/;
 
@@ -11,7 +17,7 @@ export function base64Encode(this: FilterContext, left: unknown): string {
   this.assertArgs(arguments.length, 1);
   const encoder = new TextEncoder();
   const bytes = encoder.encode(this.toString(left, ""));
-  return bytes.toBase64({ alphabet: "base64", omitPadding: false });
+  return toBase64(bytes, { alphabet: "base64", omitPadding: false });
 }
 
 export function base64URLSafeEncode(
@@ -21,7 +27,7 @@ export function base64URLSafeEncode(
   this.assertArgs(arguments.length, 1);
   const encoder = new TextEncoder();
   const bytes = encoder.encode(this.toString(left, ""));
-  return bytes.toBase64({ alphabet: "base64url", omitPadding: false });
+  return toBase64(bytes, { alphabet: "base64url", omitPadding: false });
 }
 
 export function base64Decode(this: FilterContext, left: unknown): string {
@@ -37,7 +43,7 @@ export function base64Decode(this: FilterContext, left: unknown): string {
     );
   }
 
-  const bytes = Uint8Array.fromBase64(left_, {
+  const bytes = fromBase64(left_, {
     alphabet: "base64",
     lastChunkHandling: "strict",
   });
@@ -61,10 +67,77 @@ export function base64URLSafeDecode(
     );
   }
 
-  const bytes = Uint8Array.fromBase64(left_, {
+  const bytes = fromBase64(left_, {
     alphabet: "base64url",
     lastChunkHandling: "strict",
   });
 
   return new TextDecoder().decode(bytes);
+}
+
+export type Base64Alphabet = "base64" | "base64url";
+
+export interface ToBase64Options {
+  alphabet?: Base64Alphabet;
+  omitPadding?: boolean;
+}
+
+export function toBase64(
+  bytes: Uint8Array,
+  options: ToBase64Options = {},
+): string {
+  const alphabet =
+    options.alphabet === "base64url" ? BASE64URL_ALPHABET : BASE64_ALPHABET;
+
+  let binary = "";
+  for (let i = 0; i < bytes.length; i++) {
+    binary += String.fromCharCode(bytes[i] as number);
+  }
+
+  let base64 = btoa(binary);
+
+  if (options.alphabet === "base64url") {
+    base64 = base64.replace(/\+/g, "-").replace(/\//g, "_");
+  }
+
+  if (options.omitPadding) {
+    base64 = base64.replace(/=+$/, "");
+  }
+
+  return base64;
+}
+
+export interface FromBase64Options {
+  alphabet?: Base64Alphabet;
+  lastChunkHandling?: "strict" | "loose";
+}
+
+export function fromBase64(
+  input: string,
+  options: FromBase64Options = {},
+): Uint8Array {
+  let str = input;
+
+  if (options.alphabet === "base64url") {
+    str = str.replace(/-/g, "+").replace(/_/g, "/");
+  }
+
+  const missingPadding = str.length % 4;
+
+  if (missingPadding && options.lastChunkHandling === "strict") {
+    throw new Error("Invalid base64 length (strict mode)");
+  }
+
+  if (missingPadding) {
+    str += "=".repeat(4 - missingPadding);
+  }
+
+  const binary = atob(str);
+
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+
+  return bytes;
 }

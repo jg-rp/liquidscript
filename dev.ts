@@ -5,7 +5,14 @@ import { DiagnosticError } from "./src/errors";
 import { ObjectLoader } from "./src/loaders";
 import { getTokenValue, REVERSE_T } from "./src/token";
 
-const source = "{% assign foo.bar = 'hello there'%}{{ foo.bar }}";
+const source =
+  "{% for i in (1..3) %}" +
+  "{% for j in (1..3) %}" +
+  "{% for k in (1..3) %}" +
+  "Hello, {{ you }}!" +
+  "{% endfor %}" +
+  "{% endfor %}" +
+  "{% endfor %}";
 
 const data = {};
 
@@ -16,7 +23,7 @@ const loader = new ObjectLoader({
 const env = new Environment({
   loader,
   strictFilters: true,
-  undefinedType: FalsyStrictUndefined,
+  maxContextDepth: 2,
 });
 
 // const tokens = env.lexer.tokenize(env, source);
@@ -37,6 +44,7 @@ const env = new Environment({
 
 try {
   const template = env.parse(source, {}, { name: "index.liquid" });
+  console.log(JSON.stringify(template.renderSync()));
 } catch (err) {
   if (err instanceof DiagnosticError) {
     console.error(err.render());

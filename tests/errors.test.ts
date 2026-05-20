@@ -118,3 +118,5 @@ describe("syntax errors", () => {
     expect(() => parse(source)).toThrow(/unexpected tag "aiu34bseu"/);
   });
 });
+
+// TODO: test other errors
