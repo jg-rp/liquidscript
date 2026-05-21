@@ -1,4 +1,4 @@
-import { Environment } from "../src";
+import { Environment } from "../src/liquidscript";
 import {
   FalsyStrictUndefined,
   StrictUndefined,

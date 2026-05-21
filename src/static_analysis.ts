@@ -3,7 +3,6 @@ import { DefaultMap } from "./default_map";
 import { LiquidError } from "./errors";
 import { Filter, Variable, type Traversable } from "./expression";
 import { Scope, type Markup } from "./markup";
-import { OutputStatement } from "./tags";
 import type { Template } from "./template";
 import { getTokenValue, type Token } from "./token";
 import { isArray, isString } from "./type_guards";

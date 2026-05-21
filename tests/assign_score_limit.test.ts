@@ -1,4 +1,4 @@
-import { Environment, ObjectLoader } from "../src";
+import { Environment, ObjectLoader } from "../src/liquidscript";
 import { RenderContext } from "../src/context";
 import { ResourceLimitError } from "../src/errors";
 

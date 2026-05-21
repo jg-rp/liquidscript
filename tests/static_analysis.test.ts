@@ -1,4 +1,4 @@
-import { parse } from "../src";
+import { parse } from "../src/liquidscript";
 import {
   type Locations,
   type Segments,

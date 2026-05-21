@@ -569,6 +569,7 @@ export class Environment {
     return n;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   toString(obj: unknown, context: RenderContext, token: Token): string {
     if (obj === null || obj === undefined) {
       return "";

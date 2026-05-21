@@ -12,18 +12,6 @@ export default defineConfig([
     extends: ["js/recommended"],
     languageOptions: { globals: { ...globals.browser, ...globals.node } },
     rules: {
-      "perfectionist/sort-classes": [
-        "error",
-        {
-          alphabetical: "unsorted",
-          groups: [
-            "property", // instance properties
-            "constructor", // constructor
-            "static-method", // static methods
-            "method", // instance methods
-          ],
-        },
-      ],
       "@stylistic/lines-between-class-members": [
         "error",
         "always",

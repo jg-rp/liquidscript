@@ -1,5 +1,5 @@
 import { readFileSync } from "fs";
-import { Environment } from "../src";
+import { Environment } from "../src/liquidscript";
 import { DetailedLiquidError } from "../src/errors";
 import { ObjectLoader } from "../src/loaders";
 

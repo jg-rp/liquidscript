@@ -25,9 +25,7 @@ export class ReadOnlyChainMap {
           prop === ChainSize
         ) {
           const value = target[prop as keyof typeof target];
-          return typeof value === "function"
-            ? (value as Function).bind(target)
-            : value;
+          return typeof value === "function" ? value.bind(target) : value;
         }
 
         if (typeof prop === "string") {
@@ -100,5 +98,5 @@ export class ReadOnlyChainMap {
     return this._maps.length;
   }
 
-  [key: string]: any;
+  [key: string]: unknown;
 }

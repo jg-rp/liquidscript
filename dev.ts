@@ -1,18 +1,12 @@
-import { Environment, render, renderSync } from "./src";
+import { Environment, render, renderSync } from "./src/liquidscript";
 import { FalsyStrictUndefined, StrictUndefined } from "./src/drops/undefined";
 import type { _Undefined } from "./src/environment";
 import { DiagnosticError } from "./src/errors";
 import { ObjectLoader } from "./src/loaders";
+import { NodeFileSystemLoader } from "./src/loaders";
 import { getTokenValue, REVERSE_T } from "./src/token";
 
-const source =
-  "{% for i in (1..3) %}" +
-  "{% for j in (1..3) %}" +
-  "{% for k in (1..3) %}" +
-  "Hello, {{ you }}!" +
-  "{% endfor %}" +
-  "{% endfor %}" +
-  "{% endfor %}";
+const source = "{% render 'bar' %}";
 
 const data = {};
 
@@ -20,8 +14,10 @@ const loader = new ObjectLoader({
   "product-args": "{{ foo }}{% assign foo='goodbye' %} {{ foo }}",
 });
 
+const fsLoader = new NodeFileSystemLoader("foo");
+
 const env = new Environment({
-  loader,
+  loader: fsLoader,
   strictFilters: true,
   maxContextDepth: 2,
 });

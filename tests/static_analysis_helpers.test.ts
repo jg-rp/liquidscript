@@ -1,4 +1,4 @@
-import { parse } from "../src";
+import { parse } from "../src/liquidscript";
 
 const SOURCE = `\
 Hello, {{ you }}!

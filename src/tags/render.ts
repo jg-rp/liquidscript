@@ -58,7 +58,9 @@ export class RenderTag implements Markup {
   }
 
   childrenSync(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     staticContext: RenderContext,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     includePartials: boolean,
   ): Markup[] {
     // TODO:

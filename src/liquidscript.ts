@@ -2,6 +2,7 @@ import { Environment } from "./environment";
 
 export { MapLoader } from "./loaders/map_loader";
 export { ObjectLoader } from "./loaders/object_loader";
+export { NodeFileSystemLoader } from "./loaders/file_system_loader";
 export { Template } from "./template";
 export { Environment };
 export { LiquidError, DetailedLiquidError } from "./errors";

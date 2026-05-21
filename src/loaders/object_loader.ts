@@ -6,9 +6,9 @@ import { TemplateLoader, type TemplateSource } from "../loader";
  * A loader that uses an Object of strings to store template source text.
  */
 export class ObjectLoader extends TemplateLoader {
-  #obj: { [index: string]: string };
+  #obj: Record<string, string>;
 
-  constructor(obj?: { [index: string]: string }) {
+  constructor(obj?: Record<string, string>) {
     super();
     this.#obj = obj ?? {};
   }

@@ -47,6 +47,7 @@ export class HTMLSafeString extends Drop {
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   override [toHTMLSafeStringSync](context: RenderContext): string {
     return this.#s;
   }

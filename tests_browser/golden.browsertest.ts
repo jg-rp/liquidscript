@@ -1,7 +1,7 @@
 import { describe, test, expect } from "vitest";
-import { Environment } from "../dist";
-import { DetailedLiquidError } from "../dist";
-import { ObjectLoader } from "../dist";
+import { Environment } from "../dist/liquidscript.browser.esm.min.js";
+import { DetailedLiquidError } from "../dist/liquidscript.browser.esm.min.js";
+import { ObjectLoader } from "../dist/liquidscript.browser.esm.min.js";
 
 type Case = {
   name: string;

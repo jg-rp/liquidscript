@@ -1,4 +1,3 @@
-import type { RenderContext } from "./context";
 import { getTokenValue, type Token } from "./token";
 
 export interface Diagnostic {

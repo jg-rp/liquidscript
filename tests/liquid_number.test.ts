@@ -1,4 +1,4 @@
-import { parse } from "../src";
+import { parse } from "../src/liquidscript";
 import { Float, Integer, NAN } from "../src/number";
 
 // See https://github.com/microsoft/TypeScript/issues/2361

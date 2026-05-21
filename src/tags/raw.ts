@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import type { RenderContext } from "../context";
 import type { Markup } from "../markup";
 import type { OutputBuffer } from "../output";

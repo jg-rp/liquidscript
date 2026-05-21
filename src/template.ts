@@ -1,7 +1,6 @@
 import { ReadOnlyChainMap } from "./chain_map";
 import { RenderContext, type Namespace } from "./context";
 import type { Environment, TemplateMeta } from "./environment";
-import { LiquidError } from "./errors";
 import { renderBlock, renderBlockSync, type Block } from "./markup";
 import type { OutputBuffer } from "./output";
 import {

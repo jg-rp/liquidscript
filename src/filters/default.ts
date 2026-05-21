@@ -1,6 +1,6 @@
 import { Drop, equals, toLiquidSync } from "../drop";
 import { EMPTY } from "../drops";
-import { FalsyStrictUndefined, Undefined } from "../drops/undefined";
+import { FalsyStrictUndefined } from "../drops/undefined";
 import type { FilterContext } from "../filter";
 
 export function default_(

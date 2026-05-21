@@ -1,4 +1,4 @@
-import { parse } from "../src";
+import { parse } from "../src/liquidscript";
 
 describe("edge cases", () => {
   test("empty string", async () => {

@@ -1,4 +1,4 @@
-import { Environment, ObjectLoader } from "../src";
+import { Environment, ObjectLoader } from "../src/liquidscript";
 import { ContextDepthError } from "../src/errors";
 
 describe("context depth limit", () => {

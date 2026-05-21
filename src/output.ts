@@ -13,6 +13,7 @@ export type BufferFactory = () => OutputBuffer;
 export class StringOutputBuffer implements OutputBuffer {
   #buf: string = "";
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   join(separator: string): string {
     return this.#buf;
   }

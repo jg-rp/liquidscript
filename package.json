@@ -2,17 +2,18 @@
   "name": "liquidscript",
   "version": "2.0.0",
   "author": "James",
-  "license": "MIT",
-  "homepage": "https://jg-rp.github.io/liquidscript/",
-  "bugs": {
-    "url": "https://github.com/jg-rp/liquidscript/issues"
-  },
   "repository": {
     "type": "git",
     "url": "https://github.com/jg-rp/liquidscript.git"
   },
-  "module": "src/index.ts",
-  "type": "module",
+  "module": "dist/liquidscript.esm.js",
+  "browser": "dist/liquidscript.browser.esm.js",
+  "browser-min": "dist/liquidscript.browser.min.esm.js",
+  "jsdeliver": "dist/liquidscript.browser.min.esm.js",
+  "types": "dist/liquidscript.d.ts",
+  "files": [
+    "dist/**/*"
+  ],
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@stylistic/eslint-plugin": "^5.10.0",
@@ -20,9 +21,11 @@
     "@types/jest": "^30.0.0",
     "@types/luxon": "^3.7.1",
     "@vitest/browser-playwright": "^4.1.7",
+    "decimal.js": "^10.6.0",
     "eslint": "^10.1.0",
     "eslint-plugin-perfectionist": "^5.9.0",
     "globals": "^17.4.0",
+    "luxon": "^3.7.2",
     "playwright": "^1.60.0",
     "tinybench": "^6.0.0",
     "typescript-eslint": "^8.58.0",
@@ -31,15 +34,18 @@
   "peerDependencies": {
     "typescript": "^6.0.3"
   },
-  "dependencies": {
-    "decimal.js": "^10.6.0",
-    "luxon": "^3.7.2"
+  "bugs": {
+    "url": "https://github.com/jg-rp/liquidscript/issues"
   },
+  "homepage": "https://jg-rp.github.io/liquidscript/",
+  "license": "MIT",
   "scripts": {
-    "test:browser": "vitest run --config vitest.browser.config.ts --browser",
-    "test:node": "vitest run --config vitest.node.bundle.config.ts",
+    "test:browser": "bun run dist && vitest run --config vitest.browser.config.ts --browser",
+    "test:node": "bun run dist && vitest run --config vitest.node.bundle.config.ts",
     "build:types": "bun run tsc -p tsconfig.build.json",
-    "build:js": "bun build --target=node --outdir=dist --production src/index.ts",
-    "dist": "rm -rf ./dist && bun run build:js && bun run build:types"
-  }
+    "build:js": "bun build.ts",
+    "dist": "rm -rf ./dist && bun run build:js && bun run build:types",
+    "lint": "bun run eslint src tests"
+  },
+  "type": "module"
 }

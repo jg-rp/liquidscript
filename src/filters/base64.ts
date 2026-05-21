@@ -1,12 +1,6 @@
 import { ArgumentError } from "../errors";
 import type { FilterContext } from "../filter";
 
-const BASE64_ALPHABET =
-  "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-
-const BASE64URL_ALPHABET =
-  "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
-
 const RE_BASE64 =
   /^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/;
 
@@ -86,9 +80,6 @@ export function toBase64(
   bytes: Uint8Array,
   options: ToBase64Options = {},
 ): string {
-  const alphabet =
-    options.alphabet === "base64url" ? BASE64URL_ALPHABET : BASE64_ALPHABET;
-
   let binary = "";
   for (let i = 0; i < bytes.length; i++) {
     binary += String.fromCharCode(bytes[i] as number);
