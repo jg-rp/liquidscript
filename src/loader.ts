@@ -53,7 +53,7 @@ export abstract class TemplateLoader {
     env: Environment,
     name: string,
     context?: RenderContext,
-    options?: { [index: string]: unknown },
+    options?: Record<string, unknown>,
   ): Promise<TemplateSource>;
 
   /**
@@ -64,7 +64,7 @@ export abstract class TemplateLoader {
     env: Environment,
     name: string,
     context?: RenderContext,
-    options?: { [index: string]: unknown },
+    options?: Record<string, unknown>,
   ): TemplateSource;
 
   /**
@@ -76,7 +76,7 @@ export abstract class TemplateLoader {
     name: string,
     globals?: Namespace,
     context?: RenderContext,
-    options?: { [index: string]: unknown },
+    options?: Record<string, unknown>,
   ): Promise<Template> {
     const data = await this.getSource(env, name, context, options);
     return env.parse(data.source, globals, {
@@ -97,7 +97,7 @@ export abstract class TemplateLoader {
     name: string,
     globals?: Namespace,
     context?: RenderContext,
-    options?: { [index: string]: unknown },
+    options?: Record<string, unknown>,
   ): Template {
     const data = this.getSourceSync(env, name, context, options);
     return env.parse(data.source, globals, {

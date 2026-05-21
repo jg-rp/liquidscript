@@ -20,9 +20,9 @@ export class Template {
 
   readonly path: string | undefined;
 
-  readonly upToDate: (() => Promise<boolean>) | undefined;
+  readonly upToDate: () => Promise<boolean>;
 
-  readonly upToDateSync: (() => boolean) | undefined;
+  readonly upToDateSync: () => boolean;
 
   #lines: string[] | undefined;
 
@@ -37,14 +37,31 @@ export class Template {
     this.path = meta?.path;
     this.globals = globals ?? {};
     this.overlay = meta?.overlay ?? {};
-    this.upToDate = meta?.upToDate;
-    this.upToDateSync = meta?.upToDateSync;
+    this.upToDate = meta?.upToDate ?? (async () => true);
+    this.upToDateSync = meta?.upToDateSync ?? (() => true);
   }
 
   protected makeGlobals(namespace?: Namespace): Namespace {
     return namespace
       ? new ReadOnlyChainMap(namespace, this.overlay, this.globals)
       : new ReadOnlyChainMap(this.overlay, this.globals);
+  }
+
+  /**
+   * Copy this template with new pinned global variables.
+   *
+   * @param globals - An object who's properties will be added
+   * to the render context every time this template is rendered.
+   * @returns A copy of this template with new render context globals.
+   */
+  withGlobals(globals?: Namespace) {
+    return new Template(this.env, this.source, this.nodes, globals, {
+      name: this.name,
+      path: this.path,
+      overlay: this.overlay,
+      upToDate: this.upToDate,
+      upToDateSync: this.upToDateSync,
+    });
   }
 
   async render(data?: { [index: string]: unknown }): Promise<string> {

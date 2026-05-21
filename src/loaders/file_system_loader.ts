@@ -7,6 +7,9 @@ import { TemplateNotFoundError } from "../errors";
 import { TemplateLoader, type TemplateSource } from "../loader";
 import { isArray } from "../type_guards";
 import { LiquidError } from "../errors";
+import { LRUCache } from "../cache";
+import type { Template } from "../template";
+import type { Namespace, RenderContext } from "../context";
 
 /**
  * Options for a file system template loader in the NodeJS runtime.
@@ -66,18 +69,70 @@ export class NodeFileSystemLoader extends TemplateLoader {
     }
   }
 
-  async getSource(env: Environment, name: string): Promise<TemplateSource> {
-    const templatePath = await this.resolve(this.withFileExtension(name));
-    const source = await fs.readFile(templatePath, { encoding: this.encoding });
-    return { source, name: templatePath }; // TODO: name vs path
+  static async upToDate(templatePath: string, mtime: number): Promise<boolean> {
+    try {
+      const stat = await fs.stat(templatePath);
+      return stat.mtimeMs === mtime;
+    } catch {
+      return false;
+    }
   }
 
-  getSourceSync(env: Environment, name: string): TemplateSource {
-    const templatePath = this.resolveSync(this.withFileExtension(name));
+  static upToDateSync(templatePath: string, mtime: number): boolean {
+    console.log("!!", templatePath, mtime);
+    try {
+      return fsCallback.statSync(templatePath).mtimeMs === mtime;
+    } catch {
+      return false;
+    }
+  }
+
+  override async getSource(
+    env: Environment,
+    name: string,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    context?: RenderContext,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    options?: Record<string, unknown>,
+  ): Promise<TemplateSource> {
+    const [templatePath, mtime] = await this.resolve(
+      this.withFileExtension(name),
+    );
+
+    const source = await fs.readFile(templatePath, { encoding: this.encoding });
+
+    return {
+      source,
+      name: templatePath, // TODO: name vs path
+      upToDate: () => NodeFileSystemLoader.upToDate(templatePath, mtime),
+      upToDateSync: () =>
+        NodeFileSystemLoader.upToDateSync(templatePath, mtime),
+    };
+  }
+
+  override getSourceSync(
+    env: Environment,
+    name: string,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    context?: RenderContext,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    options?: Record<string, unknown>,
+  ): TemplateSource {
+    const [templatePath, mtime] = this.resolveSync(
+      this.withFileExtension(name),
+    );
+
     const source = fsCallback.readFileSync(templatePath, {
       encoding: this.encoding,
     });
-    return { source, name: templatePath }; // TODO: name vs path
+
+    return {
+      source,
+      name: templatePath, // TODO: name vs path
+      upToDate: () => NodeFileSystemLoader.upToDate(templatePath, mtime),
+      upToDateSync: () =>
+        NodeFileSystemLoader.upToDateSync(templatePath, mtime),
+    };
   }
 
   /**
@@ -103,7 +158,7 @@ export class NodeFileSystemLoader extends TemplateLoader {
    * @throws {@link TemplateNotFoundError}
    * If a file with the given name can not be found.
    */
-  protected async resolve(name: string): Promise<string> {
+  protected async resolve(name: string): Promise<[string, number]> {
     const p = path.normalize(name);
     for (const sp of this.searchPath) {
       const templatePath = path.join(sp, p);
@@ -111,7 +166,7 @@ export class NodeFileSystemLoader extends TemplateLoader {
       if (!isSubPath(sp, templatePath)) throw new TemplateNotFoundError(name);
       try {
         const stat = await fs.stat(templatePath);
-        if (stat.isFile()) return templatePath;
+        if (stat.isFile()) return [templatePath, stat.mtimeMs];
       } catch {
         continue;
       }
@@ -122,7 +177,7 @@ export class NodeFileSystemLoader extends TemplateLoader {
   /**
    * A synchronous version of {@link resolve}.
    */
-  protected resolveSync(name: string): string {
+  protected resolveSync(name: string): [string, number] {
     const p = path.normalize(name);
     for (const sp of this.searchPath) {
       const templatePath = path.join(sp, p);
@@ -130,7 +185,7 @@ export class NodeFileSystemLoader extends TemplateLoader {
       if (!isSubPath(sp, templatePath)) throw new TemplateNotFoundError(name);
       try {
         const stat = fsCallback.statSync(templatePath);
-        if (stat.isFile()) return templatePath;
+        if (stat.isFile()) return [templatePath, stat.mtimeMs];
       } catch {
         continue;
       }
@@ -147,4 +202,83 @@ function isSubPath(parent: string, dir: string): boolean {
   return (
     !!relative.length && !relative.startsWith(".") && !path.isAbsolute(relative)
   );
+}
+
+/**
+ * A template loader that caches templates read from a file system.
+ */
+export class CachingNodeFileSystemLoader extends NodeFileSystemLoader {
+  readonly autoReload: boolean;
+  readonly cacheSize: number;
+  #cache: LRUCache<string, Template>;
+
+  /**
+   * @param searchPath - A path or array of paths to search for templates.
+   */
+  constructor(
+    searchPath: string | string[],
+    options?: CachingNodeFileSystemLoaderOptions,
+  ) {
+    super(searchPath, {
+      encoding: options?.encoding ?? "utf8",
+      fileExtension: options?.fileExtension ?? "",
+    });
+    this.autoReload = options?.autoReload ?? true;
+    this.cacheSize = this.autoReload
+      ? Math.max(options?.cacheSize ?? 300, 0)
+      : 0;
+    this.#cache = new LRUCache(this.cacheSize);
+  }
+
+  override async load(
+    env: Environment,
+    name: string,
+    globals?: Namespace,
+    context?: RenderContext,
+    options?: Record<string, unknown>,
+  ): Promise<Template> {
+    const cached = this.#cache.get(name);
+
+    if (!cached || (this.autoReload && !(await cached.upToDate()))) {
+      const data = await this.getSource(env, name, context, options);
+      const template = env.parse(data.source, globals, {
+        name: data.name,
+        path: data.path,
+        overlay: data.overlay,
+        upToDate: data.upToDate,
+        upToDateSync: data.upToDateSync,
+      });
+
+      this.#cache.set(name, template);
+      return template;
+    }
+
+    return cached.withGlobals(globals);
+  }
+
+  override loadSync(
+    env: Environment,
+    name: string,
+    globals?: Namespace,
+    context?: RenderContext,
+    options?: Record<string, unknown>,
+  ): Template {
+    const cached = this.#cache.get(name);
+
+    if (!cached || (this.autoReload && !cached.upToDateSync())) {
+      const data = this.getSourceSync(env, name, context, options);
+      const template = env.parse(data.source, globals, {
+        name: data.name,
+        path: data.path,
+        overlay: data.overlay,
+        upToDate: data.upToDate,
+        upToDateSync: data.upToDateSync,
+      });
+
+      this.#cache.set(name, template);
+      return template;
+    }
+
+    return cached.withGlobals(globals);
+  }
 }
