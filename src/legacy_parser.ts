@@ -200,7 +200,12 @@ export class LegacyParser extends Parser {
         ).with(this.eat(T.RBRACKET));
         break;
       case T.IDENT:
-        // TODO: or reserved word
+      case T.BLANK:
+      case T.EMPTY:
+      case T.FALSE:
+      case T.TRUE:
+      case T.NULL:
+      case T.NIL:
         this.pos -= 1;
         segment = this.parsePath();
         this.eat(T.RBRACKET);

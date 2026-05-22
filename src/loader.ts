@@ -81,7 +81,6 @@ export abstract class TemplateLoader {
     const data = await this.getSource(env, name, context, options);
     return env.parse(data.source, globals, {
       name: data.name,
-      path: data.path,
       overlay: data.overlay,
       upToDate: data.upToDate,
       upToDateSync: data.upToDateSync,
@@ -102,7 +101,6 @@ export abstract class TemplateLoader {
     const data = this.getSourceSync(env, name, context, options);
     return env.parse(data.source, globals, {
       name: data.name,
-      path: data.path,
       overlay: data.overlay,
       upToDate: data.upToDate,
       upToDateSync: data.upToDateSync,

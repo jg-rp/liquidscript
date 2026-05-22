@@ -67,11 +67,6 @@ export type TemplateMeta = {
   name: string;
 
   /**
-   * Fully qualified path to `name`.
-   */
-  path?: string;
-
-  /**
    * Additional template global variables.
    */
   overlay?: Namespace;
@@ -395,7 +390,7 @@ export class Environment {
     );
   }
 
-  // TODO: sync and async
+  // TODO: sync and async?
   isTruthy(obj: unknown, context: RenderContext): boolean {
     if (obj instanceof Drop) {
       obj = obj[toLiquidSync]("boolean", context);

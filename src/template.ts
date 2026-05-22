@@ -34,7 +34,6 @@ export class Template {
     meta?: TemplateMeta,
   ) {
     this.name = meta?.name ?? "";
-    this.path = meta?.path;
     this.globals = globals ?? {};
     this.overlay = meta?.overlay ?? {};
     this.upToDate = meta?.upToDate ?? (async () => true);
@@ -57,7 +56,6 @@ export class Template {
   withGlobals(globals?: Namespace) {
     return new Template(this.env, this.source, this.nodes, globals, {
       name: this.name,
-      path: this.path,
       overlay: this.overlay,
       upToDate: this.upToDate,
       upToDateSync: this.upToDateSync,

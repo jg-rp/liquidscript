@@ -103,7 +103,7 @@ export class NodeFileSystemLoader extends TemplateLoader {
 
     return {
       source,
-      name: templatePath, // TODO: name vs path
+      name: templatePath,
       upToDate: () => NodeFileSystemLoader.upToDate(templatePath, mtime),
       upToDateSync: () =>
         NodeFileSystemLoader.upToDateSync(templatePath, mtime),
@@ -128,7 +128,7 @@ export class NodeFileSystemLoader extends TemplateLoader {
 
     return {
       source,
-      name: templatePath, // TODO: name vs path
+      name: templatePath,
       upToDate: () => NodeFileSystemLoader.upToDate(templatePath, mtime),
       upToDateSync: () =>
         NodeFileSystemLoader.upToDateSync(templatePath, mtime),
@@ -243,7 +243,6 @@ export class CachingNodeFileSystemLoader extends NodeFileSystemLoader {
       const data = await this.getSource(env, name, context, options);
       const template = env.parse(data.source, globals, {
         name: data.name,
-        path: data.path,
         overlay: data.overlay,
         upToDate: data.upToDate,
         upToDateSync: data.upToDateSync,
@@ -269,7 +268,6 @@ export class CachingNodeFileSystemLoader extends NodeFileSystemLoader {
       const data = this.getSourceSync(env, name, context, options);
       const template = env.parse(data.source, globals, {
         name: data.name,
-        path: data.path,
         overlay: data.overlay,
         upToDate: data.upToDate,
         upToDateSync: data.upToDateSync,
