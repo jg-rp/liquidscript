@@ -202,7 +202,7 @@ export class Environment {
 
   strictFilters: boolean;
 
-  tags: { [key: string]: Tag };
+  tags: Record<string, Tag>;
 
   undefinedType: _Undefined;
 

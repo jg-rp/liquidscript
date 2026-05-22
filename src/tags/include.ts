@@ -1,6 +1,12 @@
 import type { Namespace, RenderContext } from "../context";
-import type { Expression, KeywordArgument, Name } from "../expression";
-import type { Markup, Partial } from "../markup";
+import {
+  Name,
+  StringLiteral,
+  type Expression,
+  type KeywordArgument,
+} from "../expression";
+import { fnv1a32 } from "../fnv";
+import { Scope, type Markup, type Partial } from "../markup";
 import type { OutputBuffer } from "../output";
 import type { Parser } from "../parser";
 import { isNothing } from "../runtime";
@@ -46,16 +52,6 @@ export class IncludeTag implements Markup {
     return new IncludeTag(token, nameExpr, variable, alias, args);
   }
 
-  childrenSync(
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    staticContext: RenderContext,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    includePartials: boolean,
-  ): Markup[] {
-    // TODO:
-    throw new Error("not implemented");
-  }
-
   expressions(): Expression[] {
     const result = [this.name];
     if (this.variable) result.push(this.variable);
@@ -63,13 +59,68 @@ export class IncludeTag implements Markup {
     return result;
   }
 
-  partialScope(): Partial {
-    // TODO:
-    throw new Error("not implemented");
+  async partial(staticContext: RenderContext): Promise<Partial> {
+    const name = await this.name.evaluate(staticContext);
+
+    const template = await staticContext.env.getTemplate(
+      staticContext.env.toString(name, staticContext, this.name.token),
+      undefined,
+      staticContext,
+      { tag: "include" },
+    );
+
+    const scope: Name[] = this.args.map((arg) => arg.name);
+
+    if (this.variable) {
+      if (this.alias) {
+        scope.push(this.alias);
+      } else if (this.name instanceof StringLiteral) {
+        scope.push(new Name(this.name.token, this.name.value));
+      }
+    }
+
+    return {
+      template,
+      scopeKind: Scope.SHARED,
+      inScope: scope,
+      key: fnv1a32(this.name.toString() + scope.map((n) => n.value).join(":")),
+    };
+  }
+
+  partialSync(staticContext: RenderContext): Partial {
+    const name = this.name.evaluateSync(staticContext);
+
+    const template = staticContext.env.getTemplateSync(
+      staticContext.env.toString(name, staticContext, this.name.token),
+      undefined,
+      staticContext,
+      { tag: "include" },
+    );
+
+    const scope: Name[] = this.args.map((arg) => arg.name);
+
+    if (this.variable) {
+      if (this.alias) {
+        scope.push(this.alias);
+      } else if (this.name instanceof StringLiteral) {
+        scope.push(new Name(this.name.token, this.name.value));
+      }
+    }
+
+    return {
+      template,
+      scopeKind: Scope.SHARED,
+      inScope: scope,
+      key: fnv1a32(this.name.toString() + scope.map((n) => n.value).join(":")),
+    };
   }
 
   async render(context: RenderContext, buffer: OutputBuffer): Promise<void> {
-    const templateName = `${await this.name.evaluate(context)}`;
+    const templateName = context.env.toString(
+      await this.name.evaluate(context),
+      context,
+      this.name.token,
+    );
 
     // TODO: promote TemplateNotFoundError to NoSuchTemplateError
     const template = await context.env.getTemplate(
@@ -100,7 +151,6 @@ export class IncludeTag implements Markup {
       scope,
       async () => {
         if (isArray(bindValue)) {
-          // TODO: raise for loop limit
           for (const item of bindValue) {
             scope[bindKey] = item;
             await template.renderWithContext(context, buffer);
@@ -115,7 +165,11 @@ export class IncludeTag implements Markup {
   }
 
   renderSync(context: RenderContext, buffer: OutputBuffer): void {
-    const templateName = `${this.name.evaluateSync(context)}`;
+    const templateName = context.env.toString(
+      this.name.evaluateSync(context),
+      context,
+      this.name.token,
+    );
 
     // TODO: promote TemplateNotFoundError to NoSuchTemplateError
     const template = context.env.getTemplateSync(
@@ -146,7 +200,6 @@ export class IncludeTag implements Markup {
       scope,
       () => {
         if (isArray(bindValue)) {
-          // TODO: raise for loop limit
           for (const item of bindValue) {
             scope[bindKey] = item;
             template.renderWithContextSync(context, buffer);

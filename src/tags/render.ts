@@ -1,12 +1,13 @@
 import type { Namespace, RenderContext } from "../context";
 import { ForLoop } from "../drops";
-import type {
-  Expression,
-  KeywordArgument,
+import {
   Name,
-  StringLiteral,
+  type Expression,
+  type KeywordArgument,
+  type StringLiteral,
 } from "../expression";
-import type { Markup, Partial } from "../markup";
+import { fnv1a32 } from "../fnv";
+import { Scope, type Markup, type Partial } from "../markup";
 import type { OutputBuffer } from "../output";
 import type { Parser } from "../parser";
 import { isNothing, Nothing } from "../runtime";
@@ -57,14 +58,56 @@ export class RenderTag implements Markup {
     return new RenderTag(token, nameExpr, loop, variable, alias, args);
   }
 
-  childrenSync(
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    staticContext: RenderContext,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    includePartials: boolean,
-  ): Markup[] {
-    // TODO:
-    throw new Error("not implemented");
+  async partial(staticContext: RenderContext): Promise<Partial> {
+    const template = await staticContext.env.getTemplate(
+      this.name.value,
+      undefined,
+      staticContext,
+      { tag: "render" },
+    );
+
+    const scope: Name[] = this.args.map((arg) => arg.name);
+
+    if (this.variable) {
+      if (this.alias) {
+        scope.push(this.alias);
+      } else {
+        scope.push(new Name(this.name.token, this.name.value));
+      }
+    }
+
+    return {
+      template,
+      scopeKind: Scope.ISOLATED,
+      inScope: scope,
+      key: fnv1a32(this.name.value + scope.map((n) => n.value).join(":")),
+    };
+  }
+
+  partialSync(staticContext: RenderContext): Partial {
+    const template = staticContext.env.getTemplateSync(
+      this.name.value,
+      undefined,
+      staticContext,
+      { tag: "render" },
+    );
+
+    const scope: Name[] = this.args.map((arg) => arg.name);
+
+    if (this.variable) {
+      if (this.alias) {
+        scope.push(this.alias);
+      } else {
+        scope.push(new Name(this.name.token, this.name.value));
+      }
+    }
+
+    return {
+      template,
+      scopeKind: Scope.ISOLATED,
+      inScope: scope,
+      key: fnv1a32(this.name.value + scope.map((n) => n.value).join(":")),
+    };
   }
 
   expressions(): Expression[] {
@@ -72,11 +115,6 @@ export class RenderTag implements Markup {
     if (this.variable) result.push(this.variable);
     result.push(...this.args.map((arg) => arg.expr));
     return result;
-  }
-
-  partialScope(): Partial {
-    // TODO:
-    throw new Error("not implemented");
   }
 
   async render(context: RenderContext, buffer: OutputBuffer): Promise<void> {
@@ -115,7 +153,6 @@ export class RenderTag implements Markup {
 
     if (this.loop && isArray(bindValue)) {
       // TODO: support looping over drops
-      // TODO: raise for loop limit
 
       const forloop = new ForLoop(bindKey, bindValue.length, Nothing);
       scope.forloop = forloop;
@@ -169,7 +206,6 @@ export class RenderTag implements Markup {
 
     if (this.loop && isArray(bindValue)) {
       // TODO: support looping over drops
-      // TODO: raise for loop limit
 
       const forloop = new ForLoop(bindKey, bindValue.length, Nothing);
       scope.forloop = forloop;

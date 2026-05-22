@@ -6,21 +6,10 @@ import { ObjectLoader } from "./src/loaders";
 import { NodeFileSystemLoader } from "./src/loaders";
 import { getTokenValue, REVERSE_T } from "./src/token";
 
-const source = "{% render 'bar' %}";
-
 const data = {};
-
-const loader = new ObjectLoader({
-  "product-args": "{{ foo }}{% assign foo='goodbye' %} {{ foo }}",
-});
-
-const fsLoader = new NodeFileSystemLoader("foo");
-
-const env = new Environment({
-  loader: fsLoader,
-  strictFilters: true,
-  maxContextDepth: 2,
-});
+const loader = new ObjectLoader({ a: "{{ x }}{% assign y = 42 %}" });
+const env = new Environment({ loader });
+const source = "{% include 'a' %}{{ y }}";
 
 // const tokens = env.lexer.tokenize(env, source);
 
@@ -41,6 +30,7 @@ const env = new Environment({
 try {
   const template = env.parse(source, {}, { name: "index.liquid" });
   console.log(JSON.stringify(template.renderSync()));
+  console.dir(template.analyzeSync(), { depth: null });
 } catch (err) {
   if (err instanceof DiagnosticError) {
     console.error(err.render());
@@ -50,10 +40,6 @@ try {
 }
 
 // const template = env.parse(source);
-
-// const a = template.analyzeSync();
-
-// console.dir(a, { depth: null });
 
 // console.log(template.variablesSync());
 // console.dir(template.variablePathsSync(), { depth: null });

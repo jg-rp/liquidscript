@@ -1,11 +1,17 @@
 import { Environment } from "./environment";
 
-export { MapLoader } from "./loaders/map_loader";
-export { ObjectLoader } from "./loaders/object_loader";
-export { NodeFileSystemLoader } from "./loaders/file_system_loader";
+export { type Namespace } from "./context";
+export { type EnvironmentOptions, type TemplateMeta } from "./environment";
+export { DetailedLiquidError, LiquidError } from "./errors";
+export {
+  CachingNodeFileSystemLoader,
+  FetchLoader,
+  MapLoader,
+  NodeFileSystemLoader,
+  ObjectLoader,
+} from "./loaders";
 export { Template } from "./template";
 export { Environment };
-export { LiquidError, DetailedLiquidError } from "./errors";
 
 export const DEFAULT_ENVIRONMENT = new Environment();
 

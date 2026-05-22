@@ -1,4 +1,5 @@
-import { parse } from "../src/liquidscript";
+import { TemplateNotFoundError } from "../src/errors";
+import { Environment, ObjectLoader, parse } from "../src/liquidscript";
 import {
   type Locations,
   type Segments,
@@ -124,6 +125,27 @@ describe("static analysis", () => {
     const globals: Vars_ = {
       "a.b": [[[["a", "b"]], "a.b"]],
       a: [[["a", "b"], "a.b"]],
+    };
+    const variables = globals;
+    const filters: Locations_ = {};
+    const tags: Locations_ = {};
+
+    expectVars(analysis.locals, locals);
+    expectVars(analysis.globals, globals);
+    expectVars(analysis.variables, variables);
+    expectLocations(analysis.filters, filters);
+    expectLocations(analysis.tags, tags);
+  });
+
+  test("variable segments", () => {
+    const source = "{{ a['b.c'] }}{{ d[e.f][4] }}";
+    const analysis = parse(source).analyzeSync();
+
+    const locals: Vars_ = {};
+    const globals: Vars_ = {
+      a: [[["a", "b.c"], "a['b.c']"]],
+      d: [[["d", ["e", "f"], 4], "d[e.f][4]"]],
+      e: [[["e", "f"], "e.f"]],
     };
     const variables = globals;
     const filters: Locations_ = {};
@@ -465,7 +487,418 @@ endfor %}`;
     expectLocations(analysis.tags, tags);
   });
 
-  // TODO: partials
+  test("include", () => {
+    const loader = new ObjectLoader({ a: "{{ x }}" });
+    const env = new Environment({ loader });
+    const source = "{% include 'a' %}";
+    const analysis = env.parse(source).analyzeSync();
+
+    const locals: Vars_ = {};
+    const globals: Vars_ = {
+      x: [[["x"], "x"]],
+    };
+    const variables: Vars_ = globals;
+    const filters: Locations_ = {};
+    const tags: Locations_ = {
+      include: ["include"],
+    };
+
+    expectVars(analysis.locals, locals);
+    expectVars(analysis.globals, globals);
+    expectVars(analysis.variables, variables);
+    expectLocations(analysis.filters, filters);
+    expectLocations(analysis.tags, tags);
+  });
+
+  test("include assign", () => {
+    const loader = new ObjectLoader({ a: "{{ x }}{% assign y = 42 %}" });
+    const env = new Environment({ loader });
+    const source = "{% include 'a' %}{{ y }}";
+    const analysis = env.parse(source).analyzeSync();
+
+    const locals: Vars_ = {
+      y: [[["y"], "y"]],
+    };
+    const globals: Vars_ = {
+      x: [[["x"], "x"]],
+    };
+    const variables: Vars_ = {
+      x: [[["x"], "x"]],
+      y: [[["y"], "y"]],
+    };
+    const filters: Locations_ = {};
+    const tags: Locations_ = {
+      include: ["include"],
+      assign: ["assign"],
+    };
+
+    expectVars(analysis.locals, locals);
+    expectVars(analysis.globals, globals);
+    expectVars(analysis.variables, variables);
+    expectLocations(analysis.filters, filters);
+    expectLocations(analysis.tags, tags);
+  });
+
+  test("include twice", () => {
+    const loader = new ObjectLoader({ a: "{{ x }}" });
+    const env = new Environment({ loader });
+    const source = "{% include 'a' %}{% include 'a' %}";
+    const analysis = env.parse(source).analyzeSync();
+
+    const locals: Vars_ = {};
+    const globals: Vars_ = {
+      x: [[["x"], "x"]],
+    };
+    const variables: Vars_ = {
+      x: [[["x"], "x"]],
+    };
+    const filters: Locations_ = {};
+    const tags: Locations_ = {
+      include: ["include", "include"],
+    };
+
+    expectVars(analysis.locals, locals);
+    expectVars(analysis.globals, globals);
+    expectVars(analysis.variables, variables);
+    expectLocations(analysis.filters, filters);
+    expectLocations(analysis.tags, tags);
+  });
+
+  test("include recursive", () => {
+    const loader = new ObjectLoader({ a: "{{ x }}{% include 'a' %}" });
+    const env = new Environment({ loader });
+    const source = "{% include 'a' %}";
+    const analysis = env.parse(source).analyzeSync();
+
+    const locals: Vars_ = {};
+    const globals: Vars_ = {
+      x: [[["x"], "x"]],
+    };
+    const variables: Vars_ = {
+      x: [[["x"], "x"]],
+    };
+    const filters: Locations_ = {};
+    const tags: Locations_ = {
+      include: ["include", "include"],
+    };
+
+    expectVars(analysis.locals, locals);
+    expectVars(analysis.globals, globals);
+    expectVars(analysis.variables, variables);
+    expectLocations(analysis.filters, filters);
+    expectLocations(analysis.tags, tags);
+  });
+
+  test("include with bound variable", () => {
+    const loader = new ObjectLoader({ a: "{{ x | append: y }}{{ a }}" });
+    const env = new Environment({ loader });
+    const source = "{% include 'a' with z %}";
+    const analysis = env.parse(source).analyzeSync();
+
+    const locals: Vars_ = {};
+    const globals: Vars_ = {
+      z: [[["z"], "z"]],
+      x: [[["x"], "x"]],
+      y: [[["y"], "y"]],
+    };
+    const variables: Vars_ = {
+      z: [[["z"], "z"]],
+      x: [[["x"], "x"]],
+      y: [[["y"], "y"]],
+      a: [[["a"], "a"]],
+    };
+    const filters: Locations_ = {
+      append: ["append: y"],
+    };
+    const tags: Locations_ = {
+      include: ["include"],
+    };
+
+    expectVars(analysis.locals, locals);
+    expectVars(analysis.globals, globals);
+    expectVars(analysis.variables, variables);
+    expectLocations(analysis.filters, filters);
+    expectLocations(analysis.tags, tags);
+  });
+
+  test("include with bound alias", () => {
+    const loader = new ObjectLoader({ a: "{{ x | append: y }}" });
+    const env = new Environment({ loader });
+    const source = "{% include 'a' with z as y %}";
+    const analysis = env.parse(source).analyzeSync();
+
+    const locals: Vars_ = {};
+    const globals: Vars_ = {
+      z: [[["z"], "z"]],
+      x: [[["x"], "x"]],
+    };
+    const variables: Vars_ = {
+      z: [[["z"], "z"]],
+      x: [[["x"], "x"]],
+      y: [[["y"], "y"]],
+    };
+    const filters: Locations_ = {
+      append: ["append: y"],
+    };
+    const tags: Locations_ = {
+      include: ["include"],
+    };
+
+    expectVars(analysis.locals, locals);
+    expectVars(analysis.globals, globals);
+    expectVars(analysis.variables, variables);
+    expectLocations(analysis.filters, filters);
+    expectLocations(analysis.tags, tags);
+  });
+
+  test("include with arguments", () => {
+    const loader = new ObjectLoader({ a: "{{ x | append: y }}" });
+    const env = new Environment({ loader });
+    const source = "{% include 'a', x:y, z:42 %}{{ x }}";
+    const analysis = env.parse(source).analyzeSync();
+
+    const locals: Vars_ = {};
+    const globals: Vars_ = {
+      y: [
+        [["y"], "y"],
+        [["y"], "y"],
+      ],
+      x: [[["x"], "x"]],
+    };
+    const variables: Vars_ = {
+      y: [
+        [["y"], "y"],
+        [["y"], "y"],
+      ],
+      x: [
+        [["x"], "x"],
+        [["x"], "x"],
+      ],
+    };
+    const filters: Locations_ = {
+      append: ["append: y"],
+    };
+    const tags: Locations_ = {
+      include: ["include"],
+    };
+
+    expectVars(analysis.locals, locals);
+    expectVars(analysis.globals, globals);
+    expectVars(analysis.variables, variables);
+    expectLocations(analysis.filters, filters);
+    expectLocations(analysis.tags, tags);
+  });
+
+  test("include with dynamic name", () => {
+    const loader = new ObjectLoader({ a: "{{ x | append: y }}" });
+    const env = new Environment({ loader });
+    const source = "{% include b %}{{ x }}";
+
+    expect(() => env.parse(source).analyzeSync()).toThrow(
+      TemplateNotFoundError,
+    );
+  });
+
+  test("include template not found", () => {
+    const loader = new ObjectLoader({ a: "{{ x | append: y }}" });
+    const env = new Environment({ loader });
+    const source = "{% include 'nosuchthing' %}{{ x }}";
+
+    expect(() => env.parse(source).analyzeSync()).toThrow(
+      TemplateNotFoundError,
+    );
+  });
+
+  test("render assign", () => {
+    const loader = new ObjectLoader({ a: "{{ x }}{% assign y = 42 %}" });
+    const env = new Environment({ loader });
+    const source = "{% render 'a' %}{{ y }}";
+    const analysis = env.parse(source).analyzeSync();
+
+    const locals: Vars_ = {
+      y: [[["y"], "y"]],
+    };
+    const globals: Vars_ = {
+      x: [[["x"], "x"]],
+      y: [[["y"], "y"]],
+    };
+    const variables: Vars_ = {
+      x: [[["x"], "x"]],
+      y: [[["y"], "y"]],
+    };
+    const filters: Locations_ = {};
+    const tags: Locations_ = {
+      render: ["render"],
+      assign: ["assign"],
+    };
+
+    expectVars(analysis.locals, locals);
+    expectVars(analysis.globals, globals);
+    expectVars(analysis.variables, variables);
+    expectLocations(analysis.filters, filters);
+    expectLocations(analysis.tags, tags);
+  });
+
+  test("render twice", () => {
+    const loader = new ObjectLoader({ a: "{{ x }}" });
+    const env = new Environment({ loader });
+    const source = "{% render 'a' %}{% render 'a' %}";
+    const analysis = env.parse(source).analyzeSync();
+
+    const locals: Vars_ = {};
+    const globals: Vars_ = {
+      x: [[["x"], "x"]],
+    };
+    const variables: Vars_ = {
+      x: [[["x"], "x"]],
+    };
+    const filters: Locations_ = {};
+    const tags: Locations_ = {
+      render: ["render", "render"],
+    };
+
+    expectVars(analysis.locals, locals);
+    expectVars(analysis.globals, globals);
+    expectVars(analysis.variables, variables);
+    expectLocations(analysis.filters, filters);
+    expectLocations(analysis.tags, tags);
+  });
+
+  test("render recursive", () => {
+    const loader = new ObjectLoader({ a: "{{ x }}{% render 'a' %}" });
+    const env = new Environment({ loader });
+    const source = "{% render 'a' %}";
+    const analysis = env.parse(source).analyzeSync();
+
+    const locals: Vars_ = {};
+    const globals: Vars_ = {
+      x: [[["x"], "x"]],
+    };
+    const variables: Vars_ = {
+      x: [[["x"], "x"]],
+    };
+    const filters: Locations_ = {};
+    const tags: Locations_ = {
+      render: ["render", "render"],
+    };
+
+    expectVars(analysis.locals, locals);
+    expectVars(analysis.globals, globals);
+    expectVars(analysis.variables, variables);
+    expectLocations(analysis.filters, filters);
+    expectLocations(analysis.tags, tags);
+  });
+
+  test("render with bound variable", () => {
+    const loader = new ObjectLoader({ a: "{{ x | append: y }}{{ a }}" });
+    const env = new Environment({ loader });
+    const source = "{% render 'a' with z %}";
+    const analysis = env.parse(source).analyzeSync();
+
+    const locals: Vars_ = {};
+    const globals: Vars_ = {
+      z: [[["z"], "z"]],
+      x: [[["x"], "x"]],
+      y: [[["y"], "y"]],
+    };
+    const variables: Vars_ = {
+      z: [[["z"], "z"]],
+      x: [[["x"], "x"]],
+      y: [[["y"], "y"]],
+      a: [[["a"], "a"]],
+    };
+    const filters: Locations_ = {
+      append: ["append: y"],
+    };
+    const tags: Locations_ = {
+      render: ["render"],
+    };
+
+    expectVars(analysis.locals, locals);
+    expectVars(analysis.globals, globals);
+    expectVars(analysis.variables, variables);
+    expectLocations(analysis.filters, filters);
+    expectLocations(analysis.tags, tags);
+  });
+
+  test("render with bound alias", () => {
+    const loader = new ObjectLoader({ a: "{{ x | append: y }}" });
+    const env = new Environment({ loader });
+    const source = "{% render 'a' with z as y %}";
+    const analysis = env.parse(source).analyzeSync();
+
+    const locals: Vars_ = {};
+    const globals: Vars_ = {
+      z: [[["z"], "z"]],
+      x: [[["x"], "x"]],
+    };
+    const variables: Vars_ = {
+      z: [[["z"], "z"]],
+      x: [[["x"], "x"]],
+      y: [[["y"], "y"]],
+    };
+    const filters: Locations_ = {
+      append: ["append: y"],
+    };
+    const tags: Locations_ = {
+      render: ["render"],
+    };
+
+    expectVars(analysis.locals, locals);
+    expectVars(analysis.globals, globals);
+    expectVars(analysis.variables, variables);
+    expectLocations(analysis.filters, filters);
+    expectLocations(analysis.tags, tags);
+  });
+
+  test("render with arguments", () => {
+    const loader = new ObjectLoader({ a: "{{ x | append: y }}" });
+    const env = new Environment({ loader });
+    const source = "{% render 'a', x:y, z:42 %}{{ x }}";
+    const analysis = env.parse(source).analyzeSync();
+
+    const locals: Vars_ = {};
+    const globals: Vars_ = {
+      y: [
+        [["y"], "y"],
+        [["y"], "y"],
+      ],
+      x: [[["x"], "x"]],
+    };
+    const variables: Vars_ = {
+      y: [
+        [["y"], "y"],
+        [["y"], "y"],
+      ],
+      x: [
+        [["x"], "x"],
+        [["x"], "x"],
+      ],
+    };
+    const filters: Locations_ = {
+      append: ["append: y"],
+    };
+    const tags: Locations_ = {
+      render: ["render"],
+    };
+
+    expectVars(analysis.locals, locals);
+    expectVars(analysis.globals, globals);
+    expectVars(analysis.variables, variables);
+    expectLocations(analysis.filters, filters);
+    expectLocations(analysis.tags, tags);
+  });
+
+  test("render template not found", () => {
+    const loader = new ObjectLoader({ a: "{{ x | append: y }}" });
+    const env = new Environment({ loader });
+    const source = "{% render 'nosuchthing' %}{{ x }}";
+
+    expect(() => env.parse(source).analyzeSync()).toThrow(
+      TemplateNotFoundError,
+    );
+  });
+
   // TODO: comment
   // TODO: inline comment
   // TODO: doc

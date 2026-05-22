@@ -12,24 +12,24 @@ import { isArray, isString } from "./type_guards";
  */
 export class Location {
   constructor(
-    readonly templateName: string,
+    readonly template: Template,
     readonly token: Token,
   ) {}
 
   equals(other: Location): boolean {
     return (
-      this.templateName === other.templateName && this.token === other.token
+      this.template.name === other.template.name && this.token === other.token
     );
   }
 
   /**
    * Return the line and column number of the given index.
    */
-  lineCol(lines: string[], index: number): [number, number] {
+  lineCol(index: number): [number, number] {
     let cumulativeLength = 0;
     let targetLineIndex = -1;
 
-    for (const [i, line] of lines.entries()) {
+    for (const [i, line] of this.template.lines.entries()) {
       cumulativeLength += line.length;
       if (index < cumulativeLength) {
         targetLineIndex = i;
@@ -40,7 +40,7 @@ export class Location {
     if (targetLineIndex === -1) throw new LiquidError("index is out of bounds");
 
     const lineNumber = targetLineIndex + 1;
-    const line = lines[targetLineIndex] || "";
+    const line = this.template.lines[targetLineIndex] || "";
     const columnNumber = index - (cumulativeLength - line.length);
     return [lineNumber, columnNumber];
   }
@@ -49,18 +49,15 @@ export class Location {
    * Return line and column number for the start and end index spanning
    * this location.
    */
-  span(lines: string[]): [[number, number], [number, number]] {
-    return [
-      this.lineCol(lines, this.token.start),
-      this.lineCol(lines, this.token.end),
-    ];
+  span(): [[number, number], [number, number]] {
+    return [this.lineCol(this.token.start), this.lineCol(this.token.end)];
   }
 
   /**
    * Return the substring in `source` at this location.
    */
-  value(source: string): string {
-    return getTokenValue(this.token, source);
+  value(): string {
+    return getTokenValue(this.token, this.template.source);
   }
 }
 
@@ -182,7 +179,7 @@ class VariableMap {
     return this.data.get(k);
   }
 
-  toObject(template: Template): Vars {
+  toObject(): Vars {
     const obj: Vars = {};
 
     for (const [k, v] of this.data.entries()) {
@@ -190,7 +187,7 @@ class VariableMap {
 
       for (const sv of v) {
         const [[startLine, startColumn], [endLine, endColumn]] =
-          sv.location.span(template.lines);
+          sv.location.span();
 
         a.push({
           segments: sv.segments,
@@ -201,8 +198,8 @@ class VariableMap {
           startColumn,
           endLine,
           endColumn,
-          value: sv.location.value(template.source),
-          templateName: template.name,
+          value: sv.location.value(),
+          templateName: sv.location.template.name,
         });
       }
 
@@ -256,18 +253,18 @@ export async function analyze(
 
   const visit = async (
     node: Markup,
-    templateName: string,
+    template: Template,
     scope: StaticScope,
     justGlobals: boolean = false,
   ) => {
-    if (templateName.length && !justGlobals) {
-      seen.get(templateName).add(undefined);
+    if (template.name.length && !justGlobals) {
+      seen.get(template.name).add(undefined);
     }
 
     // Update tags
     // Markup with empty `node.tag` is silenced.
     if (node.tag.length > 0) {
-      tags.get(node.tag).push(new Location(templateName, node.token));
+      tags.get(node.tag).push(new Location(template, node.token));
     }
 
     // Update variables from node.expressions()
@@ -275,7 +272,7 @@ export async function analyze(
       for (const expr of node.expressions()) {
         analyzeVariables(
           expr,
-          templateName,
+          template,
           scope,
           globals,
           justGlobals ? new VariableMap() : variables,
@@ -286,7 +283,7 @@ export async function analyze(
           // Update filters from expr
           for (const [name, span] of extractFilters(
             expr,
-            templateName,
+            template,
             staticContext,
           )) {
             filters.get(name).push(span);
@@ -300,20 +297,35 @@ export async function analyze(
       for (const name of node.templateScope()) {
         scope.add(name.value);
         locals.add(
-          new StaticVariable(
-            [name.value],
-            new Location(templateName, name.token),
-          ),
+          new StaticVariable([name.value], new Location(template, name.token)),
         );
       }
     }
 
-    // Descend into partial templates
-    if (node.partialScope !== undefined) {
-      const partial = node.partialScope();
-      const name = isString(partial.name)
-        ? partial.name
-        : `${partial.name.evaluateSync(staticContext)}`;
+    // Set block scope before descending into child nodes.
+    if (node.blockScope !== undefined) {
+      scope.push(new Set(node.blockScope().map((n) => n.value)));
+    }
+
+    if (node.children !== undefined) {
+      for (const child of await node.children(staticContext)) {
+        visit(child, template, scope, justGlobals);
+      }
+    } else if (node.childrenSync !== undefined) {
+      // Fall back to sync.
+      for (const child of node.childrenSync(staticContext)) {
+        visit(child, template, scope, justGlobals);
+      }
+    }
+
+    if (node.blockScope !== undefined) {
+      scope.pop();
+    }
+
+    // Descend into partial templates?
+    if (options.includePartials && node.partial !== undefined) {
+      const partial = await node.partial(staticContext);
+      const name = partial.template.name;
 
       // If we've seen this partial before but with different arguments,
       // we might want to visit it again but only capture globals.
@@ -331,67 +343,27 @@ export async function analyze(
           ? new StaticScope(new Set(partial.inScope.map((n) => n.value)))
           : rootScope.push(new Set(partial.inScope.map((n) => n.value)));
 
-      if (node.children !== undefined) {
-        for (const child of await node.children(
-          staticContext,
-          options.includePartials,
-        )) {
-          visit(child, name, partialScope, justGlobals_);
-        }
-      } else if (node.childrenSync !== undefined) {
-        // Fall back to sync.
-        for (const child of node.childrenSync(
-          staticContext,
-          options.includePartials,
-        )) {
-          visit(child, name, partialScope, justGlobals_);
-        }
+      for (const node of partial.template.nodes) {
+        if (!isString(node))
+          visit(node, partial.template, partialScope, justGlobals_);
       }
 
-      partialScope.pop();
-    } else {
-      if (node.blockScope !== undefined) {
-        scope.push(new Set(node.blockScope().map((n) => n.value)));
+      if (partial.scopeKind !== Scope.ISOLATED) {
+        partialScope.pop();
       }
-
-      if (node.children !== undefined) {
-        for (const child of await node.children(
-          staticContext,
-          options.includePartials,
-        )) {
-          visit(child, templateName, scope, justGlobals);
-        }
-      } else if (node.childrenSync !== undefined) {
-        // Fall back to sync.
-        for (const child of node.childrenSync(
-          staticContext,
-          options.includePartials,
-        )) {
-          visit(child, templateName, scope, justGlobals);
-        }
-      }
-
-      scope.pop();
     }
   };
 
   for (const node of template.nodes) {
-    if (!isString(node)) visit(node, template.name, rootScope);
+    if (!isString(node)) visit(node, template, rootScope);
   }
-
-  const lines = template.source.split(/(?<=\n)/);
-  if (lines[lines.length - 1] === "") {
-    lines.pop();
-  }
-
-  if (!lines) throw new LiquidError("index is out of bounds");
 
   return new TemplateAnalysis(
-    variables.toObject(template),
-    locals.toObject(template),
-    globals.toObject(template),
-    toLocations(filters, template),
-    toLocations(tags, template),
+    variables.toObject(),
+    locals.toObject(),
+    globals.toObject(),
+    toLocations(filters),
+    toLocations(tags),
   );
 }
 
@@ -421,18 +393,18 @@ export function analyzeSync(
 
   const visit = (
     node: Markup,
-    templateName: string,
+    template: Template,
     scope: StaticScope,
     justGlobals: boolean = false,
   ) => {
-    if (templateName.length && !justGlobals) {
-      seen.get(templateName).add(undefined);
+    if (template.name.length && !justGlobals) {
+      seen.get(template.name).add(undefined);
     }
 
     // Update tags
     // Markup with empty `node.tag` is silenced.
     if (node.tag.length > 0) {
-      tags.get(node.tag).push(new Location(templateName, node.token));
+      tags.get(node.tag).push(new Location(template, node.token));
     }
 
     // Update variables from node.expressions()
@@ -440,7 +412,7 @@ export function analyzeSync(
       for (const expr of node.expressions()) {
         analyzeVariables(
           expr,
-          templateName,
+          template,
           scope,
           globals,
           justGlobals ? new VariableMap() : variables,
@@ -451,7 +423,7 @@ export function analyzeSync(
           // Update filters from expr
           for (const [name, span] of extractFilters(
             expr,
-            templateName,
+            template,
             staticContext,
           )) {
             filters.get(name).push(span);
@@ -465,20 +437,30 @@ export function analyzeSync(
       for (const name of node.templateScope()) {
         scope.add(name.value);
         locals.add(
-          new StaticVariable(
-            [name.value],
-            new Location(templateName, name.token),
-          ),
+          new StaticVariable([name.value], new Location(template, name.token)),
         );
       }
     }
 
-    // Descend into partial templates
-    if (node.partialScope !== undefined) {
-      const partial = node.partialScope();
-      const name = isString(partial.name)
-        ? partial.name
-        : `${partial.name.evaluateSync(staticContext)}`;
+    // Set block scope before descending into child nodes.
+    if (node.blockScope !== undefined) {
+      scope.push(new Set(node.blockScope().map((n) => n.value)));
+    }
+
+    if (node.childrenSync !== undefined) {
+      for (const child of node.childrenSync(staticContext)) {
+        visit(child, template, scope, justGlobals);
+      }
+    }
+
+    if (node.blockScope !== undefined) {
+      scope.pop();
+    }
+
+    // Descend into partial templates?
+    if (options.includePartials && node.partialSync !== undefined) {
+      const partial = node.partialSync(staticContext);
+      const name = partial.template.name;
 
       // If we've seen this partial before but with different arguments,
       // we might want to visit it again but only capture globals.
@@ -496,71 +478,47 @@ export function analyzeSync(
           ? new StaticScope(new Set(partial.inScope.map((n) => n.value)))
           : rootScope.push(new Set(partial.inScope.map((n) => n.value)));
 
-      if (node.childrenSync !== undefined) {
-        for (const child of node.childrenSync(
-          staticContext,
-          options.includePartials,
-        )) {
-          visit(child, name, partialScope, justGlobals_);
-        }
+      for (const node of partial.template.nodes) {
+        if (!isString(node))
+          visit(node, partial.template, partialScope, justGlobals_);
       }
 
-      partialScope.pop();
-    } else {
-      if (node.blockScope !== undefined) {
-        scope.push(new Set(node.blockScope().map((n) => n.value)));
+      if (partial.scopeKind !== Scope.ISOLATED) {
+        partialScope.pop();
       }
-
-      if (node.childrenSync !== undefined) {
-        for (const child of node.childrenSync(
-          staticContext,
-          options.includePartials,
-        )) {
-          visit(child, templateName, scope, justGlobals);
-        }
-      }
-
-      scope.pop();
     }
   };
 
   for (const node of template.nodes) {
-    if (!isString(node)) visit(node, template.name, rootScope);
+    if (!isString(node)) visit(node, template, rootScope);
   }
-
-  const lines = template.source.split(/(?<=\n)/);
-  if (lines[lines.length - 1] === "") {
-    lines.pop();
-  }
-
-  if (!lines) throw new LiquidError("index is out of bounds");
 
   return new TemplateAnalysis(
-    variables.toObject(template),
-    locals.toObject(template),
-    globals.toObject(template),
-    toLocations(filters, template),
-    toLocations(tags, template),
+    variables.toObject(),
+    locals.toObject(),
+    globals.toObject(),
+    toLocations(filters),
+    toLocations(tags),
   );
 }
 
 function* extractFilters(
   expression: Traversable,
-  templateName: string,
+  template: Template,
   staticContext: RenderContext,
 ): Iterable<[string, Location]> {
   if (expression instanceof Filter) {
-    yield [expression.name.value, new Location(templateName, expression.span)];
+    yield [expression.name.value, new Location(template, expression.span)];
   }
 
   for (const expr of expression.children(staticContext)) {
-    yield* extractFilters(expr, templateName, staticContext);
+    yield* extractFilters(expr, template, staticContext);
   }
 }
 
 function analyzeVariables(
   expression: Traversable,
-  templateName: string,
+  template: Template,
   scope: StaticScope,
   globals: VariableMap,
   variables: VariableMap,
@@ -568,8 +526,8 @@ function analyzeVariables(
 ): void {
   if (expression instanceof Variable) {
     const v = new StaticVariable(
-      segments(expression, templateName),
-      new Location(templateName, expression.span),
+      segments(expression, template),
+      new Location(template, expression.span),
     );
 
     variables.add(v);
@@ -583,29 +541,22 @@ function analyzeVariables(
   // affects scope.
 
   for (const expr of expression.children(staticContext)) {
-    analyzeVariables(
-      expr,
-      templateName,
-      scope,
-      globals,
-      variables,
-      staticContext,
-    );
+    analyzeVariables(expr, template, scope, globals, variables, staticContext);
   }
 }
 
-function segments(variable: Variable, templateName: string): Segments {
+function segments(variable: Variable, template: Template): Segments {
   const segments_: Segments = [];
 
   if (variable.root instanceof Variable) {
-    segments_.push(segments(variable.root, templateName));
+    segments_.push(segments(variable.root, template));
   } else {
     segments_.push(variable.root.value);
   }
 
   for (const s of variable.segments) {
     if (s instanceof Variable) {
-      segments_.push(segments(s, templateName));
+      segments_.push(segments(s, template));
     } else {
       segments_.push(s.value);
     }
@@ -614,19 +565,14 @@ function segments(variable: Variable, templateName: string): Segments {
   return segments_;
 }
 
-function toLocations(
-  map: DefaultMap<string, Location[]>,
-  template: Template,
-): Locations {
+function toLocations(map: DefaultMap<string, Location[]>): Locations {
   const obj: Locations = {};
 
   for (const [k, v] of map.entries()) {
     const a: Loc[] = [];
 
     for (const l of v) {
-      const [[startLine, startColumn], [endLine, endColumn]] = l.span(
-        template.lines,
-      );
+      const [[startLine, startColumn], [endLine, endColumn]] = l.span();
 
       a.push({
         startIndex: l.token.start,
@@ -635,8 +581,8 @@ function toLocations(
         startColumn,
         endLine,
         endColumn,
-        value: l.value(template.source),
-        templateName: template.name,
+        value: l.value(),
+        templateName: l.template.name,
       });
     }
 

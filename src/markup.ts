@@ -5,6 +5,7 @@ import type { Expression, Name } from "./expression";
 import { isString } from "./type_guards";
 import type { OutputBuffer } from "./output";
 import { DisabledTagError, ResourceLimitError } from "./errors";
+import type { Template } from "./template";
 
 export type Node = string | Markup | Expression;
 export type Block = Array<string | Markup>;
@@ -12,18 +13,13 @@ export type Block = Array<string | Markup>;
 export interface Markup {
   render(context: RenderContext, buffer: OutputBuffer): Promise<void>;
   renderSync(context: RenderContext, buffer: OutputBuffer): void;
-  children?(
-    staticContext: RenderContext,
-    includePartials: boolean,
-  ): Promise<Markup[]>;
-  childrenSync?(
-    staticContext: RenderContext,
-    includePartials: boolean,
-  ): Markup[];
+  children?(staticContext: RenderContext): Promise<Markup[]>;
+  childrenSync?(staticContext: RenderContext): Markup[];
   expressions?(): Expression[];
   blockScope?(): Name[];
   templateScope?(): Name[];
-  partialScope?(): Partial;
+  partial?(staticContext: RenderContext): Promise<Partial>;
+  partialSync?(staticContext: RenderContext): Partial;
   blank: boolean;
 
   /**
@@ -45,7 +41,7 @@ export const Scope = {
 } as const;
 
 export type Partial = {
-  name: string | Expression;
+  template: Template;
   scopeKind: (typeof Scope)[keyof typeof Scope];
   inScope: Name[];
   key: number;
