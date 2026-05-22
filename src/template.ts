@@ -1,7 +1,12 @@
 import { ReadOnlyChainMap } from "./chain_map";
 import { RenderContext, type Namespace } from "./context";
 import type { Environment, TemplateMeta } from "./environment";
-import { renderBlock, renderBlockSync, type Block } from "./markup";
+import {
+  renderBlock,
+  renderBlockSync,
+  type Block,
+  type Markup,
+} from "./markup";
 import type { OutputBuffer } from "./output";
 import {
   analyze,
@@ -10,6 +15,8 @@ import {
   type Segments,
   type TemplateAnalysis,
 } from "./static_analysis";
+import { CommentTag, DocTag, InlineCommentTag } from "./tags";
+import { isString } from "./type_guards";
 
 export class Template {
   globals: Namespace;
@@ -241,11 +248,201 @@ export class Template {
     );
   }
 
-  // TODO: same for globals
-  // TODO: filterNames
-  // TODO: tagNames
-  // TODO: comments
-  // TODO: docs
+  /**
+   * Return a list of variables used in this template without path segments.
+   *
+   * Excludes variables that are _local_ to the template, like those created
+   * with `{% assign %}` and `{% capture %}`.
+   *
+   * When the `includePartials` option is true, attempt to load and analyze
+   * included/rendered templates too.
+   */
+  async globalVariables(
+    options: AnalysisOptions = { includePartials: true },
+  ): Promise<string[]> {
+    return Array.from(Object.keys((await this.analyze(options)).globals));
+  }
+
+  /**
+   * Return a list of variables used in this template without path segments.
+   *
+   * Excludes variables that are _local_ to the template, like those created
+   * with `{% assign %}` and `{% capture %}`.
+   *
+   * When the `includePartials` option is true, attempt to load and analyze
+   * included/rendered templates too.
+   */
+  globalVariablesSync(
+    options: AnalysisOptions = { includePartials: true },
+  ): string[] {
+    return Array.from(Object.keys(this.analyzeSync(options).globals));
+  }
+
+  async globalVariablePaths(
+    options: AnalysisOptions = { includePartials: true },
+  ): Promise<string[]> {
+    return unique(
+      Object.values((await this.analyze(options)).globals).flatMap((s) =>
+        s.map((v) => v.path),
+      ),
+    );
+  }
+
+  /**
+   * Return a list of variables used in this template including path segments.
+   *
+   * Excludes variables that are _local_ to the template, like those created
+   * with `{% assign %}` and `{% capture %}`.
+   *
+   * When the `includePartials` option is true, attempt to load and analyze
+   * included/rendered templates too.
+   */
+  globalVariablePathsSync(
+    options: AnalysisOptions = { includePartials: true },
+  ): string[] {
+    return unique(
+      Object.values(this.analyzeSync(options).globals).flatMap((s) =>
+        s.map((v) => v.path),
+      ),
+    );
+  }
+
+  /**
+   * Return a list of variables used in this template, each as a list of segments.
+   *
+   * Excludes variables that are _local_ to the template, like those created
+   * with `{% assign %}` and `{% capture %}`.
+   *
+   * When the `includePartials` option is true, attempt to load and analyze
+   * included/rendered templates too.
+   */
+  async globalVariableSegments(
+    options: AnalysisOptions = { includePartials: true },
+  ): Promise<Segments[]> {
+    return unique(
+      Object.values((await this.analyze(options)).globals).flatMap((s) =>
+        s.map((v) => v.segments),
+      ),
+    );
+  }
+
+  /**
+   * Return a list of variables used in this template, each as a list of segments.
+   *
+   * Excludes variables that are _local_ to the template, like those created
+   * with `{% assign %}` and `{% capture %}`.
+   *
+   * When the `includePartials` option is true, attempt to load and analyze
+   * included/rendered templates too.
+   */
+  globalVariableSegmentsSync(
+    options: AnalysisOptions = { includePartials: true },
+  ): Segments[] {
+    return unique(
+      Object.values(this.analyzeSync(options).globals).flatMap((s) =>
+        s.map((v) => v.segments),
+      ),
+    );
+  }
+
+  /**
+   * Return a list of filter names used in this template.
+   */
+  async filterNames(
+    options: AnalysisOptions = { includePartials: true },
+  ): Promise<string[]> {
+    return Object.keys((await this.analyze(options)).filters);
+  }
+
+  /**
+   * Return a list of filter names used in this template.
+   */
+  filterNamesSync(
+    options: AnalysisOptions = { includePartials: true },
+  ): string[] {
+    return Object.keys(this.analyzeSync(options).filters);
+  }
+
+  /**
+   * Return a list of tag names used in this template.
+   */
+  async tagNames(
+    options: AnalysisOptions = { includePartials: true },
+  ): Promise<string[]> {
+    return Object.keys((await this.analyze(options)).tags);
+  }
+
+  /**
+   * Return a list of filter names used in this template.
+   */
+  tagNamesSync(options: AnalysisOptions = { includePartials: true }): string[] {
+    return Object.keys(this.analyzeSync(options).tags);
+  }
+
+  /**
+   * Return a list of comment tag nodes found in this template.
+   *
+   * Instances of `CommentTag` and `InlineCommentTag` have `token` and `text`
+   * properties.
+   *
+   * Note that this method does not try to load included or rendered templates.
+   */
+  comments(): Array<CommentTag | InlineCommentTag> {
+    const context = new RenderContext(this);
+    const nodes: Array<CommentTag | InlineCommentTag> = [];
+
+    const visit = (node: Markup) => {
+      if (node instanceof CommentTag || node instanceof InlineCommentTag) {
+        nodes.push(node);
+      }
+
+      if (node.childrenSync !== undefined) {
+        for (const child of node.childrenSync(context)) {
+          visit(child);
+        }
+      }
+    };
+
+    for (const child of this.nodes) {
+      if (!isString(child)) {
+        visit(child);
+      }
+    }
+
+    return nodes;
+  }
+
+  /**
+   * Return a list of doc tag nodes found in this template.
+   *
+   * Instances of `DocTag` have `token` and `text` properties.
+   *
+   * Note that this method does not try to load included or rendered templates.
+   */
+  docs(): Array<DocTag> {
+    const context = new RenderContext(this);
+    const nodes: Array<DocTag> = [];
+
+    const visit = (node: Markup) => {
+      if (node instanceof DocTag) {
+        nodes.push(node);
+      }
+
+      if (node.childrenSync !== undefined) {
+        for (const child of node.childrenSync(context)) {
+          visit(child);
+        }
+      }
+    };
+
+    for (const child of this.nodes) {
+      if (!isString(child)) {
+        visit(child);
+      }
+    }
+
+    return nodes;
+  }
 }
 
 function unique<T>(a: T[]): T[] {
