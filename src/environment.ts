@@ -34,6 +34,7 @@ import { Nothing } from "./runtime";
 import { stringOutputBufferFactory, type BufferFactory } from "./output";
 import { escape } from "./escape";
 import { ReadOnlyChainMap } from "./chain_map";
+import { EXTENDS_STACK } from "./tags/extends";
 
 export interface _Parser {
   parse(
@@ -193,7 +194,7 @@ export class Environment {
 
   parser: _Parser = LegacyParser;
 
-  persistentRegisters: Set<string> = new Set();
+  persistentRegisters: Set<string | symbol> = new Set([EXTENDS_STACK]);
 
   strictFilters: boolean;
 

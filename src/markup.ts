@@ -6,6 +6,7 @@ import { isString } from "./type_guards";
 import type { OutputBuffer } from "./output";
 import { DisabledTagError, ResourceLimitError } from "./errors";
 import type { Template } from "./template";
+import { STOP_RENDER } from "./tags/extends";
 
 export type Node = string | Markup | Expression;
 export type Block = Array<string | Markup>;
@@ -82,6 +83,9 @@ export async function renderBlock(
     }
 
     if (context.interrupts.length > 0) {
+      if (context.interrupts[context.interrupts.length - 1] === STOP_RENDER) {
+        context.interrupts.pop();
+      }
       break;
     }
 
@@ -129,7 +133,10 @@ export function renderBlockSync(
     }
 
     if (context.interrupts.length > 0) {
-      return;
+      if (context.interrupts[context.interrupts.length - 1] === STOP_RENDER) {
+        context.interrupts.pop();
+      }
+      break;
     }
 
     if (

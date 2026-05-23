@@ -175,7 +175,9 @@ export class RenderContext {
     });
 
     for (const register of this.env.persistentRegisters) {
-      ctx.registers.set(register, this.registers.get(register));
+      if (this.registers.has(register)) {
+        ctx.registers.set(register, this.registers.get(register));
+      }
     }
 
     return ctx;

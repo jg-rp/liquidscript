@@ -1,4 +1,5 @@
 export { AssignTag } from "./assign";
+export { BlockTag } from "./extends";
 export { CaptureTag } from "./capture";
 export { CaseTag } from "./case";
 export { CycleTag } from "./cycle";
@@ -6,6 +7,7 @@ export { CommentTag } from "./comment";
 export { DecrementTag } from "./decrement";
 export { DocTag } from "./doc";
 export { EchoTag } from "./echo";
+export { ExtendsTag } from "./extends";
 export { ForTag, ContinueTag, BreakTag } from "./for";
 export { IfChangedTag } from "./ifchanged";
 export { IfTag } from "./if";
@@ -18,3 +20,4 @@ export { RawTag } from "./raw";
 export { RenderTag } from "./render";
 export { TableRowTag } from "./tablerow";
 export { UnlessTag } from "./unless";
+export { WithTag } from "./with";

@@ -138,6 +138,18 @@ export class NoSuchTemplateError extends DetailedLiquidError {
   }
 }
 
+export class TemplateInheritanceError extends DetailedLiquidError {
+  override get label(): string {
+    return "template inheritance error";
+  }
+}
+
+export class RequiredBlockError extends TemplateInheritanceError {
+  override get label(): string {
+    return "required block error";
+  }
+}
+
 export class TemplateNotFoundError extends LiquidError {}
 export class ResourceLimitError extends LiquidError {}
 export class ContextDepthError extends ResourceLimitError {}
