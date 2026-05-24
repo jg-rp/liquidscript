@@ -263,7 +263,7 @@ export async function analyze(
 
     // Update tags
     // Markup with empty `node.tag` is silenced.
-    if (node.tag.length > 0) {
+    if (!justGlobals && node.tag.length > 0) {
       tags.get(node.tag).push(new Location(template, node.token));
     }
 
@@ -331,25 +331,22 @@ export async function analyze(
       // we might want to visit it again but only capture globals.
       const justGlobals_ = seen.has(name);
 
-      if (seen.get(name).has(partial.key)) {
-        // We've visited this partial template before with the same arguments.
-        return;
-      }
+      if (!seen.get(name).has(partial.key)) {
+        seen.get(name).add(partial.key);
 
-      seen.get(name).add(partial.key);
+        const partialScope =
+          partial.scopeKind === Scope.ISOLATED
+            ? new StaticScope(new Set(partial.inScope.map((n) => n.value)))
+            : rootScope.push(new Set(partial.inScope.map((n) => n.value)));
 
-      const partialScope =
-        partial.scopeKind === Scope.ISOLATED
-          ? new StaticScope(new Set(partial.inScope.map((n) => n.value)))
-          : rootScope.push(new Set(partial.inScope.map((n) => n.value)));
+        for (const node of partial.template.nodes) {
+          if (!isString(node))
+            visit(node, partial.template, partialScope, justGlobals_);
+        }
 
-      for (const node of partial.template.nodes) {
-        if (!isString(node))
-          visit(node, partial.template, partialScope, justGlobals_);
-      }
-
-      if (partial.scopeKind !== Scope.ISOLATED) {
-        partialScope.pop();
+        if (partial.scopeKind !== Scope.ISOLATED) {
+          partialScope.pop();
+        }
       }
     }
   };
@@ -403,7 +400,7 @@ export function analyzeSync(
 
     // Update tags
     // Markup with empty `node.tag` is silenced.
-    if (node.tag.length > 0) {
+    if (!justGlobals && node.tag.length > 0) {
       tags.get(node.tag).push(new Location(template, node.token));
     }
 
@@ -466,25 +463,22 @@ export function analyzeSync(
       // we might want to visit it again but only capture globals.
       const justGlobals_ = seen.has(name);
 
-      if (seen.get(name).has(partial.key)) {
-        // We've visited this partial template before with the same arguments.
-        return;
-      }
+      if (!seen.get(name).has(partial.key)) {
+        seen.get(name).add(partial.key);
 
-      seen.get(name).add(partial.key);
+        const partialScope =
+          partial.scopeKind === Scope.ISOLATED
+            ? new StaticScope(new Set(partial.inScope.map((n) => n.value)))
+            : rootScope.push(new Set(partial.inScope.map((n) => n.value)));
 
-      const partialScope =
-        partial.scopeKind === Scope.ISOLATED
-          ? new StaticScope(new Set(partial.inScope.map((n) => n.value)))
-          : rootScope.push(new Set(partial.inScope.map((n) => n.value)));
+        for (const node of partial.template.nodes) {
+          if (!isString(node))
+            visit(node, partial.template, partialScope, justGlobals_);
+        }
 
-      for (const node of partial.template.nodes) {
-        if (!isString(node))
-          visit(node, partial.template, partialScope, justGlobals_);
-      }
-
-      if (partial.scopeKind !== Scope.ISOLATED) {
-        partialScope.pop();
+        if (partial.scopeKind !== Scope.ISOLATED) {
+          partialScope.pop();
+        }
       }
     }
   };

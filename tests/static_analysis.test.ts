@@ -5,6 +5,7 @@ import {
   type Segments,
   type Vars,
 } from "../src/static_analysis";
+import { BlockTag, ExtendsTag } from "../src/tags";
 
 type Vars_ = Record<string, Array<[Segments, string]>>;
 type Locations_ = Record<string, string[]>;
@@ -897,6 +898,123 @@ endfor %}`;
     expect(() => env.parse(source).analyzeSync()).toThrow(
       TemplateNotFoundError,
     );
+  });
+
+  test("inheritance", () => {
+    const loader = new ObjectLoader({
+      base:
+        "Hello, " +
+        "{% assign x = 'foo' %}" +
+        "{% block content %}{{ x | upcase }}{% endblock %}!" +
+        "{% block foo %}{% endblock %}!",
+      other:
+        "{% extends 'base' %}" +
+        "{% block content %}{{ x | downcase }}{% endblock %}" +
+        "{% block foo %}{% assign z = 7 %}{% endblock %}",
+      some: "{% extends 'other' %}{{ y | append: x }}{% block foo %}{% endblock %}",
+    });
+
+    const env = new Environment({ loader });
+    env.tags["extends"] = ExtendsTag;
+    env.tags["block"] = BlockTag;
+
+    const analysis = env.getTemplateSync("some").analyzeSync();
+
+    const locals: Vars_ = {
+      x: [[["x"], "x"]],
+      z: [[["z"], "z"]],
+    };
+    const globals: Vars_ = {
+      y: [[["y"], "y"]],
+    };
+    const variables: Vars_ = {
+      x: [
+        [["x"], "x"],
+        [["x"], "x"],
+        [["x"], "x"],
+      ],
+      y: [[["y"], "y"]],
+    };
+    const filters: Locations_ = {
+      append: ["append: x"],
+      downcase: ["downcase"],
+      upcase: ["upcase"],
+    };
+    const tags: Locations_ = {
+      assign: ["assign", "assign"],
+      extends: ["extends", "extends"],
+      block: ["block", "block", "block", "block", "block"],
+    };
+
+    expectVars(analysis.locals, locals);
+    expectVars(analysis.globals, globals);
+    expectVars(analysis.variables, variables);
+    expectLocations(analysis.filters, filters);
+    expectLocations(analysis.tags, tags);
+  });
+
+  test("recursive extends", () => {
+    const loader = new ObjectLoader({
+      some: "{% extends 'other' %}",
+      other: "{% extends 'some' %}",
+    });
+
+    const env = new Environment({ loader });
+    env.tags["extends"] = ExtendsTag;
+    env.tags["block"] = BlockTag;
+
+    const analysis = env.getTemplateSync("some").analyzeSync();
+
+    const locals: Vars_ = {};
+    const globals: Vars_ = {};
+    const variables: Vars_ = {};
+    const filters: Locations_ = {};
+    const tags: Locations_ = {
+      extends: ["extends", "extends"],
+    };
+
+    expectVars(analysis.locals, locals);
+    expectVars(analysis.globals, globals);
+    expectVars(analysis.variables, variables);
+    expectLocations(analysis.filters, filters);
+    expectLocations(analysis.tags, tags);
+  });
+
+  test("block.super", () => {
+    const loader = new ObjectLoader({
+      base: "Hello, {% block content %}{{ foo | upcase }}{% endblock %}!",
+      some:
+        "{% extends 'base' %}" +
+        "{% block content %}{{ block.super }}!{% endblock %}",
+    });
+
+    const env = new Environment({ loader });
+    env.tags["extends"] = ExtendsTag;
+    env.tags["block"] = BlockTag;
+
+    const analysis = env.getTemplateSync("some").analyzeSync();
+
+    const locals: Vars_ = {};
+    const globals: Vars_ = {
+      foo: [[["foo"], "foo"]],
+    };
+    const variables: Vars_ = {
+      foo: [[["foo"], "foo"]],
+      block: [[["block", "super"], "block.super"]],
+    };
+    const filters: Locations_ = {
+      upcase: ["upcase"],
+    };
+    const tags: Locations_ = {
+      extends: ["extends"],
+      block: ["block", "block"],
+    };
+
+    expectVars(analysis.locals, locals);
+    expectVars(analysis.globals, globals);
+    expectVars(analysis.variables, variables);
+    expectLocations(analysis.filters, filters);
+    expectLocations(analysis.tags, tags);
   });
 
   // TODO: comment
