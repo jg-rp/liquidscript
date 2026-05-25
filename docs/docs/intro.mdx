@@ -1,0 +1,182 @@
+---
+slug: /
+sidebar_label: Introduction
+sidebar_position: 1
+---
+
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+
+# LiquidScript
+
+LiquidScript is a JavaScript engine for the [Liquid](https://shopify.github.io/liquid/) template language, written in TypeScript. We follow [Shopify/Liquid](https://github.com/Shopify/liquid) closely and test against the [Golden Liquid test suite](https://github.com/jg-rp/golden-liquid).
+
+This page gets you started using Liquid with JavaScript. See [Liquid syntax](./reference/syntax.md), the [filter reference](./reference/filters.md) and the [tag reference](./reference/tags.md) to learn about writing Liquid templates.
+
+## Install
+
+Install LiquidScript using your preferred project manager:
+
+<Tabs groupId="js-package">
+<TabItem value="npm" label="npm">
+
+```bash
+npm install --save liquidscript
+```
+
+</TabItem>
+<TabItem value="yarn" label="yarn">
+
+```bash
+yarn add liquidscript
+```
+
+</TabItem>
+<TabItem value="pnpm" label="pnpm">
+
+```bash
+pnpm add liquidscript
+```
+
+</TabItem>
+<TabItem value="bun" label="bun">
+
+```bash
+bun add liquidscript
+```
+
+</TabItem>
+</Tabs>
+
+And import the module:
+
+<Tabs groupId="js-modules">
+<TabItem value="esm" label="ESM">
+
+```js
+import * as liquid from "liquidscript";
+const template = liquid.parse("Hello, {{ you }}!");
+```
+
+</TabItem>
+<TabItem value="cjs" label="CJS">
+
+```js
+const liquid = require("liquidscript");
+const template = liquid.parse("Hello, {{ you }}!");
+```
+
+</TabItem>
+</Tabs>
+
+Or, without the `liquid` namespace:
+
+<Tabs groupId="js-modules">
+<TabItem value="esm" label="ESM">
+
+```js
+import { parse } from "liquidscript";
+const template = parse("Hello, {{ you }}!");
+```
+
+</TabItem>
+<TabItem value="cjs" label="CJS">
+
+```js
+const { parse } = require("liquidscript");
+const template = parse("Hello, {{ you }}!");
+```
+
+</TabItem>
+</Tabs>
+
+## Browser
+
+Download and include LiquidScript in a script tag:
+
+```html
+<script src="path/to/liquidscript.browser.esm.min.js"></script>
+<script>
+  const template = liquidscript.parse("Hello, {{ you }}!");
+  template.render({ you: "World" }).then(console.log);
+</script>
+```
+
+Or, using a [CDN](https://www.jsdelivr.com/package/npm/liquidscript):
+
+```html
+<script
+  src="https://cdn.jsdelivr.net/npm/liquidscript@2.0.0/dist/liquidscript.browser.esm.min.js"
+  crossorigin="anonymous"
+></script>
+<script>
+  const template = liquidscript.parse("Hello, {{ you }}!");
+  template.render({ you: "World" }).then(console.log);
+</script>
+```
+
+## Quick start
+
+### Render
+
+Render a template using the top-level [`render`](./api/functions/render.md) or [`renderSync`](./api/functions/renderSync.md) functions.
+
+Properties from the object passed to `render()` and `renderSync()` are available for templates to use in Liquid expressions.
+
+```js
+import { render, renderSync } from "liquidscript";
+
+const source = "Hello, {{ you }}!";
+
+// Sync
+console.log(renderSync(source, { you: "World" })); // Hello, World!
+console.log(renderSync(source, { you: "Liquid" })); // Hello, Liquid!
+
+// Async
+render(source, { you: "World" }).then(console.log); // Hello, World!
+render(source, { you: "Liquid" }).then(console.log); // Hello, Liquid!
+
+// Or, using await
+(async () => {
+  console.log(await render(source, { you: "World" })); // Hello, World!
+  console.log(await render(source, { you: "Liquid" })); // Hello, Liquid!
+})();
+```
+
+### Parse
+
+Often you'll want to render the same template several times with different variables. We can parse source text without immediately rendering it using [`parse`](./api/functions/parse.md). `parse()` returns a [`Template`](./api/classes/Template.md) instance with [`render`](./api/classes/Template.md#render) and [`renderSync`](./api/classes/Template.md#renderSync) methods.
+
+```js
+import { parse } from "liquidscript";
+
+const template = parse("Hello, {{ you }}!");
+
+console.log(template.renderSync({ you: "World" })); // Hello, World!
+console.log(template.renderSync({ you: "Liquid" })); // Hello, Liquid!
+
+template.render({ you: "World" }).then(console.log); // Hello, World!
+template.render({ you: "Liquid" }).then(console.log); // Hello, Liquid!
+```
+
+### Configure
+
+Both `parse()` and `render()` are convenience functions that use the [default Liquid environment](./api/variables/DEFAULT_ENVIRONMENT.md). For all but the simplest cases you'll want to configure your own instance of [Environment](./api/classes/Environment.md), then load and render templates from that.
+
+```js
+import { Environment, CachingNodeFileSystemLoader } from "liquidscript";
+
+const env = new Environment({
+  autoEscape: true,
+  loader: new CachingNodeFileSystemLoader("./templates")
+})
+
+const template = env.parse("Hello, {{ you }}!");
+
+// Look for a template called `index.liquid` in the folder `./templates`.
+const anotherTemplate = env.getTemplate("index.liquid");
+```
+
+## What's next?
+
+Read more about configuring your own [Liquid environment](./environment.md), [template loaders](./loaders.md) and managing [context data](./context-data.md).
