@@ -20,7 +20,7 @@ const sidebars = {
       type: "category",
       label: "Getting Started",
       collapsed: false,
-      items: ["intro", "environment", "context-data", "loaders"],
+      items: ["intro", "syntax", "environment", "context-data", "loaders"],
     },
     {
       type: "category",
