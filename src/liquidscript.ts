@@ -3,6 +3,7 @@ import { Environment } from "./environment";
 export { type Namespace } from "./context";
 export { type EnvironmentOptions, type TemplateMeta } from "./environment";
 export { DetailedLiquidError, LiquidError } from "./errors";
+export { type Filter, type FilterContext } from "./filter";
 export {
   CachingNodeFileSystemLoader,
   FetchLoader,
@@ -10,6 +11,14 @@ export {
   NodeFileSystemLoader,
   ObjectLoader,
 } from "./loaders";
+export {
+  renderBlock,
+  renderBlockSync,
+  type Block,
+  type Markup,
+  type Node,
+  type Tag,
+} from "./markup";
 export { Template } from "./template";
 export { Environment };
 

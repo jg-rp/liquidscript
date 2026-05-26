@@ -27,20 +27,33 @@ const source = "{% include 'a' %}{{ y }}";
 
 // console.log(JSON.stringify(env.renderSync(source, data)));
 
-try {
-  const template = env.parse(source, {}, { name: "index.liquid" });
-  console.log(JSON.stringify(template.renderSync()));
-  console.dir(template.analyzeSync(), { depth: null });
-} catch (err) {
-  if (err instanceof DiagnosticError) {
-    console.error(err.render());
-    process.exit(1);
-  }
-  throw err;
-}
+// try {
+//   const template = env.parse(source, {}, { name: "index.liquid" });
+//   console.log(JSON.stringify(template.renderSync()));
+//   console.dir(template.analyzeSync(), { depth: null });
+// } catch (err) {
+//   if (err instanceof DiagnosticError) {
+//     console.error(err.render());
+//     process.exit(1);
+//   }
+//   throw err;
+// }
 
 // const template = env.parse(source);
 
 // console.log(template.variablesSync());
 // console.dir(template.variablePathsSync(), { depth: null });
 // console.log(template.variableSegmentsSync());
+
+class MyEnv extends Environment {
+  override setupFilters() {
+    super.setupFilters();
+    delete this.filters["base64_decode"];
+    delete this.filters["base64_encode"];
+    delete this.filters["base64_url_safe_decode"];
+    delete this.filters["base64_url_safe_encode"];
+  }
+}
+const myEnv = new MyEnv();
+
+console.log(myEnv.filters);

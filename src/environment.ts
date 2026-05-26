@@ -172,7 +172,7 @@ export class Environment {
 
   bufferFactory: BufferFactory;
 
-  filters: { [key: string]: Filter };
+  filters: Record<string, Filter>;
 
   globals: Namespace | undefined;
 
