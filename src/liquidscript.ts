@@ -1,9 +1,11 @@
+import type { Namespace } from "./context";
 import { Environment } from "./environment";
 
 export { type Namespace } from "./context";
 export { type EnvironmentOptions, type TemplateMeta } from "./environment";
 export { DetailedLiquidError, LiquidError } from "./errors";
 export { type Filter, type FilterContext } from "./filter";
+export { TemplateLoader, type TemplateSource } from "./loader";
 export {
   CachingNodeFileSystemLoader,
   FetchLoader,
@@ -21,6 +23,7 @@ export {
 } from "./markup";
 export { Template } from "./template";
 export { Environment };
+export { ReadOnlyChainMap } from "./chain_map";
 
 /**
  * The default Liquid environment including all standard tags and filters, and
@@ -36,10 +39,11 @@ export const DEFAULT_ENVIRONMENT = new Environment();
  * Parse Liquid template `source` using the default environment.
  *
  * @param source Template source code.
+ * @param globals Variables to pin to the resulting template.
  * @returns A new {@link Template}, ready to be rendered.
  */
-export function parse(source: string) {
-  return DEFAULT_ENVIRONMENT.parse(source);
+export function parse(source: string, globals?: Namespace) {
+  return DEFAULT_ENVIRONMENT.parse(source, globals);
 }
 
 /**

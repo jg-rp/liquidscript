@@ -69,7 +69,7 @@ export class Template {
     });
   }
 
-  async render(data?: { [index: string]: unknown }): Promise<string> {
+  async render(data?: Namespace): Promise<string> {
     const buffer = this.env.bufferFactory();
     const context = new RenderContext(this, {
       globals: this.makeGlobals(data),
@@ -78,7 +78,7 @@ export class Template {
     return buffer.join("");
   }
 
-  renderSync(data?: { [index: string]: unknown }): string {
+  renderSync(data?: Namespace): string {
     const buffer = this.env.bufferFactory();
     const context = new RenderContext(this, {
       globals: this.makeGlobals(data),
