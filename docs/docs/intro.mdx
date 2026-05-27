@@ -1,6 +1,6 @@
 ---
 slug: /
-sidebar_label: Introduction
+sidebar_label: Quick start
 sidebar_position: 1
 ---
 
@@ -90,30 +90,21 @@ const template = parse("Hello, {{ you }}!");
 </TabItem>
 </Tabs>
 
-## Browser
+### Browser
 
-Download and include LiquidScript in a script tag:
+Download and import LiquidScript in a script tag with `type="module"`:
 
 ```html
-<script src="path/to/liquidscript.browser.esm.min.js"></script>
-<script>
-  const template = liquidscript.parse("Hello, {{ you }}!");
+<script type="module">
+  import * as liquid from "./liquidscript.browser.esm.min.js";
+
+  const template = liquid.parse("Hello, {{ you }}!");
   template.render({ you: "World" }).then(console.log);
+  template.render({ you: "Liquid" }).then(console.log);
 </script>
 ```
 
-Or, using a [CDN](https://www.jsdelivr.com/package/npm/liquidscript):
-
-```html
-<script
-  src="https://cdn.jsdelivr.net/npm/liquidscript@2.0.0/dist/liquidscript.browser.esm.min.js"
-  crossorigin="anonymous"
-></script>
-<script>
-  const template = liquidscript.parse("Hello, {{ you }}!");
-  template.render({ you: "World" }).then(console.log);
-</script>
-```
+TODO: Or, use a [CDN](https://www.jsdelivr.com/package/npm/liquidscript):
 
 ## Quick start
 

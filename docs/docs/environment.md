@@ -121,7 +121,7 @@ template
 <p>Hello, <em>World!</em></p>
 ```
 
-User-defined types ([drops](./varaibles-and-drops.md#user-defined-types)) can implement [`toHTMLSafeString`](./api/variables/toHTMLSafeString.md) and [`toHTMLSafeStringSync`](./api/variables/toHTMLSafeStringSync.md) to render their string representation without HTML escaping.
+User-defined types ([drops](./variables-and-drops.md)) can implement [`toHTMLSafeString`](./api/variables/toHTMLSafeString.md) and [`toHTMLSafeStringSync`](./api/variables/toHTMLSafeStringSync.md) to render their string representation without HTML escaping.
 
 ```js
 import {
@@ -164,6 +164,42 @@ template.render({ you: new SomeSafeObject() }).then(console.log);
 
 ## Resource limits
 
-For deployments where template authors are untrusted, you can set limits on some resources to avoid malicious templates from consuming too much memory or too many CPU cycles.
+For deployments where template authors are untrusted, you can set limits on some resources to avoid malicious templates from consuming too much memory or too many CPU cycles. If any limit is exceeded, a [`ResourceLimitError`](./api/classes/ResourceLimitError.md) is thrown.
 
-TODO:
+:::note
+
+The following "scores" are non-specific measures of usage modelled on Shopify/liquid resource limits.
+
+These numbers are for illustration purposes. You'll need to do a bit of trial and error to find the limits that work best for you.
+
+:::
+
+```js
+const env = new Environment({
+  // Maximum of 2000 "bytes" assigned with the assign/capture tags per template
+  // or partial template.
+  maxAssignScore: 2000,
+
+  // Maximum of 10,000 "bytes" assigned with the assign/capture tags for the
+  // root template and all partial templates combined.
+  maxAssignScoreCumulative: 10000,
+
+  // Maximum nesting of 30 `for` loops and/or `render` tags, for example.
+  maxContextDepth: 30,
+
+  // Maximum of 1000 nodes (text and markup in the template syntax tree) rendered
+  // per template.
+  maxRenderScore: 1000,
+
+  // Maximum of 5000 nodes (text and markup in the template syntax tree) rendered
+  // for the root template and any rendered partial templates combined.
+  maxRenderScoreCumulative: 5000,
+
+  // Maximum of 15,000 bytes written to the output buffer.
+  maxRenderSize: 15000,
+})
+```
+
+## What's next?
+
+Read about configuring [template loaders](./loaders.md) and handling [undefined variables](./undefined.md).

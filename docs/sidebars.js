@@ -18,21 +18,33 @@ const sidebars = {
   docsSidebar: [
     {
       type: "category",
-      label: "Getting Started",
+      label: "Docs",
       collapsed: false,
-      items: ["intro", "environment", "variables-and-drops", "loaders"],
+      items: [
+        "intro",
+        "environment",
+        "loaders",
+        "variables-and-drops",
+        "undefined",
+        "static-analysis",
+        "guides/custom-filters",
+        "guides/custom-tags",
+        "syntax",
+      ],
     },
+  ],
+  referenceSidebar: [
     {
       type: "category",
-      label: "Guides",
+      label: "Reference",
       collapsed: false,
-      items: ["syntax", "guides/custom-filters", "guides/custom-tags"],
+      items: ["reference/filters", "reference/tags", "reference/extra-tags"],
     },
   ],
   API: [
     {
       type: "category",
-      label: "Typedoc API",
+      label: "API",
       link: {
         type: "doc",
         id: "api/index",

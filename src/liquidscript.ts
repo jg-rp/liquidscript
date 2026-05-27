@@ -6,7 +6,7 @@ export { type Namespace } from "./context";
 export * from "./drop";
 export { HTMLSafeString } from "./drops/html_safe";
 export { type EnvironmentOptions, type TemplateMeta } from "./environment";
-export { DetailedLiquidError, LiquidError } from "./errors";
+export * from "./errors";
 export { type Filter, type FilterContext } from "./filter";
 export { TemplateLoader, type TemplateSource } from "./loader";
 export {

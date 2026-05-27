@@ -14,6 +14,7 @@ dev.mjs
 lib/
 dist/
 coverage/
+tmp/
 
 # 0x profile flame graph
 *.0x/
