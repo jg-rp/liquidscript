@@ -4,8 +4,8 @@ sidebar_label: Introduction
 sidebar_position: 1
 ---
 
-import Tabs from "@theme/Tabs";
 import TabItem from "@theme/TabItem";
+import Tabs from "@theme/Tabs";
 
 # LiquidScript
 
@@ -119,7 +119,7 @@ Or, using a [CDN](https://www.jsdelivr.com/package/npm/liquidscript):
 
 ### Render
 
-Render a template using the top-level [`render`](./api/functions/render.md) or [`renderSync`](./api/functions/renderSync.md) functions.
+Render a template using the top-level [`render()`](./api/functions/render.md) or [`renderSync()`](./api/functions/renderSync.md) functions.
 
 Properties from the object passed to `render()` and `renderSync()` are available for templates to use in Liquid expressions.
 
@@ -145,7 +145,7 @@ render(source, { you: "Liquid" }).then(console.log); // Hello, Liquid!
 
 ### Parse
 
-Often you'll want to render the same template several times with different variables. We can parse source text without immediately rendering it using [`parse`](./api/functions/parse.md). `parse()` returns a [`Template`](./api/classes/Template.md) instance with [`render`](./api/classes/Template.md#render) and [`renderSync`](./api/classes/Template.md#renderSync) methods.
+Often you'll want to render the same template several times with different variables. We can parse source text without immediately rendering it using [`parse()`](./api/functions/parse.md). `parse()` returns a [`Template`](./api/classes/Template.md) instance with [`render`](./api/classes/Template.md#render) and [`renderSync`](./api/classes/Template.md#renderSync) methods.
 
 ```js
 import { parse } from "liquidscript";
@@ -166,17 +166,17 @@ Both `parse()` and `render()` are convenience functions that use the [default Li
 ```js
 import { Environment, CachingNodeFileSystemLoader } from "liquidscript";
 
-const env = new Environment({
+const liquid = new Environment({
   autoEscape: true,
   loader: new CachingNodeFileSystemLoader("./templates")
 })
 
-const template = env.parse("Hello, {{ you }}!");
+const template = liquid.parse("Hello, {{ you }}!");
 
 // Look for a template called `index.liquid` in the folder `./templates`.
-const anotherTemplate = env.getTemplate("index.liquid");
+const anotherTemplate = liquid.getTemplate("index.liquid");
 ```
 
 ## What's next?
 
-Read more about configuring your own [Liquid environment](./environment.md), loading templates with [template loaders](./loaders.md) and managing [context data](./context-data.md).
+Read more about configuring your own [Liquid environment](./environment.md) and loading templates with [template loaders](./loaders.md).

@@ -1,7 +1,10 @@
 import type { Namespace } from "./context";
 import { Environment } from "./environment";
 
+export { ReadOnlyChainMap } from "./chain_map";
 export { type Namespace } from "./context";
+export * from "./drop";
+export { HTMLSafeString } from "./drops/html_safe";
 export { type EnvironmentOptions, type TemplateMeta } from "./environment";
 export { DetailedLiquidError, LiquidError } from "./errors";
 export { type Filter, type FilterContext } from "./filter";
@@ -23,7 +26,6 @@ export {
 } from "./markup";
 export { Template } from "./template";
 export { Environment };
-export { ReadOnlyChainMap } from "./chain_map";
 
 /**
  * The default Liquid environment including all standard tags and filters, and

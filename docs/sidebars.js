@@ -20,13 +20,13 @@ const sidebars = {
       type: "category",
       label: "Getting Started",
       collapsed: false,
-      items: ["intro", "syntax", "environment", "context-data", "loaders"],
+      items: ["intro", "environment", "variables-and-drops", "loaders"],
     },
     {
       type: "category",
       label: "Guides",
       collapsed: false,
-      items: ["guides/custom-filters", "guides/custom-tags"],
+      items: ["syntax", "guides/custom-filters", "guides/custom-tags"],
     },
   ],
   API: [

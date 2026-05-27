@@ -121,3 +121,5 @@ We can include a `-` at the start or end of a tag or output markup to strip prec
 :::note
 
 Fine grained control over when to remove newlines vs indentation is not a standard feature of Liquid templates.
+
+:::
