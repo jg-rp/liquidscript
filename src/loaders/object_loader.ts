@@ -10,7 +10,7 @@ export class ObjectLoader extends TemplateLoader {
 
   constructor(obj?: Record<string, string>) {
     super();
-    this.#obj = obj ?? {};
+    this.#obj = obj ?? Object.create(null);
   }
 
   async getSource(env: Environment, name: string): Promise<TemplateSource> {

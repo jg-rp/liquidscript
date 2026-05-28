@@ -8,9 +8,9 @@ import { TemplateLoader, type TemplateSource } from "../loader";
 export class MapLoader extends TemplateLoader {
   #map: Map<string, string>;
 
-  constructor(obj?: Map<string, string>) {
+  constructor(entries?: Iterable<[string, string]>) {
     super();
-    this.#map = obj ?? new Map();
+    this.#map = new Map(entries);
   }
 
   async getSource(env: Environment, name: string): Promise<TemplateSource> {

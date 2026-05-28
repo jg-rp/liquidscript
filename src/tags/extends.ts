@@ -3,8 +3,10 @@ import { DefaultMap } from "../default_map";
 import { containsSync, dispatch, dispatchSync, Drop } from "../drop";
 import {
   ArgumentError,
+  NoSuchTemplateError,
   RequiredBlockError,
   TemplateInheritanceError,
+  TemplateNotFoundError,
 } from "../errors";
 import {
   Name,
@@ -183,12 +185,25 @@ export class ExtendsTag implements Markup {
 
       seenExtends.add(extendsNode.name.value);
 
-      return await context.env.getTemplate(
-        extendsNode.name.value,
-        {},
-        context,
-        { tag: "extends" },
-      );
+      try {
+        return await context.env.getTemplate(
+          extendsNode.name.value,
+          {},
+          context,
+          { tag: "extends" },
+        );
+      } catch (err) {
+        if (err instanceof TemplateNotFoundError) {
+          // Promote TemplateNotFoundError to NoSuchTemplateError
+          throw new NoSuchTemplateError(
+            err.message,
+            extendsNode.name.span,
+            template_.source,
+            template_.name,
+          );
+        }
+        throw err;
+      }
     };
 
     let nextTemplate = await visit(template);
@@ -267,9 +282,27 @@ export class ExtendsTag implements Markup {
 
       seenExtends.add(extendsNode.name.value);
 
-      return context.env.getTemplateSync(extendsNode.name.value, {}, context, {
-        tag: "extends",
-      });
+      try {
+        return context.env.getTemplateSync(
+          extendsNode.name.value,
+          {},
+          context,
+          {
+            tag: "extends",
+          },
+        );
+      } catch (err) {
+        if (err instanceof TemplateNotFoundError) {
+          // Promote TemplateNotFoundError to NoSuchTemplateError
+          throw new NoSuchTemplateError(
+            err.message,
+            extendsNode.name.span,
+            template_.source,
+            template_.name,
+          );
+        }
+        throw err;
+      }
     };
 
     let nextTemplate = visit(template);

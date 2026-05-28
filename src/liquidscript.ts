@@ -15,6 +15,8 @@ export {
   MapLoader,
   NodeFileSystemLoader,
   ObjectLoader,
+  type NodeFileSystemLoaderOptions,
+  type CachingNodeFileSystemLoaderOptions,
 } from "./loaders";
 export {
   renderBlock,

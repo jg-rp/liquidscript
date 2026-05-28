@@ -1,5 +1,6 @@
 import type { Namespace, RenderContext } from "../context";
 import { ForLoop } from "../drops";
+import { NoSuchTemplateError, TemplateNotFoundError } from "../errors";
 import {
   Name,
   type Expression,
@@ -11,6 +12,7 @@ import { Scope, type Markup, type Partial } from "../markup";
 import type { OutputBuffer } from "../output";
 import type { Parser } from "../parser";
 import { isNothing, Nothing } from "../runtime";
+import type { Template } from "../template";
 import { T, type Token } from "../token";
 import { isArray } from "../type_guards";
 
@@ -119,14 +121,28 @@ export class RenderTag implements Markup {
 
   async render(context: RenderContext, buffer: OutputBuffer): Promise<void> {
     const templateName = `${await this.name.evaluate(context)}`;
+    let template: Template;
 
-    // TODO: promote TemplateNotFoundError to NoSuchTemplateError
-    const template = await context.env.getTemplate(
-      templateName,
-      undefined,
-      context,
-      { tag: "include" },
-    );
+    try {
+      template = await context.env.getTemplate(
+        templateName,
+        undefined,
+        context,
+        { tag: "render" },
+      );
+    } catch (err) {
+      if (err instanceof TemplateNotFoundError) {
+        // Promote TemplateNotFoundError to NoSuchTemplateError
+        throw new NoSuchTemplateError(
+          err.message,
+          this.name.span,
+          context.template.source,
+          context.template.name,
+        );
+      }
+
+      throw err;
+    }
 
     const bindKey =
       this.alias?.value || (template.name.split(".", 1)[0] as string);
@@ -172,14 +188,25 @@ export class RenderTag implements Markup {
 
   renderSync(context: RenderContext, buffer: OutputBuffer): void {
     const templateName = `${this.name.evaluateSync(context)}`;
+    let template: Template;
 
-    // TODO: promote TemplateNotFoundError to NoSuchTemplateError
-    const template = context.env.getTemplateSync(
-      templateName,
-      undefined,
-      context,
-      { tag: "include" },
-    );
+    try {
+      template = context.env.getTemplateSync(templateName, undefined, context, {
+        tag: "render",
+      });
+    } catch (err) {
+      if (err instanceof TemplateNotFoundError) {
+        // Promote TemplateNotFoundError to NoSuchTemplateError
+        throw new NoSuchTemplateError(
+          err.message,
+          this.name.span,
+          context.template.source,
+          context.template.name,
+        );
+      }
+
+      throw err;
+    }
 
     const bindKey =
       this.alias?.value || (template.name.split(".", 1)[0] as string);

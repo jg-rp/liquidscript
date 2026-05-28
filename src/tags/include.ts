@@ -1,4 +1,5 @@
 import type { Namespace, RenderContext } from "../context";
+import { NoSuchTemplateError, TemplateNotFoundError } from "../errors";
 import {
   Name,
   StringLiteral,
@@ -10,6 +11,7 @@ import { Scope, type Markup, type Partial } from "../markup";
 import type { OutputBuffer } from "../output";
 import type { Parser } from "../parser";
 import { isNothing } from "../runtime";
+import type { Template } from "../template";
 import { T, type Token } from "../token";
 import { isArray } from "../type_guards";
 
@@ -122,13 +124,28 @@ export class IncludeTag implements Markup {
       this.name.token,
     );
 
-    // TODO: promote TemplateNotFoundError to NoSuchTemplateError
-    const template = await context.env.getTemplate(
-      templateName,
-      undefined,
-      context,
-      { tag: "include" },
-    );
+    let template: Template;
+
+    try {
+      template = await context.env.getTemplate(
+        templateName,
+        undefined,
+        context,
+        { tag: "include" },
+      );
+    } catch (err) {
+      if (err instanceof TemplateNotFoundError) {
+        // Promote TemplateNotFoundError to NoSuchTemplateError
+        throw new NoSuchTemplateError(
+          err.message,
+          this.name.span,
+          context.template.source,
+          context.template.name,
+        );
+      }
+
+      throw err;
+    }
 
     const bindKey =
       this.alias?.value || (template.name.split(".", 1)[0] as string);
@@ -171,13 +188,25 @@ export class IncludeTag implements Markup {
       this.name.token,
     );
 
-    // TODO: promote TemplateNotFoundError to NoSuchTemplateError
-    const template = context.env.getTemplateSync(
-      templateName,
-      undefined,
-      context,
-      { tag: "include" },
-    );
+    let template: Template;
+
+    try {
+      template = context.env.getTemplateSync(templateName, undefined, context, {
+        tag: "include",
+      });
+    } catch (err) {
+      if (err instanceof TemplateNotFoundError) {
+        // Promote TemplateNotFoundError to NoSuchTemplateError
+        throw new NoSuchTemplateError(
+          err.message,
+          this.name.span,
+          context.template.source,
+          context.template.name,
+        );
+      }
+
+      throw err;
+    }
 
     const bindKey =
       this.alias?.value || (template.name.split(".", 1)[0] as string);

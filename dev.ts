@@ -1,31 +1,9 @@
-import {
-  Drop,
-  Environment,
-  toHTMLSafeStringSync,
-  toLiquidSync,
-} from "./src/liquidscript";
+import { Environment, NodeFileSystemLoader } from "liquidscript";
 
-const liquid = new Environment({ autoEscape: true });
-const template = liquid.parse("<p>Hello, {{ you }}</p>");
+const liquid = new Environment({
+  loader: new NodeFileSystemLoader("./templates/", {
+    fileExtension: ".liquid",
+  }),
+});
 
-class SomeObject extends Drop {
-  [toLiquidSync]() {
-    return "<em>World!</em>";
-  }
-}
-
-class SomeSafeObject extends Drop {
-  [toLiquidSync]() {
-    return "<em>World!</em>";
-  }
-
-  [toHTMLSafeStringSync]() {
-    return "<em>World!</em>";
-  }
-}
-
-// Without toHTMLSafeStringSync
-template.render({ you: new SomeObject() }).then(console.log);
-
-// With toHTMLSafeStringSync
-template.render({ you: new SomeSafeObject() }).then(console.log);
+const template = liquid.getTemplateSync("index");
