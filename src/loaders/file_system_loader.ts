@@ -79,7 +79,6 @@ export class NodeFileSystemLoader extends TemplateLoader {
   }
 
   static upToDateSync(templatePath: string, mtime: number): boolean {
-    console.log("!!", templatePath, mtime);
     try {
       return fsCallback.statSync(templatePath).mtimeMs === mtime;
     } catch {

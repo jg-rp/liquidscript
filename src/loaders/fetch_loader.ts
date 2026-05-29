@@ -1,5 +1,5 @@
 import type { Environment } from "../environment";
-import { TemplateNotFoundError } from "../errors";
+import { LiquidError, TemplateNotFoundError } from "../errors";
 import { TemplateLoader, type TemplateSource } from "../loader";
 
 type RequestCache =
@@ -100,7 +100,7 @@ export class FetchLoader extends TemplateLoader {
   }
 
   getSourceSync(): TemplateSource {
-    throw new Error(
+    throw new LiquidError(
       "synchronous loading is not available when using FetchLoader",
     );
   }

@@ -1,4 +1,4 @@
-import type { Namespace } from "./context";
+import { RenderContext, type Namespace } from "./context";
 import { Environment } from "./environment";
 
 export { ReadOnlyChainMap } from "./chain_map";
@@ -11,12 +11,14 @@ export { type Filter, type FilterContext } from "./filter";
 export { TemplateLoader, type TemplateSource } from "./loader";
 export {
   CachingNodeFileSystemLoader,
+  ChoiceLoader,
   FetchLoader,
   MapLoader,
   NodeFileSystemLoader,
   ObjectLoader,
-  type NodeFileSystemLoaderOptions,
   type CachingNodeFileSystemLoaderOptions,
+  type FetchLoaderOptions,
+  type NodeFileSystemLoaderOptions,
 } from "./loaders";
 export {
   renderBlock,
@@ -28,6 +30,7 @@ export {
 } from "./markup";
 export { Template } from "./template";
 export { Environment };
+export { RenderContext };
 
 /**
  * The default Liquid environment including all standard tags and filters, and

@@ -17,11 +17,6 @@ export type TemplateSource = {
   source: string;
 
   /**
-   * Fully qualified path to `name`.
-   */
-  path?: string;
-
-  /**
    * Additional template global variables.
    */
   overlay?: Namespace;
