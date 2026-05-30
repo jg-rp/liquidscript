@@ -31,6 +31,7 @@ export {
 export { Template } from "./template";
 export { Environment };
 export { RenderContext };
+export { Float, Integer, LiquidNumber } from "./number";
 
 /**
  * The default Liquid environment including all standard tags and filters, and

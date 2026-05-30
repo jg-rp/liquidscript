@@ -24,7 +24,7 @@ const sidebars = {
         "intro",
         "environment",
         "loaders",
-        "variables-and-drops",
+        "data-types-and-drops",
         "undefined",
         "static-analysis",
         "guides/custom-filters",
