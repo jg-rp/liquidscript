@@ -72,7 +72,6 @@ template.render().then(console.log);
 
 The fist argument to `NodeFileSystemLoader` is a path or array of paths to search for files containing template source code. The `fileExtension` [option](./api/type-aliases/NodeFileSystemLoaderOptions.md) is a default file extension appended to the template name if it does not already have an extension.
 
-
 ```js
 import { Environment, NodeFileSystemLoader } from "liquidscript";
 
@@ -142,7 +141,7 @@ const template = liquid.getTemplateSync("layout");
 
 ### `FetchLoader`
 
-[`FetchLoader`](./api/classes/FetchLoader.md) is a template loader that uses the [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) to load templates over a network. It treats response body text a template source code, and serves as a starting point for anyone wishing to implement a custom template loader that needs to parse a JSON formatted response body, for example. 
+[`FetchLoader`](./api/classes/FetchLoader.md) is a template loader that uses the [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) to load templates over a network. It treats response body text a template source code, and serves as a starting point for anyone wishing to implement a custom template loader that needs to parse a JSON formatted response body, for example.
 
 :::note
 
@@ -161,12 +160,11 @@ const liquid = new Environment({
   // Request template source code from https://example.com/templates/index
   const template = await liquid.getTemplate("index");
 })();
-
 ```
 
 ## Custom loaders
 
-You are encouraged to write you own template loaders to read templates from a database or process front-matter, for example. Simply extend [`TemplateLoader`](./api/classes/TemplateLoader.md) and implement `getSource()` and `getSourceSync()`. Both return a [`TemplateSource`](./api/type-aliases/TemplateSource.md) object containing template source text an template meta data.
+You are encouraged to write you own template loaders to read templates from a database or process front-matter, for example. Simply extend [`TemplateLoader`](./api/classes/TemplateLoader.md) and implement `getSource()` and `getSourceSync()`. Both return a [`TemplateSource`](./api/type-aliases/TemplateSource.md) object containing template source text and template meta data.
 
 This example implements a simple front matter loader, which reads data from the start of a file, and template source text from the rest. We inherit from `CachingFileSystemLoader` and assume [`yaml`](https://www.npmjs.com/package/yaml) is installed.
 
@@ -212,7 +210,6 @@ class FrontMatterLoader extends CachingNodeFileSystemLoader {
   }
 }
 ```
-
 
 ### Load context
 

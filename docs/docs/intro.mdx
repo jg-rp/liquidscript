@@ -136,7 +136,7 @@ render(source, { you: "Liquid" }).then(console.log); // Hello, Liquid!
 
 ### Parse
 
-Often you'll want to render the same template several times with different variables. We can parse source text without immediately rendering it using [`parse()`](./api/functions/parse.md). `parse()` returns a [`Template`](./api/classes/Template.md) instance with [`render`](./api/classes/Template.md#render) and [`renderSync`](./api/classes/Template.md#renderSync) methods.
+Often you'll want to render the same template several times with different variables. We can parse source text without immediately rendering it using [`parse()`](./api/functions/parse.md). `parse()` returns a [`Template`](./api/classes/Template.md) instance with [`render()`](./api/classes/Template.md#render) and [`renderSync()`](./api/classes/Template.md#renderSync) methods.
 
 ```js
 import { parse } from "liquidscript";

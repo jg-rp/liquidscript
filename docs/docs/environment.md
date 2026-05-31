@@ -108,7 +108,7 @@ Auto escape and the [`escape`](./reference/filters.md#escape) filter do **not** 
 
 ### HTML safe strings
 
-You can explicitly mark a string a _safe_ by wrapping it in an instance of [`HTMLSafeString`](./api/classes/HTMLSafeString.md). Safe strings are not escaped prior to output (either they are trusted or have already been escaped).
+You can explicitly mark a string as _safe_ by wrapping it in an instance of [`HTMLSafeString`](./api/classes/HTMLSafeString.md). Safe strings are not escaped prior to output (either they are trusted or have already been escaped).
 
 ```js
 import { Environment, HTMLSafeString } from "liquidscript";
