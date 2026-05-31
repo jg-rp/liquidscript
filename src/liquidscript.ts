@@ -34,6 +34,7 @@ export {
   type Tag,
 } from "./markup";
 export { Float, Integer, LiquidNumber } from "./number";
+export * from "./static_analysis";
 export { Template } from "./template";
 export { Environment, RenderContext };
 

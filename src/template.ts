@@ -143,7 +143,7 @@ export class Template {
   }
 
   /**
-   * Return a list of variables used in this template without path segments.
+   * Return an array of variables used in this template without path segments.
    *
    * Includes variables that are _local_ to the template, like those created
    * with `{% assign %}` and `{% capture %}`.
@@ -158,7 +158,7 @@ export class Template {
   }
 
   /**
-   * Return a list of variables used in this template without path segments.
+   * Return an array of variables used in this template without path segments.
    *
    * Includes variables that are _local_ to the template, like those created
    * with `{% assign %}` and `{% capture %}`.
@@ -173,7 +173,7 @@ export class Template {
   }
 
   /**
-   * Return a list of variables used in this template including path segments.
+   * Return an array of variables used in this template including path segments.
    *
    * Includes variables that are _local_ to the template, like those created
    * with `{% assign %}` and `{% capture %}`.
@@ -192,7 +192,7 @@ export class Template {
   }
 
   /**
-   * Return a list of variables used in this template including path segments.
+   * Return an array of variables used in this template including path segments.
    *
    * Includes variables that are _local_ to the template, like those created
    * with `{% assign %}` and `{% capture %}`.
@@ -211,7 +211,7 @@ export class Template {
   }
 
   /**
-   * Return a list of variables used in this template, each as a list of segments.
+   * Return an array of variables used in this template, each as a list of segments.
    *
    * Includes variables that are _local_ to the template, like those created
    * with `{% assign %}` and `{% capture %}`.
@@ -230,7 +230,7 @@ export class Template {
   }
 
   /**
-   * Return a list of variables used in this template, each as a list of segments.
+   * Return an array of variables used in this template, each as a list of segments.
    *
    * Includes variables that are _local_ to the template, like those created
    * with `{% assign %}` and `{% capture %}`.
@@ -249,7 +249,7 @@ export class Template {
   }
 
   /**
-   * Return a list of variables used in this template without path segments.
+   * Return an array of variables used in this template without path segments.
    *
    * Excludes variables that are _local_ to the template, like those created
    * with `{% assign %}` and `{% capture %}`.
@@ -264,7 +264,7 @@ export class Template {
   }
 
   /**
-   * Return a list of variables used in this template without path segments.
+   * Return an array of variables used in this template without path segments.
    *
    * Excludes variables that are _local_ to the template, like those created
    * with `{% assign %}` and `{% capture %}`.
@@ -289,7 +289,7 @@ export class Template {
   }
 
   /**
-   * Return a list of variables used in this template including path segments.
+   * Return an array of variables used in this template including path segments.
    *
    * Excludes variables that are _local_ to the template, like those created
    * with `{% assign %}` and `{% capture %}`.
@@ -308,7 +308,7 @@ export class Template {
   }
 
   /**
-   * Return a list of variables used in this template, each as a list of segments.
+   * Return an array of variables used in this template, each as a list of segments.
    *
    * Excludes variables that are _local_ to the template, like those created
    * with `{% assign %}` and `{% capture %}`.
@@ -327,7 +327,7 @@ export class Template {
   }
 
   /**
-   * Return a list of variables used in this template, each as a list of segments.
+   * Return an array of variables used in this template, each as a list of segments.
    *
    * Excludes variables that are _local_ to the template, like those created
    * with `{% assign %}` and `{% capture %}`.
@@ -346,7 +346,7 @@ export class Template {
   }
 
   /**
-   * Return a list of filter names used in this template.
+   * Return an array of filter names used in this template.
    */
   async filterNames(
     options: AnalysisOptions = { includePartials: true },
@@ -355,7 +355,7 @@ export class Template {
   }
 
   /**
-   * Return a list of filter names used in this template.
+   * Return an array of filter names used in this template.
    */
   filterNamesSync(
     options: AnalysisOptions = { includePartials: true },
@@ -364,7 +364,7 @@ export class Template {
   }
 
   /**
-   * Return a list of tag names used in this template.
+   * Return an array of tag names used in this template.
    */
   async tagNames(
     options: AnalysisOptions = { includePartials: true },
@@ -373,14 +373,14 @@ export class Template {
   }
 
   /**
-   * Return a list of filter names used in this template.
+   * Return an array of filter names used in this template.
    */
   tagNamesSync(options: AnalysisOptions = { includePartials: true }): string[] {
     return Object.keys(this.analyzeSync(options).tags);
   }
 
   /**
-   * Return a list of comment tag nodes found in this template.
+   * Return an array of comment tag nodes found in this template.
    *
    * Instances of `CommentTag` and `InlineCommentTag` have `token` and `text`
    * properties.
@@ -413,7 +413,7 @@ export class Template {
   }
 
   /**
-   * Return a list of doc tag nodes found in this template.
+   * Return an array of doc tag nodes found in this template.
    *
    * Instances of `DocTag` have `token` and `text` properties.
    *

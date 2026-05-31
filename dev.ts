@@ -1,14 +1,19 @@
 import { parse } from "./src/liquidscript";
 
 const template = parse(`\
-Hello, {{ you }}!
-{% assign x = 'foo' | upcase %}
+{% doc %}
+    some doc comment
+{% enddoc %}
 
-{% for ch in x %}
-    - {{ ch }}
-{% endfor %}
+Hello!
 
-Goodbye, {{ you.first_name | capitalize }} {{ you.last_name }}
-Goodbye, {{ you.first_name }} {{ you.last_name }}`);
+{% comment %}
+    some comment
+{% endcomment %}
 
-console.log(template.variableSegmentsSync());
+{% if false %}
+    {% # an inline comment %}
+{% endif %}`);
+
+console.log(template.comments().map((node) => node.text));
+console.log(template.docs().map((node) => node.text));
