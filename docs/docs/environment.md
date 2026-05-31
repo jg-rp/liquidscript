@@ -1,15 +1,19 @@
+---
+sidebar_label: Configuration
+---
+
 # Liquid environments
 
 Template parsing and rendering behavior is configured using an instance of [`Environment`](./api/classes/Environment.md). Once configured, parse templates with [`Environment.parse()`](./api/classes/Environment.md#parse), [`Environment.getTemplate()`](./api/classes/Environment.md#gettemplate) or [`Environment.getTemplateSync()`](./api/classes/Environment.md#gettemplatesync), all of which return an instance of [`Template`](./api/classes/Template.md).
 
-An `Environment` is where you'd register custom [filters](./syntax.md#filters) or [tags](./syntax.md#tags), or define variables that should be available to all templates, for example. 
+An `Environment` is where you'd register custom [filters](./syntax.md#filters) or [tags](./syntax.md#tags), or define variables that should be available to all templates, for example.
 
 ## The default environment
 
 The [default Liquid environment](./api/variables/DEFAULT_ENVIRONMENT.md) and new instances of `Environment` constructed without any arguments is equivalent to passing the following [options](./api/type-aliases/EnvironmentOptions.md) object to the `Environment` constructor.
 
 ```js
-const env = new Environment({
+const liquid = new Environment({
   autoEscape: false,
   globals: {},
   loader: new MapLoader(),
@@ -20,8 +24,8 @@ const env = new Environment({
   maxRenderScoreCumulative: undefined,
   maxRenderSize: undefined,
   strictFilters: true,
-  undefinedType: Undefined
-})
+  undefinedType: Undefined,
+});
 ```
 
 Top-level convenience functions [`parse()`](./api/functions/parse.md), [`render()`](./api/functions/render.md) and [`renderSync()`](./api/functions/renderSync.md) always use the default environment.
@@ -52,7 +56,7 @@ class MyEnv extends Environment {
   }
 }
 
-const env = new MyEnv()
+const env = new MyEnv();
 ```
 
 ## Managing global variables
@@ -70,8 +74,13 @@ If all of the above sources of global data are being used, we end up with someth
 
 ```js
 const locals = Object.create(null); // {% assign %} and {% capture %}
-const globals = new ReadOnlyChainMap(renderArgument, frontMatter, parseArgument, environmentOption)
-const counters = Object.create(null) // {% increment %} and {% decrement %}
+const globals = new ReadOnlyChainMap(
+  renderArgument,
+  frontMatter,
+  parseArgument,
+  environmentOption,
+);
+const counters = Object.create(null); // {% increment %} and {% decrement %}
 const scope = new ReadOnlyChainMap(locals, globals, counters);
 ```
 
@@ -93,7 +102,7 @@ This escaping is equivalent to applying the [`escape` filter](./reference/filter
 
 :::note
 
-Auto escape and the [`escape`](./reference/filters.md#escape) filter do **not** make strings safe for use in JavaScript, including in `<script>` blocks, inline event handler attributes (e.g. `onerror`), or other JavaScript contexts. For those cases, see the [`escapejs`](./reference/filters.md#escapejs) filter instead.  
+Auto escape and the [`escape`](./reference/filters.md#escape) filter do **not** make strings safe for use in JavaScript, including in `<script>` blocks, inline event handler attributes (e.g. `onerror`), or other JavaScript contexts. For those cases, see the [`escapejs`](./reference/filters.md#escapejs) filter instead.
 
 :::
 
@@ -121,7 +130,7 @@ template
 <p>Hello, <em>World!</em></p>
 ```
 
-User-defined types ([drops](./variables-and-drops.md)) can implement [`toHTMLSafeString`](./api/variables/toHTMLSafeString.md) and [`toHTMLSafeStringSync`](./api/variables/toHTMLSafeStringSync.md) to render their string representation without HTML escaping.
+User-defined types ([drops](./data-types-and-drops.md)) can implement [`toHTMLSafeString`](./api/variables/toHTMLSafeString.md) and [`toHTMLSafeStringSync`](./api/variables/toHTMLSafeStringSync.md) to render their string representation without HTML escaping.
 
 ```js
 import {
@@ -197,7 +206,7 @@ const env = new Environment({
 
   // Maximum of 15,000 bytes written to the output buffer.
   maxRenderSize: 15000,
-})
+});
 ```
 
 ## What's next?

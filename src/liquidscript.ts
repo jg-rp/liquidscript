@@ -5,6 +5,11 @@ export { ReadOnlyChainMap } from "./chain_map";
 export { type Namespace } from "./context";
 export * from "./drop";
 export { HTMLSafeString } from "./drops/html_safe";
+export {
+  FalsyStrictUndefined,
+  StrictUndefined,
+  Undefined,
+} from "./drops/undefined";
 export { type EnvironmentOptions, type TemplateMeta } from "./environment";
 export * from "./errors";
 export { type Filter, type FilterContext } from "./filter";
@@ -28,10 +33,9 @@ export {
   type Node,
   type Tag,
 } from "./markup";
-export { Template } from "./template";
-export { Environment };
-export { RenderContext };
 export { Float, Integer, LiquidNumber } from "./number";
+export { Template } from "./template";
+export { Environment, RenderContext };
 
 /**
  * The default Liquid environment including all standard tags and filters, and
