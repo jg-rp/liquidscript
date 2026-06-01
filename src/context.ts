@@ -1,708 +1,590 @@
-import { ForLoopDrop } from "./builtin/drops/forloop";
+import type { Environment } from "./environment";
+import { Nothing } from "./runtime";
+import { Drop } from "./drop";
+import type { Template } from "./template";
 import {
-  chainObjects,
-  chainPop,
-  chainPush,
-  chainSize,
-  Missing,
-  ObjectChain,
-} from "./chain_object";
-import {
-  hasLiquidCallable,
-  isLiquidable,
-  isLiquidableSync,
-  isLiquidCallable,
-  isLiquidDispatchable,
-  isLiquidDispatchableSync,
-  isLiquidPrimitive,
-  liquidDispatch,
-  liquidDispatchSync,
-  LiquidPrimitive,
-  toLiquid,
-  toLiquidPrimitive,
-  toLiquidSync,
-} from "./drop";
-import { Environment } from "./environment";
-import {
-  InternalKeyError,
-  MaxContextDepthError,
-  MaxLocalNamespaceLimitError,
-  MaxLoopIterationLimitError,
-} from "./errors";
-import { Integer, isInteger, isNumberT } from "./number";
-import { Template } from "./template";
-import {
-  ContextScope,
   isArray,
   isFunction,
   isIterable,
   isNumber,
+  isNumeric,
   isObject,
-  isPrimitiveNumber,
   isPropertyKey,
   isString,
-} from "./types";
+} from "./type_guards";
+import type { ForLoop } from "./drops";
+import * as drop from "./drop";
+import type { Expression } from "./expression";
+import { LiquidNumber } from "./number";
+import { ContextDepthError, ResourceLimitError } from "./errors";
+import { ChainPop, ChainPush, ReadOnlyChainMap } from "./chain_map";
 
-export const EXTENDS_REGISTER = Symbol.for("liquid.tags.extends");
-
-export type ContextPath = Array<number | string | LiquidPrimitive>;
+export type Namespace = Record<string, unknown>;
 
 export type RenderContextOptions = {
-  templateName?: string;
-  disabledTags?: Set<string>;
-  copyDepth?: number;
-  loaderContext?: ContextScope;
-  localsScoreCarry?: number;
-  loopIterationCarry?: number;
-  template?: Template;
-};
-
-/**
- * A RenderContext manages template scopes, internal registers and
- * access to the bound environment during the rendering of a template.
- *
- * A new RenderContext is created automatically every time `render()`
- * is called on a `Template`, so you probably don't want to instantiate
- * it directly.
- */
-export class RenderContext {
   /**
-   * A distinct scope for counters set using the `increment` and
-   * `decrement` tags.
+   * Global template variables passed down from the Environment, Template,
+   * Loader and arguments to `.render()` or `.renderSync()`.
    */
-  readonly counters: { [index: string]: number } = {};
-
-  /**
-   * A stack of `ForLoopDrop` objects. Used to populate the `parentloop`
-   * property of a `ForLoopDrop`.
-   */
-  readonly forLoops: ForLoopDrop[] = [];
-
-  /**
-   * A register is a Map used by tags and/or filters to store arbitrary
-   * values that are not available to template authors. Use `getRegister()`
-   * to obtain a named register.
-   */
-  readonly registers = new Map<
-    string | symbol,
-    Map<string | symbol, unknown>
-  >();
-
-  /**
-   * A namespace for variables set using the `assign` or `capture` tags.
-   */
-  private locals: ContextScope = {};
-
-  /**
-   * A non-specific indication of how much the local namespace has been used.
-   */
-  public localsScore: number;
-
-  /**
-   * A loop iteration count carried over from a parent context, if this one has
-   * been copied. This helps us adhere to loop iteration limits in templates
-   * rendered with the `render` tag.
-   */
-  readonly loopIterationCarry: number;
-
-  /**
-   * A chain of scopes. When resolving names, each scope in the chain is
-   * searched in order. If a new scope if pushed on to a RenderContext,
-   * it is pushed to the front if this chain.
-   */
-  readonly scope: ObjectChain;
+  globals?: Namespace;
 
   /**
    * A set of tag names that are disallowed in this render context. For
    * example, the `include` tag is not allowed in templates rendered
    * with the `render` tag.
    */
-  readonly disabledTags: Set<string>;
-
-  /** The name of the template being rendered. Will be `<string>` for
-   * templates parsed using `Environment.fromString()` without being
-   * given a name.
-   */
-  readonly templateName: string;
+  disabledTags?: Set<string>;
 
   /**
-   * The `Template` being rendered by this render context.
+   * The number of times this render context has been copied or extended. This
+   * helps us guard against recursive use of `include` and `render` tags.
    */
-  public template?: Template;
+  contextDepth?: number;
 
   /**
-   * The number of times this render context has been copied or
-   * extended. This helps us guard against recursive use of `include`
-   * or `render` tags.
+   * The cumulative assign score (approximate bytes in the local scope) carried
+   * from parent render contexts.
    */
-  private copyDepth: number;
+  assignScoreCarry?: number;
 
   /**
-   * An object containing arbitrary properties passed down from a
-   * template loader. The properties of this object are not intended
-   * to be accessible by template authors.
+   * The cumulative render score (nodes rendered) carried from parent render
+   * contexts.
    */
-  readonly loaderContext: ContextScope;
+  renderScoreCarry?: number;
 
   /**
-   *
-   * @param environment - The environment from which this context was created.
-   * @param globals - Global template variables, passed down from the
-   * Environment, Template, Loader and arguments to `.render()`.
-   * @param options - Extra render context options.
+   * The cumulative write score (bytes written) carried from parent render
+   * contexts.
    */
-  constructor(
-    readonly environment: Environment,
-    private globals: ContextScope = {},
-    {
-      disabledTags,
-      templateName,
-      copyDepth,
-      loaderContext,
-      localsScoreCarry,
-      loopIterationCarry,
-      template,
-    }: RenderContextOptions = {},
-  ) {
-    this.disabledTags = disabledTags ?? new Set();
-    this.templateName = templateName ?? "<string>";
+  writeScoreCarry?: number;
+};
+
+export type ContextCopyOptions = {
+  blockScope?: boolean;
+  disabledTags?: Set<string>;
+  template?: Template;
+};
+
+export class RenderContext {
+  assignScore: number = 0;
+
+  assignScoreCumulative: number;
+
+  private contextDepth: number;
+
+  private counters: Namespace = Object.create(null);
+
+  readonly disabledTags: Set<string> | undefined;
+
+  readonly env: Environment;
+
+  readonly forloops: ForLoop[] = [];
+
+  private globals: Namespace;
+
+  readonly interrupts: symbol[] = [];
+
+  private locals: Namespace = Object.create(null);
+
+  /**
+   * Namespaces supporting stateful tags. It's OK to use this map for storing
+   * custom tag state.
+   */
+  readonly registers = new Map<string | symbol, unknown>();
+
+  renderScore: number = 0;
+
+  renderScoreCumulative: number;
+
+  private scopes: ReadOnlyChainMap;
+
+  template: Template;
+
+  writeScore: number;
+
+  constructor(template: Template, options?: RenderContextOptions) {
     this.template = template;
-    this.copyDepth = copyDepth ?? 0;
-    this.localsScore = localsScoreCarry ?? 0;
-    this.loaderContext = loaderContext ?? {};
-    this.loopIterationCarry = loopIterationCarry ?? 1;
-    // Scopes are searched in this order.
-    this.scope = chainObjects(
+    this.env = template.env;
+
+    // Scopes are searched from right to left. New scopes are push on the right.
+    this.globals = options?.globals ?? {};
+
+    // NOTE: The use of ReadOnlyChainMap instead of an array and merge approach
+    // results in a significant performance penalty for small scopes. We're
+    // expecting that penalty to be less or reversed for larger, real world
+    // scopes, and keeping it so developers can manipulate nested namespaces
+    // after they've been "merged".
+    this.scopes = new ReadOnlyChainMap(
       this.locals,
       this.globals,
       BuiltIn,
       this.counters,
     );
+
+    this.disabledTags = options?.disabledTags;
+    this.contextDepth = options?.contextDepth ?? 0;
+    this.assignScoreCumulative = options?.assignScoreCarry ?? 0;
+    this.renderScoreCumulative = options?.renderScoreCarry ?? 0;
+    this.writeScore = options?.writeScoreCarry ?? 0;
   }
 
-  /**
-   * Assign or re-assign a template local variable, probably from either the
-   * `assign` or `capture` tags.
-   * @param key - The name of the template local variable.
-   * @param value - The value of the template local variable.
-   */
-  public assign(key: string, value: unknown): void {
-    if (this.environment.localNamespaceLimit > -1) {
-      this.localsScore += this.assignScore(key, value);
-      if (this.localsScore > this.environment.localNamespaceLimit) {
-        throw new MaxLocalNamespaceLimitError("local namespace limit reached");
-      }
-    }
-    this.locals[key] = value;
-  }
-
-  /**
-   * Return a size or score for the key and/or value to contribute to the local
-   * namespace score. Override this to control how the local namespace score is
-   * calculated.
-   */
-  public assignScore(key: string, value: unknown): number {
-    return _assignScore(value);
-  }
-
-  /**
-   * Resolve a template variable by searching the scope chain. Unlike `get`,
-   * `resolve` performs a single, top level search of the scope chain. It
-   * does not expect a dotted or bracketed identifier.
-   * @param name - The name of the template variable to resolve.
-   * @returns The value stored against the given name, or an instance of
-   * the `Undefined` class defined on the attached environment.
-   */
-  public async resolve(name: string): Promise<unknown> {
-    const value = this.scope[name];
-    if (value === Missing) return this.environment.undefinedFactory(name);
-    return isLiquidable(value) ? value[toLiquid](this) : value;
-  }
-
-  public resolveSync(name: string): unknown {
-    const value = this.scope[name];
-    if (value === Missing) return this.environment.undefinedFactory(name);
-    return isLiquidableSync(value) ? value[toLiquidSync](this) : value;
-  }
-
-  /**
-   * Search the current scope for a template variable and, if found, follow
-   * the given path. This is a bit like resolving a JSONPath expression.
-   * @param name - The name of the template variable to resolve.
-   * @param path - An optional array of path elements to follow.
-   * @param missing - A default value used if the name and path fail to find
-   * a value.
-   * @returns The value at `path`, starting from the given name, or `missing`
-   * otherwise. If `missing` is not given, an instance of the `Undefined`
-   * class defined on the attached environment will be used.
-   */
-  public async get(
-    name: string,
-    path?: ContextPath,
-    missing: unknown = Missing,
-  ): Promise<unknown> {
-    let obj = await this.resolve(name);
-    if (!path || !path.length) return obj;
-
-    for (const item of path) {
-      try {
-        obj = await getItem(obj, item);
-        if (isLiquidable(obj)) obj = await obj[toLiquid](this);
-      } catch (error) {
-        if (error instanceof InternalKeyError) {
-          if (missing !== Missing) return missing;
-          return this.environment.undefinedFactory(`${item}`);
-        }
-        throw error;
+  assign(name: string, value: unknown): void {
+    if (this.env.maxAssignScore || this.env.maxAssignScoreCumulative) {
+      const score = assignScoreOf(value);
+      this.assignScore += score;
+      this.assignScoreCumulative += score;
+      if (
+        (this.env.maxAssignScore &&
+          this.assignScore > this.env.maxAssignScore) ||
+        (this.env.maxAssignScoreCumulative &&
+          this.assignScoreCumulative > this.env.maxAssignScoreCumulative)
+      ) {
+        throw new ResourceLimitError("memory limits exceeded");
       }
     }
 
-    return obj;
+    this.locals[name] = value;
   }
 
   /**
-   * A synchronous version of `RenderContext.get()`.
-   * @see {@link get}
-   */
-  public getSync(
-    name: string,
-    path?: ContextPath,
-    missing: unknown = Missing,
-  ): unknown {
-    let obj = this.resolveSync(name);
-    if (!path || !path.length) return obj;
-
-    for (const item of path) {
-      try {
-        obj = getItemSync(obj, item);
-        if (isLiquidableSync(obj)) obj = obj[toLiquidSync](this);
-      } catch (error) {
-        if (error instanceof InternalKeyError) {
-          if (missing !== Missing) return missing;
-          return this.environment.undefinedFactory(`${item}`);
-        }
-        throw error;
-      }
-    }
-
-    return obj;
-  }
-
-  /**
-   * A convenience method for loading a template from the attached environment.
-   * @param name - The name or identifier of the template to load.
-   * @param loaderContext - Additional, arbitrary data that a loader can use
-   * to scope or otherwise narrow its search space.
-   * @returns A `Template`, ready to be rendered.
-   * @throws `NoSuchTemplateError` if a template with the given name can not
-   * be found.
-   */
-  public async getTemplate(
-    name: string,
-    loaderContext: { [index: string]: unknown },
-  ): Promise<Template> {
-    return this.environment.getTemplate(
-      name,
-      undefined,
-      this,
-      this.makeLoaderContext(loaderContext),
-    );
-  }
-
-  /**
-   * A synchronous version of `RenderContext.getTemplate()`.
-   * @see {@link getTemplate}
-   */
-  public getTemplateSync(
-    name: string,
-    loaderContext: { [index: string]: unknown } = {},
-  ): Template {
-    return this.environment.getTemplateSync(
-      name,
-      undefined,
-      this,
-      this.makeLoaderContext(loaderContext),
-    );
-  }
-
-  /**
-   * Merge a loader context object with the loader context already stored
-   * in this render context.
-   */
-  protected makeLoaderContext(loaderContext: ContextScope): ContextScope {
-    return { ...this.loaderContext, ...loaderContext };
-  }
-
-  /**
-   * Fetch a render context register, creating one if it does not exist.
+   * Return a new render context with render state from this context.
    *
-   * A register is a place for tags and/or filters to store arbitrary data,
-   * without leaking said data into the template scope.
-   * @param key - An identifier for the register.
-   * @returns A register.
+   * The caller is responsible for updating renderScoreCumulative when the new
+   * context is no longer needed.
    */
-  public getRegister(key: string | symbol): Map<string | symbol, unknown> {
-    let reg = this.registers.get(key);
-    if (reg === undefined) {
-      reg = new Map();
-      this.registers.set(key, reg);
-    }
-    return reg;
-  }
-
-  public raiseForLoopLimit(length: number = 1): void {
-    if (
-      this.environment.loopIterationLimit > -1 &&
-      this.forLoops
-        .map((loop) => loop.length)
-        .reduce((a, b) => a * b, length * this.loopIterationCarry) >
-        this.environment.loopIterationLimit
-    ) {
-      throw new MaxLoopIterationLimitError("loop iteration limit reached");
-    }
-  }
-
-  /**
-   * Create a new context by copying and extending this one with the given scope.
-   * @param scope - A scope with which to extend the current context.
-   * @param disabledTags - The names of any tags that should be disallowed in
-   * the new context.
-   * @param carryLoopIterations - If true, carry the loop iteration counter.
-   * @param blockScope - If true, include context locals in the copy.
-   * @param template - Optionally attach a new template to the returned copy.
-   * @returns An extended copy of this context.
-   */
-  public copy(
-    scope: ContextScope,
-    disabledTags: Iterable<string>,
-    carryLoopIterations: boolean = false,
-    blockScope: boolean = false,
-    template?: Template,
+  copy(
+    namespace: Record<string, unknown>,
+    options: ContextCopyOptions = {},
   ): RenderContext {
-    if (this.copyDepth + 1 > this.environment.maxContextDepth)
-      throw new MaxContextDepthError(
-        "maximum context depth reached, possible recursive render",
-      );
+    this.throwForContextDepth();
+    let globals: Namespace;
 
-    const loopIterationCarry = carryLoopIterations
-      ? this.forLoops
-          .map((loop) => loop.length)
-          .reduce((a, b) => a * b, this.loopIterationCarry)
-      : 1;
-
-    let ctx: RenderContext;
-
-    if (blockScope) {
-      ctx = new RenderContext(
-        this.environment,
-        chainObjects(scope, this.scope), // include locals
-        {
-          templateName: this.templateName,
-          disabledTags: new Set(disabledTags),
-          copyDepth: this.copyDepth + 1,
-          localsScoreCarry: this.localsScore,
-          loopIterationCarry,
-        },
-      );
-      // XXX: bit of a hack
-      ctx.registers.set(EXTENDS_REGISTER, this.getRegister(EXTENDS_REGISTER));
+    if (options.blockScope) {
+      globals = new ReadOnlyChainMap(namespace, this.scopes);
     } else {
-      ctx = new RenderContext(
-        this.environment,
-        chainObjects(scope, this.globals),
-        {
-          templateName: this.templateName,
-          disabledTags: new Set(disabledTags),
-          copyDepth: this.copyDepth + 1,
-          localsScoreCarry: this.localsScore,
-          loopIterationCarry,
-        },
-      );
+      globals = new ReadOnlyChainMap(namespace, this.globals);
     }
 
-    ctx.template = template || this.template;
+    const ctx = new RenderContext(options.template ?? this.template, {
+      disabledTags: options.disabledTags,
+      globals,
+      contextDepth: this.contextDepth + 1,
+      assignScoreCarry: this.assignScoreCumulative,
+      renderScoreCarry: this.renderScoreCumulative,
+    });
+
+    for (const register of this.env.persistentRegisters) {
+      if (this.registers.has(register)) {
+        ctx.registers.set(register, this.registers.get(register));
+      }
+    }
+
     return ctx;
   }
 
-  /**
-   * Extend the current scope for the duration of the given callback function.
-   *
-   * @param scope - Variables with which to extend the
-   * @param callback - A function to call with the extended scope.
-   * @returns The callback functions return value.
-   */
-  public async extend<T>(
-    scope: ContextScope,
-    callback: () => T,
+  decrement(name: string): number {
+    let val = this.counters[name] as number | undefined;
+
+    if (val === undefined) {
+      val = 0;
+    }
+
+    val -= 1;
+    this.counters[name] = val;
+    return val;
+  }
+
+  async extend(
+    namespace: Record<string, unknown>,
+    callback: () => Promise<void>,
     template?: Template,
-  ): Promise<T> {
-    if (this.scope[chainSize]() > this.environment.maxContextDepth)
-      throw new MaxContextDepthError("maximum context depth reached");
+  ) {
+    this.throwForContextDepth();
 
-    const _template = this.template;
-    if (template !== undefined) this.template = template;
+    const originalAssignScore = this.assignScore;
+    const originalRenderScore = this.renderScore;
+    const originalTemplate = this.template;
+    if (template) {
+      this.template = template;
+    }
 
-    this.scope[chainPush](scope);
+    this.scopes[ChainPush](namespace);
+    this.contextDepth += 1;
+    this.assignScore = 0;
+    this.renderScore = 0;
+
     try {
       return await callback();
     } finally {
-      if (template !== undefined) this.template = _template;
-      this.scope[chainPop]();
+      if (template) this.template = originalTemplate;
+      this.scopes[ChainPop]();
+      this.contextDepth -= 1;
+      this.assignScore = originalAssignScore;
+      this.renderScore = originalRenderScore;
     }
   }
 
-  /**
-   * A synchronous version of {@link extend}.
-   */
-  public extendSync<T>(
-    scope: ContextScope,
-    callback: () => T,
+  extendSync(
+    namespace: Record<string, unknown>,
+    callback: () => void,
     template?: Template,
-  ): T {
-    if (this.scope[chainSize]() > this.environment.maxContextDepth)
-      throw new MaxContextDepthError("maximum context depth reached");
+  ) {
+    this.throwForContextDepth();
 
-    const _template = this.template;
-    if (template !== undefined) this.template = template;
+    const originalAssignScore = this.assignScore;
+    const originalRenderScore = this.renderScore;
+    const originalTemplate = this.template;
+    if (template) {
+      this.template = template;
+    }
 
-    this.scope[chainPush](scope);
+    this.scopes[ChainPush](namespace);
+    this.contextDepth += 1;
+    this.assignScore = 0;
+    this.renderScore = 0;
+
     try {
       return callback();
     } finally {
-      if (template !== undefined) this.template = _template;
-      this.scope[chainPop]();
+      if (template) this.template = originalTemplate;
+      this.scopes[ChainPop]();
+      this.contextDepth -= 1;
+      this.assignScore = originalAssignScore;
+      this.renderScore = originalRenderScore;
     }
   }
-}
 
-/**
- * Get a property of an object while adhering to Liquid semantics.
- * @param obj - An object that may or may not implement some of the Drop
- * protocol.
- * @param item - The item to get from the object.
- * @returns An unknown value.
- * @throws InternalKeyError if the item does not exist on the object or
- * is not allowed in Liquid.
- */
-// eslint-disable-next-line sonarjs/cognitive-complexity
-export function getItemSync(obj: unknown, item: unknown): unknown {
-  if (obj === null) throw new InternalKeyError(`can't get property of null`);
-  if (item === null) throw new InternalKeyError(`can't read null property`);
-
-  // `toLiquidPrimitive` is part of the Drop protocol. If defined, an
-  // object can be used as an array index, or compared to to a boolean,
-  // for example.
-  if (isLiquidPrimitive(item)) item = item[toLiquidPrimitive]();
-
-  if (!isPropertyKey(item))
-    throw new InternalKeyError(`${item} is not a valid property key`);
-
-  // Special, built-in properties.
-  if (item === "size") return getSize(obj);
-  if (item === "first") return getFirst(obj);
-  if (item === "last") return getLast(obj);
-
-  // Access arrays using positive or negative integers, or enumerable
-  // properties set on array sub classes.
-  if (isArray(obj)) {
-    // Integers are OK
-    if (isNumber(item) && item < 0) {
-      return obj[item + obj.length];
+  getRegister<V>(key: string | symbol, defaultFactory: () => V): V {
+    if (!this.registers.has(key)) {
+      this.registers.set(key, defaultFactory());
     }
 
-    // .length is not OK
-    if (Object.propertyIsEnumerable.call(obj, item)) {
-      return Reflect.get(obj, item);
-    }
-
-    throw new InternalKeyError(
-      `can't read non-enumerable property '${String(item)}' of Array`,
-    );
+    return this.registers.get(key) as V;
   }
 
-  if (typeof obj === "object") {
-    if (item === "__proto__" || item === "constructor") {
-      throw new InternalKeyError(`can't access property '${item}'`);
+  increment(name: string): number {
+    let val = this.counters[name] as number | undefined;
+
+    if (val === undefined) {
+      val = 0;
     }
 
-    if (item in obj) {
-      const result = obj[item as keyof typeof obj] as unknown;
-      // Functions will only be called if they are explicitly whitelisted.
-      if (isFunction(result)) {
-        // `liquidCallable` is part of the Drop protocol. If defined it
-        // should return `true` if the given function name is allowed
-        // to be called.
-        if (hasLiquidCallable(obj) && obj[isLiquidCallable](item))
-          return Reflect.apply(result, obj, []);
+    this.counters[name] = val + 1;
+    return val;
+  }
 
-        // Pretend the function does not exist.
-        throw new InternalKeyError(
-          `function '${String(item)}' is not liquid callable`,
-        );
+  /**
+   * Lookup `name` in the current scope. Return the special `Nothing` value if
+   * `name` is not defined.
+   */
+  resolve(name: string): unknown {
+    return this.scopes[name];
+  }
+
+  /**
+   * Follow path segments starting at `obj`. If the path from `obj` does not
+   * exist, the special `Nothing` value is returned along with the index of
+   * the last segment to be successfully resolved.
+   */
+  async resolvePath(
+    obj: unknown,
+    segments: unknown[],
+  ): Promise<[unknown, number]> {
+    let segmentIndex = -1;
+
+    for (let segment of segments) {
+      segmentIndex += 1;
+
+      if (segment instanceof LiquidNumber) {
+        segment = segment.valueOf();
       }
-      return result;
-    } else if (isLiquidDispatchableSync(obj)) {
-      return obj[liquidDispatchSync](item);
-    }
-  }
 
-  throw new InternalKeyError(`${obj}[${String(item)}]`);
-}
+      if (obj instanceof Drop) {
+        if (segment instanceof Drop) {
+          segment = await segment[drop.toLiquid]("string", this);
+        }
 
-// TODO: Refactor to avoid duplicated code. The only difference between
-// getItem and getItemSync is the calls to liquidDispatch and liquidDispatchSync.
+        if (isProperty(obj, segment)) {
+          const prop = obj[segment];
 
-/**
- * An asynchronous version of `getItemSync()`.
- */
-// eslint-disable-next-line sonarjs/cognitive-complexity
-async function getItem(obj: unknown, item: unknown): Promise<unknown> {
-  if (obj === null) throw new InternalKeyError(`can't get property of null`);
-  if (item === null) throw new InternalKeyError(`can't read null property`);
+          if (isFunction(prop)) {
+            if (obj[drop.isInvocable](segment)) {
+              obj = Reflect.apply(prop, obj, []);
+            } else {
+              obj = Nothing;
+            }
+          } else {
+            obj = prop;
+          }
+        } else if (isString(segment)) {
+          obj = await obj[drop.dispatch](segment, this);
+        } else {
+          obj = Nothing;
+        }
+      } else if (isArray(obj)) {
+        if (segment instanceof Drop) {
+          segment = await segment[drop.toLiquid]("numeric", this);
+        }
 
-  // `toLiquidPrimitive` is part of the Drop protocol. If defined, an
-  // object can be used as an array index, or compared to to a boolean,
-  // for example.
-  if (isLiquidPrimitive(item)) item = item[toLiquidPrimitive]();
+        obj = resolveArraySegment(obj, segment);
+      } else if (isString(obj)) {
+        obj = resolveStringSegment(obj, segment);
+      } else if (isObject(obj)) {
+        if (segment instanceof Drop) {
+          segment = await segment[drop.toLiquid]("data", this);
+        }
 
-  if (!isPropertyKey(item))
-    throw new InternalKeyError(`${item} is not a valid property key`);
-
-  // Special, built-in properties.
-  if (item === "size") return getSize(obj);
-  if (item === "first") return getFirst(obj);
-  if (item === "last") return getLast(obj);
-
-  // Access arrays using positive or negative integers, or enumerable
-  // properties set on array sub classes.
-  if (isArray(obj)) {
-    // Integers are OK
-    if (isNumber(item) && item < 0) {
-      return obj[item + obj.length];
-    }
-
-    // .length is not OK
-    if (Object.propertyIsEnumerable.call(obj, item)) {
-      return Reflect.get(obj, item);
-    }
-
-    throw new InternalKeyError(
-      `can't read non-enumerable property '${String(item)}' of Array`,
-    );
-  }
-
-  if (typeof obj === "object") {
-    if (item === "__proto__" || item === "constructor") {
-      throw new InternalKeyError(`can't access property '${item}'`);
-    }
-
-    if (item in obj) {
-      const result = obj[item as keyof typeof obj] as unknown;
-      // Functions will only be called if they are explicitly whitelisted.
-      if (isFunction(result)) {
-        // `liquidCallable` is part of the Drop protocol. If defined it
-        // should return `true` if the given function name is allowed
-        // to be called.
-        if (hasLiquidCallable(obj) && obj[isLiquidCallable](item))
-          return Reflect.apply(result, obj, []);
-
-        // Pretend the function does not exist.
-        throw new InternalKeyError(
-          `function '${String(item)}' is not liquid callable`,
-        );
+        obj = resolveObjectSegment(obj, segment);
+      } else {
+        obj = resolveUnknownSegment(obj, segment);
       }
-      return result;
-    } else if (isLiquidDispatchable(obj)) {
-      return obj[liquidDispatch](item);
-    } else if (isLiquidDispatchableSync(obj)) {
-      return obj[liquidDispatchSync](item);
+
+      if (obj === Nothing) return [Nothing, segmentIndex];
     }
+
+    return [obj, segmentIndex];
   }
 
-  throw new InternalKeyError(`${obj}[${String(item)}]`);
-}
+  /**
+   * A sync version of `resolvePath`. The only difference is the handling of
+   * the async Drop protocol.
+   */
+  resolvePathSync(obj: unknown, segments: unknown[]): [unknown, number] {
+    let segmentIndex = -1;
 
-function getSize(obj: unknown): number | Integer {
-  if (isNumberT(obj) || isPrimitiveNumber(obj)) {
-    // XXX: This is not necessarily the case for wrapped decimal numbers
-    return 8;
-  } else if (isArray(obj) || isString(obj)) {
-    return obj.length;
-  } else if (isObject(obj)) {
-    if ("size" in obj) {
-      const size = Reflect.get(obj, "size");
-      if (isPrimitiveNumber(size) || isInteger(size)) {
-        return size;
+    for (let segment of segments) {
+      segmentIndex += 1;
+
+      if (segment instanceof LiquidNumber) {
+        segment = segment.valueOf();
       }
-    } else {
-      return Object.keys(obj).length;
+
+      if (obj instanceof Drop) {
+        if (segment instanceof Drop) {
+          segment = segment[drop.toLiquidSync]("string", this);
+        }
+
+        if (isProperty(obj, segment)) {
+          const prop = obj[segment];
+
+          if (isFunction(prop)) {
+            if (obj[drop.isInvocable](segment)) {
+              obj = Reflect.apply(prop, obj, []);
+            } else {
+              obj = Nothing;
+            }
+          } else {
+            obj = prop;
+          }
+        } else if (isString(segment)) {
+          obj = obj[drop.dispatchSync](segment, this);
+        } else {
+          obj = Nothing;
+        }
+      } else if (isArray(obj)) {
+        if (segment instanceof Drop) {
+          segment = segment[drop.toLiquidSync]("numeric", this);
+        }
+
+        obj = resolveArraySegment(obj, segment);
+      } else if (isString(obj)) {
+        obj = resolveStringSegment(obj, segment);
+      } else if (isObject(obj)) {
+        if (segment instanceof Drop) {
+          segment = segment[drop.toLiquidSync]("string", this);
+        }
+
+        obj = resolveObjectSegment(obj, segment);
+      } else {
+        obj = resolveUnknownSegment(obj, segment);
+      }
+
+      if (obj === Nothing) return [Nothing, segmentIndex];
+    }
+
+    return [obj, segmentIndex];
+  }
+
+  private throwForContextDepth(): void {
+    if (this.contextDepth + 1 > this.env.maxContextDepth) {
+      throw new ContextDepthError(
+        "maximum context depth reached, possible recursive render",
+      );
     }
   }
-  throw new InternalKeyError(`${obj}[size]`);
-}
 
-// TODO: First/Last of Map?
-
-function getFirst(obj: unknown): unknown {
-  // First of a string is not supported.
-  if (isString(obj)) return null;
-  if (isObject(obj) && "first" in obj) return Reflect.get(obj, "first");
-  // Iterable objects are OK.
-  if (isObject(obj) && isIterable(obj))
-    return obj[Symbol.iterator]().next().value;
-  // XXX: Object.entries does not guarantee insertion order.
-  if (isObject(obj)) {
-    const val = Object.entries(obj).entries().next().value;
-    return val === undefined ? null : (val as unknown as unknown[])[1];
+  async toArray(expression: Expression | undefined): Promise<unknown[]> {
+    return expression
+      ? this.env.toArray(await expression.evaluate(this), this, expression.span)
+      : [];
   }
-  return null;
+
+  toArraySync(expression: Expression | undefined): unknown[] {
+    return expression
+      ? this.env.toArray(expression.evaluateSync(this), this, expression.span)
+      : [];
+  }
+
+  async toInteger<T>(
+    expression: Expression | undefined,
+    default_: T,
+  ): Promise<number | T> {
+    return expression
+      ? this.env.toInteger(
+          await expression.evaluate(this),
+          this,
+          expression.span,
+        )
+      : default_;
+  }
+
+  toIntegerSync<T>(
+    expression: Expression | undefined,
+    default_: T,
+  ): number | T {
+    return expression
+      ? this.env.toInteger(expression.evaluateSync(this), this, expression.span)
+      : default_;
+  }
 }
 
-function getLast(obj: unknown): unknown {
-  // Last of a string is not supported.
-  if (isString(obj)) return null;
-  if (isObject(obj) && "last" in obj) return Reflect.get(obj, "last");
-  if (isArray(obj)) return obj[obj.length - 1];
-  return null;
-}
-
-/**
- * An object implementing the special, built-in `now` and `today` objects.
- */
-export const BuiltIn = {
-  now: () => new Date(),
-  today: () => new Date(),
+export const BuiltIn: Namespace = {
+  // now: () => new Date(),
+  // today: () => new Date(),
 };
 
-function _toLiquid(value: unknown, context: RenderContext): unknown {
-  return isLiquidable(value) ? value[toLiquid](context) : value;
+export class StaticContext {}
+
+function normalizeIndex(index: unknown, length: number): number | undefined {
+  if (!isNumber(index)) {
+    return undefined;
+  }
+
+  if (index < 0 && length >= Math.abs(index)) return length + index;
+  return index;
 }
 
-// eslint-disable-next-line sonarjs/cognitive-complexity
-export function _assignScore(obj: unknown): number {
+/**
+ * Return true of `obj` or an object in the prototype chain of `obj` contains `key`.
+ * Excludes `Object.prototype` and function valued properties. Getters are OK.
+ */
+function isNonFunctionProperty(
+  obj: object,
+  key: unknown,
+): key is keyof typeof obj {
+  if (!isPropertyKey(key)) return false;
+
+  for (let p = obj; p && p !== Object.prototype; p = Object.getPrototypeOf(p)) {
+    if (Object.hasOwn(p, key) && !isFunction(obj[key as keyof typeof obj])) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * Return true if `obj` or an object in the prototype chain of `obj` contains `key`.
+ * Excludes `Object.prototype`. Properties may be functions.
+ */
+function isProperty(obj: object, key: unknown): key is keyof typeof obj {
+  if (!isPropertyKey(key)) return false;
+
+  for (let p = obj; p && p !== Object.prototype; p = Object.getPrototypeOf(p)) {
+    if (Object.hasOwn(p, key)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+function resolveArraySegment(obj: unknown[], segment: unknown): unknown {
+  const normIndex = normalizeIndex(segment, obj.length);
+
+  if (normIndex === undefined) {
+    switch (segment) {
+      case "first":
+        return obj[0];
+      case "last":
+        return obj[obj.length - 1];
+      case "size":
+        return obj.length;
+      default:
+        return Nothing;
+    }
+  }
+
+  if (normIndex in obj) {
+    return obj[normIndex];
+  }
+
+  return Nothing;
+}
+
+function resolveStringSegment(obj: string, segment: unknown): unknown {
+  switch (segment) {
+    case "first":
+      return obj[0];
+    case "last":
+      return obj[obj.length - 1];
+    case "size":
+      return obj.length;
+    default:
+      return Nothing;
+  }
+}
+
+function resolveObjectSegment(obj: object, segment: unknown): unknown {
+  if (isNonFunctionProperty(obj, segment)) {
+    return obj[segment as keyof typeof obj];
+  }
+
+  switch (segment) {
+    case "first":
+      return Object.entries(obj)[0];
+    case "size":
+      return Object.keys(obj).length;
+    default:
+      return Nothing;
+  }
+}
+
+function resolveUnknownSegment(obj: unknown, segment: unknown): unknown {
+  switch (segment) {
+    case "size":
+      if (isNumeric(obj)) return 8; // Close enough, most of the time.
+      return Nothing;
+    default:
+      return Nothing;
+  }
+}
+
+export function assignScoreOf(obj: unknown): number {
   // TODO: drop protocol override?
   if (isString(obj)) return obj.length * 2;
   if (isArray(obj)) {
-    return obj.reduce((a: number, b: unknown) => a + _assignScore(b), 0);
+    return obj.reduce((a: number, b: unknown) => a + assignScoreOf(b), 0);
   }
   if (obj instanceof Set) {
     let sum = 0;
     for (const val of obj.keys()) {
-      sum += _assignScore(val);
+      sum += assignScoreOf(val);
     }
     return sum;
   }
   if (obj instanceof Map) {
     let sum = 0;
     for (const val of obj.entries()) {
-      sum += _assignScore(val);
+      sum += assignScoreOf(val);
     }
     return sum;
   }
   if (isIterable(obj)) {
     let sum = 0;
     for (const val of obj) {
-      sum += _assignScore(val);
+      sum += assignScoreOf(val);
     }
     return sum;
   }
@@ -717,12 +599,12 @@ export function _assignScore(obj: unknown): number {
         if (!seen.has(val)) {
           seen.add(val);
           for (const [k, v] of Object.entries(obj)) {
-            sum += _assignScore(k);
+            sum += assignScoreOf(k);
             stack.push(v);
           }
         }
       } else {
-        sum += _assignScore(val);
+        sum += assignScoreOf(val);
       }
     }
 

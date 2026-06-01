@@ -4,36 +4,24 @@
  * work well for content-centric websites.
  */
 
-
+/* You can override the default Infima variables here. */
 :root {
-  --ifm-color-primary: #c23a00;
-  --ifm-color-primary-dark: #af3400;
-  --ifm-color-primary-darker: #a53100;
-  --ifm-color-primary-darkest: #882900;
-  --ifm-color-primary-light: #d54000;
-  --ifm-color-primary-lighter: #d54000;
-  --ifm-color-primary-lightest: #d54000;
-  --ifm-code-font-size: 95%;
+  --ifm-color-primary: #125c81;
+  --ifm-color-primary-dark: #105374;
+  --ifm-color-primary-darker: #0f4e6e;
+  --ifm-color-primary-darkest: #0d405a;
+  --ifm-color-primary-light: #14658e;
+  --ifm-color-primary-lighter: #156a94;
+  --ifm-color-primary-lightest: #1778a8;
 }
 
 /* For readability concerns, you should choose a lighter palette in dark mode. */
 [data-theme='dark'] {
-  --ifm-color-primary: #ff6e30;
-  --ifm-color-primary-dark: #ff5912;
-  --ifm-color-primary-darker: #ff4e03;
-  --ifm-color-primary-darkest: #f24900;
-  --ifm-color-primary-light: #ff834e;
-  --ifm-color-primary-lighter: #ff8e5d;
-  --ifm-color-primary-lightest: #ffae8b;
-}
-
-.docusaurus-highlight-code-line {
-  background-color: rgba(0, 0, 0, 0.1);
-  display: block;
-  margin: 0 calc(-1 * var(--ifm-pre-padding));
-  padding: 0 var(--ifm-pre-padding);
-}
-
-[data-theme="dark"] .docusaurus-highlight-code-line {
-  background-color: rgba(0, 0, 0, 0.3);
+  --ifm-color-primary: #aec4e0;
+  --ifm-color-primary-dark: #91afd5;
+  --ifm-color-primary-darker: #83a5cf;
+  --ifm-color-primary-darkest: #5885bf;
+  --ifm-color-primary-light: #cbd9eb;
+  --ifm-color-primary-lighter: #d9e3f1;
+  --ifm-color-primary-lightest: #ffffff;
 }

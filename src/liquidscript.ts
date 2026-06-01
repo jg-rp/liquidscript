@@ -1,49 +1,98 @@
-export const version = "__VERSION__";
+import { RenderContext, type Namespace } from "./context";
+import { Environment } from "./environment";
 
-export { RenderContext } from "./context";
-export type { RenderContextOptions, ContextPath } from "./context";
-export * from "./chain_object";
-
-export type { ContextScope } from "./types";
-
-export { Environment } from "./environment";
-export type { EnvironmentOptions, TemplateContext } from "./environment";
-
-export { BufferedRenderStream } from "./io/output_stream";
-export type { RenderStream } from "./io/output_stream";
-
-export { Loader, TemplateSource } from "./loader";
-export { Template } from "./template";
-export type {
-  TemplateAnalysis,
-  TemplateAnalysisOptions,
-  VariableRefs,
-  VariableLocation,
-  VariableLocations,
-} from "./static_analysis";
-export {
-  Undefined,
-  LaxUndefined,
-  StrictUndefined,
-  FalsyStrictUndefined,
-} from "./undefined";
-
-export { Markup } from "./builtin/drops/markup";
-
-export * from "./builtin";
-export * as tokens from "./token";
-export * from "./ast";
-export * from "./cache";
+export { ReadOnlyChainMap } from "./chain_map";
+export { type Namespace } from "./context";
 export * from "./drop";
-export * from "./expression";
-export * from "./filter";
-export * from "./number";
-export * from "./parse";
-export * from "./range";
-export * from "./tag";
+export { HTMLSafeString } from "./drops/html_safe";
+export {
+  FalsyStrictUndefined,
+  StrictUndefined,
+  Undefined,
+} from "./drops/undefined";
+export { type EnvironmentOptions, type TemplateMeta } from "./environment";
 export * from "./errors";
-export * as object from "./types";
-export * as expressions from "./expressions";
-export * as extra from "./extra";
+export * as expression from "./expression";
+export { FilterContext, type Filter } from "./filter";
+export { TemplateLoader, type TemplateSource } from "./loader";
+export {
+  CachingNodeFileSystemLoader,
+  ChoiceLoader,
+  FetchLoader,
+  MapLoader,
+  NodeFileSystemLoader,
+  ObjectLoader,
+  type CachingNodeFileSystemLoaderOptions,
+  type FetchLoaderOptions,
+  type NodeFileSystemLoaderOptions,
+} from "./loaders";
+export {
+  renderBlock,
+  renderBlockSync,
+  type Block,
+  type Markup,
+  type Node,
+  type Tag,
+} from "./markup";
+export { Float, Integer, LiquidNumber } from "./number";
+export { type OutputBuffer } from "./output";
+export { Parser } from "./parser";
+export * from "./static_analysis";
+export * as tags from "./tags";
+export { Template } from "./template";
+export { T, type Token, type TokenKind } from "./token";
+export * as object from "./type_guards";
+export { Environment, RenderContext };
 
-// TODO: express interface
+/**
+ * The default Liquid environment including all standard tags and filters, and
+ * an empty {@link MapLoader}.
+ *
+ * It's OK to update `DEFAULT_ENVIRONMENT` with a new template loader or
+ * different tags and filters, for example, so later calls to convenience
+ * functions {@link parse} and {@link render} use the desired configuration.
+ */
+export const DEFAULT_ENVIRONMENT = new Environment();
+
+/**
+ * Parse Liquid template `source` using the default environment.
+ *
+ * @param source Template source code.
+ * @param globals Variables to pin to the resulting template.
+ * @returns A new {@link Template}, ready to be rendered.
+ */
+export function parse(source: string, globals?: Namespace) {
+  return DEFAULT_ENVIRONMENT.parse(source, globals);
+}
+
+/**
+ * Parse and render Liquid template `source` using the default Liquid
+ * environment.
+ *
+ * @param source Template source code.
+ * @param data A map of variable names to values. These variables will be
+ *  available for template authors to use in Liquid expressions.
+ * @returns The result of rendering `source` with data from `data`.
+ */
+export async function render(
+  source: string,
+  data?: Record<string, unknown>,
+): Promise<string> {
+  return await DEFAULT_ENVIRONMENT.render(source, data);
+}
+
+/**
+ * Parse and render Liquid template `source` using the default Liquid
+ * environment.
+ *
+ * @param source Template source code.
+ * @param data A map of variable names to values. These variables will be
+ *  available for template authors to use in Liquid expressions.
+ * @returns The result of rendering `source` with data from `data`.
+ */
+export function renderSync(
+  source: string,
+  data?: Record<string, unknown>,
+): string {
+  return DEFAULT_ENVIRONMENT.renderSync(source, data);
+}

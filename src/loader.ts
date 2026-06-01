@@ -1,62 +1,54 @@
-import { RenderContext } from "./context";
-import { Environment } from "./environment";
-import { Template } from "./template";
-import { ContextScope } from "./types";
+import type { Namespace, RenderContext } from "./context";
+import type { Environment } from "./environment";
+import type { Template } from "./template";
 
 /**
- * Represents a Liquid template's source code and additional meta data.
+ * Template source text and meta data.
  */
-export class TemplateSource {
-  constructor(
-    /**
-     * The template's source code.
-     */
-    readonly source: string,
-
-    /**
-     * A name or identifier for the template.
-     */
-    readonly name: string,
-
-    /**
-     * Additional template globals.
-     */
-    readonly matter?: ContextScope,
-
-    /**
-     * A function that returns `true` if the template is up to date, or
-     * `false` if it needs to be loaded again.
-     */
-    readonly upToDate?: () => Promise<boolean>,
-
-    /**
-     * A function that returns `true` if the template is up to date, or
-     * `false` if it needs to be loaded again.
-     */
-    readonly upToDateSync?: () => boolean,
-  ) {}
-}
-
-/**
- * The base class for all template loaders.
- */
-export abstract class Loader {
+export type TemplateSource = {
   /**
-   * Override `getSource` to implement a custom loader.
-   * @param name - The name or identifier of a template.
-   * @param renderContext - The active render context, if there is one.
-   * @param loaderContext - Additional context. By convention, tags that load
-   * templates should add a `tag` property to the loader context containing
-   * the tag's name.
-   * @returns The source, with any meta data, for the template identified by
-   * the given name
-   * @throws {@link TemplateNotFoundError}
-   * Thrown if the template can not be found.
+   * Template name or identifier.
+   */
+  name: string;
+
+  /**
+   * Template source code.
+   */
+  source: string;
+
+  /**
+   * Additional template global variables.
+   */
+  overlay?: Namespace;
+
+  /**
+   * A function returning `true` if the template is up to date, or
+   * `false` if it needs to be loaded again.
+   */
+  upToDate?: () => Promise<boolean>;
+
+  /**
+   * A function returning `true` if the template is up to date, or
+   * `false` if it needs to be loaded again.
+   */
+  upToDateSync?: () => boolean;
+};
+
+export abstract class TemplateLoader {
+  /**
+   * Load template source text and meta data.
+   *
+   * @param env The active template environment.
+   * @param name A name or identifier for the target template.
+   * @param context The current render context, if one is available.
+   * @param options Arbitrary options that can be used to narrow the
+   *  template search space.
    */
   abstract getSource(
+    env: Environment,
     name: string,
-    renderContext?: RenderContext,
-    loaderContext?: { [index: string]: unknown },
+    context?: RenderContext,
+    options?: Record<string, unknown>,
   ): Promise<TemplateSource>;
 
   /**
@@ -64,29 +56,29 @@ export abstract class Loader {
    * @see {@link getSource}
    */
   abstract getSourceSync(
+    env: Environment,
     name: string,
-    renderContext?: RenderContext,
-    loaderContext?: { [index: string]: unknown },
+    context?: RenderContext,
+    options?: Record<string, unknown>,
   ): TemplateSource;
 
   /**
-   * Used internally by `Environment.getTemplate()`. Delegates to `getSource`.
+   * Used internally by `Environment.parse()`. Delegates to `getSource`.
    * @see {@link getSource}. Override `load` to implement a caching loader.
    */
-  public async load(
+  async load(
+    env: Environment,
     name: string,
-    environment: Environment,
+    globals?: Namespace,
     context?: RenderContext,
-    globals?: ContextScope,
-    loaderContext?: { [index: string]: unknown },
+    options?: Record<string, unknown>,
   ): Promise<Template> {
-    const source = await this.getSource(name, context, loaderContext);
-    return environment.fromString(source.source, globals, {
-      name,
-      matter: source.matter,
-      loaderContext,
-      upToDate: source.upToDate,
-      upToDateSync: source.upToDateSync,
+    const data = await this.getSource(env, name, context, options);
+    return env.parse(data.source, globals, {
+      name: data.name,
+      overlay: data.overlay,
+      upToDate: data.upToDate,
+      upToDateSync: data.upToDateSync,
     });
   }
 
@@ -94,20 +86,19 @@ export abstract class Loader {
    * A synchronous version of `load`.
    * @see {@link load}
    */
-  public loadSync(
+  loadSync(
+    env: Environment,
     name: string,
-    environment: Environment,
+    globals?: Namespace,
     context?: RenderContext,
-    globals?: ContextScope,
-    loaderContext?: { [index: string]: unknown },
+    options?: Record<string, unknown>,
   ): Template {
-    const source = this.getSourceSync(name, context, loaderContext);
-    return environment.fromString(source.source, globals, {
-      name,
-      matter: source.matter,
-      loaderContext,
-      upToDate: source.upToDate,
-      upToDateSync: source.upToDateSync,
+    const data = this.getSourceSync(env, name, context, options);
+    return env.parse(data.source, globals, {
+      name: data.name,
+      overlay: data.overlay,
+      upToDate: data.upToDate,
+      upToDateSync: data.upToDateSync,
     });
   }
 }

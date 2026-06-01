@@ -6,11 +6,18 @@
 
 import { themes as prismThemes } from "prism-react-renderer";
 
+// This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
+
 /** @type {import('@docusaurus/types').Config} */
 const config = {
   title: "LiquidScript",
   tagline: "Liquid Templates for JavaScript",
   favicon: "img/favicon.ico",
+
+  // Future flags, see https://docusaurus.io/docs/api/docusaurus-config#future
+  future: {
+    v4: true, // Improve compatibility with the upcoming Docusaurus v4
+  },
 
   // Set the production url of your site here
   url: "https://jg-rp.github.io/",
@@ -25,7 +32,6 @@ const config = {
   projectName: "liquidscript", // Usually your repo name.
 
   onBrokenLinks: "throw",
-  onBrokenMarkdownLinks: "warn",
 
   // Even if you don't use internationalization, you can use this field to set
   // useful metadata like html lang. For example, if your site is Chinese, you
@@ -33,10 +39,6 @@ const config = {
   i18n: {
     defaultLocale: "en",
     locales: ["en"],
-  },
-
-  markdown: {
-    format: "detect",
   },
 
   presets: [
@@ -55,10 +57,6 @@ const config = {
         theme: {
           customCss: "./src/css/custom.css",
         },
-        sitemap: {
-          changefreq: "weekly",
-          priority: 0.5,
-        },
       }),
     ],
   ],
@@ -68,7 +66,7 @@ const config = {
       "docusaurus-plugin-typedoc",
       {
         entryPoints: ["../src/liquidscript.ts"],
-        tsconfig: "../tsconfig.json",
+        tsconfig: "../tsconfig.build.json",
         readme: "docs/README_API.md",
       },
     ],
@@ -77,29 +75,31 @@ const config = {
   themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
+      colorMode: {
+        respectPrefersColorScheme: true,
+      },
       navbar: {
         title: "LiquidScript",
         logo: {
           alt: "LiquidScript",
-          src: "img/logo-128.svg",
-          srcDark: "img/logo-dark-128.svg",
+          src: "img/liquidscript_logo.png",
         },
         items: [
           {
-            type: "doc",
-            docId: "introduction/getting-started",
+            type: "docSidebar",
+            sidebarId: "docsSidebar",
             position: "left",
             label: "Docs",
           },
           {
             type: "doc",
-            docId: "language/filters",
+            docId: "reference/filters",
             position: "left",
             label: "Filters",
           },
           {
             type: "doc",
-            docId: "language/tags",
+            docId: "reference/tags",
             position: "left",
             label: "Tags",
           },
@@ -108,7 +108,6 @@ const config = {
             label: "API",
             position: "left",
           },
-          // {to: '/blog', label: 'Blog', position: 'right'},
           {
             href: "https://github.com/jg-rp/liquidscript/",
             label: "GitHub",
@@ -124,36 +123,32 @@ const config = {
             items: [
               {
                 label: "Introduction",
-                to: "/introduction/getting-started",
+                to: "/",
               },
               {
                 label: "Installation",
-                to: "/introduction/getting-started#install",
+                to: "/#install",
               },
               {
                 label: "Filter Reference",
-                to: "/language/filters",
+                to: "/reference/filters",
               },
               {
                 label: "Tag Reference",
-                to: "/language/tags",
+                to: "/reference/tags",
               },
             ],
           },
           {
-            title: "Features",
+            title: "Guides",
             items: [
               {
-                label: "HTML Auto-Escape",
-                to: "/introduction/auto-escape",
+                label: "Custom filters",
+                to: "/guides/custom-filters",
               },
               {
-                label: "Static Template Analysis",
-                to: "/guides/static-analysis",
-              },
-              {
-                label: "Resource Limits",
-                to: "/guides/resource-limits",
+                label: "Custom tags",
+                to: "/guides/custom-tags",
               },
             ],
           },
@@ -174,25 +169,13 @@ const config = {
               },
             ],
           },
-          {
-            title: "Related Projects",
-            items: [
-              {
-                label: "Python Liquid",
-                href: "https://github.com/jg-rp/liquid",
-              },
-              {
-                label: "Golden Liquid",
-                href: "https://github.com/jg-rp/golden-liquid",
-              },
-            ],
-          },
         ],
         copyright: `Copyright © ${new Date().getFullYear()} James Prior. Built with Docusaurus.`,
       },
       prism: {
         theme: prismThemes.github,
         darkTheme: prismThemes.dracula,
+        additionalLanguages: ["bash"],
       },
       algolia: {
         appId: "F84WNQYWWH",

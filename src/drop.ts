@@ -1,184 +1,120 @@
-import { RenderContext } from "./context";
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import type { RenderContext } from "./context";
+import { Nothing } from "./runtime";
 
 /**
- * A symbol that specifies a function valued property that is called to
- * convert an object to its corresponding Liquid value.
+ * Drop type coercion hints.
  */
-export const toLiquid = Symbol.for("liquid.drop.liquid");
+export type ContextHint = "data" | "numeric" | "string" | "boolean";
 
-export interface Liquidable {
-  [toLiquid](context: RenderContext): Promise<unknown>;
-}
+export const toLiquid = Symbol.for("liquid.drop");
+export const toLiquidSync = Symbol.for("liquid.drop.sync");
 
-/**
- * A type predicate for the `Liquidable` interface.
- * @param value - A value that may or may not implement the `Liquidable` interface.
- * @returns `true` if the argument value implements the `Liquidable`
- * interface, `false` otherwise.
- */
-export function isLiquidable(value: unknown): value is Liquidable {
-  return (
-    isObject(value) &&
-    toLiquid in value &&
-    typeof Reflect.get(value, toLiquid) === "function"
-  );
-}
+export const toHTMLSafeString = Symbol.for("liquid.drop.HTMLSafe");
+export const toHTMLSafeStringSync = Symbol.for("liquid.drop.HTMLSafe.sync");
 
-/**
- * A symbol that specifies a function valued property that is called to
- * convert an object to its corresponding Liquid value.
- */
-export const toLiquidSync = Symbol.for("liquid.drop.liquidSync");
+export const isInvocable = Symbol.for("liquid.drop.invocable");
 
-export interface LiquidableSync {
-  [toLiquidSync](context: RenderContext): unknown;
-}
+export const dispatch = Symbol.for("liquid.drop.dispatch");
+export const dispatchSync = Symbol.for("liquid.drop.dispatch.sync");
 
-/**
- * A type predicate for the `LiquidableSync` interface.
- * @param value - A value that may or may not implement the `LiquidableSync`
- * interface.
- * @returns `true` if the argument value implements the `LiquidableSync`
- * interface, `false` otherwise.
- */
-export function isLiquidableSync(value: unknown): value is LiquidableSync {
-  return (
-    isObject(value) &&
-    toLiquidSync in value &&
-    typeof Reflect.get(value, toLiquid) === "function"
-  );
-}
+export const equals = Symbol.for("liquid.drop.equals");
 
-/**
- * A symbol that specifies a function valued property that is called to
- * convert an object to its corresponding Liquid primitive value.
- */
-export const toLiquidPrimitive = Symbol.for("liquid.drop.primitive");
+export const length = Symbol.for("liquid.drop.length");
+export const lengthSync = Symbol.for("liquid.drop.length.sync");
+export const slice = Symbol.for("liquid.drop.slice");
+export const sliceSync = Symbol.for("liquid.drop.slice.sync");
 
-export interface LiquidPrimitive {
-  [toLiquidPrimitive](hint?: string): unknown;
-}
+export const contains = Symbol.for("liquid.drop.contains");
+export const containsSync = Symbol.for("liquid.drop.contains.sync");
 
-/**
- * A type predicate for the `LiquidPrimitive` interface.
- * @param value - A value that may or may not implement the `LiquidPrimitive` interface.
- * @returns `true` if the argument value implements the `LiquidPrimitive`
- * interface, `false` otherwise.
- */
-export function isLiquidPrimitive(value: unknown): value is LiquidPrimitive {
-  return (
-    isObject(value) &&
-    toLiquidPrimitive in value &&
-    typeof Reflect.get(value, toLiquidPrimitive) === "function"
-  );
-}
+export const lessThan = Symbol.for("liquid.drop.lessThan");
+export const lessThanSync = Symbol.for("liquid.drop.lessThan.sync");
 
-/**
- * A symbol that specifies a function valued property that is called to
- * convert an object to its Liquid specific string representation.
- */
-export const toLiquidString = Symbol.for("liquid.drop.string");
+export abstract class Drop {
+  async [contains](obj: unknown, context: RenderContext): Promise<boolean> {
+    return this[containsSync](obj, context);
+  }
 
-export interface LiquidStringable {
-  [toLiquidString](): string;
-}
+  [containsSync](obj: unknown, context: RenderContext): boolean {
+    return false;
+  }
 
-/**
- * A type predicate for the `LiquidStringable` interface.
- * @param value - A value that may or may not implement the `LiquidStringable` interface.
- * @returns `true` if the argument value implements the `LiquidStringable`
- * interface, `false` otherwise.
- */
-export function isLiquidStringable(value: unknown): value is LiquidStringable {
-  return (
-    isObject(value) &&
-    toLiquidString in value &&
-    typeof Reflect.get(value, toLiquidString) === "function"
-  );
-}
+  async [dispatch](name: string, context: RenderContext): Promise<unknown> {
+    return this[dispatchSync](name, context);
+  }
 
-/**
- * A symbol that specifies a function valued property that is called to
- * convert an object to an HTML-safe string representation.
- */
-export const toLiquidHtml = Symbol.for("liquid.drop.html");
+  [dispatchSync](name: string, context: RenderContext): unknown {
+    return Nothing;
+  }
 
-export interface LiquidHTMLable {
-  [toLiquidHtml](): string;
-}
+  [equals](obj: unknown, context: RenderContext): boolean {
+    return false;
+  }
 
-/**
- * A type predicate for the `LiquidHTMLable` interface.
- * @param value - A value that may or may not implement the `LiquidHTMLable` interface.
- * @returns `true` if the argument value implements the `LiquidHTMLable`
- * interface, `false` otherwise.
- */
-export function isLiquidHTMLable(value: unknown): value is LiquidHTMLable {
-  return (
-    isObject(value) &&
-    toLiquidHtml in value &&
-    typeof Reflect.get(value, toLiquidHtml) === "function"
-  );
-}
+  [isInvocable](name: string): boolean {
+    return false;
+  }
 
-/**
- * A symbol that specifies a function valued property that is called to
- * test a method name against a set of whitelisted methods that Liquid
- * can call.
- */
-export const isLiquidCallable = Symbol.for("liquid.drop.callable");
+  [length](): number {
+    return 0;
+  }
 
-export interface LiquidCallable {
-  [isLiquidCallable](name: PropertyKey): boolean;
-}
+  async [lessThan](obj: unknown, context: RenderContext): Promise<boolean> {
+    return this[lessThanSync](obj, context);
+  }
 
-/**
- * A type predicate for the `LiquidCallable` interface.
- * @param value - A value that may or may not implement the `LiquidCallable` interface.
- * @returns `true` if the argument value implements the `LiquidCallable` interface,
- * `false` otherwise.
- */
-export function hasLiquidCallable(value: unknown): value is LiquidCallable {
-  return isObject(value) && isLiquidCallable in value;
-}
+  [lessThanSync](obj: unknown, context: RenderContext): boolean {
+    return false;
+  }
 
-/**
- * A symbol that specifies a function valued property that is called in
- * the event that a property is missing from an object.
- */
-export const liquidDispatch = Symbol.for("liquid.drop.dispatch");
+  async [slice](
+    offset?: number,
+    limit?: number,
+    reversed?: boolean,
+  ): Promise<Drop> {
+    return this[sliceSync](offset, limit, reversed);
+  }
 
-export interface LiquidDispatchable {
-  [liquidDispatch](name: PropertyKey): Promise<unknown>;
-}
+  [sliceSync](offset?: number, limit?: number, reversed?: boolean): Drop {
+    return this;
+  }
 
-/**
- * A type predicate for the `LiquidDispatchable` interface.
- * @param value - A value that may or may not implement the `LiquidDispatchable` interface.
- * @returns `true` if the argument value implements the `LiquidDispatchable` interface,
- * `false` otherwise.
- */
-export function isLiquidDispatchable(
-  value: unknown,
-): value is LiquidDispatchable {
-  return isObject(value) && liquidDispatch in value;
-}
+  async *[Symbol.asyncIterator](): AsyncGenerator<unknown, void, void> {}
 
-export const liquidDispatchSync = Symbol.for("liquid.drop.dispatchSync");
+  *[Symbol.iterator](): Iterator<unknown> {}
 
-export interface LiquidDispatchableSync {
-  [liquidDispatchSync](name: PropertyKey): unknown;
-}
+  async [toLiquid](
+    hint: ContextHint,
+    context: RenderContext,
+  ): Promise<unknown> {
+    return this[toLiquidSync](hint, context);
+  }
 
-export function isLiquidDispatchableSync(
-  value: unknown,
-): value is LiquidDispatchableSync {
-  return isObject(value) && liquidDispatchSync in value;
-}
+  [toLiquidSync](hint: ContextHint, context: RenderContext): unknown {
+    switch (hint) {
+      case "string":
+        return "";
+      case "boolean":
+        return false;
+      case "data":
+        return null;
+      case "numeric":
+        return 0;
+    }
+  }
 
-function isObject(value: unknown): value is object {
-  const _type = typeof value;
-  return (value !== null && _type === "object") || _type === "function"
-    ? true
-    : false;
+  async [toHTMLSafeString](
+    context: RenderContext,
+  ): Promise<string | undefined> {
+    return this[toHTMLSafeStringSync](context);
+  }
+
+  [toHTMLSafeStringSync](context: RenderContext): string | undefined {
+    return undefined;
+  }
+
+  toString(): string {
+    return "";
+  }
 }

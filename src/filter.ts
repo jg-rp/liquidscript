@@ -1,50 +1,133 @@
-import { RenderContext } from "./context";
-import { FilterArgumentError } from "./errors";
-
-export type FilterContext = {
-  /**
-   * The active render context.
-   */
-  context: RenderContext;
-
-  /**
-   * Keyword/named filter arguments. As used by the `default` filter.
-   */
-  options: { [index: string]: unknown };
-};
+import type { RenderContext } from "./context";
+import { HTMLSafeString } from "./drops/html_safe";
+import { Undefined } from "./drops/undefined";
+import { ArgumentError } from "./errors";
+import { isLiquidNumber, toLiquidNumber, type LiquidNumber } from "./number";
+import { Nothing } from "./runtime";
+import type { Token } from "./token";
+import {
+  isArray,
+  isIterable,
+  isNumber,
+  isObject,
+  isString,
+} from "./type_guards";
 
 export type Filter = {
   (this: FilterContext, left: unknown, ...args: unknown[]): unknown;
 };
 
-/**
- * A utility function that checks throws an error if the given number of
- * arguments are not between the expected minimum and maximum.
- */
-export function checkArguments(n: number, max: number, min?: number): void {
-  n -= 1;
-  if (n > max) {
-    if (max === 0) {
-      throw new FilterArgumentError(
-        `too many arguments, expected 0, but got ${n}`,
+export class FilterContext {
+  constructor(
+    readonly context: RenderContext,
+    readonly span: Token,
+    readonly options: Record<string, unknown>,
+  ) {}
+
+  /**
+   * Assert that `len` is between `min` and `max`. Raise an `ArgumentError` if
+   * it is not. `len` should include the `left` in its count.
+   */
+  assertArgs(len: number, min: number, max: number = min): void {
+    if (len < min || len > max) {
+      throw new ArgumentError(
+        `Expected ${min}-${max} arguments, got ${len}`,
+        this.span,
+        this.context.template.source,
+        this.context.template.name,
       );
     }
-    throw new FilterArgumentError(
-      `too many arguments, expected at most ${max}, but got ${n}`,
+  }
+
+  getItem(obj: unknown, key: unknown, default_?: unknown): unknown {
+    if (this.isNil(obj)) {
+      throw new ArgumentError(
+        `can't read property ${obj}[${key}]`,
+        this.span,
+        this.context.template.source,
+        this.context.template.name,
+      );
+    }
+
+    if (isString(obj) && isString(key)) {
+      return obj.indexOf(key) !== -1 ? key : null;
+    }
+
+    if (
+      (isNumber(obj) || isLiquidNumber(obj)) &&
+      (isNumber(key) || isLiquidNumber(key))
+    ) {
+      return obj == key;
+    }
+
+    if (!isObject(obj)) {
+      throw new ArgumentError(
+        `can't read property ${obj}[${key}]`,
+        this.span,
+        this.context.template.source,
+        this.context.template.name,
+      );
+    }
+
+    if (obj instanceof Map) {
+      return obj.get(key);
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const [val, _] = this.context.resolvePathSync(obj, [key]);
+    if (val === Nothing) {
+      return default_;
+    }
+
+    return val;
+  }
+
+  /**
+   * Coerce `obj` to an array suitable for filters that expect an array input.
+   */
+  inputArray(obj: unknown): unknown[] {
+    if (isArray(obj)) {
+      return obj.flat(5);
+    }
+    // Not flattening iterables.
+    if (isIterable(obj)) {
+      return Array.from(obj);
+    }
+    return [obj];
+  }
+
+  isNil(obj: unknown): boolean {
+    return (
+      obj === undefined ||
+      obj === null ||
+      obj === Nothing ||
+      obj instanceof Undefined
     );
   }
 
-  if (min !== undefined && n < min)
-    throw new FilterArgumentError(
-      `missing argument, expected at least ${min}, but got ${n}`,
-    );
-}
+  isTruthy(obj: unknown): boolean {
+    return this.context.env.isTruthy(obj, this.context);
+  }
 
-/**
- * Throw an error if the given filter context contains options.
- */
-export function throwIfOptions(context: FilterContext): void {
-  for (const _ in context.options) {
-    throw new FilterArgumentError("unexpected filter options");
+  toInteger(obj: unknown): number {
+    return this.context.env.toInteger(obj, this.context, this.span);
+  }
+
+  toLiquidNumber<T>(obj: unknown, default_: T): LiquidNumber | T {
+    return toLiquidNumber(obj, this.context, default_);
+  }
+
+  toString<T>(obj: unknown, default_: T): string | T {
+    return obj === undefined
+      ? default_
+      : this.context.env.toString(obj, this.context, this.span);
+  }
+
+  toStringSafe<T>(obj: unknown, default_: T): string | HTMLSafeString | T {
+    if (obj instanceof HTMLSafeString) return obj;
+
+    return obj === undefined
+      ? default_
+      : this.context.env.toString(obj, this.context, this.span);
   }
 }

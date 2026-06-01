@@ -1,0 +1,102 @@
+import { Nothing } from "./runtime";
+
+export const ChainHas = Symbol("ChainHas");
+export const ChainFlatten = Symbol("ChainFlatten");
+export const ChainKeys = Symbol("ChainKeys");
+export const ChainPush = Symbol("ChainPush");
+export const ChainPop = Symbol("ChainPop");
+export const ChainSize = Symbol("ChainSize");
+
+export class ReadOnlyChainMap {
+  private readonly _maps: Record<string, unknown>[];
+
+  constructor(...maps: Readonly<Record<string, unknown>>[]) {
+    // Ordered from oldest (index 0) to newest (last index)
+    this._maps = maps.filter(Boolean).reverse() as Record<string, unknown>[];
+
+    return new Proxy(this, {
+      get(target, prop, receiver) {
+        if (
+          prop === ChainHas ||
+          prop === ChainFlatten ||
+          prop === ChainKeys ||
+          prop === ChainPush ||
+          prop === ChainPop ||
+          prop === ChainSize
+        ) {
+          const value = target[prop as keyof typeof target];
+          return typeof value === "function" ? value.bind(target) : value;
+        }
+
+        if (typeof prop === "string") {
+          for (let i = target._maps.length - 1; i >= 0; i--) {
+            const map = target._maps[i] as Record<string, unknown>;
+            if (
+              Object.prototype.hasOwnProperty.call(map, prop) ||
+              (map instanceof ReadOnlyChainMap && prop in map)
+            ) {
+              return map[prop];
+            }
+          }
+          return Nothing;
+        }
+
+        return Reflect.get(target, prop, receiver);
+      },
+
+      has(target, prop) {
+        if (typeof prop === "string") {
+          for (let i = target._maps.length - 1; i >= 0; i--) {
+            const map = target._maps[i] as Record<string, unknown>;
+            if (
+              Object.prototype.hasOwnProperty.call(map, prop) ||
+              (map instanceof ReadOnlyChainMap && prop in map)
+            ) {
+              return true;
+            }
+          }
+        }
+        return false;
+      },
+    });
+  }
+
+  [ChainPush](map: Readonly<Record<string, unknown>>): void {
+    if (map) {
+      this._maps.push(map as Record<string, unknown>);
+    }
+  }
+
+  [ChainPop](): Record<string, unknown> | undefined {
+    return this._maps.pop();
+  }
+
+  [ChainHas](key: string): boolean {
+    for (let i = this._maps.length - 1; i >= 0; i--) {
+      const map = this._maps[i] as Record<string, unknown>;
+      if (
+        Object.prototype.hasOwnProperty.call(map, key) ||
+        (map instanceof ReadOnlyChainMap && key in map)
+      ) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  get [ChainKeys](): string[] {
+    const uniqueKeys = new Set<string>();
+    for (const map of this._maps) {
+      for (const key of Object.keys(map)) {
+        uniqueKeys.add(key);
+      }
+    }
+    return Array.from(uniqueKeys);
+  }
+
+  [ChainSize](): number {
+    return this._maps.length;
+  }
+
+  [key: string]: unknown;
+}

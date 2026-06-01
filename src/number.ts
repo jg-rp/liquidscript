@@ -1,145 +1,148 @@
 import Decimal from "decimal.js";
+import { isString } from "./type_guards";
+import { Drop, toLiquidSync } from "./drop";
+import type { RenderContext } from "./context";
 
 Decimal.set({ precision: 16 });
 
-// eslint-disable-next-line @typescript-eslint/ban-types
+// eslint-disable-next-line @typescript-eslint/no-wrapper-object-types
 export type N = string | number | Number | LiquidNumber;
 
+// The base class numbers in LiquidScript.
 export abstract class LiquidNumber {
-  public abstract float: boolean;
-  public readonly n: Decimal;
+  abstract float: boolean;
 
-  public constructor(val: string | number | Decimal) {
+  readonly n: Decimal;
+
+  constructor(val: string | number | Decimal) {
     this.n = new Decimal(val);
   }
 
-  public valueOf(): number {
-    return this.n.toNumber();
-  }
-
-  public abs(): NumberT {
+  abs(): LiquidNumber {
     const result = this.n.abs();
     return isFloat(this) ? new Float(result) : new Integer(result);
   }
 
-  public ceil(): NumberT {
+  ceil(): LiquidNumber {
     return new Integer(this.n.ceil());
   }
 
-  public div(n: N): NumberT {
-    const _n = parseNumberT(n);
+  div(n: N): LiquidNumber {
+    const _n = _toLiquidNumber(n);
     return isInteger(this) && isInteger(_n)
       ? new Integer(this.n.dividedToIntegerBy(_n.n))
       : new Float(this.n.dividedBy(_n.n));
   }
 
-  public eq(n: N): boolean {
-    return this.n.eq(parseNumberT(n).n);
+  eq(n: N): boolean {
+    return this.n.eq(_toLiquidNumber(n).n);
   }
 
-  public floor(): NumberT {
+  floor(): LiquidNumber {
     return new Integer(this.n.floor());
   }
 
-  public gt(n: N): boolean {
-    return this.n.gt(parseNumberT(n).n);
+  gt(n: N): boolean {
+    return this.n.gt(_toLiquidNumber(n).n);
   }
 
-  public gte(n: N): boolean {
-    return this.n.gte(parseNumberT(n).n);
+  gte(n: N): boolean {
+    return this.n.gte(_toLiquidNumber(n).n);
   }
 
-  public lt(n: N): boolean {
-    return this.n.lt(parseNumberT(n).n);
+  isFinite(): boolean {
+    return this.n.isFinite();
   }
 
-  public lte(n: N): boolean {
-    return this.n.lte(parseNumberT(n).n);
+  lt(n: N): boolean {
+    return this.n.lt(_toLiquidNumber(n).n);
   }
 
-  public max(n: N): NumberT {
-    const _n = parseNumberT(n);
+  lte(n: N): boolean {
+    return this.n.lte(_toLiquidNumber(n).n);
+  }
+
+  max(n: N): LiquidNumber {
+    const _n = _toLiquidNumber(n);
     return _n.gt(this) ? _n : this;
   }
 
-  public min(n: N): NumberT {
-    const _n = parseNumberT(n);
+  min(n: N): LiquidNumber {
+    const _n = _toLiquidNumber(n);
     return _n.lt(this) ? _n : this;
   }
 
-  public minus(n: N): NumberT {
-    const _n = parseNumberT(n);
+  minus(n: N): LiquidNumber {
+    const _n = _toLiquidNumber(n);
     const result = this.n.minus(_n.n);
     return isFloat(this) || isFloat(_n)
       ? new Float(result)
       : new Integer(result);
   }
 
-  public mod(n: N): NumberT {
-    const _n = parseNumberT(n);
+  mod(n: N): LiquidNumber {
+    const _n = _toLiquidNumber(n);
     const result = this.n.mod(_n.n);
     return isFloat(this) || isFloat(_n)
       ? new Float(result)
       : new Integer(result);
   }
 
-  public plus(n: N): NumberT {
-    const _n = parseNumberT(n);
+  plus(n: N): LiquidNumber {
+    const _n = _toLiquidNumber(n);
     const result = this.n.plus(_n.n);
     return isFloat(this) || isFloat(_n)
       ? new Float(result)
       : new Integer(result);
   }
 
-  public round(decimalPlaces?: number): NumberT {
-    return decimalPlaces === undefined || this.n.eq(0)
+  round(decimalPlaces?: number): LiquidNumber {
+    return isInteger(this) || decimalPlaces === undefined || this.n.eq(0)
       ? new Integer(this.n.toDecimalPlaces(0, Decimal.ROUND_HALF_CEIL))
       : new Float(
           this.n.toDecimalPlaces(decimalPlaces, Decimal.ROUND_HALF_CEIL),
         );
   }
 
-  public times(n: N): NumberT {
-    const _n = parseNumberT(n);
+  times(n: N): LiquidNumber {
+    const _n = _toLiquidNumber(n);
     const result = this.n.times(_n.n);
     return isFloat(this) || isFloat(_n)
       ? new Float(result)
       : new Integer(result);
   }
 
-  public trunc(): NumberT {
+  trunc(): LiquidNumber {
     return new Integer(this.n.trunc());
   }
 
-  public isFinite(): boolean {
-    return this.n.isFinite();
+  valueOf(): number {
+    return this.n.toNumber();
   }
 }
 
 export class Float extends LiquidNumber {
-  public readonly float = true as const;
+  readonly float = true as const;
 
-  public toString(): string {
+  override toString(): string {
     const s = this.n.toString();
-    return s.toString().indexOf(".") === -1 ? `${s}.0` : s;
+    return s.indexOf(".") === -1 ? `${s}.0` : s;
   }
 }
 
 export class Integer extends LiquidNumber {
-  public readonly float = false as const;
+  readonly float = false as const;
 
-  public toString(): string {
+  override toString(): string {
     return this.n.toString();
   }
 }
 
-export type NumberT = Integer | Float;
-
 /**
  * A type predicate for Liquid's number wrapper types.
  */
-export function isNumberT(val: unknown): val is NumberT {
-  return val instanceof Integer || val instanceof Float;
+export function isLiquidNumber(val: unknown): val is LiquidNumber {
+  return val instanceof LiquidNumber;
 }
 
 /**
@@ -156,46 +159,70 @@ export function isFloat(val: unknown): val is Float {
   return val instanceof Float;
 }
 
-function isPrimitiveNumber(value: unknown): value is number {
+export function isPrimitiveNumber(value: unknown): value is number {
   return typeof value === "number";
-}
-
-function isString(value: unknown): value is string {
-  return typeof value === "string";
 }
 
 export const ZERO = new Integer(0);
 export const NAN = new Integer(NaN);
 
-function _stringToNumberT(s: string): NumberT {
+function _stringToLiquidNumber(s: string): LiquidNumber {
   return s.indexOf(".") === -1 ? new Integer(Number(s)) : new Float(Number(s));
 }
 
 /**
- * A type predicate for valid inputs to the `parseNumberT` function.
+ * A type predicate for valid inputs to the `_toLiquidNumber` function.
  *
  * @param val - Any value.
- * @returns `true` if the input value can be passed to `parseNumberT`.
+ * @returns `true` if the input value can be passed to `_toLiquidNumber`.
  */
 export function isN(val: unknown): val is N {
-  return isNumberT(val) || isString(val) || isFinite(val as number);
+  return isLiquidNumber(val) || isString(val) || isPrimitiveNumber(val);
 }
 
 /**
- * Parse a string, primitive number or Number object to a Liquid
+ * Coerce a string, primitive number or Number object to a Liquid
  * integer or float.
  *
  * @param n - A number or string representation of a number.
  * @returns A wrapped number representing a Liquid integer or float.
  */
-export function parseNumberT(n: N): NumberT {
-  if (n instanceof LiquidNumber) return n;
-  if (n instanceof Number)
+function _toLiquidNumber(n: N): LiquidNumber {
+  if (n instanceof LiquidNumber) {
+    return n;
+  }
+
+  if (n instanceof Number) {
     return Number.isInteger(n)
       ? new Integer(n.valueOf())
       : new Float(n.valueOf());
-  if (isPrimitiveNumber(n))
+  }
+
+  if (isPrimitiveNumber(n)) {
     return Number.isInteger(n) ? new Integer(n) : new Float(n);
-  if (isString(n)) return _stringToNumberT(n);
-  return n;
+  }
+
+  return _stringToLiquidNumber(n);
+}
+
+/**
+ * Coerce obj to a liquid number.
+ */
+export function toLiquidNumber<T>(
+  obj: unknown,
+  context: RenderContext,
+  default_: T,
+): LiquidNumber | T {
+  if (context.env.isNil(obj)) return default_;
+
+  if (obj instanceof Drop) {
+    obj = obj[toLiquidSync]("numeric", context);
+  }
+
+  if (isN(obj)) {
+    const num = _toLiquidNumber(obj);
+    return num.isFinite() ? num : default_;
+  }
+
+  return default_;
 }

@@ -1,1108 +1,587 @@
-import { BlockNode, ChildNode, Node, Root } from "./ast";
-import {
-  chainObjects,
-  chainPop,
-  chainPush,
-  Missing,
-  ObjectChain,
-} from "./chain_object";
-import { DefaultMap } from "./collections";
-import {
-  InternalSyntaxError,
-  TemplateNotFoundError,
-  StopRender,
-  TemplateInheritanceError,
-  TemplateTraversalError,
-} from "./errors";
-import {
-  Expression,
-  FilteredExpression,
-  Identifier,
-  Literal,
-  StringLiteral,
-} from "./expression";
-import { ContextScope, liquidStringify } from "./types";
-import { Template } from "./template";
-import { RenderContext, EXTENDS_REGISTER } from "./context";
-import {
-  BlockStackItem,
-  StackedBlocks,
-  stackBlocks,
-  BlockNode as InheritanceBlockNode,
-} from "./extra/tags/extends";
-import { TOKEN_TAG } from "./token";
+import { RenderContext } from "./context";
+import { DefaultMap } from "./default_map";
+import { LiquidError } from "./errors";
+import { Filter, Variable, type Traversable } from "./expression";
+import { Scope, type Markup } from "./markup";
+import type { Template } from "./template";
+import { getTokenValue, type Token } from "./token";
+import { isArray, isString } from "./type_guards";
 
 /**
- * Options passed to `Template.analyze` and `Template.analyzeSync`.
+ * The location of a variable, tag or filter.
  */
-export type TemplateAnalysisOptions = {
-  /**
-   * If `true`, we will try to load partial templates and analyze those
-   * templates too.
-   * @defaultValue `true`.
-   */
-  followPartials?: boolean;
-
-  /**
-   * If `true`, we will throw an error if an `ast.Node` or `expression.Expression`
-   * does not define a `children()` method, or if a partial template can not be loaded.
-   * When `false`, no error is thrown and an mapping of failed nodes and expressions
-   * is available as the `failedVisits` property of the resulting `TemplateAnalysis`
-   * object.
-   */
-  raiseForFailures?: boolean;
-};
-
-/**
- * The location of a template variable, as found during static template
- * analysis.
- *
- * A column number might be added later.
- */
-export type VariableLocation = { templateName: string; lineNumber: number };
-
-/**
- * An array of template variable locations.
- */
-export type VariableLocations = VariableLocation[];
-
-/**
- * A mapping of template variable names to their locations.
- */
-export type VariableRefs = { [index: string]: VariableLocations };
-
-/**
- * A mapping of template, tag or filter names to their locations.
- */
-export type RefMap = DefaultMap<string, VariableLocations>;
-
-/**
- * The result of statically analyzing a template's variables.
- *
- * Each of the following properties is an object mapping template variable names
- * to an array of objects. Each object includes the template name and line number
- * of the associated variable. If a name is referenced multiple times, it will
- * appear multiple times in the array. If a name is referenced before it is
- * "assigned", it will appear in `localVariables` and `globalVariables`.
- */
-export type TemplateAnalysis = {
-  /**
-   * All referenced variables, whether they are in scope or not. Including
-   * references to names such as `forloop` from the `for` tag.
-   */
-  variables: VariableRefs;
-
-  /**
-   * Template variables that are added to the template local scope, whether
-   * they are subsequently used or not.
-   */
-  localVariables: VariableRefs;
-
-  /**
-   * Template variables that, on the given line number and "file", are out of
-   * scope or are assumed to be "global". That is, expected to be included by
-   * the application developer rather than a template author.
-   */
-  globalVariables: VariableRefs;
-
-  /**
-   * Names and locations of AST `Node` and `Expression` objects that could not
-   * be visited, probably because they do not implement a `children` method.
-   */
-  failedVisits: VariableRefs;
-
-  /**
-   * Names/identifiers and locations of partial templates that could not be
-   * loaded. This will be empty if `followPartials` is `false`.
-   */
-  unloadablePartials: VariableRefs;
-
-  /**
-   * Filters found during static analysis.
-   */
-  filters: VariableRefs;
-
-  /**
-   * Tags found during static analysis.
-   */
-  tags: VariableRefs;
-};
-
-type PartialTemplateContext = {
-  templateName: string;
-  loadContext: ContextScope;
-};
-
-type TemplateVariableCounterOptions = {
-  followPartials?: boolean;
-  raiseForFailures?: boolean;
-  scope?: ObjectChain;
-  templateLocals?: RefMap;
-  partials?: Set<string>;
-};
-
-type ExpressionRefs = {
-  variables: string[];
-  filters: string[];
-};
-
-export class TemplateVariableCounter {
-  readonly templateName: string;
-  readonly followPartials: boolean;
-  readonly raiseForFailures: boolean;
-  readonly scope: ObjectChain;
-  readonly partials: Set<string>;
-  readonly templateLocals: RefMap;
-  readonly templateGlobals: RefMap;
-  readonly variables: RefMap;
-  readonly failedVisits: RefMap;
-  readonly unloadablePartials: RefMap;
-  readonly emptyContext: RenderContext;
-  readonly filters: RefMap;
-  readonly tags: RefMap;
-
-  protected static RE_SPLIT_IDENT = /(\.|\[)/;
-
+export class Location {
   constructor(
-    protected template: Template,
-    {
-      followPartials,
-      raiseForFailures,
-      scope,
-      templateLocals,
-      partials,
-    }: TemplateVariableCounterOptions,
-  ) {
-    this.templateName = this.template.name;
-    this.followPartials = followPartials ?? true;
-    this.raiseForFailures = raiseForFailures ?? true;
-    this.scope = scope ?? chainObjects();
-    this.partials = partials ?? new Set();
-    this.emptyContext = new RenderContext(this.template.environment);
+    readonly template: Template,
+    readonly token: Token,
+  ) {}
 
-    this.templateLocals =
-      templateLocals ?? new DefaultMap<string, VariableLocations>(Array);
-
-    this.templateGlobals = new DefaultMap<string, VariableLocations>(Array);
-    this.variables = new DefaultMap<string, VariableLocations>(Array);
-    this.failedVisits = new DefaultMap<string, VariableLocations>(Array);
-    this.unloadablePartials = new DefaultMap<string, VariableLocations>(Array);
-    this.filters = new DefaultMap<string, VariableLocations>(Array);
-    this.tags = new DefaultMap<string, VariableLocations>(Array);
-  }
-
-  public async analyze(): Promise<TemplateVariableCounter> {
-    for (const node of this.template.tree.nodes) {
-      try {
-        await this._analyze(node);
-      } catch (error) {
-        if (error instanceof StopRender) {
-          break;
-        }
-        throw error;
-      }
-    }
-    this._raiseForFailures();
-    return this;
-  }
-
-  public analyzeSync(): TemplateVariableCounter {
-    for (const node of this.template.tree.nodes) {
-      try {
-        this._analyzeSync(node);
-      } catch (error) {
-        if (error instanceof StopRender) {
-          break;
-        }
-        throw error;
-      }
-    }
-    this._raiseForFailures();
-    return this;
-  }
-
-  protected async _analyze(root: Node): Promise<void> {
-    this.countTag(root);
-    if (root.children === undefined) {
-      // This node does not define a children method.
-      const name = root.constructor.name;
-      this.failedVisits.get(name).push({
-        templateName: this.templateName,
-        lineNumber: root.token.lineNumber(),
-      });
-      return;
-    }
-
-    for (const child of root.children()) {
-      this.analyzeExpression(child);
-      await this.expressionHook(child);
-      this.updateTemplateScope(child);
-
-      if (child.blockScope) {
-        this.scope[chainPush](
-          Object.fromEntries(child.blockScope.map((val) => [val, undefined])),
-        );
-      }
-
-      if (this.followPartials) {
-        switch (child.loadMode) {
-          case "include":
-            await this.analyzeInclude(child);
-            break;
-          case "render":
-            await this.analyzeRender(child);
-            break;
-          case "extends":
-            await this.analyzeTemplateInheritanceChain(child, this.template);
-            throw new StopRender("stop static analysis");
-          case undefined:
-            break;
-          default:
-            throw new TemplateTraversalError(
-              `unknown load mode '${child.loadMode}'`,
-            );
-        }
-      }
-
-      // Recurse
-      if (child.node) {
-        await this._analyze(child.node);
-      }
-
-      if (child.blockScope) {
-        this.scope[chainPop]();
-      }
-    }
-  }
-
-  protected _analyzeSync(root: Node): void {
-    this.countTag(root);
-    if (root.children === undefined) {
-      // This node does not define a children method.
-      const name = root.constructor.name;
-      this.failedVisits.get(name).push({
-        templateName: this.templateName,
-        lineNumber: root.token.lineNumber(),
-      });
-      return;
-    }
-
-    for (const child of root.children()) {
-      this.analyzeExpression(child);
-      this.expressionHookSync(child);
-      this.updateTemplateScope(child);
-
-      if (child.blockScope) {
-        this.scope[chainPush](
-          Object.fromEntries(child.blockScope.map((val) => [val, undefined])),
-        );
-      }
-
-      if (this.followPartials) {
-        switch (child.loadMode) {
-          case "include":
-            this.analyzeIncludeSync(child);
-            break;
-          case "render":
-            this.analyzeRenderSync(child);
-            break;
-          case "extends":
-            this.analyzeTemplateInheritanceChainSync(child, this.template);
-            throw new StopRender("stop static analysis");
-          case undefined:
-            break;
-          default:
-            throw new TemplateTraversalError(
-              `unknown load mode '${child.loadMode}'`,
-            );
-        }
-      }
-
-      // Recurse
-      if (child.node) {
-        this._analyzeSync(child.node);
-      }
-
-      if (child.blockScope) {
-        this.scope[chainPop]();
-      }
-    }
-  }
-
-  private analyzeExpression(child: ChildNode): void {
-    if (!child.expression) return;
-    if (!child.expression.children) {
-      // This expression does not define a children method.
-      const name = child.expression.constructor.name;
-      this.failedVisits.get(name).push({
-        templateName: this.templateName,
-        lineNumber: child.token.lineNumber(),
-      });
-    }
-
-    const refs = this.updateExpressionRefs(child.expression);
-
-    for (const ref of refs.variables) {
-      this.variables.get(ref).push({
-        templateName: this.templateName,
-        lineNumber: child.token.lineNumber(),
-      });
-    }
-
-    // Check refs that are not in scope or in the local namespace before
-    // pushing the next block scope. This should highlight names that are
-    // expected to be "global"
-    for (const ref of refs.variables) {
-      const _ref = ref.split(TemplateVariableCounter.RE_SPLIT_IDENT, 1)[0];
-      if (this.scope[_ref] === Missing && !this.templateLocals.has(_ref)) {
-        this.templateGlobals.get(ref).push({
-          templateName: this.templateName,
-          lineNumber: child.token.lineNumber(),
-        });
-      }
-    }
-
-    for (const ref of refs.filters) {
-      this.filters.get(ref).push({
-        templateName: this.templateName,
-        lineNumber: child.token.lineNumber(),
-      });
-    }
-  }
-
-  private updateTemplateScope(child: ChildNode): void {
-    if (child.templateScope) {
-      for (const name of child.templateScope) {
-        this.templateLocals.get(name).push({
-          templateName: this.templateName,
-          lineNumber: child.token.lineNumber(),
-        });
-      }
-    }
-  }
-
-  private updateExpressionRefs(expression: Expression): ExpressionRefs {
-    const refs: ExpressionRefs = { variables: [], filters: [] };
-
-    if (expression instanceof Identifier) {
-      refs.variables.push(expression.toString());
-    } else if (expression instanceof FilteredExpression) {
-      refs.filters.push(...expression.filters.map((f) => f.name));
-    }
-
-    if (expression.children) {
-      for (const expr of expression.children()) {
-        for (const child of this.updateExpressionRefs(expr).variables) {
-          refs.variables.push(child);
-        }
-      }
-    }
-
-    return refs;
-  }
-
-  private async analyzeInclude(child: ChildNode): Promise<void> {
-    const { templateName, loadContext } = this.includeContext(child);
-    if (templateName === undefined || loadContext === undefined) {
-      return;
-    }
-
-    let template: Template;
-
-    try {
-      template = await this.getTemplate(
-        templateName,
-        loadContext,
-        this.templateName,
-        child,
-      );
-    } catch (error) {
-      if (error instanceof TemplateNotFoundError) return;
-      throw error;
-    }
-
-    const refs = await new TemplateVariableCounter(template, {
-      followPartials: this.followPartials,
-      scope: this.scope,
-      templateLocals: this.templateLocals,
-      partials: this.partials,
-    }).analyze();
-
-    this.updateReferenceCounters(refs);
-  }
-
-  private analyzeIncludeSync(child: ChildNode): void {
-    const { templateName, loadContext } = this.includeContext(child);
-    if (templateName === undefined || loadContext === undefined) {
-      return;
-    }
-
-    let template: Template;
-
-    try {
-      template = this.getTemplateSync(
-        templateName,
-        loadContext,
-        this.templateName,
-        child,
-      );
-    } catch (error) {
-      if (error instanceof TemplateNotFoundError) return;
-      throw error;
-    }
-
-    const refs = new TemplateVariableCounter(template, {
-      followPartials: this.followPartials,
-      scope: this.scope,
-      templateLocals: this.templateLocals,
-      partials: this.partials,
-    }).analyzeSync();
-
-    this.updateReferenceCounters(refs);
-  }
-
-  private includeContext(child: ChildNode): Partial<PartialTemplateContext> {
-    if (child.expression === undefined) {
-      return {};
-    }
-
-    // Partial templates rendered in "include" mode might use a variable template
-    // name. We can't statically analyze a partial template unless it's name is a
-    // literal string (or possibly an integer, but unlikely).
-    if (!(child.expression instanceof Literal)) {
-      this.unloadablePartials.get(child.expression.toString()).push({
-        templateName: this.templateName,
-        lineNumber: child.token.lineNumber(),
-      });
-      return {};
-    }
-
-    const context: PartialTemplateContext = {
-      templateName: child.expression.value.toString(),
-      loadContext: child.loadContext ?? {},
-    };
-    const contextKey = JSON.stringify(context);
-
-    // Keep track of partial templates that have already been analyzed. This prevents
-    // us from analyzing the same template twice and protects us against recursive
-    // includes/renders.
-    if (this.partials.has(contextKey)) {
-      return {};
-    }
-
-    this.partials.add(contextKey);
-    return context;
-  }
-
-  private async analyzeRender(child: ChildNode): Promise<void> {
-    const { templateName, loadContext } = this.renderContext(child);
-    if (templateName === undefined || loadContext === undefined) {
-      return;
-    }
-
-    let template: Template;
-
-    try {
-      template = await this.getTemplate(
-        templateName,
-        loadContext,
-        this.templateName,
-        child,
-      );
-    } catch (error) {
-      if (error instanceof TemplateNotFoundError) return;
-      throw error;
-    }
-
-    // Partial templates rendered in "render" mode do not share the parent template
-    // local namespace. We do not pass the current block scope stack to "rendered"
-    // templates either.
-    const scope = chainObjects();
-    if (child.blockScope) {
-      scope[chainPush](
-        Object.fromEntries(child.blockScope.map((val) => [val, undefined])),
-      );
-    }
-
-    const refs = await new TemplateVariableCounter(template, {
-      followPartials: this.followPartials,
-      scope,
-      partials: this.partials,
-    }).analyze();
-
-    this.updateReferenceCounters(refs);
-  }
-
-  private analyzeRenderSync(child: ChildNode): void {
-    const { templateName, loadContext } = this.renderContext(child);
-    if (templateName === undefined || loadContext === undefined) {
-      return;
-    }
-
-    let template: Template;
-
-    try {
-      template = this.getTemplateSync(
-        templateName,
-        loadContext,
-        this.templateName,
-        child,
-      );
-    } catch (error) {
-      if (error instanceof TemplateNotFoundError) return;
-      throw error;
-    }
-
-    // Partial templates rendered in "render" mode do not share the parent template
-    // local namespace. We do not pass the current block scope stack to "rendered"
-    // templates either.
-    const scope = chainObjects();
-    if (child.blockScope) {
-      scope[chainPush](
-        Object.fromEntries(child.blockScope.map((val) => [val, undefined])),
-      );
-    }
-
-    const refs = new TemplateVariableCounter(template, {
-      followPartials: this.followPartials,
-      scope,
-      partials: this.partials,
-    }).analyzeSync();
-
-    this.updateReferenceCounters(refs);
-  }
-
-  private async analyzeTemplateInheritanceChain(
-    node: ChildNode,
-    template: Template,
-  ): Promise<void> {
-    const { templateName, loadContext } = this.renderContext(node);
-    if (templateName === undefined || loadContext === undefined) {
-      return;
-    }
-
-    const stackContext = this.emptyContext.copy({}, [], false, false, template);
-    stackContext.registers.set(
-      EXTENDS_REGISTER,
-      new DefaultMap<string, BlockStackItem[]>(Array),
+  equals(other: Location): boolean {
+    return (
+      this.template.name === other.template.name && this.token === other.token
     );
-
-    // Guard against recursive `extends`.
-    const seen = new Set<string>();
-
-    // Add blocks from the leaf template tot he stack context.
-    let stacked = this.stackBlocks(stackContext, template, false);
-    if (stacked.extendsNode === undefined) {
-      throw new InternalSyntaxError(`expected an 'extends' node`);
-    }
-
-    seen.add(liquidStringify(stacked.extendsNode.name));
-    let parent: Template | undefined;
-
-    try {
-      parent = await this.getTemplate(
-        templateName,
-        loadContext,
-        this.templateName,
-        node,
-      );
-    } catch (error) {
-      if (error instanceof TemplateNotFoundError) return;
-      throw error;
-    }
-
-    stacked = this.stackBlocks(stackContext, parent);
-    let parentTemplateName: string | undefined = this.extend(stacked, seen);
-
-    while (parentTemplateName) {
-      try {
-        parent = await this.getTemplate(
-          parentTemplateName,
-          loadContext,
-          this.templateName,
-          node,
-        );
-      } catch (error) {
-        if (error instanceof TemplateNotFoundError) return;
-        throw error;
-      }
-      stacked = this.stackBlocks(stackContext, parent);
-      parentTemplateName = this.extend(stacked, seen);
-    }
-
-    const refs = await new InheritanceChainCounter(
-      parent,
-      stackContext,
-      undefined,
-      {
-        followPartials: this.followPartials,
-        scope: chainObjects({ block: undefined }, this.scope),
-        templateLocals: this.templateLocals,
-        raiseForFailures: this.raiseForFailures,
-        partials: this.partials,
-      },
-    ).analyze();
-
-    this.updateReferenceCounters(refs);
   }
 
-  private analyzeTemplateInheritanceChainSync(
-    node: ChildNode,
-    template: Template,
-  ): void {
-    const { templateName, loadContext } = this.renderContext(node);
-    if (templateName === undefined || loadContext === undefined) {
-      return;
-    }
+  /**
+   * Return the line and column number of the given index.
+   */
+  lineCol(index: number): [number, number] {
+    let cumulativeLength = 0;
+    let targetLineIndex = -1;
 
-    const stackContext = this.emptyContext.copy({}, [], false, false, template);
-    stackContext.registers.set(
-      EXTENDS_REGISTER,
-      new DefaultMap<string, BlockStackItem[]>(Array),
-    );
-
-    // Guard against recursive `extends`.
-    const seen = new Set<string>();
-
-    // Add blocks from the leaf template tot he stack context.
-    let stacked = this.stackBlocks(stackContext, template, false);
-    if (stacked.extendsNode === undefined) {
-      throw new InternalSyntaxError(`expected an 'extends' node`);
-    }
-
-    seen.add(liquidStringify(stacked.extendsNode.name));
-    let parent: Template;
-
-    try {
-      parent = this.getTemplateSync(
-        templateName,
-        loadContext,
-        this.templateName,
-        node,
-      );
-    } catch (error) {
-      if (error instanceof TemplateNotFoundError) return;
-      throw error;
-    }
-
-    stacked = this.stackBlocks(stackContext, parent);
-    let parentTemplateName: string | undefined = this.extend(stacked, seen);
-
-    while (parentTemplateName) {
-      try {
-        parent = this.getTemplateSync(
-          parentTemplateName,
-          loadContext,
-          this.templateName,
-          node,
-        );
-      } catch (error) {
-        if (error instanceof TemplateNotFoundError) return;
-        throw error;
+    for (const [i, line] of this.template.lines.entries()) {
+      cumulativeLength += line.length;
+      if (index < cumulativeLength) {
+        targetLineIndex = i;
+        break;
       }
-      stacked = this.stackBlocks(stackContext, parent);
-      parentTemplateName = this.extend(stacked, seen);
     }
 
-    const refs = new InheritanceChainCounter(parent, stackContext, undefined, {
-      followPartials: this.followPartials,
-      scope: chainObjects({ block: undefined }, this.scope),
-      templateLocals: this.templateLocals,
-      raiseForFailures: this.raiseForFailures,
-      partials: this.partials,
-    }).analyzeSync();
+    if (targetLineIndex === -1) throw new LiquidError("index is out of bounds");
 
-    this.updateReferenceCounters(refs);
+    const lineNumber = targetLineIndex + 1;
+    const line = this.template.lines[targetLineIndex] || "";
+    const columnNumber = index - (cumulativeLength - line.length);
+    return [lineNumber, columnNumber];
   }
 
-  private extend(
-    _stacked: StackedBlocks,
-    seen: Set<string>,
-  ): string | undefined {
-    if (_stacked.extendsNode !== undefined) {
-      const _parentTemplateName = liquidStringify(_stacked.extendsNode.name);
-      if (seen.has(_parentTemplateName)) {
-        throw new TemplateInheritanceError(
-          `circular extends '${_parentTemplateName}'`,
-          _stacked.extendsNode.token,
-        );
-      }
-      seen.add(_parentTemplateName);
-      return _parentTemplateName;
-    }
-    return undefined;
+  /**
+   * Return line and column number for the start and end index spanning
+   * this location.
+   */
+  span(): [[number, number], [number, number]] {
+    return [this.lineCol(this.token.start), this.lineCol(this.token.end)];
   }
 
-  private stackBlocks(
-    stackContext: RenderContext,
-    template: Template,
-    countTags: boolean = true,
-  ): StackedBlocks {
-    const stacked = stackBlocks(stackContext, template);
-    if (countTags && stacked.extendsNode) {
-      const token = stacked.extendsNode.token;
-      this.tags
-        .get(token.value)
-        .push({ templateName: template.name, lineNumber: token.lineNumber() });
-    }
-
-    for (const node of stacked.blockNodes) {
-      const token = node.token;
-      this.tags
-        .get(token.value)
-        .push({ templateName: template.name, lineNumber: token.lineNumber() });
-    }
-
-    return stacked;
+  /**
+   * Return the substring in `source` at this location.
+   */
+  value(): string {
+    return getTokenValue(this.token, this.template.source);
   }
-
-  private async getTemplate(
-    name: string,
-    loaderContext: { [index: string]: unknown },
-    parentName: string,
-    parentNode: ChildNode,
-  ): Promise<Template> {
-    try {
-      return await this.emptyContext.getTemplate(name, loaderContext);
-    } catch (error) {
-      if (error instanceof TemplateNotFoundError) {
-        this.unloadablePartials.get(name).push({
-          templateName: parentName,
-          lineNumber: parentNode.token.lineNumber(),
-        });
-      }
-      throw error;
-    }
-  }
-
-  private getTemplateSync(
-    name: string,
-    loaderContext: { [index: string]: unknown },
-    parentName: string,
-    parentNode: ChildNode,
-  ): Template {
-    try {
-      return this.emptyContext.getTemplateSync(name, loaderContext);
-    } catch (error) {
-      if (error instanceof TemplateNotFoundError) {
-        this.unloadablePartials.get(name).push({
-          templateName: parentName,
-          lineNumber: parentNode.token.lineNumber(),
-        });
-      }
-      throw error;
-    }
-  }
-
-  private renderContext(child: ChildNode): Partial<PartialTemplateContext> {
-    if (child.expression === undefined) {
-      return {};
-    }
-
-    if (!(child.expression instanceof StringLiteral)) {
-      this.unloadablePartials.get(child.expression.toString()).push({
-        templateName: this.templateName,
-        lineNumber: child.token.lineNumber(),
-      });
-      return {};
-    }
-
-    const context: PartialTemplateContext = {
-      templateName: child.expression.value.toString(),
-      loadContext: child.loadContext ?? {},
-    };
-    const contextKey = JSON.stringify(context);
-
-    // Keep track of partial templates that have already been analyzed. This prevents
-    // us from analyzing the same template twice and protects us against recursive
-    // includes/renders.
-    if (this.partials.has(contextKey)) {
-      return {};
-    }
-
-    this.partials.add(contextKey);
-    return context;
-  }
-
-  protected countTag(node: Node): void {
-    if (!(node instanceof BlockNode) && node.token.kind === TOKEN_TAG) {
-      this.tags.get(node.token.value).push({
-        templateName: this.templateName,
-        lineNumber: node.token.lineNumber(),
-      });
-    }
-  }
-
-  // eslint-disable-next-line sonarjs/cognitive-complexity
-  protected updateReferenceCounters(refs: TemplateVariableCounter): void {
-    for (const [_name, _refs] of refs.variables.entries()) {
-      for (const location of _refs) {
-        this.variables.get(_name).push(location);
-      }
-    }
-
-    for (const [_name, _refs] of refs.templateGlobals.entries()) {
-      for (const location of _refs) {
-        this.templateGlobals.get(_name).push(location);
-      }
-    }
-
-    for (const [_name, _refs] of refs.failedVisits.entries()) {
-      for (const location of _refs) {
-        this.failedVisits.get(_name).push(location);
-      }
-    }
-
-    for (const [_name, _refs] of refs.unloadablePartials.entries()) {
-      for (const location of _refs) {
-        this.unloadablePartials.get(_name).push(location);
-      }
-    }
-
-    for (const [_name, _refs] of refs.filters.entries()) {
-      for (const location of _refs) {
-        this.filters.get(_name).push(location);
-      }
-    }
-
-    for (const [_name, _refs] of refs.tags.entries()) {
-      for (const location of _refs) {
-        this.tags.get(_name).push(location);
-      }
-    }
-  }
-
-  private _raiseForFailures(): void {
-    if (this.raiseForFailures && this.failedVisits.size) {
-      const msgTarget = this.failedVisits.entries().next().value[0];
-      let msg: string;
-      if (this.failedVisits.size > 1) {
-        msg =
-          `${msgTarget} (+${this.failedVisits.size - 1} more) ` +
-          "does not implement a 'children' method";
-      } else {
-        msg = `${msgTarget} does not implement a 'children' method`;
-      }
-      throw new TemplateTraversalError(`failed visit: ${msg}`);
-    }
-
-    if (this.raiseForFailures && this.unloadablePartials.size) {
-      const msgTarget = this.unloadablePartials.entries().next().value[0];
-      let msg: string;
-      if (this.unloadablePartials.size > 1) {
-        msg =
-          `partial template ${msgTarget} ` +
-          `(+${this.unloadablePartials.size - 1} more) ` +
-          "could not be loaded";
-      } else {
-        msg = `partial template ${msgTarget} could not be loaded`;
-      }
-      throw new TemplateTraversalError(`failed visit: ${msg}`);
-    }
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  protected async expressionHook(child: ChildNode): Promise<void> {}
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  protected expressionHookSync(child: ChildNode): void {}
 }
 
-class InheritanceChainCounter extends TemplateVariableCounter {
+export type Loc = {
+  startIndex: number;
+  endIndex: number;
+  startLine: number;
+  startColumn: number;
+  endLine: number;
+  endColumn: number;
+  value: string;
+  templateName: string;
+};
+
+export type Segments = Array<number | string | Segments>;
+
+export type Var = Loc & {
+  segments: Segments;
+  path: string;
+};
+
+/**
+ * A mapping of variable names to their locations along with any path segments.
+ */
+export type Vars = Record<string, Var[]>;
+
+/**
+ * A mapping of filter or tag names to their locations.
+ */
+export type Locations = Record<string, Loc[]>;
+
+const RE_PROPERTY = /[\u0080-\uFFFFa-zA-Z_][\u0080-\uFFFFa-zA-Z0-9_-]*/;
+
+/**
+ * A variable as a sequence of segments and its location.
+ */
+export class StaticVariable {
   constructor(
-    readonly baseTemplate: Template,
-    readonly stackContext: RenderContext,
-    readonly parentBlockStackItem: BlockStackItem | undefined,
-    {
-      followPartials,
-      raiseForFailures,
-      scope,
-      templateLocals,
-      partials,
-    }: TemplateVariableCounterOptions,
-  ) {
-    super(baseTemplate, {
-      followPartials,
-      raiseForFailures,
-      scope,
-      templateLocals,
-      partials,
-    });
+    readonly segments: Segments,
+    readonly location: Location,
+  ) {}
+
+  /**
+   * Variables with the same segments compare equal, regardless of span.
+   */
+  equals(other: StaticVariable): boolean {
+    return this.segments === other.segments;
   }
 
-  protected async _analyze(root: Node): Promise<void> {
-    if (root instanceof InheritanceBlockNode) {
-      return await this.analyzeBlock(root);
+  root(): string {
+    const segment = this.segments[0] ?? "";
+    if (isArray(segment)) {
+      return this.toStringInner(segment);
     }
-    return await super._analyze(root);
+    return segment.toString();
   }
 
-  protected _analyzeSync(root: Node): void {
-    if (root instanceof InheritanceBlockNode) {
-      return this.analyzeBlockSync(root);
-    }
-    return super._analyzeSync(root);
+  toString(): string {
+    return this.toStringInner(this.segments);
   }
 
-  protected async expressionHook(child: ChildNode): Promise<void> {
-    if (
-      !child.expression ||
-      !this.parentBlockStackItem ||
-      !this.containsSuper(child.expression)
-    )
-      return;
-
-    const template = this.makeTemplate(this.parentBlockStackItem);
-    const scope = Object.fromEntries(
-      Array.from(this.templateLocals.keys()).map((s) => [
-        s.split(InheritanceChainCounter.RE_SPLIT_IDENT, 1)[0],
-        undefined,
-      ]),
+  private toStringInner(segments: Segments): string {
+    const [head, ...rest] = segments;
+    return (
+      head +
+      rest
+        .map((segment) => {
+          if (isArray(segment)) return `[${this.toStringInner(segment)}]`;
+          if (isString(segment) && segment.match(RE_PROPERTY))
+            return `.${segment}`;
+          return `[${segment}]`;
+        })
+        .join("")
     );
+  }
+}
 
-    const refs = await new InheritanceChainCounter(
-      template,
-      this.stackContext,
-      undefined,
-      {
-        followPartials: this.followPartials,
-        scope: chainObjects({ block: undefined }, this.scope, scope),
-        raiseForFailures: this.raiseForFailures,
-        partials: this.partials,
-      },
-    ).analyze();
+class StaticScope {
+  readonly stack: Array<Set<string>>;
 
-    this.updateReferenceCounters(refs);
+  constructor(readonly globals: Set<string>) {
+    this.stack = [globals];
   }
 
-  protected expressionHookSync(child: ChildNode): void {
-    if (
-      !child.expression ||
-      !this.parentBlockStackItem ||
-      !this.containsSuper(child.expression)
-    )
-      return;
-
-    const template = this.makeTemplate(this.parentBlockStackItem);
-    const scope = Object.fromEntries(
-      Array.from(this.templateLocals.keys()).map((s) => [
-        s.split(InheritanceChainCounter.RE_SPLIT_IDENT, 1)[0],
-        undefined,
-      ]),
-    );
-
-    const refs = new InheritanceChainCounter(
-      template,
-      this.stackContext,
-      undefined,
-      {
-        followPartials: this.followPartials,
-        scope: chainObjects({ block: undefined }, this.scope, scope),
-        raiseForFailures: this.raiseForFailures,
-        partials: this.partials,
-      },
-    ).analyzeSync();
-
-    this.updateReferenceCounters(refs);
+  /**
+   * Add a name to the root/template scope.
+   */
+  add(name: string): void {
+    this.stack[0]?.add(name);
   }
 
-  private containsSuper(expression: Expression): boolean {
-    if (
-      expression instanceof Identifier &&
-      expression.toString() === "block.super"
-    )
-      return true;
-
-    if (
-      expression instanceof FilteredExpression &&
-      expression.expression instanceof Identifier &&
-      expression.expression.toString() === "block.super"
-    )
-      return true;
-
-    if (expression.children) {
-      for (const expr of expression.children()) {
-        if (this.containsSuper(expr)) return true;
-      }
+  has(key: string): boolean {
+    for (const scope of this.stack) {
+      if (scope.has(key)) return true;
     }
-
     return false;
   }
 
-  private async analyzeBlock(block: InheritanceBlockNode): Promise<void> {
-    const blockStacks = this.stackContext.getRegister(EXTENDS_REGISTER) as Map<
-      string,
-      BlockStackItem[]
-    >;
-
-    const _blockStackItems = blockStacks.get(block.name);
-    if (!_blockStackItems) return;
-    const blockStackItem = _blockStackItems[0];
-    const template = this.makeTemplate(blockStackItem);
-    const scope = Object.fromEntries(
-      Array.from(this.templateLocals.keys()).map((s) => [
-        s.split(InheritanceChainCounter.RE_SPLIT_IDENT, 1)[0],
-        undefined,
-      ]),
-    );
-
-    const refs = await new InheritanceChainCounter(
-      template,
-      this.stackContext,
-      blockStackItem.parent,
-      {
-        followPartials: this.followPartials,
-        scope: chainObjects({ block: undefined }, this.scope, scope),
-        raiseForFailures: this.raiseForFailures,
-        partials: this.partials,
-      },
-    ).analyze();
-
-    this.updateReferenceCounters(refs);
+  pop(): Set<string> | undefined {
+    return this.stack.pop();
   }
 
-  private analyzeBlockSync(block: InheritanceBlockNode): void {
-    const blockStacks = this.stackContext.getRegister(EXTENDS_REGISTER) as Map<
-      string,
-      BlockStackItem[]
-    >;
+  push(scope: Set<string>): StaticScope {
+    this.stack.push(scope);
+    return this;
+  }
+}
 
-    const _blockStackItems = blockStacks.get(block.name);
-    if (!_blockStackItems) return;
-    const blockStackItem = _blockStackItems[0];
-    const template = this.makeTemplate(blockStackItem);
-    const scope = Object.fromEntries(
-      Array.from(this.templateLocals.keys()).map((s) => [
-        s.split(InheritanceChainCounter.RE_SPLIT_IDENT, 1)[0],
-        undefined,
-      ]),
-    );
+class VariableMap {
+  readonly data: Map<string, StaticVariable[]> = new Map();
 
-    const refs = new InheritanceChainCounter(
-      template,
-      this.stackContext,
-      blockStackItem.parent,
-      {
-        followPartials: this.followPartials,
-        scope: chainObjects({ block: undefined }, this.scope, scope),
-        raiseForFailures: this.raiseForFailures,
-        partials: this.partials,
-      },
-    ).analyzeSync();
-
-    this.updateReferenceCounters(refs);
+  add(key: StaticVariable): void {
+    this.get(key)?.push(key);
   }
 
-  private makeTemplate(item: BlockStackItem): Template {
-    const parseTree = new Root();
-    parseTree.nodes.push(...item.block.block.nodes);
-    return new Template(
-      this.template.environment,
-      parseTree,
-      {},
-      {
-        name: item.sourceName,
-      },
-    );
+  get(key: StaticVariable): StaticVariable[] | undefined {
+    const k = key.root();
+    if (!this.data.has(k)) this.data.set(k, []);
+    return this.data.get(k);
   }
+
+  toObject(): Vars {
+    const obj: Vars = {};
+
+    for (const [k, v] of this.data.entries()) {
+      const a: Var[] = [];
+
+      for (const sv of v) {
+        const [[startLine, startColumn], [endLine, endColumn]] =
+          sv.location.span();
+
+        a.push({
+          segments: sv.segments,
+          path: sv.toString(),
+          startIndex: sv.location.token.start,
+          endIndex: sv.location.token.end,
+          startLine,
+          startColumn,
+          endLine,
+          endColumn,
+          value: sv.location.value(),
+          templateName: sv.location.template.name,
+        });
+      }
+
+      obj[k] = a;
+    }
+
+    return obj;
+  }
+}
+
+/**
+ * The result of analyzing a template using `Template.analyze()`;
+ */
+export class TemplateAnalysis {
+  constructor(
+    readonly variables: Vars,
+    readonly locals: Vars,
+    readonly globals: Vars,
+    readonly filters: Locations,
+    readonly tags: Locations,
+  ) {}
+}
+
+export type AnalysisOptions = {
+  includePartials: boolean;
+};
+
+export async function analyze(
+  template: Template,
+  options: AnalysisOptions,
+): Promise<TemplateAnalysis> {
+  const variables = new VariableMap();
+  const globals = new VariableMap();
+  const locals = new VariableMap();
+
+  const filters = new DefaultMap<string, Location[]>(Array);
+  const tags = new DefaultMap<string, Location[]>(Array);
+
+  const templateScope = new Set<string>();
+  const rootScope = new StaticScope(templateScope);
+  const staticContext = new RenderContext(template, {});
+
+  /**
+   * Names of partial templates that have already been analyzed.
+   * Keys are hashes of partial template name and its arguments. If we've
+   * visited a template before but with different arguments, later visits
+   * only record global variables so as not to double count locals, filters
+   * and tags.
+   */
+  const seen = new DefaultMap<string, Set<number | undefined>>(() => new Set());
+
+  const visit = async (
+    node: Markup,
+    template: Template,
+    scope: StaticScope,
+    justGlobals: boolean = false,
+  ) => {
+    if (template.name.length && !justGlobals) {
+      seen.get(template.name).add(undefined);
+    }
+
+    // Update tags
+    // Markup with empty `node.tag` is silenced.
+    if (!justGlobals && node.tag.length > 0) {
+      tags.get(node.tag).push(new Location(template, node.token));
+    }
+
+    // Update variables from node.expressions()
+    if (node.expressions !== undefined) {
+      for (const expr of node.expressions()) {
+        analyzeVariables(
+          expr,
+          template,
+          scope,
+          globals,
+          justGlobals ? new VariableMap() : variables,
+          staticContext,
+        );
+
+        if (!justGlobals) {
+          // Update filters from expr
+          for (const [name, span] of extractFilters(
+            expr,
+            template,
+            staticContext,
+          )) {
+            filters.get(name).push(span);
+          }
+        }
+      }
+    }
+
+    // Update the template scope from node.templateScope()
+    if (node.templateScope !== undefined) {
+      for (const name of node.templateScope()) {
+        scope.add(name.value);
+        locals.add(
+          new StaticVariable([name.value], new Location(template, name.token)),
+        );
+      }
+    }
+
+    // Set block scope before descending into child nodes.
+    if (node.blockScope !== undefined) {
+      scope.push(new Set(node.blockScope().map((n) => n.value)));
+    }
+
+    if (node.children !== undefined) {
+      for (const child of await node.children(staticContext)) {
+        visit(child, template, scope, justGlobals);
+      }
+    } else if (node.childrenSync !== undefined) {
+      // Fall back to sync.
+      for (const child of node.childrenSync(staticContext)) {
+        visit(child, template, scope, justGlobals);
+      }
+    }
+
+    if (node.blockScope !== undefined) {
+      scope.pop();
+    }
+
+    // Descend into partial templates?
+    if (options.includePartials && node.partial !== undefined) {
+      const partial = await node.partial(staticContext);
+      const name = partial.template.name;
+
+      // If we've seen this partial before but with different arguments,
+      // we might want to visit it again but only capture globals.
+      const justGlobals_ = seen.has(name);
+
+      if (!seen.get(name).has(partial.key)) {
+        seen.get(name).add(partial.key);
+
+        const partialScope =
+          partial.scopeKind === Scope.ISOLATED
+            ? new StaticScope(new Set(partial.inScope.map((n) => n.value)))
+            : rootScope.push(new Set(partial.inScope.map((n) => n.value)));
+
+        for (const node of partial.template.nodes) {
+          if (!isString(node))
+            visit(node, partial.template, partialScope, justGlobals_);
+        }
+
+        if (partial.scopeKind !== Scope.ISOLATED) {
+          partialScope.pop();
+        }
+      }
+    }
+  };
+
+  for (const node of template.nodes) {
+    if (!isString(node)) visit(node, template, rootScope);
+  }
+
+  return new TemplateAnalysis(
+    variables.toObject(),
+    locals.toObject(),
+    globals.toObject(),
+    toLocations(filters),
+    toLocations(tags),
+  );
+}
+
+export function analyzeSync(
+  template: Template,
+  options: AnalysisOptions,
+): TemplateAnalysis {
+  const variables = new VariableMap();
+  const globals = new VariableMap();
+  const locals = new VariableMap();
+
+  const filters = new DefaultMap<string, Location[]>(Array);
+  const tags = new DefaultMap<string, Location[]>(Array);
+
+  const templateScope = new Set<string>();
+  const rootScope = new StaticScope(templateScope);
+  const staticContext = new RenderContext(template, {});
+
+  /**
+   * Names of partial templates that have already been analyzed.
+   * Keys are hashes of partial template name and its arguments. If we've
+   * visited a template before but with different arguments, later visits
+   * only record global variables so as not to double count locals, filters
+   * and tags.
+   */
+  const seen = new DefaultMap<string, Set<number | undefined>>(() => new Set());
+
+  const visit = (
+    node: Markup,
+    template: Template,
+    scope: StaticScope,
+    justGlobals: boolean = false,
+  ) => {
+    if (template.name.length && !justGlobals) {
+      seen.get(template.name).add(undefined);
+    }
+
+    // Update tags
+    // Markup with empty `node.tag` is silenced.
+    if (!justGlobals && node.tag.length > 0) {
+      tags.get(node.tag).push(new Location(template, node.token));
+    }
+
+    // Update variables from node.expressions()
+    if (node.expressions !== undefined) {
+      for (const expr of node.expressions()) {
+        analyzeVariables(
+          expr,
+          template,
+          scope,
+          globals,
+          justGlobals ? new VariableMap() : variables,
+          staticContext,
+        );
+
+        if (!justGlobals) {
+          // Update filters from expr
+          for (const [name, span] of extractFilters(
+            expr,
+            template,
+            staticContext,
+          )) {
+            filters.get(name).push(span);
+          }
+        }
+      }
+    }
+
+    // Update the template scope from node.templateScope()
+    if (node.templateScope !== undefined) {
+      for (const name of node.templateScope()) {
+        scope.add(name.value);
+        locals.add(
+          new StaticVariable([name.value], new Location(template, name.token)),
+        );
+      }
+    }
+
+    // Set block scope before descending into child nodes.
+    if (node.blockScope !== undefined) {
+      scope.push(new Set(node.blockScope().map((n) => n.value)));
+    }
+
+    if (node.childrenSync !== undefined) {
+      for (const child of node.childrenSync(staticContext)) {
+        visit(child, template, scope, justGlobals);
+      }
+    }
+
+    if (node.blockScope !== undefined) {
+      scope.pop();
+    }
+
+    // Descend into partial templates?
+    if (options.includePartials && node.partialSync !== undefined) {
+      const partial = node.partialSync(staticContext);
+      const name = partial.template.name;
+
+      // If we've seen this partial before but with different arguments,
+      // we might want to visit it again but only capture globals.
+      const justGlobals_ = seen.has(name);
+
+      if (!seen.get(name).has(partial.key)) {
+        seen.get(name).add(partial.key);
+
+        const partialScope =
+          partial.scopeKind === Scope.ISOLATED
+            ? new StaticScope(new Set(partial.inScope.map((n) => n.value)))
+            : rootScope.push(new Set(partial.inScope.map((n) => n.value)));
+
+        for (const node of partial.template.nodes) {
+          if (!isString(node))
+            visit(node, partial.template, partialScope, justGlobals_);
+        }
+
+        if (partial.scopeKind !== Scope.ISOLATED) {
+          partialScope.pop();
+        }
+      }
+    }
+  };
+
+  for (const node of template.nodes) {
+    if (!isString(node)) visit(node, template, rootScope);
+  }
+
+  return new TemplateAnalysis(
+    variables.toObject(),
+    locals.toObject(),
+    globals.toObject(),
+    toLocations(filters),
+    toLocations(tags),
+  );
+}
+
+function* extractFilters(
+  expression: Traversable,
+  template: Template,
+  staticContext: RenderContext,
+): Iterable<[string, Location]> {
+  if (expression instanceof Filter) {
+    yield [expression.name.value, new Location(template, expression.span)];
+  }
+
+  for (const expr of expression.children(staticContext)) {
+    yield* extractFilters(expr, template, staticContext);
+  }
+}
+
+function analyzeVariables(
+  expression: Traversable,
+  template: Template,
+  scope: StaticScope,
+  globals: VariableMap,
+  variables: VariableMap,
+  staticContext: RenderContext,
+): void {
+  if (expression instanceof Variable) {
+    const v = new StaticVariable(
+      segments(expression, template),
+      new Location(template, expression.span),
+    );
+
+    variables.add(v);
+
+    if (!scope.has(expression.root.toString())) {
+      globals.add(v);
+    }
+  }
+
+  // XXX: This is where we'd handle lambda scoping, or any expression that
+  // affects scope.
+
+  for (const expr of expression.children(staticContext)) {
+    analyzeVariables(expr, template, scope, globals, variables, staticContext);
+  }
+}
+
+function segments(variable: Variable, template: Template): Segments {
+  const segments_: Segments = [];
+
+  if (variable.root instanceof Variable) {
+    segments_.push(segments(variable.root, template));
+  } else {
+    segments_.push(variable.root.value);
+  }
+
+  for (const s of variable.segments) {
+    if (s instanceof Variable) {
+      segments_.push(segments(s, template));
+    } else {
+      segments_.push(s.value);
+    }
+  }
+
+  return segments_;
+}
+
+function toLocations(map: DefaultMap<string, Location[]>): Locations {
+  const obj: Locations = {};
+
+  for (const [k, v] of map.entries()) {
+    const a: Loc[] = [];
+
+    for (const l of v) {
+      const [[startLine, startColumn], [endLine, endColumn]] = l.span();
+
+      a.push({
+        startIndex: l.token.start,
+        endIndex: l.token.end,
+        startLine,
+        startColumn,
+        endLine,
+        endColumn,
+        value: l.value(),
+        templateName: l.template.name,
+      });
+    }
+
+    obj[k] = a;
+  }
+
+  return obj;
 }

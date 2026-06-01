@@ -1,320 +1,460 @@
-import { Node, Root, throwForDisabledTag } from "./ast";
-import { LiteralNode } from "./builtin/tags/literal";
-import { chainObjects } from "./chain_object";
-import { RenderContext } from "./context";
+import { ReadOnlyChainMap } from "./chain_map";
+import { RenderContext, type Namespace } from "./context";
+import type { Environment, TemplateMeta } from "./environment";
 import {
-  Environment,
-  EnvironmentOptions,
-  TemplateContext,
-} from "./environment";
+  renderBlock,
+  renderBlockSync,
+  type Block,
+  type Markup,
+} from "./markup";
+import type { OutputBuffer } from "./output";
 import {
-  InternalLiquidError,
-  LiquidError,
-  LiquidInterrupt,
-  LiquidSyntaxError,
-  StopRender,
-} from "./errors";
-import { RenderStream } from "./io/output_stream";
-import {
-  TemplateAnalysis,
-  TemplateAnalysisOptions,
-  TemplateVariableCounter,
+  analyze,
+  analyzeSync,
+  type AnalysisOptions,
+  type Segments,
+  type TemplateAnalysis,
 } from "./static_analysis";
-import { ContextScope } from "./types";
+import { CommentTag, DocTag, InlineCommentTag } from "./tags";
+import { isString } from "./type_guards";
 
-// For backwards compatibility. We've moved these to static_analysis.ts.
-export type {
-  TemplateAnalysis,
-  TemplateAnalysisOptions,
-  VariableRefs,
-  VariableLocation,
-  VariableLocations,
-} from "./static_analysis";
-
-/**
- * A Liquid template that has been parsed and is bound to an environment,
- * ready to be rendered. Rather than constructing a template directly, you
- * should use `Template.fromString()`, `Environment.fromString()` or
- * `Environment.getTemplate()`.
- */
 export class Template {
-  readonly environment: Environment;
-  readonly tree: Root;
+  globals: Namespace;
+
   readonly name: string;
-  readonly globals: ContextScope;
-  readonly matter: ContextScope;
-  readonly loaderContext: ContextScope;
-  readonly isUpToDate: () => Promise<boolean>;
-  readonly isUpToDateSync: () => boolean;
-  protected renderContextClass = RenderContext;
 
-  /**
-   * Parse a Liquid template, automatically creating an environment to
-   * bind it to.
-   *
-   * @param source - The Liquid template source code.
-   * @param templateGlobals - Global render context variables that will
-   * included every time this template is rendered.
-   * @param options - Options to set on the implicit environment. `globals`
-   * and `loader` will be ignored when creating an implicit environment.
-   * @returns A new template, bound to an implicit environment.
-   */
-  static fromString(
-    source: string,
-    templateGlobals?: ContextScope,
-    options: EnvironmentOptions = {},
-  ): Template {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { loader, ...opts } = options;
-    return Environment.getImplicitEnvironment(opts).fromString(
-      source,
-      templateGlobals,
-      { name: "<string>" },
-    );
-  }
+  overlay: Namespace;
 
-  /**
-   * Parse a Liquid template, automatically creating an environment to
-   * bind it to.
-   *
-   * Alias of {@link fromString}
-   *
-   * @param source - The Liquid template source code.
-   * @param templateGlobals - Global render context variables that will
-   * included every time this template is rendered.
-   * @param options - Options to set on the implicit environment.
-   * @returns A new template, bound to an implicit environment.
-   */
-  static from(
-    source: string,
-    templateGlobals?: ContextScope,
-    options: EnvironmentOptions = {},
-  ): Template {
-    return Template.fromString(source, templateGlobals, options);
-  }
+  readonly path: string | undefined;
 
-  /**
-   * Template constructor. Rather than constructing a template directly, you
-   * should use `Template.fromString()`, `Environment.fromString()` or
-   * `Environment.getTemplate()`.
-   *
-   * @param environment - The environment this template is bound to.
-   * @param tree - The root of the abstract syntax tree representing this
-   * template.
-   * @param globals - An optional object who's properties will be added
-   * to the render context every time the resulting template is rendered.
-   * @param templateContext - Optional meta data. Mostly for managing loading
-   * and reloading of templates.
-   */
+  readonly upToDate: () => Promise<boolean>;
+
+  readonly upToDateSync: () => boolean;
+
+  #lines: string[] | undefined;
+
   constructor(
-    environment: Environment,
-    tree: Root,
-    globals?: ContextScope,
-    templateContext: TemplateContext = {},
+    readonly env: Environment,
+    readonly source: string,
+    readonly nodes: Block,
+    globals?: Namespace,
+    meta?: TemplateMeta,
   ) {
-    this.environment = environment;
-    this.tree = tree;
-    this.name = templateContext.name ?? "<string>";
-    this.globals = globals === undefined ? {} : globals;
-    this.matter = templateContext.matter ?? {};
-    this.loaderContext = templateContext.loaderContext ?? {};
-    this.isUpToDate = templateContext.upToDate ?? (async () => true);
-    this.isUpToDateSync = templateContext.upToDateSync ?? (() => true);
+    this.name = meta?.name ?? "";
+    this.globals = globals ?? {};
+    this.overlay = meta?.overlay ?? {};
+    this.upToDate = meta?.upToDate ?? (async () => true);
+    this.upToDateSync = meta?.upToDateSync ?? (() => true);
+  }
+
+  protected makeGlobals(namespace?: Namespace): Namespace {
+    return namespace
+      ? new ReadOnlyChainMap(namespace, this.overlay, this.globals)
+      : new ReadOnlyChainMap(this.overlay, this.globals);
   }
 
   /**
-   * Render the template.
-   * @param globals - An optional object who's properties will be added
-   * to the render context,
-   * @returns The rendered template.
-   */
-  public async render(globals: ContextScope = {}): Promise<string> {
-    const context = new this.renderContextClass(
-      this.environment,
-      this.makeGlobals(globals),
-      {
-        templateName: this.name,
-        loaderContext: this.loaderContext,
-        template: this,
-      },
-    );
-    const outputStream = this.environment.renderStreamFactory();
-    await this.renderWithContext(context, outputStream);
-    return outputStream.toString();
-  }
-
-  /**
-   * A synchronous version of `render`.
-   * @see {@link render}
-   */
-  public renderSync(globals: ContextScope = {}): string {
-    const context = new this.renderContextClass(
-      this.environment,
-      this.makeGlobals(globals),
-      {
-        templateName: this.name,
-        loaderContext: this.loaderContext,
-        template: this,
-      },
-    );
-    const outputStream = this.environment.renderStreamFactory();
-    this.renderWithContextSync(context, outputStream);
-    return outputStream.toString();
-  }
-
-  protected handleError(
-    error: unknown,
-    node: Node,
-    blockScope: boolean,
-    partial: boolean,
-  ): void {
-    if (error instanceof LiquidInterrupt) {
-      if (!partial || blockScope) {
-        this.environment.error(
-          new LiquidSyntaxError(
-            `unexpected '${error.message}'`,
-            node.token,
-            this.name,
-          ),
-        );
-      } else {
-        throw error;
-      }
-    } else if (error instanceof InternalLiquidError) {
-      this.environment.error(error.withToken(node.token, this.name));
-    } else if (error instanceof LiquidError) {
-      this.environment.error(error);
-    } else {
-      throw error;
-    }
-  }
-
-  /**
-   * Render a template given an existing render context and output stream.
-   * This is used by the built-in `include` and `render` tags.
-   */
-  public async renderWithContext(
-    context: RenderContext,
-    outputStream: RenderStream,
-    blockScope: boolean = false,
-    partial: boolean = false,
-  ): Promise<void> {
-    for (const node of this.tree.nodes) {
-      throwForDisabledTag(node, context, this.name);
-      try {
-        if (node instanceof LiteralNode) {
-          node.renderSync(context, outputStream);
-        } else {
-          await node.render(context, outputStream);
-        }
-      } catch (error) {
-        if (error instanceof StopRender) {
-          break;
-        }
-        this.handleError(error, node, blockScope, partial);
-      }
-    }
-  }
-
-  /**
-   * A synchronous version of `renderWithContext`.
-   * @see {@link renderWithContext}
-   */
-  public renderWithContextSync(
-    context: RenderContext,
-    outputStream: RenderStream,
-    blockScope: boolean = false,
-    partial: boolean = false,
-  ): void {
-    for (const node of this.tree.nodes) {
-      throwForDisabledTag(node, context, this.name);
-      try {
-        node.renderSync(context, outputStream);
-      } catch (error) {
-        if (error instanceof StopRender) {
-          break;
-        }
-        this.handleError(error, node, blockScope, partial);
-      }
-    }
-  }
-
-  /**
-   * Copy this template with new render context globals.
+   * Copy this template with new pinned global variables.
    *
    * @param globals - An object who's properties will be added
    * to the render context every time this template is rendered.
    * @returns A copy of this template with new render context globals.
    */
-  public withGlobals(globals?: ContextScope) {
-    return new Template(this.environment, this.tree, globals, {
-      loaderContext: this.loaderContext,
-      matter: this.matter,
+  withGlobals(globals?: Namespace) {
+    return new Template(this.env, this.source, this.nodes, globals, {
       name: this.name,
-      upToDate: this.isUpToDate,
-      upToDateSync: this.isUpToDateSync,
+      overlay: this.overlay,
+      upToDate: this.upToDate,
+      upToDateSync: this.upToDateSync,
     });
   }
 
+  async render(data?: Namespace): Promise<string> {
+    const buffer = this.env.bufferFactory();
+    const context = new RenderContext(this, {
+      globals: this.makeGlobals(data),
+    });
+    await this.renderWithContext(context, buffer);
+    return buffer.join("");
+  }
+
+  renderSync(data?: Namespace): string {
+    const buffer = this.env.bufferFactory();
+    const context = new RenderContext(this, {
+      globals: this.makeGlobals(data),
+    });
+    this.renderWithContextSync(context, buffer);
+    return buffer.join("");
+  }
+
+  async renderWithContext(
+    context: RenderContext,
+    buffer: OutputBuffer,
+  ): Promise<void> {
+    // Note that `renderBlock` handles interrupts, even if we're not inside a
+    // tag that intuitively could produce an interrupt.
+    await renderBlock(this.nodes, context, buffer);
+  }
+
+  renderWithContextSync(context: RenderContext, buffer: OutputBuffer): void {
+    // Note that `renderBlockSync` handles interrupts, even if we're not
+    // inside a tag that intuitively could produce an interrupt.
+    renderBlockSync(this.nodes, context, buffer);
+  }
+
   /**
-   * Combine render context global variables from the bound environment,
-   * the "matter" object originating from a template loader (if any) and
-   * those passed to `render()`.
+   * This template's source code split into lines.
+   */
+  get lines(): string[] {
+    if (this.#lines === undefined) {
+      const lines = this.source.split(/(?<=\n)/);
+      if (lines[lines.length - 1] === "") {
+        lines.pop();
+      }
+
+      this.#lines = lines;
+    }
+
+    return this.#lines;
+  }
+
+  /**
+   * Statically analyze this template.
    *
-   * Override this to change global template scope priorities.
+   * When the `includePartials` option is true, attempt to load and analyze
+   * included/rendered templates too.
    */
-  protected makeGlobals(templateGlobals: ContextScope): ContextScope {
-    return chainObjects(templateGlobals, this.matter, this.globals);
+  async analyze(
+    options: AnalysisOptions = { includePartials: true },
+  ): Promise<TemplateAnalysis> {
+    return await analyze(this, options);
   }
 
   /**
-   * Statically analyze this template and any included/rendered templates.
-   * Currently we only analyze references to template variables.
+   * Statically analyze this template.
    *
-   * @param options - Template analysis options.
+   * When the `includePartials` option is true, attempt to load and analyze
+   * included/rendered templates too.
    */
-  public async analyze({
-    followPartials,
-    raiseForFailures,
-  }: TemplateAnalysisOptions = {}): Promise<TemplateAnalysis> {
-    const counter = new TemplateVariableCounter(this, {
-      followPartials,
-      raiseForFailures,
-    });
-    const refs = await counter.analyze();
-    return {
-      variables: Object.fromEntries(refs.variables.entries()),
-      localVariables: Object.fromEntries(refs.templateLocals.entries()),
-      globalVariables: Object.fromEntries(refs.templateGlobals.entries()),
-      failedVisits: Object.fromEntries(refs.failedVisits.entries()),
-      unloadablePartials: Object.fromEntries(refs.unloadablePartials.entries()),
-      filters: Object.fromEntries(refs.filters.entries()),
-      tags: Object.fromEntries(refs.tags.entries()),
-    };
+  analyzeSync(
+    options: AnalysisOptions = { includePartials: true },
+  ): TemplateAnalysis {
+    return analyzeSync(this, options);
   }
 
   /**
-   * A synchronous version of `analyze`
-   * @see {@link analyze}
-   * @param options - Template analysis options.
+   * Return an array of variables used in this template without path segments.
+   *
+   * Includes variables that are _local_ to the template, like those created
+   * with `{% assign %}` and `{% capture %}`.
+   *
+   * When the `includePartials` option is true, attempt to load and analyze
+   * included/rendered templates too.
    */
-  public analyzeSync({
-    followPartials,
-    raiseForFailures,
-  }: TemplateAnalysisOptions = {}): TemplateAnalysis {
-    const counter = new TemplateVariableCounter(this, {
-      followPartials,
-      raiseForFailures,
-    });
-    const refs = counter.analyzeSync();
-    return {
-      variables: Object.fromEntries(refs.variables.entries()),
-      localVariables: Object.fromEntries(refs.templateLocals.entries()),
-      globalVariables: Object.fromEntries(refs.templateGlobals.entries()),
-      failedVisits: Object.fromEntries(refs.failedVisits.entries()),
-      unloadablePartials: Object.fromEntries(refs.unloadablePartials.entries()),
-      filters: Object.fromEntries(refs.filters.entries()),
-      tags: Object.fromEntries(refs.tags.entries()),
-    };
+  async variables(
+    options: AnalysisOptions = { includePartials: true },
+  ): Promise<string[]> {
+    return Array.from(Object.keys((await this.analyze(options)).variables));
   }
+
+  /**
+   * Return an array of variables used in this template without path segments.
+   *
+   * Includes variables that are _local_ to the template, like those created
+   * with `{% assign %}` and `{% capture %}`.
+   *
+   * When the `includePartials` option is true, attempt to load and analyze
+   * included/rendered templates too.
+   */
+  variablesSync(
+    options: AnalysisOptions = { includePartials: true },
+  ): string[] {
+    return Array.from(Object.keys(this.analyzeSync(options).variables));
+  }
+
+  /**
+   * Return an array of variables used in this template including path segments.
+   *
+   * Includes variables that are _local_ to the template, like those created
+   * with `{% assign %}` and `{% capture %}`.
+   *
+   * When the `includePartials` option is true, attempt to load and analyze
+   * included/rendered templates too.
+   */
+  async variablePaths(
+    options: AnalysisOptions = { includePartials: true },
+  ): Promise<string[]> {
+    return unique(
+      Object.values((await this.analyze(options)).variables).flatMap((s) =>
+        s.map((v) => v.path),
+      ),
+    );
+  }
+
+  /**
+   * Return an array of variables used in this template including path segments.
+   *
+   * Includes variables that are _local_ to the template, like those created
+   * with `{% assign %}` and `{% capture %}`.
+   *
+   * When the `includePartials` option is true, attempt to load and analyze
+   * included/rendered templates too.
+   */
+  variablePathsSync(
+    options: AnalysisOptions = { includePartials: true },
+  ): string[] {
+    return unique(
+      Object.values(this.analyzeSync(options).variables).flatMap((s) =>
+        s.map((v) => v.path),
+      ),
+    );
+  }
+
+  /**
+   * Return an array of variables used in this template, each as a list of segments.
+   *
+   * Includes variables that are _local_ to the template, like those created
+   * with `{% assign %}` and `{% capture %}`.
+   *
+   * When the `includePartials` option is true, attempt to load and analyze
+   * included/rendered templates too.
+   */
+  async variableSegments(
+    options: AnalysisOptions = { includePartials: true },
+  ): Promise<Segments[]> {
+    return unique(
+      Object.values((await this.analyze(options)).variables).flatMap((s) =>
+        s.map((v) => v.segments),
+      ),
+    );
+  }
+
+  /**
+   * Return an array of variables used in this template, each as a list of segments.
+   *
+   * Includes variables that are _local_ to the template, like those created
+   * with `{% assign %}` and `{% capture %}`.
+   *
+   * When the `includePartials` option is true, attempt to load and analyze
+   * included/rendered templates too.
+   */
+  variableSegmentsSync(
+    options: AnalysisOptions = { includePartials: true },
+  ): Segments[] {
+    return unique(
+      Object.values(this.analyzeSync(options).variables).flatMap((s) =>
+        s.map((v) => v.segments),
+      ),
+    );
+  }
+
+  /**
+   * Return an array of variables used in this template without path segments.
+   *
+   * Excludes variables that are _local_ to the template, like those created
+   * with `{% assign %}` and `{% capture %}`.
+   *
+   * When the `includePartials` option is true, attempt to load and analyze
+   * included/rendered templates too.
+   */
+  async globalVariables(
+    options: AnalysisOptions = { includePartials: true },
+  ): Promise<string[]> {
+    return Array.from(Object.keys((await this.analyze(options)).globals));
+  }
+
+  /**
+   * Return an array of variables used in this template without path segments.
+   *
+   * Excludes variables that are _local_ to the template, like those created
+   * with `{% assign %}` and `{% capture %}`.
+   *
+   * When the `includePartials` option is true, attempt to load and analyze
+   * included/rendered templates too.
+   */
+  globalVariablesSync(
+    options: AnalysisOptions = { includePartials: true },
+  ): string[] {
+    return Array.from(Object.keys(this.analyzeSync(options).globals));
+  }
+
+  async globalVariablePaths(
+    options: AnalysisOptions = { includePartials: true },
+  ): Promise<string[]> {
+    return unique(
+      Object.values((await this.analyze(options)).globals).flatMap((s) =>
+        s.map((v) => v.path),
+      ),
+    );
+  }
+
+  /**
+   * Return an array of variables used in this template including path segments.
+   *
+   * Excludes variables that are _local_ to the template, like those created
+   * with `{% assign %}` and `{% capture %}`.
+   *
+   * When the `includePartials` option is true, attempt to load and analyze
+   * included/rendered templates too.
+   */
+  globalVariablePathsSync(
+    options: AnalysisOptions = { includePartials: true },
+  ): string[] {
+    return unique(
+      Object.values(this.analyzeSync(options).globals).flatMap((s) =>
+        s.map((v) => v.path),
+      ),
+    );
+  }
+
+  /**
+   * Return an array of variables used in this template, each as a list of segments.
+   *
+   * Excludes variables that are _local_ to the template, like those created
+   * with `{% assign %}` and `{% capture %}`.
+   *
+   * When the `includePartials` option is true, attempt to load and analyze
+   * included/rendered templates too.
+   */
+  async globalVariableSegments(
+    options: AnalysisOptions = { includePartials: true },
+  ): Promise<Segments[]> {
+    return unique(
+      Object.values((await this.analyze(options)).globals).flatMap((s) =>
+        s.map((v) => v.segments),
+      ),
+    );
+  }
+
+  /**
+   * Return an array of variables used in this template, each as a list of segments.
+   *
+   * Excludes variables that are _local_ to the template, like those created
+   * with `{% assign %}` and `{% capture %}`.
+   *
+   * When the `includePartials` option is true, attempt to load and analyze
+   * included/rendered templates too.
+   */
+  globalVariableSegmentsSync(
+    options: AnalysisOptions = { includePartials: true },
+  ): Segments[] {
+    return unique(
+      Object.values(this.analyzeSync(options).globals).flatMap((s) =>
+        s.map((v) => v.segments),
+      ),
+    );
+  }
+
+  /**
+   * Return an array of filter names used in this template.
+   */
+  async filterNames(
+    options: AnalysisOptions = { includePartials: true },
+  ): Promise<string[]> {
+    return Object.keys((await this.analyze(options)).filters);
+  }
+
+  /**
+   * Return an array of filter names used in this template.
+   */
+  filterNamesSync(
+    options: AnalysisOptions = { includePartials: true },
+  ): string[] {
+    return Object.keys(this.analyzeSync(options).filters);
+  }
+
+  /**
+   * Return an array of tag names used in this template.
+   */
+  async tagNames(
+    options: AnalysisOptions = { includePartials: true },
+  ): Promise<string[]> {
+    return Object.keys((await this.analyze(options)).tags);
+  }
+
+  /**
+   * Return an array of filter names used in this template.
+   */
+  tagNamesSync(options: AnalysisOptions = { includePartials: true }): string[] {
+    return Object.keys(this.analyzeSync(options).tags);
+  }
+
+  /**
+   * Return an array of comment tag nodes found in this template.
+   *
+   * Instances of `CommentTag` and `InlineCommentTag` have `token` and `text`
+   * properties.
+   *
+   * Note that this method does not try to load included or rendered templates.
+   */
+  comments(): Array<CommentTag | InlineCommentTag> {
+    const context = new RenderContext(this);
+    const nodes: Array<CommentTag | InlineCommentTag> = [];
+
+    const visit = (node: Markup) => {
+      if (node instanceof CommentTag || node instanceof InlineCommentTag) {
+        nodes.push(node);
+      }
+
+      if (node.childrenSync !== undefined) {
+        for (const child of node.childrenSync(context)) {
+          visit(child);
+        }
+      }
+    };
+
+    for (const child of this.nodes) {
+      if (!isString(child)) {
+        visit(child);
+      }
+    }
+
+    return nodes;
+  }
+
+  /**
+   * Return an array of doc tag nodes found in this template.
+   *
+   * Instances of `DocTag` have `token` and `text` properties.
+   *
+   * Note that this method does not try to load included or rendered templates.
+   */
+  docs(): Array<DocTag> {
+    const context = new RenderContext(this);
+    const nodes: Array<DocTag> = [];
+
+    const visit = (node: Markup) => {
+      if (node instanceof DocTag) {
+        nodes.push(node);
+      }
+
+      if (node.childrenSync !== undefined) {
+        for (const child of node.childrenSync(context)) {
+          visit(child);
+        }
+      }
+    };
+
+    for (const child of this.nodes) {
+      if (!isString(child)) {
+        visit(child);
+      }
+    }
+
+    return nodes;
+  }
+}
+
+function unique<T>(a: T[]): T[] {
+  const seen = new Map<string, T>();
+
+  for (const item of a) {
+    const key = JSON.stringify(item);
+
+    if (!seen.has(key)) {
+      seen.set(key, item);
+    }
+  }
+
+  return Array.from(seen.values());
 }

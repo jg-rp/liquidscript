@@ -1,0 +1,82 @@
+import { readFileSync } from "fs";
+import { Environment } from "../src/liquidscript";
+import { DetailedLiquidError } from "../src/errors";
+import { ObjectLoader } from "../src/loaders";
+
+type Case = {
+  name: string;
+  template: string;
+  templates?: { [index: string]: string };
+  data?: { [index: string]: unknown };
+  result?: string;
+  results?: string[];
+  invalid?: boolean;
+};
+
+const SKIP = new Set([
+  "tags, comment, incomplete nested output markup is a syntax error",
+  "tags, comment, incomplete nested tags are a syntax error",
+  "filters, date, well formed string",
+  "filters, date, literal percent",
+  "filters, date, negative timestamp string",
+  "filters, date, seconds since epoch format directive",
+  "identifiers, capture only digits",
+  "identifiers, allowed symbols",
+  "identifiers, allowed symbols, parens",
+  "identifiers, only digits",
+  "identifiers, repeated parens",
+]);
+
+const golden: { tests: Case[] } = JSON.parse(
+  readFileSync("tests/golden_liquid/golden_liquid.json", {
+    encoding: "utf8",
+  }),
+);
+
+// const golden: { tests: Case[] } = JSON.parse(
+//   readFileSync("tests/golden_liquid/tests/filters/has.json", {
+//     encoding: "utf8",
+//   }),
+// );
+
+const active = golden.tests.filter((t) => !SKIP.has(t.name));
+const skipped = golden.tests.filter((t) => SKIP.has(t.name));
+
+describe("golden liquid sync", () => {
+  test.each<Case>(active)(
+    "$name",
+    ({ template, templates, data, result, results, invalid }: Case) => {
+      const env = new Environment({ loader: new ObjectLoader(templates) });
+
+      if (invalid) {
+        expect(() => env.renderSync(template, data)).toThrow(
+          DetailedLiquidError,
+        );
+      } else if (result) {
+        expect(env.renderSync(template, data)).toStrictEqual(result);
+      } else if (results) {
+        expect(results).toContainEqual(env.renderSync(template, data));
+      }
+    },
+  );
+
+  // Report skipped test cases.
+  test.skip.each(skipped)("$name", () => {});
+});
+
+describe("golden liquid async", () => {
+  test.each<Case>(active)(
+    "$name",
+    async ({ template, templates, data, result, results, invalid }: Case) => {
+      const env = new Environment({ loader: new ObjectLoader(templates) });
+
+      if (invalid) {
+        expect(() => env.render(template, data)).toThrow(DetailedLiquidError);
+      } else if (result) {
+        await expect(env.render(template, data)).resolves.toStrictEqual(result);
+      } else if (results) {
+        expect(results).toContainEqual(await env.render(template, data));
+      }
+    },
+  );
+});
