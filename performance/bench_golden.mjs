@@ -1,7 +1,7 @@
 import { Bench, nToMs } from "tinybench";
 import fs from "fs";
 import path from "path";
-import { Environment, ObjectLoader } from "../dist/index.js";
+import { Environment, ObjectLoader } from "../dist/liquidscript.esm.js";
 
 class Fixture {
   constructor(name, data, templates) {
