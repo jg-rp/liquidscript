@@ -3,10 +3,10 @@ export { append } from "./append";
 export { atLeast } from "./at_least";
 export { atMost } from "./at_most";
 export {
-  base64Encode,
-  base64URLSafeEncode,
   base64Decode,
+  base64Encode,
   base64URLSafeDecode,
+  base64URLSafeEncode,
 } from "./base64";
 export { capitalize } from "./capitalize";
 export { ceil } from "./ceil";
@@ -18,6 +18,7 @@ export { dividedBy } from "./divided_by";
 export { downcase } from "./downcase";
 export { escape } from "./escape";
 export { escapeOnce } from "./escape_once";
+export { escapeJS } from "./escapejs";
 export { find } from "./find";
 export { findIndex } from "./find_index";
 export { first } from "./first";
@@ -47,10 +48,10 @@ export { slice } from "./slice";
 export { sort } from "./sort";
 export { sortNatural } from "./sort_natural";
 export { split } from "./split";
+export { squish } from "./squish";
 export { strip } from "./strip";
 export { stripHTML } from "./strip_html";
 export { stripNewlines } from "./strip_newlines";
-export { squish } from "./squish";
 export { sum } from "./sum";
 export { times } from "./times";
 export { truncate } from "./truncate";

@@ -460,6 +460,7 @@ export class Environment {
     this.filters["downcase"] = filters.downcase;
     this.filters["escape_once"] = filters.escapeOnce;
     this.filters["escape"] = filters.escape;
+    this.filters["escapejs"] = filters.escapeJS;
     this.filters["h"] = filters.escape;
     this.filters["find_index"] = filters.findIndex;
     this.filters["find"] = filters.find;
