@@ -6,11 +6,11 @@ import { TemplateLoader, type TemplateSource } from "../loader";
  * A loader that uses an Object of strings to store template source text.
  */
 export class ObjectLoader extends TemplateLoader {
-  #obj: Record<string, string>;
+  protected obj: Record<string, string>;
 
   constructor(obj?: Record<string, string>) {
     super();
-    this.#obj = obj ?? Object.create(null);
+    this.obj = obj ?? Object.create(null);
   }
 
   async getSource(env: Environment, name: string): Promise<TemplateSource> {
@@ -18,7 +18,7 @@ export class ObjectLoader extends TemplateLoader {
   }
 
   getSourceSync(env: Environment, name: string): TemplateSource {
-    const source = this.#obj[name];
+    const source = this.obj[name];
     if (source !== undefined) return { source, name };
     throw new TemplateNotFoundError(name);
   }
