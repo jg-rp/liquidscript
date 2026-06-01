@@ -21,7 +21,7 @@ export class FilterContext {
   constructor(
     readonly context: RenderContext,
     readonly span: Token,
-    readonly options: { [index: string]: unknown },
+    readonly options: Record<string, unknown>,
   ) {}
 
   /**

@@ -12,7 +12,8 @@ export {
 } from "./drops/undefined";
 export { type EnvironmentOptions, type TemplateMeta } from "./environment";
 export * from "./errors";
-export { type Filter, type FilterContext } from "./filter";
+export * as expression from "./expression";
+export { FilterContext, type Filter } from "./filter";
 export { TemplateLoader, type TemplateSource } from "./loader";
 export {
   CachingNodeFileSystemLoader,
@@ -34,8 +35,13 @@ export {
   type Tag,
 } from "./markup";
 export { Float, Integer, LiquidNumber } from "./number";
+export { type OutputBuffer } from "./output";
+export { Parser } from "./parser";
 export * from "./static_analysis";
+export * as tags from "./tags";
 export { Template } from "./template";
+export { T, type Token, type TokenKind } from "./token";
+export * as object from "./type_guards";
 export { Environment, RenderContext };
 
 /**
