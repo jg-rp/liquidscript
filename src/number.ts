@@ -8,7 +8,9 @@ Decimal.set({ precision: 16 });
 // eslint-disable-next-line @typescript-eslint/no-wrapper-object-types
 export type N = string | number | Number | LiquidNumber;
 
-// The base class numbers in LiquidScript.
+/**
+ * The base class for numbers in LiquidScript.
+ */
 export abstract class LiquidNumber {
   abstract float: boolean;
 

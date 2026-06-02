@@ -28,11 +28,12 @@ export const TERMINATE_EXPRESSION: Set<TokenKind> = new Set([
   T.INTERPOLATION_END,
 ]);
 
+/**
+ * The abstract base class for all Liquid template parsers.
+ */
 export abstract class Parser {
   protected eoi: Token;
-
   protected pos: number = 0;
-
   protected whitespaceControlCarry: "-" | undefined = undefined;
 
   constructor(
@@ -95,15 +96,6 @@ export abstract class Parser {
   eat(kind: TokenKind, message: string | undefined = undefined): Token {
     const token = this.tokens[this.pos] || this.eoi;
     if (token.kind !== kind) {
-      // console.log(
-      //   "!!",
-      //   this.tokens.slice(this.pos).map((token) => {
-      //     return {
-      //       kind: REVERSE_T[token.kind],
-      //       value: getTokenValue(token, this.source),
-      //     };
-      //   }),
-      // );
       throw new TemplateSyntaxError(
         message ||
           `unexpected ${REVERSE_T[token.kind]} (${JSON.stringify(getTokenValue(token, this.source))})`,
@@ -176,6 +168,9 @@ export abstract class Parser {
     return token;
   }
 
+  /**
+   * Throw an error if we're not at the start of an expression.
+   */
   expectExpression(): void {
     if (TERMINATE_EXPRESSION.has(this.kind())) {
       throw new TemplateSyntaxError(
@@ -293,6 +288,10 @@ export abstract class Parser {
     return this.tokens[this.pos + offset] || this.eoi;
   }
 
+  /**
+   * Return the name of the current tag, or throw an error if we're not at a
+   * tag.
+   */
   peekTagName(): string {
     let token = this.current();
     if (token.kind === T.WC) token = this.peek();
@@ -322,6 +321,9 @@ export abstract class Parser {
     }
   }
 
+  /**
+   * Return `true` if we're at the start of a tag named `name`.
+   */
   tag(name: string): boolean {
     let token = this.peek();
     if (token.kind === T.WC) {
@@ -333,6 +335,10 @@ export abstract class Parser {
     );
   }
 
+  /**
+   * Return `true` if we're at the start of a tag and that tag's name is in
+   * `names`.
+   */
   tags(names: Set<string>): string | undefined {
     let token = this.peek();
     if (token.kind === T.WC) {

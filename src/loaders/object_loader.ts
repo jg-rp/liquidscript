@@ -3,7 +3,8 @@ import { TemplateNotFoundError } from "../errors";
 import { TemplateLoader, type TemplateSource } from "../loader";
 
 /**
- * A loader that uses an Object of strings to store template source text.
+ * A template loader that uses an Object of strings to store template source
+ * text.
  */
 export class ObjectLoader extends TemplateLoader {
   protected obj: Record<string, string>;

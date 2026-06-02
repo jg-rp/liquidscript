@@ -9,6 +9,12 @@ import { Nothing } from "../runtime";
 import { escape } from "../escape";
 import type { RenderContext } from "../context";
 
+/**
+ * A string wrapper class used to indicate that the wrapped string is safe for
+ * output in an HTML document.
+ *
+ * By "safe" we mean the wrapped string is trusted or has already been escaped.
+ */
 export class HTMLSafeString extends Drop {
   #s: string;
 

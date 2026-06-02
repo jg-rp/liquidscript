@@ -3,7 +3,7 @@ import { TemplateNotFoundError } from "../errors";
 import { TemplateLoader, type TemplateSource } from "../loader";
 
 /**
- * A loader that uses a Map of strings to store template source text.
+ * A template loader that uses a Map of strings to store template source text.
  */
 export class MapLoader extends TemplateLoader {
   #map: Map<string, string>;

@@ -13,10 +13,22 @@ import {
   isString,
 } from "./type_guards";
 
+/**
+ * Our Liquid filter type.
+ *
+ * `left` is always the result of evaluating the left-hand-side if the filter
+ * expression (everything before the `|`).
+ *
+ * Filter implementations should validate and coerce `args` helper methods
+ * from {@link FilterContext}.
+ */
 export type Filter = {
   (this: FilterContext, left: unknown, ...args: unknown[]): unknown;
 };
 
+/**
+ * Render-time filter invocation context.
+ */
 export class FilterContext {
   constructor(
     readonly context: RenderContext,

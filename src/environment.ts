@@ -400,12 +400,20 @@ export class Environment {
     return !(obj === false || obj === null || obj === undefined);
   }
 
+  /**
+   * Return a new namespace combining environment globals and `namespace`.
+   */
   makeGlobals(namespace?: Namespace): Namespace | undefined {
     if (namespace === undefined) return this.globals;
     if (this.globals === undefined) return namespace;
     return new ReadOnlyChainMap(namespace, this.globals);
   }
 
+  /**
+   * Parse template source code `source` into a new template.
+   *
+   * If `globals` is given, pin that namespace to the resulting template.
+   */
   parse(source: string, globals?: Namespace, meta?: TemplateMeta): Template {
     return new Template(
       this,
@@ -416,6 +424,9 @@ export class Environment {
     );
   }
 
+  /**
+   * Parse and render template source code `source` with variables from `data`.
+   */
   async render(
     source: string,
     data?: Record<string, unknown>,
@@ -423,10 +434,16 @@ export class Environment {
     return await this.parse(source).render(data);
   }
 
+  /**
+   * Parse and render template source code `source` with variables from `data`.
+   */
   renderSync(source: string, data?: Record<string, unknown>): string {
     return this.parse(source).renderSync(data);
   }
 
+  /**
+   * Stringify `obj` suitable to output.
+   */
   serialize(obj: unknown, context: RenderContext, token: Token): string {
     if (this.autoEscape && obj instanceof Drop) {
       const htmlSafe = obj[toHTMLSafeStringSync](context);

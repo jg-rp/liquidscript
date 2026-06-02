@@ -18,17 +18,16 @@ import {
 import { CommentTag, DocTag, InlineCommentTag } from "./tags";
 import { isString } from "./type_guards";
 
+/**
+ * A compiled template bound to a Liquid {@link Environment}, ready to be
+ * rendered.
+ */
 export class Template {
   globals: Namespace;
-
   readonly name: string;
-
   overlay: Namespace;
-
   readonly path: string | undefined;
-
   readonly upToDate: () => Promise<boolean>;
-
   readonly upToDateSync: () => boolean;
 
   #lines: string[] | undefined;

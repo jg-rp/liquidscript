@@ -11,16 +11,19 @@ import { STOP_RENDER } from "./tags/extends";
 export type Node = string | Markup | Expression;
 export type Block = Array<string | Markup>;
 
+/**
+ * All tags and the output statement in out template ASTs must implement the
+ * `Markup` interface.
+ *
+ * Optional methods are for the benefit of static analysis, and can be omitted
+ * from custom tags if static analysis is not needed.
+ */
 export interface Markup {
-  render(context: RenderContext, buffer: OutputBuffer): Promise<void>;
-  renderSync(context: RenderContext, buffer: OutputBuffer): void;
-  children?(staticContext: RenderContext): Promise<Markup[]>;
-  childrenSync?(staticContext: RenderContext): Markup[];
-  expressions?(): Expression[];
-  blockScope?(): Name[];
-  templateScope?(): Name[];
-  partial?(staticContext: RenderContext): Promise<Partial>;
-  partialSync?(staticContext: RenderContext): Partial;
+  /**
+   * If true, indicates that this node renders to the empty string or a string
+   * containing only whitespace. This is used to suppress control flow blocks
+   * that don't contain text nodes or markup that contributes to the output.
+   */
   blank: boolean;
 
   /**
@@ -28,9 +31,74 @@ export interface Markup {
    * if it's not a tag or to silence it.
    */
   tag: string;
+
+  /**
+   * The token spanning the start of this node. In the absence of a more
+   * specific token from an `Expression`, use this token when throwing
+   * errors.
+   */
   token: Token;
+
+  /**
+   * Render this node to the output buffer with data from `context`.
+   */
+  render(context: RenderContext, buffer: OutputBuffer): Promise<void>;
+
+  /**
+   * Render this node to the output buffer with data from `context`.
+   */
+  renderSync(context: RenderContext, buffer: OutputBuffer): void;
+
+  /**
+   * Return an array of child markup nodes. This is used to traverse template
+   * syntax trees during static analysis.
+   */
+  children?(staticContext: RenderContext): Promise<Markup[]>;
+
+  /**
+   * Return an array of child markup nodes. This is used to traverse template
+   * syntax trees during static analysis.
+   */
+  childrenSync?(staticContext: RenderContext): Markup[];
+
+  /**
+   * Return an array of child expression nodes. This is used to traverse
+   * template syntax trees during static analysis.
+   */
+  expressions?(): Expression[];
+
+  /**
+   * Return an array of variable names that are in scope for the duration of
+   * this node's block.
+   *
+   * This is used during static analysis to isolate and report global
+   * variables, excluding temporary block-scoped names.
+   */
+  blockScope?(): Name[];
+
+  /**
+   * Return an array of variable names this node adds to the template local
+   * scope (variables that remain in scope after the tag has been rendered).
+   */
+  templateScope?(): Name[];
+
+  /**
+   * Return meta data about partial templates rendered from this node.
+   */
+  partial?(staticContext: RenderContext): Promise<Partial>;
+
+  /**
+   * Return meta data about partial templates rendered from this node.
+   */
+  partialSync?(staticContext: RenderContext): Partial;
 }
 
+/**
+ * Parse tokens into {@link Markup} nodes.
+ *
+ * It is common to implement `parse()` as a static method of a class
+ * implementing `Markup`.
+ */
 export interface Tag {
   parse(token: Token, parser: Parser): Markup;
 }
@@ -48,6 +116,9 @@ export type Partial = {
   key: number;
 };
 
+/**
+ * Render `block` to output buffer `buffer` with data from `context`.
+ */
 export async function renderBlock(
   block: Block,
   context: RenderContext,
@@ -98,6 +169,9 @@ export async function renderBlock(
   }
 }
 
+/**
+ * Render `block` to output buffer `buffer` with data from `context`.
+ */
 export function renderBlockSync(
   block: Block,
   context: RenderContext,

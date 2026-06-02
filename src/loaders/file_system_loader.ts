@@ -48,6 +48,10 @@ export type CachingNodeFileSystemLoaderOptions = NodeFileSystemLoaderOptions & {
   cacheSize?: number;
 };
 
+/**
+ * A template loader that reads template source text from files on a file
+ * system using the Node.js `fs` API.
+ */
 export class NodeFileSystemLoader extends TemplateLoader {
   readonly encoding: BufferEncoding;
   readonly fileExtension: string;

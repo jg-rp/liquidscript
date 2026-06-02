@@ -34,6 +34,12 @@ export type TemplateSource = {
   upToDateSync?: () => boolean;
 };
 
+/**
+ * The abstract base class for all template loaders.
+ *
+ * A template loader is responsible for finding template source text given a
+ * name or identifier.
+ */
 export abstract class TemplateLoader {
   /**
    * Load template source text and meta data.

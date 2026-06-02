@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { StaticContext, type RenderContext } from "./context";
+import { type RenderContext } from "./context";
 import { BLANK, EMPTY } from "./drops";
 import { UnknownFilterError } from "./errors";
 import { Nothing } from "./runtime";
@@ -9,6 +9,7 @@ import { isString } from "./type_guards";
 import { FilterContext } from "./filter";
 import type { Float, Integer } from "./number";
 import { HTMLSafeString } from "./drops/html_safe";
+import { Template } from "./template";
 
 export type PathSegment = Name | StringLiteral | IndexSelector | Variable;
 
@@ -24,13 +25,13 @@ export type Literal =
 export interface Expression {
   evaluate(context: RenderContext): Promise<unknown>;
   evaluateSync(context: RenderContext): unknown;
-  children(context: StaticContext): Traversable[];
+  children(context: RenderContext): Traversable[];
   span: Token;
   token: Token;
 }
 
 export interface Traversable {
-  children(context: StaticContext): Traversable[];
+  children(context: RenderContext): Traversable[];
 }
 
 export class FilteredExpression implements Expression {
@@ -44,7 +45,7 @@ export class FilteredExpression implements Expression {
     this.span = span(token, filter.span);
   }
 
-  children(context: StaticContext): Traversable[] {
+  children(context: RenderContext): Traversable[] {
     return [this.left, this.filter];
   }
 
@@ -150,7 +151,7 @@ export class OrExpression implements Expression {
     this.span = span(left.span, right.span);
   }
 
-  children(context: StaticContext): Traversable[] {
+  children(context: RenderContext): Traversable[] {
     return [this.left, this.right];
   }
 
@@ -184,7 +185,7 @@ export class AndExpression implements Expression {
     this.span = span(left.span, right.span);
   }
 
-  children(context: StaticContext): Traversable[] {
+  children(context: RenderContext): Traversable[] {
     return [this.left, this.right];
   }
 
@@ -218,7 +219,7 @@ export class EqExpression implements Expression {
     this.span = span(left.span, right.span);
   }
 
-  children(context: StaticContext): Traversable[] {
+  children(context: RenderContext): Traversable[] {
     return [this.left, this.right];
   }
 
@@ -256,7 +257,7 @@ export class NeExpression implements Expression {
     this.span = span(left.span, right.span);
   }
 
-  children(context: StaticContext): Traversable[] {
+  children(context: RenderContext): Traversable[] {
     return [this.left, this.right];
   }
 
@@ -294,7 +295,7 @@ export class LtExpression implements Expression {
     this.span = span(left.span, right.span);
   }
 
-  children(context: StaticContext): Traversable[] {
+  children(context: RenderContext): Traversable[] {
     return [this.left, this.right];
   }
 
@@ -332,7 +333,7 @@ export class LeExpression implements Expression {
     this.span = span(left.span, right.span);
   }
 
-  children(context: StaticContext): Traversable[] {
+  children(context: RenderContext): Traversable[] {
     return [this.left, this.right];
   }
 
@@ -370,7 +371,7 @@ export class GtExpression implements Expression {
     this.span = span(left.span, right.span);
   }
 
-  children(context: StaticContext): Traversable[] {
+  children(context: RenderContext): Traversable[] {
     return [this.left, this.right];
   }
 
@@ -408,7 +409,7 @@ export class GeExpression implements Expression {
     this.span = span(left.span, right.span);
   }
 
-  children(context: StaticContext): Traversable[] {
+  children(context: RenderContext): Traversable[] {
     return [this.left, this.right];
   }
 
@@ -446,7 +447,7 @@ export class ContainsExpression implements Expression {
     this.span = span(left.span, right.span);
   }
 
-  children(context: StaticContext): Traversable[] {
+  children(context: RenderContext): Traversable[] {
     return [this.left, this.right];
   }
 
@@ -487,7 +488,7 @@ export class Variable implements Expression {
         : span(root.span, (segments[segments.length - 1] as PathSegment).span);
   }
 
-  children(context: StaticContext): Traversable[] {
+  children(context: RenderContext): Traversable[] {
     if (this.root instanceof Variable) {
       return [this.root, ...this.segments.filter((s) => s instanceof Variable)];
     }
@@ -584,7 +585,7 @@ export class IndexSelector implements Expression {
     this.span = token;
   }
 
-  children(context: StaticContext): Traversable[] {
+  children(context: RenderContext): Traversable[] {
     return [];
   }
 
@@ -620,7 +621,7 @@ export class StringLiteral implements Expression {
     this.span = span(token, endToken);
   }
 
-  children(context: StaticContext): Traversable[] {
+  children(context: RenderContext): Traversable[] {
     return [];
   }
 
@@ -661,7 +662,7 @@ export class IntegerLiteral implements Expression {
     this.span = token;
   }
 
-  children(context: StaticContext): Traversable[] {
+  children(context: RenderContext): Traversable[] {
     return [];
   }
 
@@ -688,7 +689,7 @@ export class FloatLiteral implements Expression {
     this.span = token;
   }
 
-  children(context: StaticContext): Traversable[] {
+  children(context: RenderContext): Traversable[] {
     return [];
   }
 
@@ -715,7 +716,7 @@ export class BooleanLiteral implements Expression {
     this.span = token;
   }
 
-  children(context: StaticContext): Traversable[] {
+  children(context: RenderContext): Traversable[] {
     return [];
   }
 
@@ -739,7 +740,7 @@ export class NullLiteral implements Expression {
     this.span = token;
   }
 
-  children(context: StaticContext): Traversable[] {
+  children(context: RenderContext): Traversable[] {
     return [];
   }
 
@@ -763,7 +764,7 @@ export class Blank implements Expression {
     this.span = token;
   }
 
-  children(context: StaticContext): Traversable[] {
+  children(context: RenderContext): Traversable[] {
     return [];
   }
 
@@ -787,7 +788,7 @@ export class Empty implements Expression {
     this.span = token;
   }
 
-  children(context: StaticContext): Traversable[] {
+  children(context: RenderContext): Traversable[] {
     return [];
   }
 
@@ -815,7 +816,7 @@ export class RangeLiteral implements Expression {
     this.span = span(start.token, stop.token);
   }
 
-  children(context: StaticContext): Traversable[] {
+  children(context: RenderContext): Traversable[] {
     return [this.start, this.stop];
   }
 
@@ -873,7 +874,7 @@ export class Filter implements Traversable {
           );
   }
 
-  children(context: StaticContext): Traversable[] {
+  children(context: RenderContext): Traversable[] {
     return this.args;
   }
 
@@ -928,7 +929,7 @@ export class KeywordArgument implements Traversable {
     this.span = span(token, expr.span);
   }
 
-  children(context: StaticContext): Traversable[] {
+  children(context: RenderContext): Traversable[] {
     return [this.expr];
   }
 
@@ -937,9 +938,8 @@ export class KeywordArgument implements Traversable {
   }
 }
 
-export function treeView(expr: Traversable): string {
+export function treeView(expr: Traversable, context: RenderContext): string {
   const nodes: Array<[string, string, string, string]> = [];
-  const staticContext = new StaticContext();
 
   const visit = (node: Traversable, prefix: string, isLast: boolean) => {
     let connector: string;
@@ -954,8 +954,8 @@ export function treeView(expr: Traversable): string {
     nodes.push([prefix, connector, node.constructor.name, node.toString()]);
 
     const childPrefix = `${prefix}${isLast ? "    " : "│   "}`;
-    node.children(staticContext).forEach((child, i) => {
-      visit(child, childPrefix, i === node.children(staticContext).length - 1);
+    node.children(context).forEach((child, i) => {
+      visit(child, childPrefix, i === node.children(context).length - 1);
     });
   };
 

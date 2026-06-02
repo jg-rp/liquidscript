@@ -19,6 +19,9 @@ import { LiquidNumber } from "./number";
 import { ContextDepthError, ResourceLimitError } from "./errors";
 import { ChainPop, ChainPush, ReadOnlyChainMap } from "./chain_map";
 
+/**
+ * A mapping of template variable names to values.
+ */
 export type Namespace = Record<string, unknown>;
 
 export type RenderContextOptions = {
@@ -52,62 +55,109 @@ export type RenderContextOptions = {
    * contexts.
    */
   renderScoreCarry?: number;
-
-  /**
-   * The cumulative write score (bytes written) carried from parent render
-   * contexts.
-   */
-  writeScoreCarry?: number;
 };
 
+/**
+ * Options passed to `RenderContext.copy()`.
+ */
 export type ContextCopyOptions = {
   blockScope?: boolean;
   disabledTags?: Set<string>;
   template?: Template;
 };
 
+/**
+ * Render-time state. A new render context is created automatically for every
+ * call to `Template.render()` or `Template.renderSync()`.
+ */
 export class RenderContext {
+  /**
+   * A non-specific indicator of template local scope usage.
+   */
   assignScore: number = 0;
 
+  /**
+   * A non-specific indicator of template local scope usage for the current
+   * template and all partial templates combined.
+   */
   assignScoreCumulative: number;
 
+  /**
+   * The number of times this render context has been extended or copied.
+   */
   private contextDepth: number;
 
+  /**
+   * The namespace for `{% increment %}` and `{% decrement %}`.
+   */
   private counters: Namespace = Object.create(null);
 
+  /**
+   * Names of tags that are disallowed in this context.
+   */
   readonly disabledTags: Set<string> | undefined;
 
+  /**
+   * The Liquid environment this render context and associated template is
+   * bound to.
+   */
   readonly env: Environment;
 
+  /**
+   * A stack of `ForLoop` drops used to populate `forloop.parent`.
+   */
   readonly forloops: ForLoop[] = [];
 
+  /**
+   * Developer-defined template variables passed down from the environment and
+   * template.
+   */
   private globals: Namespace;
 
+  /**
+   * A stack of interrupt signals used by `{% break %}` and `{% continue %}`,
+   * for example.
+   */
   readonly interrupts: symbol[] = [];
 
+  /**
+   * The namespace for variables defined with `{% assign %}` and
+   * `{% capture %}`.
+   */
   private locals: Namespace = Object.create(null);
 
   /**
-   * Namespaces supporting stateful tags. It's OK to use this map for storing
+   * Registers supporting stateful tags. It's OK to use this map for storing
    * custom tag state.
    */
   readonly registers = new Map<string | symbol, unknown>();
 
+  /**
+   * The number of nodes rendered for the current template.
+   */
   renderScore: number = 0;
 
+  /**
+   * The number of nodes rendered for the current template and all partial
+   * templates.
+   */
   renderScoreCumulative: number;
 
+  /**
+   * The current template scope including `locals`, `globals` and `counters`.
+   * New block-scoped namespaces get pushed onto and popped off this chain map.
+   */
   private scopes: ReadOnlyChainMap;
 
+  /**
+   * The current template being rendered.
+   */
   template: Template;
-
-  writeScore: number;
 
   constructor(template: Template, options?: RenderContextOptions) {
     this.template = template;
     this.env = template.env;
 
-    // Scopes are searched from right to left. New scopes are push on the right.
     this.globals = options?.globals ?? {};
 
     // NOTE: The use of ReadOnlyChainMap instead of an array and merge approach
@@ -115,10 +165,11 @@ export class RenderContext {
     // expecting that penalty to be less or reversed for larger, real world
     // scopes, and keeping it so developers can manipulate nested namespaces
     // after they've been "merged".
+    //
+    // Scopes are searched from right to left. New scopes are push on the right.
     this.scopes = new ReadOnlyChainMap(
       this.locals,
       this.globals,
-      BuiltIn,
       this.counters,
     );
 
@@ -126,9 +177,11 @@ export class RenderContext {
     this.contextDepth = options?.contextDepth ?? 0;
     this.assignScoreCumulative = options?.assignScoreCarry ?? 0;
     this.renderScoreCumulative = options?.renderScoreCarry ?? 0;
-    this.writeScore = options?.writeScoreCarry ?? 0;
   }
 
+  /**
+   * Set `name` to `value` in the template local scope.
+   */
   assign(name: string, value: unknown): void {
     if (this.env.maxAssignScore || this.env.maxAssignScoreCumulative) {
       const score = assignScoreOf(value);
@@ -195,6 +248,19 @@ export class RenderContext {
     return val;
   }
 
+  /**
+   * Temporarily extend this render context with variables from `namespace`.
+   *
+   * Push `namespace` to the front of the scope stack for the duration of
+   * `callback.`
+   *
+   * If `template` is given, sets the current template for the duration of
+   * `callback`, before restoring the previous template.
+   *
+   * This is used by the built-in `{% include %}` tag, where parent and partial
+   * templates share render context state, with additional partial-scoped
+   * variables.
+   */
   async extend(
     namespace: Record<string, unknown>,
     callback: () => Promise<void>,
@@ -225,6 +291,19 @@ export class RenderContext {
     }
   }
 
+  /**
+   * Temporarily extend this render context with variables from `namespace`.
+   *
+   * Push `namespace` to the front of the scope stack for the duration of
+   * `callback.`
+   *
+   * If `template` is given, sets the current template for the duration of
+   * `callback`, before restoring the previous template.
+   *
+   * This is used by the built-in `{% include %}` tag, where parent and partial
+   * templates share render context state, with additional partial-scoped
+   * variables.
+   */
   extendSync(
     namespace: Record<string, unknown>,
     callback: () => void,
@@ -255,6 +334,10 @@ export class RenderContext {
     }
   }
 
+  /**
+   * Return a register for `key`. If a register does not yet exist for key,
+   * add and return the result of calling `defaultFactory`.
+   */
   getRegister<V>(key: string | symbol, defaultFactory: () => V): V {
     if (!this.registers.has(key)) {
       this.registers.set(key, defaultFactory());
@@ -414,18 +497,27 @@ export class RenderContext {
     }
   }
 
+  /**
+   * Evaluate `expression` and coerce the result to an array.
+   */
   async toArray(expression: Expression | undefined): Promise<unknown[]> {
     return expression
       ? this.env.toArray(await expression.evaluate(this), this, expression.span)
       : [];
   }
 
+  /**
+   * Evaluate `expression` and coerce the result to an array.
+   */
   toArraySync(expression: Expression | undefined): unknown[] {
     return expression
       ? this.env.toArray(expression.evaluateSync(this), this, expression.span)
       : [];
   }
 
+  /**
+   * Evaluate `expression` and coerce the result to an integer.
+   */
   async toInteger<T>(
     expression: Expression | undefined,
     default_: T,
@@ -439,6 +531,9 @@ export class RenderContext {
       : default_;
   }
 
+  /**
+   * Evaluate `expression` and coerce the result to an integer.
+   */
   toIntegerSync<T>(
     expression: Expression | undefined,
     default_: T,
@@ -448,13 +543,6 @@ export class RenderContext {
       : default_;
   }
 }
-
-export const BuiltIn: Namespace = {
-  // now: () => new Date(),
-  // today: () => new Date(),
-};
-
-export class StaticContext {}
 
 function normalizeIndex(index: unknown, length: number): number | undefined {
   if (!isNumber(index)) {

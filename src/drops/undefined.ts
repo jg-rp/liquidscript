@@ -15,6 +15,12 @@ import { UndefinedVariableError } from "../errors";
 import type { Token } from "../token";
 import { Blank } from "./blank";
 
+/**
+ * The default and base "Undefined" type.
+ *
+ * At render time, if a template variable or path to a variable can not be
+ * resolved to a value, an instance of `Undefined` is used in its place.
+ */
 export class Undefined extends Drop {
   constructor(
     readonly path: string,
@@ -61,6 +67,10 @@ export class Undefined extends Drop {
   }
 }
 
+/**
+ * A subclass of {@link Undefined} that throws an `UndefinedVariableError` in
+ * all contexts.
+ */
 export class StrictUndefined extends Undefined {
   override [containsSync](obj: unknown, context: RenderContext): boolean {
     this.error();
@@ -130,6 +140,10 @@ export class StrictUndefined extends Undefined {
   }
 }
 
+/**
+ * A subclass of {@link StrictUndefined} that can be tested for truthiness and
+ * compared to other values without throwing an exception.
+ */
 export class FalsyStrictUndefined extends StrictUndefined {
   override [toLiquidSync](hint: ContextHint, context: RenderContext): unknown {
     if (hint === "boolean") {

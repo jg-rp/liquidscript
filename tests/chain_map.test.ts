@@ -1,4 +1,5 @@
 import {
+  ChainKeys,
   ChainPop,
   ChainPush,
   ChainSize,
@@ -91,5 +92,27 @@ describe("read only chain map", () => {
     expect("push" in chain).toBe(false);
     expect("pop" in chain).toBe(false);
     expect("size" in chain).toBe(false);
+  });
+
+  test("issue", () => {
+    const globals = { environment: "production", region: "us-east" };
+    const coreChain = new ReadOnlyChainMap(globals);
+
+    const requestContext = { requestId: "12345" };
+    const finalScope = new ReadOnlyChainMap(requestContext, coreChain);
+
+    expect(finalScope.region).toStrictEqual("us-east");
+    expect(finalScope[ChainKeys]()).toStrictEqual([
+      "requestId",
+      "environment",
+      "region",
+    ]);
+  });
+
+  test("read only", () => {
+    const chain = new ReadOnlyChainMap({});
+    expect(() => {
+      chain.foo = "bar";
+    }).toThrow(TypeError);
   });
 });
