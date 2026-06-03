@@ -1,5 +1,9 @@
 # LiquidScript Change Log
 
+## Version 2.0.1
+
+Fix package.json.
+
 ## Version 2.0.0
 
 LiquidScript has had a complete rewrite for version 2. The result is improved performance, better compatibility with Shopify/liquid, and several breaking API changes.
