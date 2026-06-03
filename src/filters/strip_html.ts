@@ -5,6 +5,7 @@ const RE_HTML_BLOCKS = new RegExp(
   "gs",
 );
 
+// eslint-disable-next-line sonarjs/slow-regex
 const RE_HTML_TAGS = new RegExp("<.*?>", "gs");
 
 export function stripHTML(this: FilterContext, left: unknown): string {

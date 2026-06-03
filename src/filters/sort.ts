@@ -21,6 +21,7 @@ export function sort(
         this.context.template.name,
       );
 
+    // eslint-disable-next-line sonarjs/no-nested-conditional
     if (isComparable(a) && isComparable(b)) return a < b ? -1 : a > b ? 1 : 0;
 
     throw new TemplateTypeError(

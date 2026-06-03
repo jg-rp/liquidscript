@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/cognitive-complexity */
 import type { RenderContext } from "./context";
 import type { Token } from "./token";
 import type { Parser } from "./parser";

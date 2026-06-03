@@ -122,6 +122,7 @@ describe("node file system loader", () => {
   test("sync don't search absolute paths", () => {
     const loader = new NodeFileSystemLoader("tests/fixtures/templates");
     const env = new Environment({ loader });
+    // eslint-disable-next-line sonarjs/publicly-writable-directories
     expect(() => env.getTemplateSync("/tmp/private.liquid")).toThrow(
       TemplateNotFoundError,
     );

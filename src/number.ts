@@ -5,7 +5,7 @@ import type { RenderContext } from "./context";
 
 Decimal.set({ precision: 16 });
 
-// eslint-disable-next-line @typescript-eslint/no-wrapper-object-types
+// eslint-disable-next-line @typescript-eslint/no-wrapper-object-types, sonarjs/no-primitive-wrappers
 export type N = string | number | Number | LiquidNumber;
 
 /**

@@ -4,6 +4,7 @@ import tseslint from "typescript-eslint";
 import { defineConfig } from "eslint/config";
 import perfectionist from "eslint-plugin-perfectionist";
 import stylistic from "@stylistic/eslint-plugin";
+import sonarjs from "eslint-plugin-sonarjs";
 
 export default defineConfig([
   {
@@ -28,4 +29,5 @@ export default defineConfig([
     },
   },
   tseslint.configs.recommended,
+  sonarjs.configs.recommended,
 ]);

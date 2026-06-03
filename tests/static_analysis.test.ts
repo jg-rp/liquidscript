@@ -1016,11 +1016,4 @@ endfor %}`;
     expectLocations(analysis.filters, filters);
     expectLocations(analysis.tags, tags);
   });
-
-  // TODO: comment
-  // TODO: inline comment
-  // TODO: doc
-  // TODO: raw
-  // TODO: ifchanged?
-  // TODO: tablerow?
 });

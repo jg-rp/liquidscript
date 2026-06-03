@@ -13,6 +13,7 @@ export function sortNatural(
 
     const _a = this.toString(a, "").toLowerCase();
     const _b = this.toString(b, "").toLowerCase();
+    // eslint-disable-next-line sonarjs/no-nested-conditional
     return _a < _b ? -1 : _a > _b ? 1 : 0;
   }
 

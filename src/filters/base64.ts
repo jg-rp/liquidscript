@@ -92,6 +92,7 @@ export function toBase64(
   }
 
   if (options.omitPadding) {
+    // eslint-disable-next-line sonarjs/slow-regex
     base64 = base64.replace(/=+$/, "");
   }
 

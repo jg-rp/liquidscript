@@ -9,6 +9,7 @@ import { T, type Token } from "../token";
 const CYCLES = Symbol.for("liquid.tags.cycle");
 
 export class CycleTag implements Markup {
+  // eslint-disable-next-line sonarjs/public-static-readonly
   static #nextId = 1;
 
   readonly blank = false;

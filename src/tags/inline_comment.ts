@@ -8,6 +8,7 @@ import { getTokenValue, T, type Token } from "../token";
 export class InlineCommentTag implements Markup {
   readonly blank = true;
 
+  // eslint-disable-next-line sonarjs/slow-regex
   protected static RE_INVALID_INLINE_COMMENT = /\n\s*[^#\s]/m;
 
   readonly tag = "#";

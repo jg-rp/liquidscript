@@ -256,6 +256,7 @@ export async function analyze(
     template: Template,
     scope: StaticScope,
     justGlobals: boolean = false,
+    // eslint-disable-next-line sonarjs/cognitive-complexity
   ) => {
     if (template.name.length && !justGlobals) {
       seen.get(template.name).add(undefined);
@@ -393,6 +394,7 @@ export function analyzeSync(
     template: Template,
     scope: StaticScope,
     justGlobals: boolean = false,
+    // eslint-disable-next-line sonarjs/cognitive-complexity
   ) => {
     if (template.name.length && !justGlobals) {
       seen.get(template.name).add(undefined);

@@ -3,8 +3,9 @@ import { T } from "./token";
 
 const reCommentSegment = /\{%-?\s*(comment|raw|endcomment|endraw).*?-?%\}/gs;
 const reFloat = /-?\d+\.\d+/y;
-const reIdent = /[a-zA-Z_][a-zA-Z0-9_s-]*\??/y;
+const reIdent = /[a-zA-Z_][a-zA-Z0-9_-]*\??/y;
 const reInt = /-?\d+/y;
+// eslint-disable-next-line sonarjs/slow-regex
 const reLineCommentSegment = /\n\s*(comment|endcomment).*/g;
 const reLineTrivia = /[ \t\f\r]+/y;
 const reMarkup = /\{[%{]/y;
@@ -13,6 +14,7 @@ const reOutEnd = /-?(\}\}?|%\}(?!\}))/g;
 const rePunctuation = /[.!=<>]{1,2}|[?[\]|:,()]/y;
 const reTagEnd = /-?%\}/y;
 const reTagEndIndex = /-?%\}/g;
+// eslint-disable-next-line sonarjs/concise-regex
 const reTagName = /#|[a-zA-Z0-9_]+/y;
 const reTrivia = /[ \n\r\t\f]+/y;
 
@@ -377,6 +379,7 @@ export class LegacyLexer extends Lexer {
     }
   }
 
+  // eslint-disable-next-line sonarjs/cognitive-complexity
   override scanMarkup(): StateFn | null {
     let limit: number | undefined;
 

@@ -85,8 +85,7 @@ export class FilterContext {
       return obj.get(key);
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [val, _] = this.context.resolvePathSync(obj, [key]);
+    const [val] = this.context.resolvePathSync(obj, [key]);
     if (val === Nothing) {
       return default_;
     }

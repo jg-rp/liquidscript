@@ -24,7 +24,7 @@ export class TableRowTag implements Markup {
   constructor(
     readonly token: Token,
     readonly name: Name,
-    readonly expression: Expression, // TODO: TableRowBlock?
+    readonly expression: Expression,
     readonly block: Block,
     readonly cols: Expression | undefined,
     readonly offset: Expression | undefined,
@@ -88,7 +88,6 @@ export class TableRowTag implements Markup {
   }
 
   childrenSync(): Markup[] {
-    // TODO: TableRowBlock
     const result: Markup[] = [];
 
     for (const node of this.block) {

@@ -36,6 +36,7 @@ import { escape } from "./escape";
 import { ReadOnlyChainMap } from "./chain_map";
 import { EXTENDS_STACK } from "./tags/extends";
 
+// eslint-disable-next-line sonarjs/class-name
 export interface _Parser {
   parse(
     env: Environment,
@@ -45,10 +46,12 @@ export interface _Parser {
   ): Block;
 }
 
+// eslint-disable-next-line sonarjs/class-name
 export interface _Lexer {
   tokenize(env: Environment, source: string, startIndex?: number): Token[];
 }
 
+// eslint-disable-next-line sonarjs/class-name
 export interface _Undefined {
   new (
     path: string,
@@ -222,6 +225,7 @@ export class Environment {
     this.undefinedType = options?.undefinedType ?? Undefined;
   }
 
+  // eslint-disable-next-line sonarjs/cognitive-complexity
   contains(
     left: unknown,
     right: unknown,
@@ -354,8 +358,6 @@ export class Environment {
       return false;
     }
 
-    // TODO: optimize
-
     if (isNumber(left) && isNumber(right)) {
       return left < right;
     }
@@ -391,7 +393,6 @@ export class Environment {
     );
   }
 
-  // TODO: sync and async?
   isTruthy(obj: unknown, context: RenderContext): boolean {
     if (obj instanceof Drop) {
       obj = obj[toLiquidSync]("boolean", context);

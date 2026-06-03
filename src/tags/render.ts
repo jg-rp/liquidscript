@@ -168,8 +168,6 @@ export class RenderTag implements Markup {
     });
 
     if (this.loop && isArray(bindValue)) {
-      // TODO: support looping over drops
-
       const forloop = new ForLoop(bindKey, bindValue.length, Nothing);
       scope.forloop = forloop;
 
@@ -232,8 +230,6 @@ export class RenderTag implements Markup {
     });
 
     if (this.loop && isArray(bindValue)) {
-      // TODO: support looping over drops
-
       const forloop = new ForLoop(bindKey, bindValue.length, Nothing);
       scope.forloop = forloop;
 

@@ -17,7 +17,8 @@ export class Empty extends Drop {
     if (isString(obj) || isArray(obj)) return !obj.length;
     if (obj instanceof Map || obj instanceof Set) return obj.size === 0;
     if (isObject(obj)) {
-      for (const i in obj) return false;
+      // eslint-disable-next-line sonarjs/no-unused-vars
+      for (const _ in obj) return false;
       return true;
     }
     return false;

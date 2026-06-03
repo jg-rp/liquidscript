@@ -9,7 +9,6 @@ import { isString } from "./type_guards";
 import { FilterContext } from "./filter";
 import type { Float, Integer } from "./number";
 import { HTMLSafeString } from "./drops/html_safe";
-import { Template } from "./template";
 
 export type PathSegment = Name | StringLiteral | IndexSelector | Variable;
 
@@ -71,7 +70,6 @@ export class FilteredExpression implements Expression {
     const left = await this.left.evaluate(context);
 
     if (!this.filter.args.length) {
-      // TODO: async filter
       return func.call(new FilterContext(context, this.span, {}), left);
     }
 
@@ -85,8 +83,6 @@ export class FilteredExpression implements Expression {
         args.push(await arg.evaluate(context));
       }
     }
-
-    // TODO: async filter
 
     return func.call(
       new FilterContext(context, this.span, kwargs),
@@ -626,9 +622,7 @@ export class StringLiteral implements Expression {
   }
 
   async evaluate(context: RenderContext): Promise<unknown> {
-    return context.env.autoEscape
-      ? HTMLSafeString.from(this.value)
-      : this.value;
+    return this.evaluateSync(context);
   }
 
   evaluateSync(context: RenderContext): unknown {

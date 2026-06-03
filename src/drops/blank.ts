@@ -24,7 +24,8 @@ export class Blank extends Drop {
     if (isString(obj)) return !obj.trim().length;
     if (isArray(obj)) return !obj.length;
     if (isObject(obj)) {
-      for (const i in obj) return false;
+      // eslint-disable-next-line sonarjs/no-unused-vars
+      for (const _ in obj) return false;
       return true;
     }
     return false;

@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/cognitive-complexity */
 import type { Environment } from "./environment";
 import { Nothing } from "./runtime";
 import { Drop } from "./drop";
@@ -640,17 +641,15 @@ function resolveObjectSegment(obj: object, segment: unknown): unknown {
 }
 
 function resolveUnknownSegment(obj: unknown, segment: unknown): unknown {
-  switch (segment) {
-    case "size":
-      if (isNumeric(obj)) return 8; // Close enough, most of the time.
-      return Nothing;
-    default:
-      return Nothing;
+  if (segment == "size") {
+    if (isNumeric(obj)) return 8; // Close enough, most of the time.
+    return Nothing;
   }
+
+  return Nothing;
 }
 
 export function assignScoreOf(obj: unknown): number {
-  // TODO: drop protocol override?
   if (isString(obj)) return obj.length * 2;
   if (isArray(obj)) {
     return obj.reduce((a: number, b: unknown) => a + assignScoreOf(b), 0);

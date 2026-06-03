@@ -26,7 +26,6 @@ import type { OutputBuffer } from "../output";
 const END_FOR_BLOCK = new Set(["else", "endfor"]);
 const FOR_STACK = Symbol.for("liquid.tags.for");
 
-// TODO: move these to context or somewhere central?
 export const BREAK = Symbol.for("liquid.runtime.break");
 export const CONTINUE = Symbol.for("liquid.runtime.continue");
 
@@ -36,11 +35,11 @@ export class ForTag implements Markup {
   constructor(
     readonly token: Token,
     readonly name: Name,
-    readonly expression: Expression, // TODO: ForBlock?
+    readonly expression: Expression,
     readonly block: Block,
     readonly blank: boolean,
     readonly reversed: boolean,
-    readonly _default?: Block, // TODO: ElseBlock?
+    readonly _default?: Block,
     readonly offset?: Expression,
     readonly limit?: Expression,
   ) {}
@@ -75,7 +74,6 @@ export class ForTag implements Markup {
 
     parser.eatEmptyTag("endfor");
 
-    // TODO: Is this the best place for this?
     const blank = isBlankBlock(block) && (!_default || isBlankBlock(_default));
     if (blank && _default)
       _default = _default.filter((node) => !isString(node));
@@ -218,8 +216,6 @@ export class ForTag implements Markup {
     return it;
   }
 
-  // TODO: rename me
-  // TODO: use context.toInteger and context.toIntegerSync
   private normalizedOffsetAndLimit(
     offset: unknown,
     limit: unknown,
@@ -301,7 +297,6 @@ export class ForTag implements Markup {
       parents[parents.length - 1] || Nothing,
     );
 
-    // TODO raise for loop limit
     const namespace: Namespace = { forloop };
 
     let interrupt: symbol | undefined = undefined;
@@ -320,7 +315,6 @@ export class ForTag implements Markup {
           interrupt = context.interrupts.pop();
           if (interrupt === BREAK) break;
           if (interrupt === CONTINUE) continue;
-          // TODO: push the interrupt back otherwise?
         }
       });
     } finally {
@@ -361,9 +355,7 @@ export class ForTag implements Markup {
       parents[parents.length - 1] || Nothing,
     );
 
-    // TODO raise for loop limit
     const namespace: Namespace = { forloop };
-
     let interrupt: symbol | undefined = undefined;
 
     context.forloops.push(forloop);
@@ -380,7 +372,6 @@ export class ForTag implements Markup {
           interrupt = context.interrupts.pop();
           if (interrupt === BREAK) break;
           if (interrupt === CONTINUE) continue;
-          // TODO: push the interrupt back otherwise?
         }
       });
     } finally {
@@ -398,7 +389,6 @@ export class ForTag implements Markup {
       : undefined;
 
     const limit = this.limit ? await this.limit.evaluate(context) : undefined;
-    // TODO: async iterator?
     const it = await this.lazySlice(target, offset, limit, context);
     const length = it[drop.length]();
 
@@ -418,7 +408,6 @@ export class ForTag implements Markup {
       parents[parents.length - 1] || Nothing,
     );
 
-    // TODO raise for loop limit
     const namespace: Namespace = { forloop };
     let interrupt: symbol | undefined = undefined;
 
@@ -434,7 +423,6 @@ export class ForTag implements Markup {
           interrupt = context.interrupts.pop();
           if (interrupt === BREAK) break;
           if (interrupt === CONTINUE) continue;
-          // TODO: push the interrupt back otherwise?
         }
       });
     } finally {
@@ -468,7 +456,6 @@ export class ForTag implements Markup {
       parents[parents.length - 1] || Nothing,
     );
 
-    // TODO raise for loop limit
     const namespace: Namespace = { forloop };
     let interrupt: symbol | undefined = undefined;
 
@@ -484,7 +471,6 @@ export class ForTag implements Markup {
           interrupt = context.interrupts.pop();
           if (interrupt === BREAK) break;
           if (interrupt === CONTINUE) continue;
-          // TODO: push the interrupt back otherwise?
         }
       });
     } finally {

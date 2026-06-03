@@ -33,12 +33,6 @@ const golden: { tests: Case[] } = JSON.parse(
   }),
 );
 
-// const golden: { tests: Case[] } = JSON.parse(
-//   readFileSync("tests/golden_liquid/tests/filters/has.json", {
-//     encoding: "utf8",
-//   }),
-// );
-
 const active = golden.tests.filter((t) => !SKIP.has(t.name));
 const skipped = golden.tests.filter((t) => SKIP.has(t.name));
 
