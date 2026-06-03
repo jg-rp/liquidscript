@@ -43,4 +43,4 @@ Please see [Contributing to LiquidScript](https://github.com/jg-rp/liquidscript/
 
 LiquidScript is distributed under the terms of the [MIT](https://spdx.org/licenses/MIT.html) license.
 
-LiquidSCript is an implementation of [Shopify/liquid](https://github.com/Shopify/liquid). During development we reference Shopify/liquid and make use of [Shopify/liquid-spec](https://github.com/Shopify/liquid-spec). See [LICENSE.liquid](https://github.com/jg-rp/liquidscript/blob/main/LICENSE.liquid) and [LICENSE.liquid-spec](https://github.com/jg-rp/liquidscript/blob/main/LICENSE.liquid-spec), both MIT licensed.
+LiquidScript is an implementation of [Shopify/liquid](https://github.com/Shopify/liquid). During development we reference Shopify/liquid and make use of [Shopify/liquid-spec](https://github.com/Shopify/liquid-spec). See [LICENSE.liquid](https://github.com/jg-rp/liquidscript/blob/main/LICENSE.liquid) and [LICENSE.liquid-spec](https://github.com/jg-rp/liquidscript/blob/main/LICENSE.liquid-spec), both MIT licensed.

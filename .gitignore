@@ -10,6 +10,8 @@ yarn-error.log
 
 .vscode/
 dev.mjs
+dev.ts
+dev.js
 
 lib/
 dist/
