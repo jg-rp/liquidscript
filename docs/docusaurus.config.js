@@ -82,7 +82,7 @@ const config = {
         title: "LiquidScript",
         logo: {
           alt: "LiquidScript",
-          src: "img/liquidscript_logo.png",
+          src: "img/logo.png",
         },
         items: [
           {

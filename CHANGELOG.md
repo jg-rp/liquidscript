@@ -2,7 +2,24 @@
 
 ## Version 2.0.0 (unreleased)
 
-TODO:
+LiquidScript has had a complete rewrite for version 2. The result is improved performance, better compatibility with Shopify/liquid, and several breaking API changes.
+
+Other than a few corner cases where we now follow Shopify/liquid more closely, there are no significant changes to template rendering behavior.
+
+**Breaking API changes**
+
+- `Template.fromString()` and `Environment.fromString()` have been replaced with `Environment.parse()`, `Environment.render()` and top-level convenience functions `parse()` and `render()`. See https://jg-rp.github.io/liquidscript/#quick-start.
+- Resource limits and their environment options have been renamed to better match Shopify/liquid. See https://jg-rp.github.io/liquidscript/environment#resource-limits.
+- The "drop" API has changed to give runtime objects better access to the render context and support lazy slicing. See https://jg-rp.github.io/liquidscript/data-types-and-drops#user-defined-types.
+- Our token stream interface, template AST and tag interface have changed. See https://jg-rp.github.io/liquidscript/guides/custom-tags. Please open an issue if you need assistance migrating tag implementations.
+- The template loader interface has changed. See https://jg-rp.github.io/liquidscript/loaders.
+- Removed the non-standard `{% macro %}` and `{% call %}` tags. Please open an issue if you need the `{% macro %}` tag.
+
+**Features**
+
+- Instance of `Template` now have convenience methods for statically inspecting a template's variable, tag a filter usage. See https://jg-rp.github.io/liquidscript/static-analysis.
+- Added the built-in `squish` filter.
+- Added diagnostic errors with detailed messages. See https://jg-rp.github.io/liquidscript/api/classes/DetailedLiquidError.
 
 ## Version 1.8.2
 

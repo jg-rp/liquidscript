@@ -35,44 +35,12 @@ template.render({ you: "Liquid" }).then(console.log); // Hello, Liquid!
 - NPM: https://www.npmjs.com/package/liquidscript
 - Issue tracker: https://github.com/jg-rp/liquidscript/issues
 
-## Benchmark
-
-### Node
-
-```bash
-james@Jamess-Mac-mini liquidscript % node performance/bench_golden.mjs
-Golden benchmark 002
-┌─────────┬──────────────────────────┬────────────────────────┬─────────┐
-│ (index) │ Task name                │ Throughput avg (ops/s) │ Samples │
-├─────────┼──────────────────────────┼────────────────────────┼─────────┤
-│ 0       │ 'parse'                  │ '25752 ± 0.03%'        │ 127797  │
-│ 1       │ 'render'                 │ '60106 ± 0.01%'        │ 299022  │
-│ 2       │ 'parse and render'       │ '16810 ± 0.03%'        │ 83737   │
-│ 3       │ 'render async'           │ '22482 ± 0.03%'        │ 111569  │
-│ 4       │ 'parse and render async' │ '11279 ± 0.04%'        │ 56117   │
-└─────────┴──────────────────────────┴────────────────────────┴─────────┘
-```
-
-### Bun
-
-```bash
-james@Jamess-Mac-mini liquidscript % bun run performance/bench_golden.mjs
-Golden benchmark 002
-┌───┬────────────────────────┬────────────────────────┬─────────┐
-│   │ Task name              │ Throughput avg (ops/s) │ Samples │
-├───┼────────────────────────┼────────────────────────┼─────────┤
-│ 0 │ parse                  │ 21124 ± 0.04%          │ 102847  │
-│ 1 │ render                 │ 32355 ± 0.02%          │ 159549  │
-│ 2 │ parse and render       │ 11835 ± 0.06%          │ 57959   │
-│ 3 │ render async           │ 16012 ± 0.05%          │ 78041   │
-│ 4 │ parse and render async │ 8423 ± 0.08%           │ 41069   │
-└───┴────────────────────────┴────────────────────────┴─────────┘
-```
-
 ## Contributing
 
-TODO:
+Please see [Contributing to LiquidScript](https://github.com/jg-rp/liquidscript/blob/main/CONTRIBUTING.md)
 
 ## License
 
-TODO:
+LiquidScript is distributed under the terms of the [MIT](https://spdx.org/licenses/MIT.html) license.
+
+LiquidSCript is an implementation of [Shopify/liquid](https://github.com/Shopify/liquid). During development we reference Shopify/liquid and make use of [Shopify/liquid-spec](https://github.com/Shopify/liquid-spec). See [LICENSE.liquid](https://github.com/jg-rp/liquidscript/blob/main/LICENSE.liquid) and [LICENSE.liquid-spec](https://github.com/jg-rp/liquidscript/blob/main/LICENSE.liquid-spec), both MIT licensed.

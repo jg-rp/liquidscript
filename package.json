@@ -45,7 +45,8 @@
     "build:types": "bun run tsc -p tsconfig.build.json",
     "build:js": "bun build.ts",
     "dist": "rm -rf ./dist && bun run build:js && bun run build:types",
-    "lint": "bun run eslint src tests"
+    "lint": "bun run eslint src tests",
+    "type-check": "bun run tsc -p tsconfig.build.json --noEmit"
   },
   "type": "module"
 }

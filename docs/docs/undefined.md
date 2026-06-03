@@ -34,7 +34,7 @@ template.render().then(console.log);
 // UndefinedVariableError: 'nosuchthing' is undefined
 ```
 
-Note that `UndefinedVariableError` inherits from [`DetailedLiquidError`](./api/classes/DetailedLiquidError.md), giving use the opportunity to capture or output useful diagnostic information.
+Note that `UndefinedVariableError` inherits from [`DetailedLiquidError`](./api/classes/DetailedLiquidError.md), giving us the opportunity to capture or output useful diagnostic information.
 
 ```js
 import {
