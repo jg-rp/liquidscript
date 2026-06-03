@@ -31,7 +31,7 @@ console.log(template.variablesSync());
 
 ### Paths
 
-[`Template.variablePaths()`](./api/classes/Template.md#variablePaths) and [`Template.variablePathsSync()`](./api/classes/Template.md#variablepathssync) return an array of variables, including all path segments. The resulting array will include variables that are local to the template, like those created with `{% assign %}`, or are in scope from `{% for %}` tags.
+[`Template.variablePaths()`](./api/classes/Template.md#variablepaths) and [`Template.variablePathsSync()`](./api/classes/Template.md#variablepathssync) return an array of variables, including all path segments. The resulting array will include variables that are local to the template, like those created with `{% assign %}`, or are in scope from `{% for %}` tags.
 
 ```js
 // ... continued from above
@@ -44,7 +44,7 @@ console.log(template.variablePathsSync());
 
 ### Segments
 
-[`Template.variableSegments()`](./api/classes/Template.md#variableSegments) and [`Template.variableSegmentsSync()`](./api/classes/Template.md#variablesegmentssync) return an array of variables as a nested array of segments. The resulting array will include variables that are local to the template, like those created with `{% assign %}`, or are in scope from `{% for %}` tags.
+[`Template.variableSegments()`](./api/classes/Template.md#variablesegments) and [`Template.variableSegmentsSync()`](./api/classes/Template.md#variablesegmentssync) return an array of variables as a nested array of segments. The resulting array will include variables that are local to the template, like those created with `{% assign %}`, or are in scope from `{% for %}` tags.
 
 ```js
 // ... continued from above
