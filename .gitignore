@@ -24,3 +24,5 @@ tmp/
 # node profiler logs
 benchmark/*.log
 benchmark/*.txt
+
+.DS_Store
