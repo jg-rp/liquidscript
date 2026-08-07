@@ -26,6 +26,12 @@ export default defineConfig([
           accessibility: "no-public",
         },
       ],
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        {
+          varsIgnorePattern: "^_",
+        },
+      ],
     },
   },
   tseslint.configs.recommended,
