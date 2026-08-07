@@ -13,7 +13,7 @@ import type {
   RenderResult,
 } from "./types";
 
-export class LiquidscriptSession extends LiquidSpecSession {
+export class LiquidscriptJSONRPC extends LiquidSpecSession {
   private templates: Map<string, Template>;
   private nextTemplateId: number = 1;
 
@@ -51,7 +51,7 @@ export class LiquidscriptSession extends LiquidSpecSession {
           error: {
             type: err.constructor.name,
             message: err.message,
-            line: -1, // TODO:
+            line: -1,
           },
         };
       } else {
@@ -60,7 +60,7 @@ export class LiquidscriptSession extends LiquidSpecSession {
           error: {
             type: "unexpected",
             message: `${err}`,
-            line: -1, // TODO:
+            line: -1,
           },
         };
       }
@@ -68,6 +68,50 @@ export class LiquidscriptSession extends LiquidSpecSession {
   }
 
   override async render(params: RenderParams): Promise<RenderResult> {
-    throw new Error("TODO");
+    const template = this.templates.get(params.template_id);
+
+    if (!template) {
+      return {
+        output: "",
+        errors: [
+          {
+            type: "render_error",
+            message: `unknown template id ${params.template_id}`,
+            line: -1,
+          },
+        ],
+      };
+    }
+
+    try {
+      return {
+        output: template?.renderSync(params.environment || {}),
+        errors: [],
+      };
+    } catch (err) {
+      if (err instanceof LiquidError) {
+        return {
+          output: "",
+          errors: [
+            {
+              type: err.constructor.name,
+              message: err.message,
+              line: -1,
+            },
+          ],
+        };
+      } else {
+        return {
+          output: "",
+          errors: [
+            {
+              type: "unexpected",
+              message: `${err}`,
+              line: -1,
+            },
+          ],
+        };
+      }
+    }
   }
 }
