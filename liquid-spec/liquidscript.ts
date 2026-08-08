@@ -13,7 +13,7 @@ import type {
   RenderResult,
 } from "./types";
 
-export class LiquidscriptJSONRPC extends LiquidSpecSession {
+export class LiquidscriptSession extends LiquidSpecSession {
   private templates: Map<string, Template>;
   private nextTemplateId: number = 1;
 

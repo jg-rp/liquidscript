@@ -29,7 +29,12 @@ export class JSONRPCService {
   private pending = new Map<RequestId, PendingResponse>();
   private nextRequestId = 1;
   private isRunning = false;
+  private rl: readline.Interface | null = null;
   debug: boolean;
+
+  // Store bound signal handlers so we can unregister them on exit
+  private handleSigInt = () => this.stop();
+  private handleSigTerm = () => this.stop();
 
   constructor(options: ServiceOptions = {}) {
     this.debug = options.debug ?? false;
@@ -57,18 +62,18 @@ export class JSONRPCService {
   async listen(): Promise<void> {
     this.isRunning = true;
 
-    const rl = readline.createInterface({
+    this.rl = readline.createInterface({
       input: process.stdin,
       terminal: false,
     });
 
-    rl.on("close", () => this.stop());
-    process.on("SIGINT", () => this.stop());
-    process.on("SIGTERM", () => this.stop());
+    process.on("SIGINT", this.handleSigInt);
+    process.on("SIGTERM", this.handleSigTerm);
+
+    this.logError("listening to stdin", {}, "info");
 
     try {
-      for await (const line of rl) {
-        if (!this.isRunning) break;
+      for await (const line of this.rl) {
         const trimmed = line.trim();
         if (!trimmed) continue;
 
@@ -93,6 +98,9 @@ export class JSONRPCService {
     } catch (err) {
       this.logError("Fatal stdin read error", err);
     } finally {
+      // Unregister signal listeners to prevent memory leaks
+      process.off("SIGINT", this.handleSigInt);
+      process.off("SIGTERM", this.handleSigTerm);
       this.cleanup();
     }
   }
@@ -257,10 +265,19 @@ export class JSONRPCService {
   }
 
   stop(): void {
+    this.logError("received stop request", {}, "info");
+
+    if (!this.isRunning) return;
     this.isRunning = false;
+
+    if (this.rl) {
+      this.rl.close();
+      this.rl = null;
+    }
   }
 
   private cleanup(): void {
+    this.logError("received cleanup request", {}, "info");
     for (const [id, pendingReq] of this.pending) {
       if (pendingReq.timer) clearTimeout(pendingReq.timer);
       const err = new Error("Session closed before response was received");
