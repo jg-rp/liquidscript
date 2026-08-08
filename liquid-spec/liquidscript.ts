@@ -1,7 +1,10 @@
+import type { TemplateSource } from "../dist/liquidscript";
+import path from "path";
 import {
   Environment,
   LiquidError,
   ObjectLoader,
+  TemplateNotFoundError,
   type Template,
 } from "../dist/liquidscript.esm";
 import { LiquidSpecSession } from "./session";
@@ -12,6 +15,18 @@ import type {
   RenderParams,
   RenderResult,
 } from "./types";
+
+class CustomObjectLoader extends ObjectLoader {
+  override getSourceSync(env: Environment, name: string): TemplateSource {
+    const source = this.obj[this.withFileExtension(name)];
+    if (source) return { source, name };
+    throw new TemplateNotFoundError(name);
+  }
+
+  withFileExtension(name: string): string {
+    return path.extname(name) ? name : name + ".liquid";
+  }
+}
 
 export class LiquidscriptSession extends LiquidSpecSession {
   private templates: Map<string, Template>;
@@ -37,7 +52,7 @@ export class LiquidscriptSession extends LiquidSpecSession {
       this.templates.set(
         id,
         new Environment({
-          loader: new ObjectLoader(params.filesystem || {}),
+          loader: new CustomObjectLoader(params.filesystem || {}),
         }).parse(params.template),
       );
 

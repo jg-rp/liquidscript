@@ -104,7 +104,7 @@ export function isCompileParams(obj: unknown): obj is CompileParams {
 }
 
 export function isRenderParams(obj: unknown): obj is RenderParams {
-  return hasStringKey(obj, "template_id") && isString(obj.template);
+  return hasStringKey(obj, "template_id") && isString(obj.template_id);
 }
 
 export function isQuitParams(obj: unknown): obj is null {

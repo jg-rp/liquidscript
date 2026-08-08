@@ -51,6 +51,7 @@ export class JSONRPCService {
           null,
           -32602,
           `Invalid params payload for method '${name}'`,
+          params,
         );
         return;
       }
