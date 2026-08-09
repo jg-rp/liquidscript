@@ -126,6 +126,6 @@ export class TableRowLoop extends Drop {
   }
 
   override toString(): string {
-    return "Liquid::TableRowDrop";
+    return "TableRowDrop";
   }
 }
