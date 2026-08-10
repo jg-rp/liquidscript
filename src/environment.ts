@@ -376,6 +376,10 @@ export class Environment {
       return right.gt(left);
     }
 
+    if (this.isNil(left) || this.isNil(right)) {
+      return false;
+    }
+
     throw new TemplateTypeError(
       `${left && left.constructor.name} and ${right && right.constructor.name} are not comparable`,
       token,
@@ -597,16 +601,12 @@ export class Environment {
       return obj[toLiquidSync]("string", context) as string;
     }
 
-    if (isArray(obj)) {
-      return JSON.stringify(obj);
-    }
-
     if (obj instanceof LiquidNumber) {
       return obj.toString();
     }
 
-    if (isObject(obj)) {
-      return JSON.stringify(obj);
+    if (isObject(obj) || isArray(obj)) {
+      return this.inspect(obj, context);
     }
 
     return String(obj);
@@ -626,5 +626,87 @@ export class Environment {
     }
 
     return value;
+  }
+
+  // Stringify `value` using Ruby `=>` notation.
+  protected inspect(value: unknown, context: RenderContext): string {
+    const seen = new Set<object>();
+
+    // eslint-disable-next-line sonarjs/cognitive-complexity
+    function stringify(val: unknown): string | undefined {
+      if (val === null || val === undefined) return "nil";
+      if (val instanceof LiquidNumber) return val.toString();
+      if (val instanceof Drop) {
+        return JSON.stringify(val[toLiquidSync]("string", context));
+      }
+
+      const type = typeof val;
+
+      if (type === "string") return JSON.stringify(val);
+      if (type === "number") return Number.isFinite(val) ? String(val) : "null";
+      if (type === "boolean") return String(val);
+      if (type === "bigint") return `${val}n`;
+      if (type === "undefined" || type === "function" || type === "symbol") {
+        return undefined;
+      }
+
+      if (type === "object") {
+        const obj = val as object;
+
+        if (seen.has(obj)) {
+          return Array.isArray(obj) ? "[...]" : "{...}";
+        }
+
+        if (obj instanceof Date) {
+          return JSON.stringify(obj.toISOString());
+        }
+
+        // Arrays
+        if (Array.isArray(obj)) {
+          seen.add(obj);
+          let result = "[";
+          const len = obj.length;
+          for (let i = 0; i < len; i++) {
+            if (i > 0) result += ", ";
+            const itemVal = stringify(obj[i]);
+            result += itemVal === undefined ? "null" : itemVal;
+          }
+          seen.delete(obj);
+          result += "]";
+          return result;
+        }
+
+        // Plain Objects
+        seen.add(obj);
+        let result = "{";
+        let first = true;
+        const keys = Object.keys(obj);
+
+        for (let i = 0; i < keys.length; i++) {
+          const key = keys[i];
+          const propVal = (obj as Record<string, unknown>)[
+            key as keyof typeof obj
+          ];
+          const formattedVal = stringify(propVal);
+
+          if (formattedVal !== undefined) {
+            if (!first) {
+              result += ", ";
+            } else {
+              first = false;
+            }
+            result += JSON.stringify(key) + "=>" + formattedVal;
+          }
+        }
+        seen.delete(obj);
+        result += "}";
+        return result;
+      }
+
+      return undefined;
+    }
+
+    const res = stringify(value);
+    return res === undefined ? "undefined" : res;
   }
 }

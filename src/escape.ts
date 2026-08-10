@@ -6,7 +6,7 @@ const reEscape = /["&'<>`]/g;
 // This map has been updated to mimic the reference implementation's mapping
 // of characters to escape codes.
 const escapeMap: { [index: string]: string } = {
-  '"': "&#34;",
+  '"': "&quot;",
   "&": "&amp;",
   "'": "&#39;",
   "<": "&lt;",
@@ -25,6 +25,7 @@ const escapeMap: { [index: string]: string } = {
 const reUnescape = /&(#34|amp|#39|lt|gt|#96);/gi;
 const unescapeMap: { [index: string]: string } = {
   "&#34;": '"',
+  "&quot;": '"',
   "&amp;": "&",
   "&#39;": "'",
   "&lt;": "<",

@@ -50,7 +50,7 @@ describe("HTML auto escape", () => {
       escEnv.parse("{{ thing }}").renderSync({
         thing: '<script>alert("XSS!");</script>',
       }),
-    ).toBe("&lt;script&gt;alert(&#34;XSS!&#34;);&lt;/script&gt;");
+    ).toBe("&lt;script&gt;alert(&quot;XSS!&quot;);&lt;/script&gt;");
   });
 
   test("don't escape template literals", () => {
@@ -58,7 +58,7 @@ describe("HTML auto escape", () => {
       escEnv.parse("<br>{{ thing }}").renderSync({
         thing: '<script>alert("XSS!");</script>',
       }),
-    ).toBe("<br>&lt;script&gt;alert(&#34;XSS!&#34;);&lt;/script&gt;");
+    ).toBe("<br>&lt;script&gt;alert(&quot;XSS!&quot;);&lt;/script&gt;");
   });
 
   test("don't escape string literals", () => {
@@ -83,7 +83,7 @@ describe("HTML auto escape", () => {
         }),
     ).toBe(
       '<p class="foo">' +
-        "&lt;script&gt;alert(&#34;XSS!&#34;);&lt;/script&gt;" +
+        "&lt;script&gt;alert(&quot;XSS!&quot;);&lt;/script&gt;" +
         "</p>",
     );
   });
