@@ -1,0 +1,53 @@
+import { parse } from "../src/liquidscript";
+
+describe("liquid-spec issues", () => {
+  test("blank_string_not_iterable", async () => {
+    const source =
+      "{% for char in characters %}I WILL NOT BE OUTPUT{% endfor %}";
+
+    const data = { characters: "" };
+    const template = parse(source);
+    const result = await template.render(data);
+    expect(result).toBe("");
+  });
+
+  test("slice_with_negative_length", async () => {
+    const source = "{{ text | slice: 0, -1 }}";
+    const data = { text: "hello" };
+    const template = parse(source);
+    const result = await template.render(data);
+    expect(result).toBe("");
+  });
+
+  test("array_to_string_output_nested", async () => {
+    const source = "{{ array }}";
+    const data = { array: ["a", ["b", "c"]] };
+    const template = parse(source);
+    const result = await template.render(data);
+    expect(result).toBe("abc");
+  });
+
+  test("test_dec_6cc14214", async () => {
+    const source = "{% decrement port %} {{ port }}";
+    const data = { port: 10 };
+    const template = parse(source);
+    const result = await template.render(data);
+    expect(result).toBe("-1 -1");
+  });
+
+  test("test_times_73a401d6", async () => {
+    const source = "{{ '2.1' | times:3 | replace: '.','-' | plus:0}}";
+    const data = {};
+    const template = parse(source);
+    const result = await template.render(data);
+    expect(result).toBe("6");
+  });
+
+  test("test_hash_notation_only_for_hash_access_a8607fa3", async () => {
+    const source = '{% if array["first"] == nil %}pass{% endif %}';
+    const data = { array: [1, 2, 3, 4, 5] };
+    const template = parse(source);
+    const result = await template.render(data);
+    expect(result).toBe("pass");
+  });
+});

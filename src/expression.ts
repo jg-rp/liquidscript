@@ -502,7 +502,9 @@ export class Variable implements Expression {
     const [obj, index] = await context.resolvePath(
       root,
       await Promise.all(
-        this.segments.map(async (s) => await s.evaluate(context)),
+        this.segments.map(async (s) =>
+          s instanceof Name ? s : await s.evaluate(context),
+        ),
       ),
     );
 
@@ -528,7 +530,9 @@ export class Variable implements Expression {
 
     const [obj, index] = context.resolvePathSync(
       root,
-      this.segments.map((s) => s.evaluateSync(context)),
+      this.segments.map((s) =>
+        s instanceof Name ? s : s.evaluateSync(context),
+      ),
     );
 
     if (obj === Nothing) {

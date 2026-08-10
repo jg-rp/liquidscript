@@ -24,5 +24,8 @@ export function replace(
     );
   }
 
-  return left_.replace(new RegExp(sub_.valueOf(), "g"), rep_.valueOf());
+  return left_.replace(
+    new RegExp(RegExp.escape(sub_.valueOf()), "g"),
+    rep_.valueOf(),
+  );
 }

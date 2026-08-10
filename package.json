@@ -50,7 +50,7 @@
     "lint": "bun run eslint src tests",
     "type-check": "bun run tsc -p tsconfig.build.json --noEmit",
     "publish": "bun run dist && bun publish",
-    "spec:build": "bun liquid-spec/build.ts"
+    "spec:build": "bun dist && bun liquid-spec/build.ts"
   },
   "type": "module"
 }

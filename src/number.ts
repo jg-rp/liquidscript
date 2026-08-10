@@ -169,7 +169,12 @@ export const ZERO = new Integer(0);
 export const NAN = new Integer(NaN);
 
 function _stringToLiquidNumber(s: string): LiquidNumber {
-  return s.indexOf(".") === -1 ? new Integer(Number(s)) : new Float(Number(s));
+  if (s.match(/^-?\d+\.\d+$/)) {
+    return new Float(Number(s));
+  }
+
+  const match = s.match(/^\s*([+-]?\d+)/);
+  return match ? new Integer(Number(match[1])) : ZERO;
 }
 
 /**

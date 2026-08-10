@@ -454,7 +454,10 @@ export class Environment {
     }
 
     const s = isArray(obj)
-      ? obj.map((item) => this.toString(item, context, token)).join("")
+      ? obj
+          .flat(10)
+          .map((item) => this.toString(item, context, token))
+          .join("")
       : this.toString(obj, context, token);
     return this.autoEscape ? escape(s) : s;
   }
@@ -551,7 +554,7 @@ export class Environment {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   toArray(obj: unknown, context: RenderContext, token: Token): unknown[] {
     if (isArray(obj)) return obj;
-    if (isString(obj)) return [obj];
+    if (isString(obj)) return obj.length === 0 ? [] : [obj];
     if (isObject(obj)) {
       return isIterable(obj) ? Array.from(obj) : Object.entries(obj);
     }

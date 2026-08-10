@@ -15,7 +15,7 @@ import {
 } from "./type_guards";
 import type { ForLoop } from "./drops";
 import * as drop from "./drop";
-import type { Expression } from "./expression";
+import { Name, type Expression } from "./expression";
 import { LiquidNumber } from "./number";
 import { ContextDepthError, ResourceLimitError } from "./errors";
 import { ChainPop, ChainPush, ReadOnlyChainMap } from "./chain_map";
@@ -167,11 +167,11 @@ export class RenderContext {
     // scopes, and keeping it so developers can manipulate nested namespaces
     // after they've been "merged".
     //
-    // Scopes are searched from right to left. New scopes are push on the right.
+    // Scopes are searched from left to right. New scopes are push on the right.
     this.scopes = new ReadOnlyChainMap(
       this.locals,
-      this.globals,
       this.counters,
+      this.globals,
     );
 
     this.disabledTags = options?.disabledTags;
@@ -376,9 +376,17 @@ export class RenderContext {
     segments: unknown[],
   ): Promise<[unknown, number]> {
     let segmentIndex = -1;
+    let dotted: boolean;
 
     for (let segment of segments) {
       segmentIndex += 1;
+
+      if (segment instanceof Name) {
+        segment = segment.value;
+        dotted = true;
+      } else {
+        dotted = false;
+      }
 
       if (segment instanceof LiquidNumber) {
         segment = segment.valueOf();
@@ -411,7 +419,7 @@ export class RenderContext {
           segment = await segment[drop.toLiquid]("numeric", this);
         }
 
-        obj = resolveArraySegment(obj, segment);
+        obj = resolveArraySegment(obj, segment, dotted);
       } else if (isString(obj)) {
         obj = resolveStringSegment(obj, segment);
       } else if (isObject(obj)) {
@@ -419,7 +427,7 @@ export class RenderContext {
           segment = await segment[drop.toLiquid]("data", this);
         }
 
-        obj = resolveObjectSegment(obj, segment);
+        obj = resolveObjectSegment(obj, segment, dotted);
       } else {
         obj = resolveUnknownSegment(obj, segment);
       }
@@ -436,9 +444,17 @@ export class RenderContext {
    */
   resolvePathSync(obj: unknown, segments: unknown[]): [unknown, number] {
     let segmentIndex = -1;
+    let dotted: boolean;
 
     for (let segment of segments) {
       segmentIndex += 1;
+
+      if (segment instanceof Name) {
+        segment = segment.value;
+        dotted = true;
+      } else {
+        dotted = false;
+      }
 
       if (segment instanceof LiquidNumber) {
         segment = segment.valueOf();
@@ -471,7 +487,7 @@ export class RenderContext {
           segment = segment[drop.toLiquidSync]("numeric", this);
         }
 
-        obj = resolveArraySegment(obj, segment);
+        obj = resolveArraySegment(obj, segment, dotted);
       } else if (isString(obj)) {
         obj = resolveStringSegment(obj, segment);
       } else if (isObject(obj)) {
@@ -479,7 +495,7 @@ export class RenderContext {
           segment = segment[drop.toLiquidSync]("string", this);
         }
 
-        obj = resolveObjectSegment(obj, segment);
+        obj = resolveObjectSegment(obj, segment, dotted);
       } else {
         obj = resolveUnknownSegment(obj, segment);
       }
@@ -589,10 +605,18 @@ function isProperty(obj: object, key: unknown): key is keyof typeof obj {
   return false;
 }
 
-function resolveArraySegment(obj: unknown[], segment: unknown): unknown {
+function resolveArraySegment(
+  obj: unknown[],
+  segment: unknown,
+  dotted: boolean,
+): unknown {
   const normIndex = normalizeIndex(segment, obj.length);
 
-  if (normIndex === undefined) {
+  if (normIndex !== undefined && normIndex in obj) {
+    return obj[normIndex];
+  }
+
+  if (normIndex === undefined && dotted) {
     switch (segment) {
       case "first":
         return obj[0];
@@ -603,10 +627,6 @@ function resolveArraySegment(obj: unknown[], segment: unknown): unknown {
       default:
         return Nothing;
     }
-  }
-
-  if (normIndex in obj) {
-    return obj[normIndex];
   }
 
   return Nothing;
@@ -625,9 +645,18 @@ function resolveStringSegment(obj: string, segment: unknown): unknown {
   }
 }
 
-function resolveObjectSegment(obj: object, segment: unknown): unknown {
+function resolveObjectSegment(
+  obj: object,
+  segment: unknown,
+  dotted: boolean,
+): unknown {
   if (isNonFunctionProperty(obj, segment)) {
     return obj[segment as keyof typeof obj];
+  }
+
+  // Only dotted path syntax "calls" "commands", like `.first` and `.size`.
+  if (!dotted) {
+    return Nothing;
   }
 
   switch (segment) {
