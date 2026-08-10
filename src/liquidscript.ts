@@ -1,4 +1,3 @@
-import "regexp.escape/shim";
 import { RenderContext, type Namespace } from "./context";
 import { Environment } from "./environment";
 

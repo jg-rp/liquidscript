@@ -21,6 +21,7 @@
     "@types/bun": "latest",
     "@types/jest": "^30.0.0",
     "@types/luxon": "^3.7.1",
+    "@types/regexp.escape": "^2.0.0",
     "@vitest/browser-playwright": "^4.1.7",
     "decimal.js": "^10.6.0",
     "eslint": "^10.1.0",
