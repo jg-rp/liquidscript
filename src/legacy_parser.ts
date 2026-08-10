@@ -222,6 +222,11 @@ export class LegacyParser extends Parser {
           this.source,
           this.templateName,
         );
+      case T.LPAREN:
+        this.pos -= 1;
+        segment = this.parseRangeLiteral();
+        this.eat(T.RBRACKET);
+        break;
       default:
         throw new TemplateSyntaxError(
           "expected an integer, identifier or string",
@@ -504,11 +509,18 @@ export class LegacyParser extends Parser {
 
   protected parseOutput(): OutputStatement {
     const token = this.tokens[this.pos - 1] as Token;
+    if (this.kind() === T.WC && this.peek().kind === T.OUT_END) {
+      // Special case for `{{-}}`.
+      this.carryWhitespaceControl();
+      this.eat(T.OUT_END);
+      return new OutputStatement(token, new expr.NullLiteral(token));
+    }
+
     this.skipWhitespaceControl();
-    const expr = this.parseFilteredExpression();
+    const expr_ = this.parseFilteredExpression();
     this.carryWhitespaceControl();
     this.eat(T.OUT_END);
-    return new OutputStatement(token, expr);
+    return new OutputStatement(token, expr_);
   }
 
   protected parsePath(): expr.Variable {
@@ -583,7 +595,7 @@ export class LegacyParser extends Parser {
     return args;
   }
 
-  protected parseRangeLiteral(): Expression {
+  protected parseRangeLiteral(): expr.RangeLiteral {
     const token = this.eat(T.LPAREN);
     const start = this.parseFilteredExpression();
     this.eat(T.DOUBLE_DOT);

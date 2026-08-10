@@ -1,3 +1,4 @@
+import escapeRegExp from "regexp.escape";
 import { HTMLSafeString } from "../drops/html_safe";
 import { type FilterContext } from "../filter";
 
@@ -18,11 +19,14 @@ export function replaceFirst(
       left_
         .valueOf()
         .replace(
-          new RegExp(HTMLSafeString.escape(sub_).valueOf()),
+          new RegExp(escapeRegExp(HTMLSafeString.escape(sub_).valueOf())),
           HTMLSafeString.escape(rep_).valueOf(),
         ),
     );
   }
 
-  return left_.replace(new RegExp(sub_.valueOf()), rep_.valueOf());
+  return left_.replace(
+    new RegExp(escapeRegExp(sub_.valueOf())),
+    rep_.valueOf(),
+  );
 }

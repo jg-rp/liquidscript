@@ -10,7 +10,12 @@ import { FilterContext } from "./filter";
 import type { Float, Integer } from "./number";
 import { HTMLSafeString } from "./drops/html_safe";
 
-export type PathSegment = Name | StringLiteral | IndexSelector | Variable;
+export type PathSegment =
+  | Name
+  | StringLiteral
+  | IndexSelector
+  | Variable
+  | RangeLiteral;
 
 export type Literal =
   | IntegerLiteral
@@ -805,6 +810,7 @@ export class Empty implements Expression {
 
 export class RangeLiteral implements Expression {
   readonly span: Token;
+  readonly value = ""; // XXX: bit of a hack
 
   constructor(
     readonly token: Token,

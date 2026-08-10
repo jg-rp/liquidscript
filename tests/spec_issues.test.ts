@@ -50,4 +50,20 @@ describe("liquid-spec issues", () => {
     const result = await template.render(data);
     expect(result).toBe("pass");
   });
+
+  test("test_trim_blank_2ed3e831", async () => {
+    const source = "foo {{-}} bar";
+    const data = {};
+    const template = parse(source);
+    const result = await template.render(data);
+    expect(result).toBe("foobar");
+  });
+
+  test("range_in_bracket", async () => {
+    const source = "{{ numbers[(1..3)] }}";
+    const data = { numbers: { "1..3": "range" } };
+    const template = parse(source);
+    const result = await template.render(data);
+    expect(result).toBe("");
+  });
 });

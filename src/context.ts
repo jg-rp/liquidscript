@@ -19,6 +19,7 @@ import { Name, type Expression } from "./expression";
 import { LiquidNumber } from "./number";
 import { ContextDepthError, ResourceLimitError } from "./errors";
 import { ChainPop, ChainPush, ReadOnlyChainMap } from "./chain_map";
+import { Range } from "./drops/range";
 
 /**
  * A mapping of template variable names to values.
@@ -423,7 +424,7 @@ export class RenderContext {
       } else if (isString(obj)) {
         obj = resolveStringSegment(obj, segment);
       } else if (isObject(obj)) {
-        if (segment instanceof Drop) {
+        if (segment instanceof Drop && !(segment instanceof Range)) {
           segment = await segment[drop.toLiquid]("data", this);
         }
 
@@ -491,7 +492,7 @@ export class RenderContext {
       } else if (isString(obj)) {
         obj = resolveStringSegment(obj, segment);
       } else if (isObject(obj)) {
-        if (segment instanceof Drop) {
+        if (segment instanceof Drop && !(segment instanceof Range)) {
           segment = segment[drop.toLiquidSync]("string", this);
         }
 
