@@ -9,6 +9,8 @@ import type {
   Request,
   RequestId,
 } from "./types";
+import { fudge_floats } from "./fudge_floats";
+import { Float } from "../dist/liquidscript.esm";
 
 type PendingResponse = {
   resolve: (value: unknown) => void;
@@ -176,9 +178,9 @@ export class JSONRPCService {
     let payload: any;
 
     try {
-      payload = JSON.parse(line);
+      payload = parseJSON(line);
     } catch (err) {
-      this.sendError(null, -32700, `Parse error: ${err}`);
+      this.sendError(null, -32700, `JSON parse error: ${err}`);
       return;
     }
 
@@ -316,4 +318,15 @@ export class JSONRPCService {
     };
     process.stderr.write(JSON.stringify(logObject) + "\n");
   }
+}
+
+function parseJSON(json: string): any {
+  const result = JSON.parse(fudge_floats(json), (_key, value) => {
+    if (typeof value === "string" && value.startsWith("__float__")) {
+      return new Float(value.slice(9));
+    }
+    return value;
+  });
+
+  return result;
 }

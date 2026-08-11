@@ -15,7 +15,7 @@ export function capitalize(
     );
   }
 
-  return new HTMLSafeString(
-    left_.charAt(0).toLocaleUpperCase() + left_.slice(1).toLocaleLowerCase(),
+  return (
+    left_.charAt(0).toLocaleUpperCase() + left_.slice(1).toLocaleLowerCase()
   );
 }
