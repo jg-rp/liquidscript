@@ -1,12 +1,15 @@
 import type { FilterContext } from "../filter";
-import { ZERO, type LiquidNumber } from "../number";
+import { isLiquidNumber, ZERO, type LiquidNumber } from "../number";
+import { isNumber } from "../type_guards";
 
 export function sum(
   this: FilterContext,
   left: unknown,
   prop?: unknown,
-): LiquidNumber {
+): LiquidNumber | number {
   this.assertArgs(arguments.length, 1, 2);
+  if (isNumber(left) || isLiquidNumber(left)) return left;
+
   if (this.isNil(prop)) {
     return this.inputArray(left)
       .map((v) => this.toLiquidNumber(v, ZERO))

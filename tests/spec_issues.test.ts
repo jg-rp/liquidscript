@@ -1,4 +1,4 @@
-import { parse } from "../src/liquidscript";
+import { Environment, parse } from "../src/liquidscript";
 
 describe("liquid-spec issues", () => {
   test("blank_string_not_iterable", async () => {
@@ -65,5 +65,13 @@ describe("liquid-spec issues", () => {
     const template = parse(source);
     const result = await template.render(data);
     expect(result).toBe("");
+  });
+
+  test("cannot_access_private_methods_206e696a", async () => {
+    const source = "{{ 'a' | to_number }}";
+    const data = {};
+    const template = new Environment({ strictFilters: false }).parse(source);
+    const result = await template.render(data);
+    expect(result).toBe("a");
   });
 });

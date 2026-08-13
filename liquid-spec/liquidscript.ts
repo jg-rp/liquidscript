@@ -53,6 +53,7 @@ export class LiquidscriptSession extends LiquidSpecSession {
         id,
         new Environment({
           loader: new CustomObjectLoader(params.filesystem || {}),
+          strictFilters: false,
         }).parse(params.template),
       );
 
