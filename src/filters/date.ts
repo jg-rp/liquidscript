@@ -19,6 +19,7 @@ const FORMAT_TOKENS = new DefaultMap<string, string>(
     ["%F", "yyyy-LL-dd"],
     ["%G", "kkkk"],
     ["%H", "HH"],
+    ["%h", "LLL"],
     ["%I", "hh"],
     ["%j", "ooo"],
     ["%m", "LL"],

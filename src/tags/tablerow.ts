@@ -70,6 +70,8 @@ export class TableRowTag implements Markup {
         limit = arg.expr;
       } else if (arg.name.value === "cols") {
         cols = arg.expr;
+      } else if (arg.name.value === "range") {
+        // ignore
       } else {
         throw new TemplateSyntaxError(
           `unknown argument '${arg.name.value}'`,
@@ -116,15 +118,15 @@ export class TableRowTag implements Markup {
   async render(context: RenderContext, buffer: OutputBuffer): Promise<void> {
     const name = this.name.value;
     const array = await context.toArray(this.expression);
-    const offset = await context.toInteger(this.offset, 0);
-    const limit = await context.toInteger(this.limit, array.length);
+    const offset = await this.toInteger(this.offset, context, 0, 0);
+    const limit = await this.toInteger(this.limit, context, array.length, 0);
     const a = array.slice(offset, offset + limit);
 
     const length = a.length;
 
     const tablerowloop = new TableRowLoop(
       length,
-      await context.toInteger(this.cols, length),
+      await this.toInteger(this.cols, context, length, 0),
     );
 
     const namespace: Namespace = { tablerowloop };
@@ -155,14 +157,14 @@ export class TableRowTag implements Markup {
   renderSync(context: RenderContext, buffer: OutputBuffer): void {
     const name = this.name.value;
     const array = context.toArraySync(this.expression);
-    const offset = context.toIntegerSync(this.offset, 0);
-    const limit = context.toIntegerSync(this.limit, array.length);
+    const offset = this.toIntegerSync(this.offset, context, 0, 0);
+    const limit = this.toIntegerSync(this.limit, context, array.length, 0);
     const a = array.slice(offset, offset + limit);
     const length = a.length;
 
     const tablerowloop = new TableRowLoop(
       length,
-      context.toIntegerSync(this.cols, length),
+      this.toIntegerSync(this.cols, context, length, 0),
     );
 
     const namespace: Namespace = { tablerowloop };
@@ -188,5 +190,29 @@ export class TableRowTag implements Markup {
 
       buffer.push("</tr>\n");
     });
+  }
+
+  protected async toInteger<T>(
+    expression: Expression | undefined,
+    context: RenderContext,
+    default_: T,
+    null_: T,
+  ): Promise<number | T> {
+    if (!expression) return default_;
+    const value = await expression.evaluate(context);
+    if (context.env.isNil(value)) return null_;
+    return context.env.toInteger(value, context, expression.span);
+  }
+
+  protected toIntegerSync<T>(
+    expression: Expression | undefined,
+    context: RenderContext,
+    default_: T,
+    null_: T,
+  ): number | T {
+    if (!expression) return default_;
+    const value = expression.evaluateSync(context);
+    if (context.env.isNil(value)) return null_;
+    return context.env.toInteger(value, context, expression.span);
   }
 }
