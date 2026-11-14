@@ -1,7 +1,8 @@
-import type { RenderContext } from "../context";
-import { type ContextHint, Drop } from "../drop";
-import { Nothing } from "../runtime";
-import * as drop from "../drop";
+import type { RenderContext } from "../context.js";
+
+import { type ContextHint, Drop } from "../drop.js";
+import * as drop from "../drop.js";
+import { Nothing } from "../runtime.js";
 
 export function range(stop: number): Range;
 export function range(start: number, stop: number): Range;
@@ -49,22 +50,14 @@ export class Range extends Drop implements Iterable<number> {
   }
 
   override [drop.equals](other: unknown): boolean {
-    return (
-      other instanceof Range &&
-      this.start === other.start &&
-      this.stop === other.stop
-    );
+    return other instanceof Range && this.start === other.start && this.stop === other.stop;
   }
 
   override [drop.length]() {
     return this.length;
   }
 
-  override [drop.sliceSync](
-    offset?: number,
-    limit?: number,
-    reversed?: boolean,
-  ): Range {
+  override [drop.sliceSync](offset?: number, limit?: number, reversed?: boolean): Range {
     if (this.length === 0) {
       return EMPTY_RANGE;
     }
@@ -87,18 +80,11 @@ export class Range extends Drop implements Iterable<number> {
     return reversed ? new DescendingRange(stop, start) : new Range(start, stop);
   }
 
-  override async [drop.toLiquid](
-    hint: ContextHint,
-    context: RenderContext,
-  ): Promise<unknown> {
+  override async [drop.toLiquid](hint: ContextHint, context: RenderContext): Promise<unknown> {
     return this[drop.toLiquidSync](hint, context);
   }
 
-  override [drop.toLiquidSync](
-    hint: ContextHint,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    context: RenderContext,
-  ): unknown {
+  override [drop.toLiquidSync](hint: ContextHint, context: RenderContext): unknown {
     switch (hint) {
       case "string":
         return this.toString();

@@ -1,7 +1,8 @@
 import { readFileSync } from "fs";
-import { Environment } from "../src/liquidscript";
-import { DetailedLiquidError } from "../src/errors";
-import { ObjectLoader } from "../src/loaders";
+
+import { DetailedLiquidError } from "../src/errors.js";
+import { Environment } from "../src/liquidscript.js";
+import { ObjectLoader } from "../src/loaders/index.js";
 
 type Case = {
   name: string;
@@ -43,9 +44,7 @@ describe("golden liquid sync", () => {
       const env = new Environment({ loader: new ObjectLoader(templates) });
 
       if (invalid) {
-        expect(() => env.renderSync(template, data)).toThrow(
-          DetailedLiquidError,
-        );
+        expect(() => env.renderSync(template, data)).toThrow(DetailedLiquidError);
       } else if (result) {
         expect(env.renderSync(template, data)).toStrictEqual(result);
       } else if (results) {

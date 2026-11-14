@@ -1,11 +1,8 @@
-import type { FilterContext } from "../filter";
-import { ZERO, type LiquidNumber } from "../number";
+import type { FilterContext } from "../filter.js";
 
-export function atLeast(
-  this: FilterContext,
-  left: unknown,
-  right: unknown,
-): LiquidNumber {
+import { ZERO, type LiquidNumber } from "../number.js";
+
+export function atLeast(this: FilterContext, left: unknown, right: unknown): LiquidNumber {
   this.assertArgs(arguments.length, 2);
   return this.toLiquidNumber(left, ZERO).max(this.toLiquidNumber(right, ZERO));
 }

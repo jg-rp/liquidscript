@@ -5,9 +5,9 @@
  *
  * See https://github.com/Shopify/liquid/blob/main/LICENSE
  */
-import { Environment } from "../src/environment";
-import { LegacyLexer } from "../src/legacy_lexer";
-import { getTokenValue, REVERSE_T } from "../src/token";
+import { Environment } from "../src/environment.js";
+import { LegacyLexer } from "../src/legacy_lexer.js";
+import { getTokenValue, REVERSE_T } from "../src/token.js";
 
 function tokenize(source: string): Array<[string, string]> {
   const env = new Environment();

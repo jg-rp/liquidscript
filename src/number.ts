@@ -1,11 +1,14 @@
+// oxlint-disable-next-line import/no-named-as-default
 import Decimal from "decimal.js";
-import { isString } from "./type_guards";
-import { Drop, toLiquidSync } from "./drop";
-import type { RenderContext } from "./context";
+
+import type { RenderContext } from "./context.js";
+
+import { Drop, toLiquidSync } from "./drop.js";
+import { isString } from "./type_guards.js";
 
 Decimal.set({ precision: 16 });
 
-// eslint-disable-next-line @typescript-eslint/no-wrapper-object-types, sonarjs/no-primitive-wrappers
+// oxlint-disable-next-line typescript/no-wrapper-object-types
 export type N = string | number | Number | LiquidNumber;
 
 /**
@@ -77,41 +80,31 @@ export abstract class LiquidNumber {
   minus(n: N): LiquidNumber {
     const _n = _toLiquidNumber(n);
     const result = this.n.minus(_n.n);
-    return isFloat(this) || isFloat(_n)
-      ? new Float(result)
-      : new Integer(result);
+    return isFloat(this) || isFloat(_n) ? new Float(result) : new Integer(result);
   }
 
   mod(n: N): LiquidNumber {
     const _n = _toLiquidNumber(n);
     const result = this.n.mod(_n.n);
-    return isFloat(this) || isFloat(_n)
-      ? new Float(result)
-      : new Integer(result);
+    return isFloat(this) || isFloat(_n) ? new Float(result) : new Integer(result);
   }
 
   plus(n: N): LiquidNumber {
     const _n = _toLiquidNumber(n);
     const result = this.n.plus(_n.n);
-    return isFloat(this) || isFloat(_n)
-      ? new Float(result)
-      : new Integer(result);
+    return isFloat(this) || isFloat(_n) ? new Float(result) : new Integer(result);
   }
 
   round(decimalPlaces?: number): LiquidNumber {
     return isInteger(this) || decimalPlaces === undefined || this.n.eq(0)
       ? new Integer(this.n.toDecimalPlaces(0, Decimal.ROUND_HALF_CEIL))
-      : new Float(
-          this.n.toDecimalPlaces(decimalPlaces, Decimal.ROUND_HALF_CEIL),
-        );
+      : new Float(this.n.toDecimalPlaces(decimalPlaces, Decimal.ROUND_HALF_CEIL));
   }
 
   times(n: N): LiquidNumber {
     const _n = _toLiquidNumber(n);
     const result = this.n.times(_n.n);
-    return isFloat(this) || isFloat(_n)
-      ? new Float(result)
-      : new Integer(result);
+    return isFloat(this) || isFloat(_n) ? new Float(result) : new Integer(result);
   }
 
   trunc(): LiquidNumber {
@@ -194,17 +187,15 @@ function _toLiquidNumber(n: N): LiquidNumber {
     return n;
   }
 
-  if (n instanceof Number) {
-    return Number.isInteger(n)
-      ? new Integer(n.valueOf())
-      : new Float(n.valueOf());
+  if (typeof n === "number") {
+    return Number.isInteger(n) ? new Integer(n.valueOf()) : new Float(n.valueOf());
   }
 
   if (isPrimitiveNumber(n)) {
     return Number.isInteger(n) ? new Integer(n) : new Float(n);
   }
 
-  return _stringToLiquidNumber(n);
+  return _stringToLiquidNumber(n as string);
 }
 
 /**

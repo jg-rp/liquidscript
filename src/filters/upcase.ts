@@ -1,10 +1,8 @@
-import { HTMLSafeString } from "../drops/html_safe";
-import type { FilterContext } from "../filter";
+import type { FilterContext } from "../filter.js";
 
-export function upcase(
-  this: FilterContext,
-  left: unknown,
-): string | HTMLSafeString {
+import { HTMLSafeString } from "../drops/html_safe.js";
+
+export function upcase(this: FilterContext, left: unknown): string | HTMLSafeString {
   this.assertArgs(arguments.length, 1);
 
   if (left instanceof HTMLSafeString) {

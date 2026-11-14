@@ -1,5 +1,5 @@
-import { Environment, ObjectLoader } from "../src/liquidscript";
-import { ContextDepthError } from "../src/errors";
+import { ContextDepthError } from "../src/errors.js";
+import { Environment, ObjectLoader } from "../src/liquidscript.js";
 
 describe("context depth limit", () => {
   test("recursive render", () => {
@@ -23,9 +23,7 @@ describe("context depth limit", () => {
     const env = new Environment({ loader });
     const template = env.parse("{% include 'foo' %}");
     expect(() => template.renderSync()).toThrow(ContextDepthError);
-    expect(() => template.renderSync()).toThrow(
-      "maximum context depth reached",
-    );
+    expect(() => template.renderSync()).toThrow("maximum context depth reached");
   });
 
   test("set context depth limit", () => {
@@ -43,9 +41,7 @@ describe("context depth limit", () => {
 
     env.maxContextDepth = 2;
     expect(() => template.renderSync()).toThrow(ContextDepthError);
-    expect(() => template.renderSync()).toThrow(
-      "maximum context depth reached",
-    );
+    expect(() => template.renderSync()).toThrow("maximum context depth reached");
   });
 
   test("set context depth limit include", () => {
@@ -63,8 +59,6 @@ describe("context depth limit", () => {
 
     env.maxContextDepth = 2;
     expect(() => template.renderSync()).toThrow(ContextDepthError);
-    expect(() => template.renderSync()).toThrow(
-      "maximum context depth reached",
-    );
+    expect(() => template.renderSync()).toThrow("maximum context depth reached");
   });
 });

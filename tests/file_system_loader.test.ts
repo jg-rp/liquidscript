@@ -1,12 +1,14 @@
-import path from "path";
-import os from "os";
 import { mkdtempSync, rmSync, statSync, utimesSync, writeFileSync } from "fs";
+import os from "os";
+import path from "path";
 
-import { Environment } from "../src/environment";
-import { TemplateNotFoundError } from "../src/errors";
-import { NodeFileSystemLoader } from "../src/loaders";
-import { Template } from "../src/template";
-import { CachingNodeFileSystemLoader } from "../src/loaders/file_system_loader";
+import { Environment } from "../src/environment.js";
+import { TemplateNotFoundError } from "../src/errors.js";
+import {
+  CachingNodeFileSystemLoader,
+  NodeFileSystemLoader,
+} from "../src/loaders/file_system_loader.js";
+import { Template } from "../src/template.js";
 
 describe("node file system loader", () => {
   test("synchronously load a template", () => {
@@ -70,16 +72,12 @@ describe("node file system loader", () => {
   test("sync template not found", () => {
     const loader = new NodeFileSystemLoader("tests/fixtures/templates");
     const env = new Environment({ loader });
-    expect(() => env.getTemplateSync("nosuchthing.liquid")).toThrow(
-      TemplateNotFoundError,
-    );
+    expect(() => env.getTemplateSync("nosuchthing.liquid")).toThrow(TemplateNotFoundError);
   });
   test("async template not found", async () => {
     const loader = new NodeFileSystemLoader("tests/fixtures/templates");
     const env = new Environment({ loader });
-    expect(async () => await env.getTemplate("nosuchthing.liquid")).toThrow(
-      TemplateNotFoundError,
-    );
+    expect(async () => await env.getTemplate("nosuchthing.liquid")).toThrow(TemplateNotFoundError);
   });
   test("synchronously load a template with default file extension", () => {
     const loader = new NodeFileSystemLoader("tests/fixtures/templates/", {
@@ -102,30 +100,21 @@ describe("node file system loader", () => {
   test("sync don't escape template search path", () => {
     const loader = new NodeFileSystemLoader("tests/fixtures/templates");
     const env = new Environment({ loader });
-    expect(() => env.getTemplateSync("../private.liquid")).toThrow(
-      TemplateNotFoundError,
-    );
-    expect(() => env.getTemplateSync("foo/../../private.liquid")).toThrow(
-      TemplateNotFoundError,
-    );
+    expect(() => env.getTemplateSync("../private.liquid")).toThrow(TemplateNotFoundError);
+    expect(() => env.getTemplateSync("foo/../../private.liquid")).toThrow(TemplateNotFoundError);
   });
   test("async don't escape template search path", async () => {
     const loader = new NodeFileSystemLoader("tests/fixtures/templates");
     const env = new Environment({ loader });
-    expect(async () => await env.getTemplate("../private.liquid")).toThrow(
+    expect(async () => await env.getTemplate("../private.liquid")).toThrow(TemplateNotFoundError);
+    expect(async () => await env.getTemplate("foo../../private.liquid")).toThrow(
       TemplateNotFoundError,
     );
-    expect(
-      async () => await env.getTemplate("foo../../private.liquid"),
-    ).toThrow(TemplateNotFoundError);
   });
   test("sync don't search absolute paths", () => {
     const loader = new NodeFileSystemLoader("tests/fixtures/templates");
     const env = new Environment({ loader });
-    // eslint-disable-next-line sonarjs/publicly-writable-directories
-    expect(() => env.getTemplateSync("/tmp/private.liquid")).toThrow(
-      TemplateNotFoundError,
-    );
+    expect(() => env.getTemplateSync("/tmp/private.liquid")).toThrow(TemplateNotFoundError);
   });
 });
 
@@ -191,36 +180,26 @@ describe("caching node file system loader", () => {
   test("sync template not found", () => {
     const loader = new CachingNodeFileSystemLoader("tests/fixtures/templates");
     const env = new Environment({ loader });
-    expect(() => env.getTemplateSync("nosuchthing.liquid")).toThrow(
-      TemplateNotFoundError,
-    );
+    expect(() => env.getTemplateSync("nosuchthing.liquid")).toThrow(TemplateNotFoundError);
   });
   test("async template not found", async () => {
     const loader = new CachingNodeFileSystemLoader("tests/fixtures/templates");
     const env = new Environment({ loader });
-    expect(async () => await env.getTemplate("nosuchthing.liquid")).toThrow(
-      TemplateNotFoundError,
-    );
+    expect(async () => await env.getTemplate("nosuchthing.liquid")).toThrow(TemplateNotFoundError);
   });
   test("synchronously load a template with default file extension", () => {
-    const loader = new CachingNodeFileSystemLoader(
-      "tests/fixtures/templates/",
-      {
-        fileExtension: ".liquid",
-      },
-    );
+    const loader = new CachingNodeFileSystemLoader("tests/fixtures/templates/", {
+      fileExtension: ".liquid",
+    });
     const env = new Environment({ loader });
     const template = env.getTemplateSync("some");
     expect(template).toBeInstanceOf(Template);
     expect(template.renderSync()).toBe("Hello, World!\n");
   });
   test("asynchronously load a template with default file extension", async () => {
-    const loader = new CachingNodeFileSystemLoader(
-      "tests/fixtures/templates/",
-      {
-        fileExtension: ".liquid",
-      },
-    );
+    const loader = new CachingNodeFileSystemLoader("tests/fixtures/templates/", {
+      fileExtension: ".liquid",
+    });
     const env = new Environment({ loader });
     const template = await env.getTemplate("some");
     expect(template).toBeInstanceOf(Template);
@@ -229,16 +208,12 @@ describe("caching node file system loader", () => {
   test("sync don't escape template search path", () => {
     const loader = new CachingNodeFileSystemLoader("tests/fixtures/templates");
     const env = new Environment({ loader });
-    expect(() => env.getTemplateSync("../private.liquid")).toThrow(
-      TemplateNotFoundError,
-    );
+    expect(() => env.getTemplateSync("../private.liquid")).toThrow(TemplateNotFoundError);
   });
   test("async don't escape template search path", async () => {
     const loader = new CachingNodeFileSystemLoader("tests/fixtures/templates");
     const env = new Environment({ loader });
-    expect(async () => await env.getTemplate("../private.liquid")).toThrow(
-      TemplateNotFoundError,
-    );
+    expect(async () => await env.getTemplate("../private.liquid")).toThrow(TemplateNotFoundError);
   });
   test("cached template", () => {
     const loader = new CachingNodeFileSystemLoader("tests/fixtures/templates");

@@ -1,10 +1,6 @@
-import { Environment } from "../src/liquidscript";
-import {
-  FalsyStrictUndefined,
-  StrictUndefined,
-  Undefined,
-} from "../src/drops/undefined";
-import { UndefinedVariableError } from "../src/errors";
+import { FalsyStrictUndefined, StrictUndefined, Undefined } from "../src/drops/undefined.js";
+import { UndefinedVariableError } from "../src/errors.js";
+import { Environment } from "../src/liquidscript.js";
 
 type Case = {
   description: string;
@@ -91,24 +87,18 @@ describe("lax undefined", () => {
   ];
 
   describe("async", () => {
-    test.each<Case>(cases)(
-      "$description",
-      async ({ source, globals, want }: Case) => {
-        const template = env.parse(source);
-        const result = await template.render(globals);
-        expect(result).toBe(want);
-      },
-    );
+    test.each<Case>(cases)("$description", async ({ source, globals, want }: Case) => {
+      const template = env.parse(source);
+      const result = await template.render(globals);
+      expect(result).toBe(want);
+    });
   });
 
   describe("sync", () => {
-    test.each<Case>(cases)(
-      "$description",
-      async ({ source, globals, want }: Case) => {
-        const template = env.parse(source);
-        expect(template.renderSync(globals)).toBe(want);
-      },
-    );
+    test.each<Case>(cases)("$description", async ({ source, globals, want }: Case) => {
+      const template = env.parse(source);
+      expect(template.renderSync(globals)).toBe(want);
+    });
   });
 });
 
@@ -198,22 +188,15 @@ describe("strict undefined", () => {
   describe("async", () => {
     test.each<Case>(cases)("$description", ({ source, globals }: Case) => {
       const template = env.parse(source);
-      expect(async () => await template.render(globals)).toThrow(
-        UndefinedVariableError,
-      );
+      expect(async () => await template.render(globals)).toThrow(UndefinedVariableError);
     });
   });
 
   describe("sync", () => {
-    test.each<Case>(cases)(
-      "$description",
-      async ({ source, globals }: Case) => {
-        const template = env.parse(source);
-        expect(() => template.renderSync(globals)).toThrow(
-          UndefinedVariableError,
-        );
-      },
-    );
+    test.each<Case>(cases)("$description", async ({ source, globals }: Case) => {
+      const template = env.parse(source);
+      expect(() => template.renderSync(globals)).toThrow(UndefinedVariableError);
+    });
   });
 });
 
@@ -273,37 +256,26 @@ describe("strict falsy undefined", () => {
   describe("async", () => {
     test.each<Case>(cases)("$description", ({ source, globals }: Case) => {
       const template = env.parse(source);
-      expect(async () => await template.render(globals)).toThrow(
-        UndefinedVariableError,
-      );
+      expect(async () => await template.render(globals)).toThrow(UndefinedVariableError);
     });
   });
 
   describe("sync", () => {
-    test.each<Case>(cases)(
-      "$description",
-      async ({ source, globals }: Case) => {
-        const template = env.parse(source);
-        expect(() => template.renderSync(globals)).toThrow(
-          UndefinedVariableError,
-        );
-      },
-    );
+    test.each<Case>(cases)("$description", async ({ source, globals }: Case) => {
+      const template = env.parse(source);
+      expect(() => template.renderSync(globals)).toThrow(UndefinedVariableError);
+    });
   });
 
   test("falsy boolean expression", async () => {
-    const template = env.parse(
-      "{% if nosuchthing %}true{% else %}false{% endif %}",
-    );
+    const template = env.parse("{% if nosuchthing %}true{% else %}false{% endif %}");
     const result = await template.render();
     expect(result).toBe("false");
     expect(template.renderSync()).toBe("false");
   });
 
   test("boolean comparison", async () => {
-    const template = env.parse(
-      "{% if nosuchthing == 'hello' %}true{% else %}false{% endif %}",
-    );
+    const template = env.parse("{% if nosuchthing == 'hello' %}true{% else %}false{% endif %}");
     const result = await template.render();
     expect(result).toBe("false");
     expect(template.renderSync()).toBe("false");
@@ -319,9 +291,7 @@ describe("strict falsy undefined", () => {
   });
 
   test("undefined equals undefined", async () => {
-    const template = env.parse(
-      "{% if nosuchthing == noway %}true{% else %}false{% endif %}",
-    );
+    const template = env.parse("{% if nosuchthing == noway %}true{% else %}false{% endif %}");
     const result = await template.render();
     expect(result).toBe("true");
     expect(template.renderSync()).toBe("true");
@@ -335,9 +305,7 @@ describe("strict falsy undefined", () => {
   });
 
   test("undefined default is not false", async () => {
-    const template = env.parse(
-      "{{ nosuchthing | default: 'hello', allow_false: true }}",
-    );
+    const template = env.parse("{{ nosuchthing | default: 'hello', allow_false: true }}");
     const result = await template.render();
     expect(result).toBe("hello");
     expect(template.renderSync()).toBe("hello");

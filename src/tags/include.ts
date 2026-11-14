@@ -1,19 +1,15 @@
-import type { Namespace, RenderContext } from "../context";
-import { NoSuchTemplateError, TemplateNotFoundError } from "../errors";
-import {
-  Name,
-  StringLiteral,
-  type Expression,
-  type KeywordArgument,
-} from "../expression";
-import { fnv1a32 } from "../fnv";
-import { Scope, type Markup, type Partial } from "../markup";
-import type { OutputBuffer } from "../output";
-import type { Parser } from "../parser";
-import { isNothing } from "../runtime";
-import type { Template } from "../template";
-import { T, type Token } from "../token";
-import { isArray } from "../type_guards";
+import type { Namespace, RenderContext } from "../context.js";
+import type { OutputBuffer } from "../output.js";
+import type { Parser } from "../parser.js";
+import type { Template } from "../template.js";
+
+import { NoSuchTemplateError, TemplateNotFoundError } from "../errors.js";
+import { Name, StringLiteral, type Expression, type KeywordArgument } from "../expression.js";
+import { fnv1a32 } from "../fnv.js";
+import { Scope, type Markup, type Partial } from "../markup.js";
+import { isNothing } from "../runtime.js";
+import { T, type Token } from "../token.js";
+import { isArray } from "../type_guards.js";
 
 export class IncludeTag implements Markup {
   readonly blank = false;
@@ -127,12 +123,9 @@ export class IncludeTag implements Markup {
     let template: Template;
 
     try {
-      template = await context.env.getTemplate(
-        templateName,
-        undefined,
-        context,
-        { tag: "include" },
-      );
+      template = await context.env.getTemplate(templateName, undefined, context, {
+        tag: "include",
+      });
     } catch (err) {
       if (err instanceof TemplateNotFoundError) {
         // Promote TemplateNotFoundError to NoSuchTemplateError
@@ -147,8 +140,7 @@ export class IncludeTag implements Markup {
       throw err;
     }
 
-    const bindKey =
-      this.alias?.value || (template.name.split(".", 1)[0] as string);
+    const bindKey = this.alias?.value || template.name.split(".", 1)[0] || "";
 
     let bindValue: unknown;
 
@@ -208,8 +200,7 @@ export class IncludeTag implements Markup {
       throw err;
     }
 
-    const bindKey =
-      this.alias?.value || (template.name.split(".", 1)[0] as string);
+    const bindKey = this.alias?.value || template.name.split(".", 1)[0] || "";
 
     let bindValue: unknown;
 

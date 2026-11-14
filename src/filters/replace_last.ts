@@ -1,5 +1,5 @@
-import { HTMLSafeString } from "../drops/html_safe";
-import { type FilterContext } from "../filter";
+import { HTMLSafeString } from "../drops/html_safe.js";
+import { type FilterContext } from "../filter.js";
 
 export function replaceLast(
   this: FilterContext,
@@ -33,7 +33,5 @@ export function replaceLast(
 
   if (index === -1) return left_;
 
-  return (
-    s.substring(0, index) + rep_.valueOf() + s.substring(index + escaped.length)
-  );
+  return s.substring(0, index) + rep_.valueOf() + s.substring(index + escaped.length);
 }

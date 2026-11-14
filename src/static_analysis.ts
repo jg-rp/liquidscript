@@ -1,11 +1,12 @@
-import { RenderContext } from "./context";
-import { DefaultMap } from "./default_map";
-import { LiquidError } from "./errors";
-import { Filter, Variable, type Traversable } from "./expression";
-import { Scope, type Markup } from "./markup";
-import type { Template } from "./template";
-import { getTokenValue, type Token } from "./token";
-import { isArray, isString } from "./type_guards";
+import type { Template } from "./template.js";
+
+import { RenderContext } from "./context.js";
+import { DefaultMap } from "./default_map.js";
+import { LiquidError } from "./errors.js";
+import { Filter, Variable, type Traversable } from "./expression.js";
+import { Scope, type Markup } from "./markup.js";
+import { getTokenValue, type Token } from "./token.js";
+import { isArray, isString } from "./type_guards.js";
 
 /**
  * The location of a variable, tag or filter.
@@ -17,9 +18,7 @@ export class Location {
   ) {}
 
   equals(other: Location): boolean {
-    return (
-      this.template.name === other.template.name && this.token === other.token
-    );
+    return this.template.name === other.template.name && this.token === other.token;
   }
 
   /**
@@ -126,8 +125,7 @@ export class StaticVariable {
       rest
         .map((segment) => {
           if (isArray(segment)) return `[${this.toStringInner(segment)}]`;
-          if (isString(segment) && segment.match(RE_PROPERTY))
-            return `.${segment}`;
+          if (isString(segment) && segment.match(RE_PROPERTY)) return `.${segment}`;
           return `[${segment}]`;
         })
         .join("")
@@ -186,8 +184,7 @@ class VariableMap {
       const a: Var[] = [];
 
       for (const sv of v) {
-        const [[startLine, startColumn], [endLine, endColumn]] =
-          sv.location.span();
+        const [[startLine, startColumn], [endLine, endColumn]] = sv.location.span();
 
         a.push({
           segments: sv.segments,
@@ -228,7 +225,7 @@ export type AnalysisOptions = {
 };
 
 export async function analyze(
-  template: Template,
+  baseTemplate: Template,
   options: AnalysisOptions,
 ): Promise<TemplateAnalysis> {
   const variables = new VariableMap();
@@ -240,7 +237,7 @@ export async function analyze(
 
   const templateScope = new Set<string>();
   const rootScope = new StaticScope(templateScope);
-  const staticContext = new RenderContext(template, {});
+  const staticContext = new RenderContext(baseTemplate, {});
 
   /**
    * Names of partial templates that have already been analyzed.
@@ -256,7 +253,6 @@ export async function analyze(
     template: Template,
     scope: StaticScope,
     justGlobals: boolean = false,
-    // eslint-disable-next-line sonarjs/cognitive-complexity
   ) => {
     if (template.name.length && !justGlobals) {
       seen.get(template.name).add(undefined);
@@ -282,11 +278,7 @@ export async function analyze(
 
         if (!justGlobals) {
           // Update filters from expr
-          for (const [name, span] of extractFilters(
-            expr,
-            template,
-            staticContext,
-          )) {
+          for (const [name, span] of extractFilters(expr, template, staticContext)) {
             filters.get(name).push(span);
           }
         }
@@ -297,9 +289,7 @@ export async function analyze(
     if (node.templateScope !== undefined) {
       for (const name of node.templateScope()) {
         scope.add(name.value);
-        locals.add(
-          new StaticVariable([name.value], new Location(template, name.token)),
-        );
+        locals.add(new StaticVariable([name.value], new Location(template, name.token)));
       }
     }
 
@@ -310,12 +300,12 @@ export async function analyze(
 
     if (node.children !== undefined) {
       for (const child of await node.children(staticContext)) {
-        visit(child, template, scope, justGlobals);
+        await visit(child, template, scope, justGlobals);
       }
     } else if (node.childrenSync !== undefined) {
       // Fall back to sync.
       for (const child of node.childrenSync(staticContext)) {
-        visit(child, template, scope, justGlobals);
+        await visit(child, template, scope, justGlobals);
       }
     }
 
@@ -340,9 +330,9 @@ export async function analyze(
             ? new StaticScope(new Set(partial.inScope.map((n) => n.value)))
             : rootScope.push(new Set(partial.inScope.map((n) => n.value)));
 
-        for (const node of partial.template.nodes) {
-          if (!isString(node))
-            visit(node, partial.template, partialScope, justGlobals_);
+        for (const childNode of partial.template.nodes) {
+          if (!isString(childNode))
+            await visit(childNode, partial.template, partialScope, justGlobals_);
         }
 
         if (partial.scopeKind !== Scope.ISOLATED) {
@@ -352,8 +342,8 @@ export async function analyze(
     }
   };
 
-  for (const node of template.nodes) {
-    if (!isString(node)) visit(node, template, rootScope);
+  for (const node of baseTemplate.nodes) {
+    if (!isString(node)) await visit(node, baseTemplate, rootScope);
   }
 
   return new TemplateAnalysis(
@@ -365,10 +355,7 @@ export async function analyze(
   );
 }
 
-export function analyzeSync(
-  template: Template,
-  options: AnalysisOptions,
-): TemplateAnalysis {
+export function analyzeSync(template: Template, options: AnalysisOptions): TemplateAnalysis {
   const variables = new VariableMap();
   const globals = new VariableMap();
   const locals = new VariableMap();
@@ -391,19 +378,18 @@ export function analyzeSync(
 
   const visit = (
     node: Markup,
-    template: Template,
+    baseTemplate: Template,
     scope: StaticScope,
     justGlobals: boolean = false,
-    // eslint-disable-next-line sonarjs/cognitive-complexity
   ) => {
-    if (template.name.length && !justGlobals) {
-      seen.get(template.name).add(undefined);
+    if (baseTemplate.name.length && !justGlobals) {
+      seen.get(baseTemplate.name).add(undefined);
     }
 
     // Update tags
     // Markup with empty `node.tag` is silenced.
     if (!justGlobals && node.tag.length > 0) {
-      tags.get(node.tag).push(new Location(template, node.token));
+      tags.get(node.tag).push(new Location(baseTemplate, node.token));
     }
 
     // Update variables from node.expressions()
@@ -411,7 +397,7 @@ export function analyzeSync(
       for (const expr of node.expressions()) {
         analyzeVariables(
           expr,
-          template,
+          baseTemplate,
           scope,
           globals,
           justGlobals ? new VariableMap() : variables,
@@ -420,11 +406,7 @@ export function analyzeSync(
 
         if (!justGlobals) {
           // Update filters from expr
-          for (const [name, span] of extractFilters(
-            expr,
-            template,
-            staticContext,
-          )) {
+          for (const [name, span] of extractFilters(expr, baseTemplate, staticContext)) {
             filters.get(name).push(span);
           }
         }
@@ -435,9 +417,7 @@ export function analyzeSync(
     if (node.templateScope !== undefined) {
       for (const name of node.templateScope()) {
         scope.add(name.value);
-        locals.add(
-          new StaticVariable([name.value], new Location(template, name.token)),
-        );
+        locals.add(new StaticVariable([name.value], new Location(baseTemplate, name.token)));
       }
     }
 
@@ -448,7 +428,7 @@ export function analyzeSync(
 
     if (node.childrenSync !== undefined) {
       for (const child of node.childrenSync(staticContext)) {
-        visit(child, template, scope, justGlobals);
+        visit(child, baseTemplate, scope, justGlobals);
       }
     }
 
@@ -473,9 +453,8 @@ export function analyzeSync(
             ? new StaticScope(new Set(partial.inScope.map((n) => n.value)))
             : rootScope.push(new Set(partial.inScope.map((n) => n.value)));
 
-        for (const node of partial.template.nodes) {
-          if (!isString(node))
-            visit(node, partial.template, partialScope, justGlobals_);
+        for (const childNode of partial.template.nodes) {
+          if (!isString(childNode)) visit(childNode, partial.template, partialScope, justGlobals_);
         }
 
         if (partial.scopeKind !== Scope.ISOLATED) {
@@ -521,10 +500,7 @@ function analyzeVariables(
   staticContext: RenderContext,
 ): void {
   if (expression instanceof Variable) {
-    const v = new StaticVariable(
-      segments(expression, template),
-      new Location(template, expression.span),
-    );
+    const v = new StaticVariable(toSegments(expression), new Location(template, expression.span));
 
     variables.add(v);
 
@@ -541,18 +517,18 @@ function analyzeVariables(
   }
 }
 
-function segments(variable: Variable, template: Template): Segments {
+function toSegments(variable: Variable): Segments {
   const segments_: Segments = [];
 
   if (variable.root instanceof Variable) {
-    segments_.push(segments(variable.root, template));
+    segments_.push(toSegments(variable.root));
   } else {
     segments_.push(variable.root.value);
   }
 
   for (const s of variable.segments) {
     if (s instanceof Variable) {
-      segments_.push(segments(s, template));
+      segments_.push(toSegments(s));
     } else {
       segments_.push(s.value);
     }

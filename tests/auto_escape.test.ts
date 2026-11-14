@@ -1,10 +1,6 @@
-import { Environment } from "../src/liquidscript";
-import {
-  Drop,
-  toHTMLSafeStringSync,
-  toLiquidSync,
-  type ContextHint,
-} from "../src/drop";
+import { Drop, toHTMLSafeStringSync, toLiquidSync, type ContextHint } from "../src/drop.js";
+import { Environment } from "../src/liquidscript.js";
+import { Nothing } from "../src/runtime.js";
 
 class MockDrop extends Drop {
   override [toLiquidSync](hint: ContextHint): unknown {
@@ -17,6 +13,8 @@ class MockDrop extends Drop {
         return null;
       case "numeric":
         return 0;
+      default:
+        return Nothing;
     }
   }
 
@@ -62,9 +60,7 @@ describe("HTML auto escape", () => {
   });
 
   test("don't escape string literals", () => {
-    expect(escEnv.parse("{{ '<em>Hello</em>' }}").renderSync()).toBe(
-      "<em>Hello</em>",
-    );
+    expect(escEnv.parse("{{ '<em>Hello</em>' }}").renderSync()).toBe("<em>Hello</em>");
   });
 
   test("capture with HTML literals", () => {
@@ -81,11 +77,7 @@ describe("HTML auto escape", () => {
         .renderSync({
           thing: '<script>alert("XSS!");</script>',
         }),
-    ).toBe(
-      '<p class="foo">' +
-        "&lt;script&gt;alert(&#34;XSS!&#34;);&lt;/script&gt;" +
-        "</p>",
-    );
+    ).toBe('<p class="foo">&lt;script&gt;alert(&#34;XSS!&#34;);&lt;/script&gt;</p>');
   });
 
   test("drops implementing toLiquidHtml are safe", () => {

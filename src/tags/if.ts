@@ -1,18 +1,13 @@
-import type { RenderContext } from "../context";
-import { type Expression } from "../expression";
-import { PRECEDENCE_LOWEST } from "../legacy_parser";
-import {
-  isBlankBlock,
-  renderBlock,
-  renderBlockSync,
-  type Block,
-  type Markup,
-} from "../markup";
-import type { OutputBuffer } from "../output";
-import type { Parser } from "../parser";
-import { T, type Token } from "../token";
-import { isString } from "../type_guards";
-import { ElseBlock } from "./else";
+import type { RenderContext } from "../context.js";
+import type { OutputBuffer } from "../output.js";
+import type { Parser } from "../parser.js";
+
+import { type Expression } from "../expression.js";
+import { PRECEDENCE_LOWEST } from "../legacy_parser.js";
+import { isBlankBlock, renderBlock, renderBlockSync, type Block, type Markup } from "../markup.js";
+import { T, type Token } from "../token.js";
+import { isString } from "../type_guards.js";
+import { ElseBlock } from "./else.js";
 
 const END_IF_BLOCK = new Set(["else", "elsif", "endif"]);
 const IF_BLOCKS = new Set(["else", "elsif"]);
@@ -81,9 +76,7 @@ export class IfTag implements Markup {
 
   async render(context: RenderContext, buffer: OutputBuffer): Promise<void> {
     for (const alt of this.alts) {
-      if (
-        context.env.isTruthy(await alt.expression.evaluate(context), context)
-      ) {
+      if (context.env.isTruthy(await alt.expression.evaluate(context), context)) {
         return await alt.render(context, buffer);
       }
     }

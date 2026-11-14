@@ -1,8 +1,8 @@
-import type { RenderContext } from "../context";
-import type { Expression } from "../expression";
-import type { Markup } from "../markup";
-import type { OutputBuffer } from "../output";
-import type { Token } from "../token";
+import type { RenderContext } from "../context.js";
+import type { Expression } from "../expression.js";
+import type { Markup } from "../markup.js";
+import type { OutputBuffer } from "../output.js";
+import type { Token } from "../token.js";
 
 export class OutputStatement implements Markup {
   readonly blank = false;
@@ -20,21 +20,13 @@ export class OutputStatement implements Markup {
 
   async render(context: RenderContext, buffer: OutputBuffer): Promise<void> {
     buffer.push(
-      context.env.serialize(
-        await this.expression.evaluate(context),
-        context,
-        this.expression.span,
-      ),
+      context.env.serialize(await this.expression.evaluate(context), context, this.expression.span),
     );
   }
 
   renderSync(context: RenderContext, buffer: OutputBuffer): void {
     buffer.push(
-      context.env.serialize(
-        this.expression.evaluateSync(context),
-        context,
-        this.expression.span,
-      ),
+      context.env.serialize(this.expression.evaluateSync(context), context, this.expression.span),
     );
   }
 }

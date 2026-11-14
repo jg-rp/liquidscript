@@ -1,15 +1,15 @@
-import type { RenderContext } from "../context";
-import { DefaultMap } from "../default_map";
-import { Variable, type Expression } from "../expression";
-import type { Markup } from "../markup";
-import type { OutputBuffer } from "../output";
-import type { Parser } from "../parser";
-import { T, type Token } from "../token";
+import type { RenderContext } from "../context.js";
+import type { Markup } from "../markup.js";
+import type { OutputBuffer } from "../output.js";
+import type { Parser } from "../parser.js";
+
+import { DefaultMap } from "../default_map.js";
+import { Variable, type Expression } from "../expression.js";
+import { T, type Token } from "../token.js";
 
 const CYCLES = Symbol.for("liquid.tags.cycle");
 
 export class CycleTag implements Markup {
-  // eslint-disable-next-line sonarjs/public-static-readonly
   static #nextId = 1;
 
   readonly blank = false;
@@ -26,9 +26,7 @@ export class CycleTag implements Markup {
     if (!group) {
       // This mimics Shopify/liquid by giving every Variable a unique ID.
       this.staticKey = items
-        .map((item) =>
-          item instanceof Variable ? `${item}:${CycleTag.#nextId++}` : item,
-        )
+        .map((item) => (item instanceof Variable ? `${item}:${CycleTag.#nextId++}` : item))
         .toString();
     }
   }
@@ -65,26 +63,17 @@ export class CycleTag implements Markup {
   }
 
   async render(context: RenderContext, buffer: OutputBuffer): Promise<void> {
-    const cycles = context.getRegister(
-      CYCLES,
-      () => new DefaultMap<string, number>(() => 0),
-    );
+    const cycles = context.getRegister(CYCLES, () => new DefaultMap<string, number>(() => 0));
 
     const key = this.group
-      ? context.env.toString(
-          await this.group.evaluate(context),
-          context,
-          this.group.span,
-        )
+      ? context.env.toString(await this.group.evaluate(context), context, this.group.span)
       : this.staticKey;
 
     let index = cycles.get(key);
-    const expr = this.items[index] as Expression;
+    const expr = this.items[index];
 
     if (expr) {
-      buffer.push(
-        context.env.toString(await expr.evaluate(context), context, expr.span),
-      );
+      buffer.push(context.env.toString(await expr.evaluate(context), context, expr.span));
     }
 
     index += 1;
@@ -96,26 +85,17 @@ export class CycleTag implements Markup {
   }
 
   renderSync(context: RenderContext, buffer: OutputBuffer): void {
-    const cycles = context.getRegister(
-      CYCLES,
-      () => new DefaultMap<string, number>(() => 0),
-    );
+    const cycles = context.getRegister(CYCLES, () => new DefaultMap<string, number>(() => 0));
 
     const key = this.group
-      ? context.env.toString(
-          this.group.evaluateSync(context),
-          context,
-          this.group.span,
-        )
+      ? context.env.toString(this.group.evaluateSync(context), context, this.group.span)
       : this.staticKey;
 
     let index = cycles.get(key);
     const expr = this.items[index];
 
     if (expr) {
-      buffer.push(
-        context.env.toString(expr.evaluateSync(context), context, expr.span),
-      );
+      buffer.push(context.env.toString(expr.evaluateSync(context), context, expr.span));
     }
 
     index += 1;

@@ -1,20 +1,16 @@
-import { RenderContext, type Namespace } from "./context";
-import { Environment } from "./environment";
+import { RenderContext, type Namespace } from "./context.js";
+import { Environment } from "./environment.js";
 
-export { ReadOnlyChainMap } from "./chain_map";
-export { type Namespace } from "./context";
-export * from "./drop";
-export { HTMLSafeString } from "./drops/html_safe";
-export {
-  FalsyStrictUndefined,
-  StrictUndefined,
-  Undefined,
-} from "./drops/undefined";
-export { type EnvironmentOptions, type TemplateMeta } from "./environment";
-export * from "./errors";
-export * as expression from "./expression";
-export { FilterContext, type Filter } from "./filter";
-export { TemplateLoader, type TemplateSource } from "./loader";
+export { ReadOnlyChainMap } from "./chain_map.js";
+export { type Namespace } from "./context.js";
+export * from "./drop.js";
+export { HTMLSafeString } from "./drops/html_safe.js";
+export { FalsyStrictUndefined, StrictUndefined, Undefined } from "./drops/undefined.js";
+export { type EnvironmentOptions, type TemplateMeta } from "./environment.js";
+export * from "./errors.js";
+export * as expression from "./expression.js";
+export { FilterContext, type Filter } from "./filter.js";
+export { TemplateLoader, type TemplateSource } from "./loader.js";
 export {
   CachingNodeFileSystemLoader,
   ChoiceLoader,
@@ -25,7 +21,7 @@ export {
   type CachingNodeFileSystemLoaderOptions,
   type FetchLoaderOptions,
   type NodeFileSystemLoaderOptions,
-} from "./loaders";
+} from "./loaders/index.js";
 export {
   renderBlock,
   renderBlockSync,
@@ -33,15 +29,15 @@ export {
   type Markup,
   type Node,
   type Tag,
-} from "./markup";
-export { Float, Integer, LiquidNumber } from "./number";
-export { type OutputBuffer } from "./output";
-export { Parser } from "./parser";
-export * from "./static_analysis";
-export * as tags from "./tags";
-export { Template } from "./template";
-export { T, type Token, type TokenKind } from "./token";
-export * as object from "./type_guards";
+} from "./markup.js";
+export { Float, Integer, LiquidNumber } from "./number.js";
+export { type OutputBuffer } from "./output.js";
+export { Parser } from "./parser.js";
+export * from "./static_analysis.js";
+export * as tags from "./tags/index.js";
+export { Template } from "./template.js";
+export { T, type Token, type TokenKind } from "./token.js";
+export * as object from "./type_guards.js";
 export { Environment, RenderContext };
 
 /**
@@ -74,10 +70,7 @@ export function parse(source: string, globals?: Namespace) {
  *  available for template authors to use in Liquid expressions.
  * @returns The result of rendering `source` with data from `data`.
  */
-export async function render(
-  source: string,
-  data?: Record<string, unknown>,
-): Promise<string> {
+export async function render(source: string, data?: Record<string, unknown>): Promise<string> {
   return await DEFAULT_ENVIRONMENT.render(source, data);
 }
 
@@ -90,9 +83,6 @@ export async function render(
  *  available for template authors to use in Liquid expressions.
  * @returns The result of rendering `source` with data from `data`.
  */
-export function renderSync(
-  source: string,
-  data?: Record<string, unknown>,
-): string {
+export function renderSync(source: string, data?: Record<string, unknown>): string {
   return DEFAULT_ENVIRONMENT.renderSync(source, data);
 }

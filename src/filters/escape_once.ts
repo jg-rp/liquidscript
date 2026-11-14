@@ -1,11 +1,8 @@
-import { escape as escapeHTML, unescape } from "../escape";
-import { HTMLSafeString } from "../drops/html_safe";
-import { type FilterContext } from "../filter";
+import { HTMLSafeString } from "../drops/html_safe.js";
+import { escape as escapeHTML, unescape } from "../escape.js";
+import { type FilterContext } from "../filter.js";
 
-export function escapeOnce(
-  this: FilterContext,
-  left: unknown,
-): string | HTMLSafeString {
+export function escapeOnce(this: FilterContext, left: unknown): string | HTMLSafeString {
   this.assertArgs(arguments.length, 1);
   const left_ = this.toStringSafe(left, "");
 

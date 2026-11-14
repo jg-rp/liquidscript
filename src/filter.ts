@@ -1,17 +1,12 @@
-import type { RenderContext } from "./context";
-import { HTMLSafeString } from "./drops/html_safe";
-import { Undefined } from "./drops/undefined";
-import { ArgumentError } from "./errors";
-import { isLiquidNumber, toLiquidNumber, type LiquidNumber } from "./number";
-import { Nothing } from "./runtime";
-import type { Token } from "./token";
-import {
-  isArray,
-  isIterable,
-  isNumber,
-  isObject,
-  isString,
-} from "./type_guards";
+import type { RenderContext } from "./context.js";
+import type { Token } from "./token.js";
+
+import { HTMLSafeString } from "./drops/html_safe.js";
+import { Undefined } from "./drops/undefined.js";
+import { ArgumentError } from "./errors.js";
+import { isLiquidNumber, toLiquidNumber, type LiquidNumber } from "./number.js";
+import { Nothing } from "./runtime.js";
+import { isArray, isIterable, isNumber, isObject, isString } from "./type_guards.js";
 
 /**
  * Our Liquid filter type.
@@ -65,10 +60,7 @@ export class FilterContext {
       return obj.indexOf(key) !== -1 ? key : null;
     }
 
-    if (
-      (isNumber(obj) || isLiquidNumber(obj)) &&
-      (isNumber(key) || isLiquidNumber(key))
-    ) {
+    if ((isNumber(obj) || isLiquidNumber(obj)) && (isNumber(key) || isLiquidNumber(key))) {
       return obj == key;
     }
 
@@ -108,12 +100,7 @@ export class FilterContext {
   }
 
   isNil(obj: unknown): boolean {
-    return (
-      obj === undefined ||
-      obj === null ||
-      obj === Nothing ||
-      obj instanceof Undefined
-    );
+    return obj === undefined || obj === null || obj === Nothing || obj instanceof Undefined;
   }
 
   isTruthy(obj: unknown): boolean {
@@ -129,16 +116,12 @@ export class FilterContext {
   }
 
   toString<T>(obj: unknown, default_: T): string | T {
-    return obj === undefined
-      ? default_
-      : this.context.env.toString(obj, this.context, this.span);
+    return obj === undefined ? default_ : this.context.env.toString(obj, this.context, this.span);
   }
 
   toStringSafe<T>(obj: unknown, default_: T): string | HTMLSafeString | T {
     if (obj instanceof HTMLSafeString) return obj;
 
-    return obj === undefined
-      ? default_
-      : this.context.env.toString(obj, this.context, this.span);
+    return obj === undefined ? default_ : this.context.env.toString(obj, this.context, this.span);
   }
 }

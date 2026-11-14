@@ -1,12 +1,7 @@
-import type { RenderContext } from "../context";
-import { Nothing } from "../runtime";
-import {
-  type ContextHint,
-  Drop,
-  isInvocable,
-  toLiquid,
-  toLiquidSync,
-} from "../drop";
+import type { RenderContext } from "../context.js";
+
+import { type ContextHint, Drop, isInvocable, toLiquid, toLiquidSync } from "../drop.js";
+import { Nothing } from "../runtime.js";
 
 export class ForLoop extends Drop {
   private _index: number = -1;
@@ -29,11 +24,7 @@ export class ForLoop extends Drop {
 
   private _parentloop: ForLoop | typeof Nothing;
 
-  constructor(
-    name: string,
-    length: number,
-    parentloop: ForLoop | typeof Nothing,
-  ) {
+  constructor(name: string, length: number, parentloop: ForLoop | typeof Nothing) {
     super();
     this._name = name;
     this._length = length;
@@ -84,14 +75,10 @@ export class ForLoop extends Drop {
     this._index += 1;
   }
 
-  override async [toLiquid](
-    hint: ContextHint,
-    context?: RenderContext,
-  ): Promise<unknown> {
+  override async [toLiquid](hint: ContextHint, context?: RenderContext): Promise<unknown> {
     return this[toLiquidSync](hint, context);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   override [toLiquidSync](hint: ContextHint, context?: RenderContext): unknown {
     switch (hint) {
       case "string":

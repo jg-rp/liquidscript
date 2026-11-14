@@ -2,14 +2,15 @@ import fsCallback from "fs";
 import fs from "fs/promises";
 import path from "path";
 
-import type { Environment } from "../environment";
-import { TemplateNotFoundError } from "../errors";
-import { TemplateLoader, type TemplateSource } from "../loader";
-import { isArray } from "../type_guards";
-import { LiquidError } from "../errors";
-import { LRUCache } from "../cache";
-import type { Template } from "../template";
-import type { Namespace, RenderContext } from "../context";
+import type { Namespace, RenderContext } from "../context.js";
+import type { Environment } from "../environment.js";
+import type { Template } from "../template.js";
+
+import { LRUCache } from "../cache.js";
+import { TemplateNotFoundError } from "../errors.js";
+import { LiquidError } from "../errors.js";
+import { TemplateLoader, type TemplateSource } from "../loader.js";
+import { isArray } from "../type_guards.js";
 
 /**
  * Options for a file system template loader in the NodeJS runtime.
@@ -67,9 +68,7 @@ export class NodeFileSystemLoader extends TemplateLoader {
     this.fileExtension = fileExtension;
 
     if (process.env.RUNTIME === "browser") {
-      throw new LiquidError(
-        "NodeFileSystemLoader is not available in browser runtime",
-      );
+      throw new LiquidError("NodeFileSystemLoader is not available in browser runtime");
     }
   }
 
@@ -93,14 +92,10 @@ export class NodeFileSystemLoader extends TemplateLoader {
   override async getSource(
     env: Environment,
     name: string,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     context?: RenderContext,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     options?: Record<string, unknown>,
   ): Promise<TemplateSource> {
-    const [templatePath, mtime] = await this.resolve(
-      this.withFileExtension(name),
-    );
+    const [templatePath, mtime] = await this.resolve(this.withFileExtension(name));
 
     const source = await fs.readFile(templatePath, { encoding: this.encoding });
 
@@ -108,22 +103,17 @@ export class NodeFileSystemLoader extends TemplateLoader {
       source,
       name: templatePath,
       upToDate: () => NodeFileSystemLoader.upToDate(templatePath, mtime),
-      upToDateSync: () =>
-        NodeFileSystemLoader.upToDateSync(templatePath, mtime),
+      upToDateSync: () => NodeFileSystemLoader.upToDateSync(templatePath, mtime),
     };
   }
 
   override getSourceSync(
     env: Environment,
     name: string,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     context?: RenderContext,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     options?: Record<string, unknown>,
   ): TemplateSource {
-    const [templatePath, mtime] = this.resolveSync(
-      this.withFileExtension(name),
-    );
+    const [templatePath, mtime] = this.resolveSync(this.withFileExtension(name));
 
     const source = fsCallback.readFileSync(templatePath, {
       encoding: this.encoding,
@@ -133,8 +123,7 @@ export class NodeFileSystemLoader extends TemplateLoader {
       source,
       name: templatePath,
       upToDate: () => NodeFileSystemLoader.upToDate(templatePath, mtime),
-      upToDateSync: () =>
-        NodeFileSystemLoader.upToDateSync(templatePath, mtime),
+      upToDateSync: () => NodeFileSystemLoader.upToDateSync(templatePath, mtime),
     };
   }
 
@@ -147,8 +136,7 @@ export class NodeFileSystemLoader extends TemplateLoader {
    * not already have one.
    */
   protected withFileExtension(name: string): string {
-    if (this.fileExtension.length)
-      return path.extname(name) ? name : name + this.fileExtension;
+    if (this.fileExtension.length) return path.extname(name) ? name : name + this.fileExtension;
     return name;
   }
 
@@ -202,9 +190,7 @@ export class NodeFileSystemLoader extends TemplateLoader {
  */
 function isSubPath(parent: string, dir: string): boolean {
   const relative = path.relative(parent, dir);
-  return (
-    !!relative.length && !relative.startsWith(".") && !path.isAbsolute(relative)
-  );
+  return !!relative.length && !relative.startsWith(".") && !path.isAbsolute(relative);
 }
 
 /**
@@ -218,18 +204,13 @@ export class CachingNodeFileSystemLoader extends NodeFileSystemLoader {
   /**
    * @param searchPath - A path or array of paths to search for templates.
    */
-  constructor(
-    searchPath: string | string[],
-    options?: CachingNodeFileSystemLoaderOptions,
-  ) {
+  constructor(searchPath: string | string[], options?: CachingNodeFileSystemLoaderOptions) {
     super(searchPath, {
       encoding: options?.encoding ?? "utf8",
       fileExtension: options?.fileExtension ?? "",
     });
     this.autoReload = options?.autoReload ?? true;
-    this.cacheSize = this.autoReload
-      ? Math.max(options?.cacheSize ?? 300, 0)
-      : 0;
+    this.cacheSize = this.autoReload ? Math.max(options?.cacheSize ?? 300, 0) : 0;
     this.#cache = new LRUCache(this.cacheSize);
   }
 

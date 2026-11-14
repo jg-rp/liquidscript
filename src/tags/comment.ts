@@ -1,8 +1,9 @@
-import type { RenderContext } from "../context";
-import type { Markup } from "../markup";
-import type { OutputBuffer } from "../output";
-import type { Parser } from "../parser";
-import { getTokenValue, T, type Token } from "../token";
+import type { RenderContext } from "../context.js";
+import type { Markup } from "../markup.js";
+import type { OutputBuffer } from "../output.js";
+import type { Parser } from "../parser.js";
+
+import { getTokenValue, T, type Token } from "../token.js";
 
 export class CommentTag implements Markup {
   readonly blank = true;

@@ -1,5 +1,5 @@
-import { parse } from "../src/liquidscript";
-import { TemplateSyntaxError } from "../src/errors";
+import { TemplateSyntaxError } from "../src/errors.js";
+import { parse } from "../src/liquidscript.js";
 
 describe("syntax errors", () => {
   test("missing if tag expression", () => {
@@ -11,33 +11,21 @@ describe("syntax errors", () => {
   });
 
   test("missing end tag at end of file", () => {
-    expect(() => parse("{% if true %}foo{% assign bar = 'baz' %}")).toThrow(
-      TemplateSyntaxError,
-    );
+    expect(() => parse("{% if true %}foo{% assign bar = 'baz' %}")).toThrow(TemplateSyntaxError);
 
-    expect(() => parse("{% if true %}foo{% assign bar = 'baz' %}")).toThrow(
-      /expected tag endif/,
-    );
+    expect(() => parse("{% if true %}foo{% assign bar = 'baz' %}")).toThrow(/expected tag endif/);
   });
 
   test("unexpected tag name", () => {
-    expect(() => parse("{% foo true %}foo{% endfoo %}")).toThrow(
-      TemplateSyntaxError,
-    );
+    expect(() => parse("{% foo true %}foo{% endfoo %}")).toThrow(TemplateSyntaxError);
 
-    expect(() => parse("{% foo true %}foo{% endfoo %}")).toThrow(
-      /unexpected tag "foo"/,
-    );
+    expect(() => parse("{% foo true %}foo{% endfoo %}")).toThrow(/unexpected tag "foo"/);
   });
 
   test("end tag mismatch", () => {
-    expect(() => parse("{% if true %}foo{% endunless %}")).toThrow(
-      TemplateSyntaxError,
-    );
+    expect(() => parse("{% if true %}foo{% endunless %}")).toThrow(TemplateSyntaxError);
 
-    expect(() => parse("{% if true %}foo{% endunless %}")).toThrow(
-      /unexpected tag "endunless"/,
-    );
+    expect(() => parse("{% if true %}foo{% endunless %}")).toThrow(/unexpected tag "endunless"/);
   });
 
   test("unknown prefix operator", () => {
@@ -45,29 +33,19 @@ describe("syntax errors", () => {
   });
 
   test("missing 'in' in for expression", () => {
-    expect(() => parse("{% for x (0..3) %}{{ x }}{% endfor %}")).toThrow(
-      TemplateSyntaxError,
-    );
+    expect(() => parse("{% for x (0..3) %}{{ x }}{% endfor %}")).toThrow(TemplateSyntaxError);
 
-    expect(() => parse("{% for x (0..3) %}{{ x }}{% endfor %}")).toThrow(
-      /missing 'in'/,
-    );
+    expect(() => parse("{% for x (0..3) %}{{ x }}{% endfor %}")).toThrow(/missing 'in'/);
   });
 
   test("missing for tag expression", () => {
-    expect(() => parse("{% for x in %}{{ x }}foo{% endfor %}")).toThrow(
-      TemplateSyntaxError,
-    );
+    expect(() => parse("{% for x in %}{{ x }}foo{% endfor %}")).toThrow(TemplateSyntaxError);
 
-    expect(() => parse("{% for x in %}{{ x }}foo{% endfor %}")).toThrow(
-      /missing expression/,
-    );
+    expect(() => parse("{% for x in %}{{ x }}foo{% endfor %}")).toThrow(/missing expression/);
   });
 
   test("for tag variable with path segments", () => {
-    expect(() => parse("{% for x.y in (2..4) %}{{ x }}{% endfor %}")).toThrow(
-      TemplateSyntaxError,
-    );
+    expect(() => parse("{% for x.y in (2..4) %}{{ x }}{% endfor %}")).toThrow(TemplateSyntaxError);
 
     expect(() => parse("{% for x.y in (2..4) %}{{ x }}{% endfor %}")).toThrow(
       /expected an identifier, found a path/,
@@ -75,13 +53,13 @@ describe("syntax errors", () => {
   });
 
   test("assign tag variable with path segments", () => {
-    expect(() =>
-      parse("{% assign foo.bar = 'hello there'%}{{ foo.bar }}"),
-    ).toThrow(TemplateSyntaxError);
+    expect(() => parse("{% assign foo.bar = 'hello there'%}{{ foo.bar }}")).toThrow(
+      TemplateSyntaxError,
+    );
 
-    expect(() =>
-      parse("{% assign foo.bar = 'hello there'%}{{ foo.bar }}"),
-    ).toThrow(/expected an identifier, found a path/);
+    expect(() => parse("{% assign foo.bar = 'hello there'%}{{ foo.bar }}")).toThrow(
+      /expected an identifier, found a path/,
+    );
   });
 
   test("missing assignment operator", () => {
@@ -95,24 +73,15 @@ describe("syntax errors", () => {
   test("invalid bracketed segment", () => {
     expect(() => parse("{{ foo[1.2] }}")).toThrow(TemplateSyntaxError);
 
-    expect(() => parse("{{ foo[1.2] }}")).toThrow(
-      /expected an integer, identifier or string/,
-    );
+    expect(() => parse("{{ foo[1.2] }}")).toThrow(/expected an integer, identifier or string/);
   });
 
   test("unknown operator", () => {
-    expect(() => parse("{% if 1 =! 2 %}ok{% endif %}")).toThrow(
-      TemplateSyntaxError,
-    );
+    expect(() => parse("{% if 1 =! 2 %}ok{% endif %}")).toThrow(TemplateSyntaxError);
   });
 
   test("junk in liquid tag", () => {
-    const source =
-      "{{ 'hello' }}\n" +
-      "{% liquid\n" +
-      "echo 'foo'\n" +
-      "aiu34bseu\n" +
-      "%}\n";
+    const source = "{{ 'hello' }}\n{% liquid\necho 'foo'\naiu34bseu\n%}\n";
 
     expect(() => parse(source)).toThrow(TemplateSyntaxError);
     expect(() => parse(source)).toThrow(/unexpected tag "aiu34bseu"/);

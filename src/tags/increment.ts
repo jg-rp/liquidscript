@@ -1,9 +1,10 @@
-import type { RenderContext } from "../context";
-import type { Name } from "../expression";
-import type { Markup } from "../markup";
-import type { OutputBuffer } from "../output";
-import type { Parser } from "../parser";
-import { T, type Token } from "../token";
+import type { RenderContext } from "../context.js";
+import type { Name } from "../expression.js";
+import type { Markup } from "../markup.js";
+import type { OutputBuffer } from "../output.js";
+import type { Parser } from "../parser.js";
+
+import { T, type Token } from "../token.js";
 
 export class IncrementTag implements Markup {
   readonly blank = false;

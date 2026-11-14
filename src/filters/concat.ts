@@ -1,13 +1,10 @@
-import { Undefined } from "../drops/undefined";
-import { ArgumentError } from "../errors";
-import type { FilterContext } from "../filter";
-import { isArray } from "../type_guards";
+import type { FilterContext } from "../filter.js";
 
-export function concat(
-  this: FilterContext,
-  left: unknown,
-  right: unknown,
-): unknown[] {
+import { Undefined } from "../drops/undefined.js";
+import { ArgumentError } from "../errors.js";
+import { isArray } from "../type_guards.js";
+
+export function concat(this: FilterContext, left: unknown, right: unknown): unknown[] {
   this.assertArgs(arguments.length, 2);
 
   if (!isArray(right)) {

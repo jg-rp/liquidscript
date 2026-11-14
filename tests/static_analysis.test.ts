@@ -1,11 +1,7 @@
-import { TemplateNotFoundError } from "../src/errors";
-import { Environment, ObjectLoader, parse } from "../src/liquidscript";
-import {
-  type Locations,
-  type Segments,
-  type Vars,
-} from "../src/static_analysis";
-import { BlockTag, ExtendsTag } from "../src/tags";
+import { TemplateNotFoundError } from "../src/errors.js";
+import { Environment, ObjectLoader, parse } from "../src/liquidscript.js";
+import { type Locations, type Segments, type Vars } from "../src/static_analysis.js";
+import { BlockTag, ExtendsTag } from "../src/tags/index.js";
 
 type Vars_ = Record<string, Array<[Segments, string]>>;
 type Locations_ = Record<string, string[]>;
@@ -695,9 +691,7 @@ endfor %}`;
     const env = new Environment({ loader });
     const source = "{% include b %}{{ x }}";
 
-    expect(() => env.parse(source).analyzeSync()).toThrow(
-      TemplateNotFoundError,
-    );
+    expect(() => env.parse(source).analyzeSync()).toThrow(TemplateNotFoundError);
   });
 
   test("include template not found", () => {
@@ -705,9 +699,7 @@ endfor %}`;
     const env = new Environment({ loader });
     const source = "{% include 'nosuchthing' %}{{ x }}";
 
-    expect(() => env.parse(source).analyzeSync()).toThrow(
-      TemplateNotFoundError,
-    );
+    expect(() => env.parse(source).analyzeSync()).toThrow(TemplateNotFoundError);
   });
 
   test("render assign", () => {
@@ -895,9 +887,7 @@ endfor %}`;
     const env = new Environment({ loader });
     const source = "{% render 'nosuchthing' %}{{ x }}";
 
-    expect(() => env.parse(source).analyzeSync()).toThrow(
-      TemplateNotFoundError,
-    );
+    expect(() => env.parse(source).analyzeSync()).toThrow(TemplateNotFoundError);
   });
 
   test("inheritance", () => {
@@ -983,9 +973,7 @@ endfor %}`;
   test("block.super", () => {
     const loader = new ObjectLoader({
       base: "Hello, {% block content %}{{ foo | upcase }}{% endblock %}!",
-      some:
-        "{% extends 'base' %}" +
-        "{% block content %}{{ block.super }}!{% endblock %}",
+      some: "{% extends 'base' %}{% block content %}{{ block.super }}!{% endblock %}",
     });
 
     const env = new Environment({ loader });

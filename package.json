@@ -1,56 +1,58 @@
 {
   "name": "liquidscript",
-  "version": "2.0.1",
+  "version": "2.0.2",
+  "homepage": "https://jg-rp.github.io/liquidscript/",
+  "bugs": {
+    "url": "https://github.com/jg-rp/liquidscript/issues"
+  },
+  "license": "MIT",
   "author": "James",
   "repository": {
     "type": "git",
     "url": "https://github.com/jg-rp/liquidscript.git"
   },
-  "main": "dist/liquidscript.esm.js",
-  "module": "dist/liquidscript.esm.js",
-  "browser": "dist/liquidscript.browser.esm.js",
-  "browser-min": "dist/liquidscript.browser.min.esm.js",
-  "jsdeliver": "dist/liquidscript.browser.min.esm.js",
-  "types": "dist/liquidscript.d.ts",
   "files": [
     "dist/**/*"
   ],
-  "devDependencies": {
-    "@eslint/js": "^10.0.1",
-    "@stylistic/eslint-plugin": "^5.10.0",
-    "@types/bun": "latest",
-    "@types/jest": "^30.0.0",
-    "@types/luxon": "^3.7.1",
-    "@vitest/browser-playwright": "^4.1.7",
-    "decimal.js": "^10.6.0",
-    "eslint": "^10.1.0",
-    "eslint-plugin-perfectionist": "^5.9.0",
-    "eslint-plugin-sonarjs": "^4.0.3",
-    "globals": "^17.4.0",
-    "luxon": "^3.7.2",
-    "playwright": "^1.60.0",
-    "tinybench": "^6.0.0",
-    "typescript-eslint": "^8.58.0",
-    "vitest": "^4.1.7"
+  "type": "module",
+  "main": "dist/liquidscript.esm.js",
+  "module": "dist/liquidscript.esm.js",
+  "browser": "dist/liquidscript.browser.esm.js",
+  "types": "dist/liquidscript.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/liquidscript.d.ts",
+      "import": "./dist/liquidscript.esm.js"
+    }
   },
-  "peerDependencies": {
-    "typescript": "^6.0.3"
-  },
-  "bugs": {
-    "url": "https://github.com/jg-rp/liquidscript/issues"
-  },
-  "homepage": "https://jg-rp.github.io/liquidscript/",
-  "license": "MIT",
   "scripts": {
     "test:browser": "bun run dist && vitest run --config vitest.browser.config.ts --browser",
     "test:node": "bun run dist && vitest run --config vitest.node.bundle.config.ts",
     "build:types": "bun run tsc -p tsconfig.build.json",
     "build:js": "bun build.ts",
     "dist": "rm -rf ./dist && bun run build:js && bun run build:types",
-    "lint": "bun run eslint src tests",
+    "lint": "bun run oxlint",
     "type-check": "bun run tsc -p tsconfig.build.json --noEmit",
-    "publish": "bun run dist && bun publish",
-    "spec:build": "bun liquid-spec/build.ts"
+    "prepare": "bun run dist",
+    "fmt": "bun run oxfmt",
+    "fmt:check": "bun run oxfmt --check"
   },
-  "type": "module"
+  "dependencies": {
+    "oxfmt": "^0.78.0"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/jest": "^30.0.0",
+    "@types/luxon": "^3.7.1",
+    "@vitest/browser-playwright": "^4.1.7",
+    "decimal.js": "^10.6.0",
+    "globals": "^17.4.0",
+    "luxon": "^3.7.2",
+    "oxlint": "^1.93.0",
+    "oxlint-tsgolint": "^7.0.2007",
+    "playwright": "^1.60.0",
+    "tinybench": "^6.0.0",
+    "typescript": "^7.0.2",
+    "vitest": "^4.1.7"
+  }
 }

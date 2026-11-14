@@ -1,5 +1,5 @@
-import { HTMLSafeString } from "../drops/html_safe";
-import { type FilterContext } from "../filter";
+import { HTMLSafeString } from "../drops/html_safe.js";
+import { type FilterContext } from "../filter.js";
 
 export function replaceFirst(
   this: FilterContext,

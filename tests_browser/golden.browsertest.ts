@@ -1,4 +1,5 @@
 import { describe, test, expect } from "vitest";
+
 import { Environment } from "../dist/liquidscript.browser.esm.min.js";
 import { DetailedLiquidError } from "../dist/liquidscript.browser.esm.min.js";
 import { ObjectLoader } from "../dist/liquidscript.browser.esm.min.js";
@@ -40,9 +41,7 @@ describe("browser golden liquid sync", () => {
       const env = new Environment({ loader: new ObjectLoader(templates) });
 
       if (invalid) {
-        expect(() => env.renderSync(template, data)).toThrow(
-          DetailedLiquidError,
-        );
+        expect(() => env.renderSync(template, data)).toThrow(DetailedLiquidError);
       } else if (result) {
         expect(env.renderSync(template, data)).toStrictEqual(result);
       } else if (results) {
@@ -62,9 +61,7 @@ describe("browser golden liquid async", () => {
       const env = new Environment({ loader: new ObjectLoader(templates) });
 
       if (invalid) {
-        expect(() => env.render(template, data)).rejects.toThrow(
-          DetailedLiquidError,
-        );
+        void expect(() => env.render(template, data)).rejects.toThrow(DetailedLiquidError);
       } else if (result) {
         await expect(env.render(template, data)).resolves.toStrictEqual(result);
       } else if (results) {

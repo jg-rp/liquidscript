@@ -1,10 +1,10 @@
 import js from "@eslint/js";
+import stylistic from "@stylistic/eslint-plugin";
+import perfectionist from "eslint-plugin-perfectionist";
+import sonarjs from "eslint-plugin-sonarjs";
+import { defineConfig } from "eslint/config";
 import globals from "globals";
 import tseslint from "typescript-eslint";
-import { defineConfig } from "eslint/config";
-import perfectionist from "eslint-plugin-perfectionist";
-import stylistic from "@stylistic/eslint-plugin";
-import sonarjs from "eslint-plugin-sonarjs";
 
 export default defineConfig([
   {

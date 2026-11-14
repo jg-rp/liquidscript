@@ -1,6 +1,7 @@
-import type { Environment } from "../environment";
-import { LiquidError, TemplateNotFoundError } from "../errors";
-import { TemplateLoader, type TemplateSource } from "../loader";
+import type { Environment } from "../environment.js";
+
+import { LiquidError, TemplateNotFoundError } from "../errors.js";
+import { TemplateLoader, type TemplateSource } from "../loader.js";
 
 type RequestCache =
   | "default"
@@ -94,14 +95,11 @@ export class FetchLoader extends TemplateLoader {
     const url = `${this.baseURL}/${name}`;
     const request = new Request(url, this.#init);
     const response = await fetch(request);
-    if (!response.ok)
-      throw new TemplateNotFoundError(`${url} (${response.status})`);
+    if (!response.ok) throw new TemplateNotFoundError(`${url} (${response.status})`);
     return { name, source: await response.text() };
   }
 
   getSourceSync(): TemplateSource {
-    throw new LiquidError(
-      "synchronous loading is not available when using FetchLoader",
-    );
+    throw new LiquidError("synchronous loading is not available when using FetchLoader");
   }
 }

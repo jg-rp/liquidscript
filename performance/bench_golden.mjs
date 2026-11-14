@@ -1,6 +1,7 @@
-import { Bench, nToMs } from "tinybench";
 import fs from "fs";
 import path from "path";
+import { Bench, nToMs } from "tinybench";
+
 import { Environment, ObjectLoader } from "../dist/liquidscript.esm.js";
 
 class Fixture {
@@ -14,9 +15,7 @@ class Fixture {
     const name = path.basename(fixture);
     const templates = {};
 
-    const data = JSON.parse(
-      fs.readFileSync(path.join(fixture, "data.json"), "utf8"),
-    );
+    const data = JSON.parse(fs.readFileSync(path.join(fixture, "data.json"), "utf8"));
 
     for (const fn of fs.globSync(path.join(fixture, "templates/*liquid"))) {
       templates[path.basename(fn)] = fs.readFileSync(fn, { encoding: "utf8" });

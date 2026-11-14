@@ -1,6 +1,7 @@
-import type { Environment } from "../environment";
-import { TemplateNotFoundError } from "../errors";
-import { TemplateLoader, type TemplateSource } from "../loader";
+import type { Environment } from "../environment.js";
+
+import { TemplateNotFoundError } from "../errors.js";
+import { TemplateLoader, type TemplateSource } from "../loader.js";
 
 /**
  * A template loader that uses a Map of strings to store template source text.

@@ -1,16 +1,12 @@
-import type { RenderContext } from "../context";
-import { HTMLSafeString } from "../drops/html_safe";
-import type { Name } from "../expression";
-import {
-  renderBlock,
-  renderBlockSync,
-  type Block,
-  type Markup,
-} from "../markup";
-import type { OutputBuffer } from "../output";
-import type { Parser } from "../parser";
-import { T, type Token } from "../token";
-import { isString } from "../type_guards";
+import type { RenderContext } from "../context.js";
+import type { Name } from "../expression.js";
+import type { OutputBuffer } from "../output.js";
+import type { Parser } from "../parser.js";
+
+import { HTMLSafeString } from "../drops/html_safe.js";
+import { renderBlock, renderBlockSync, type Block, type Markup } from "../markup.js";
+import { T, type Token } from "../token.js";
+import { isString } from "../type_guards.js";
 
 const END_CAPTURE_BLOCK = new Set(["endcapture"]);
 

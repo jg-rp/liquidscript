@@ -1,12 +1,7 @@
-import type { RenderContext } from "../context";
-import { Nothing } from "../runtime";
-import {
-  type ContextHint,
-  Drop,
-  isInvocable,
-  toLiquid,
-  toLiquidSync,
-} from "../drop";
+import type { RenderContext } from "../context.js";
+
+import { type ContextHint, Drop, isInvocable, toLiquid, toLiquidSync } from "../drop.js";
+import { Nothing } from "../runtime.js";
 
 export class TableRowLoop extends Drop {
   private static _keys = new Set([
@@ -103,14 +98,10 @@ export class TableRowLoop extends Drop {
     }
   }
 
-  override async [toLiquid](
-    hint: ContextHint,
-    context?: RenderContext,
-  ): Promise<unknown> {
+  override async [toLiquid](hint: ContextHint, context?: RenderContext): Promise<unknown> {
     return this[toLiquidSync](hint, context);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   override [toLiquidSync](hint: ContextHint, context?: RenderContext): unknown {
     switch (hint) {
       case "string":

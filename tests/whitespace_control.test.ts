@@ -1,4 +1,4 @@
-import { Environment } from "../src/environment";
+import { Environment } from "../src/environment.js";
 
 describe("whitespace control", () => {
   const env = new Environment({});
@@ -35,8 +35,7 @@ describe("whitespace control", () => {
   });
   test("strip whitespace around raw tags", async () => {
     const template = env.parse(
-      "! {% raw %}{{ hello }}{% endraw %} !\n" +
-        "! {%- raw -%}{{ hello }}{%- endraw -%} !",
+      "! {% raw %}{{ hello }}{% endraw %} !\n! {%- raw -%}{{ hello }}{%- endraw -%} !",
     );
     const result = await template.render();
     expect(result).toBe("! {{ hello }} !\n!{{ hello }}!");

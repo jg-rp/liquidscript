@@ -1,5 +1,5 @@
-import { type FilterContext } from "../filter";
-import { isArray, isIterable, isObject, isString } from "../type_guards";
+import { type FilterContext } from "../filter.js";
+import { isArray, isIterable, isObject, isString } from "../type_guards.js";
 
 export function first(this: FilterContext, left: unknown): unknown {
   this.assertArgs(arguments.length, 1);

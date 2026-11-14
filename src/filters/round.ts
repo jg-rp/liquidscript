@@ -1,11 +1,7 @@
-import { type FilterContext } from "../filter";
-import { LiquidNumber, ZERO } from "../number";
+import { type FilterContext } from "../filter.js";
+import { LiquidNumber, ZERO } from "../number.js";
 
-export function round(
-  this: FilterContext,
-  left: unknown,
-  decimalPlaces?: unknown,
-): LiquidNumber {
+export function round(this: FilterContext, left: unknown, decimalPlaces?: unknown): LiquidNumber {
   this.assertArgs(arguments.length, 1, 2);
 
   if (this.isNil(decimalPlaces)) {

@@ -1,14 +1,15 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import { type RenderContext } from "./context";
-import { BLANK, EMPTY } from "./drops";
-import { UnknownFilterError } from "./errors";
-import { Nothing } from "./runtime";
-import { range } from "./drops/range";
-import { span, T, type Token } from "./token";
-import { isString } from "./type_guards";
-import { FilterContext } from "./filter";
-import type { Float, Integer } from "./number";
-import { HTMLSafeString } from "./drops/html_safe";
+// oxlint-disable no-unused-vars
+import type { Float, Integer } from "./number.js";
+
+import { type RenderContext } from "./context.js";
+import { HTMLSafeString } from "./drops/html_safe.js";
+import { BLANK, EMPTY } from "./drops/index.js";
+import { range } from "./drops/range.js";
+import { UnknownFilterError } from "./errors.js";
+import { FilterContext } from "./filter.js";
+import { Nothing } from "./runtime.js";
+import { span, T, type Token } from "./token.js";
+import { isString } from "./type_guards.js";
 
 export type PathSegment = Name | StringLiteral | IndexSelector | Variable;
 
@@ -56,7 +57,7 @@ export class FilteredExpression implements Expression {
     if (!func) {
       if (context.env.strictFilters) {
         throw new UnknownFilterError(
-          `${JSON.stringify(this.filter.name.value)}`,
+          JSON.stringify(this.filter.name.value),
           this.filter.token,
           context.template.source,
           context.template.name,
@@ -84,11 +85,7 @@ export class FilteredExpression implements Expression {
       }
     }
 
-    return func.call(
-      new FilterContext(context, this.span, kwargs),
-      left,
-      ...args,
-    );
+    return func.call(new FilterContext(context, this.span, kwargs), left, ...args);
   }
 
   evaluateSync(context: RenderContext): unknown {
@@ -96,7 +93,7 @@ export class FilteredExpression implements Expression {
     if (!func) {
       if (context.env.strictFilters) {
         throw new UnknownFilterError(
-          `${JSON.stringify(this.filter.name.value)}`,
+          JSON.stringify(this.filter.name.value),
           this.filter.token,
           context.template.source,
           context.template.name,
@@ -124,11 +121,7 @@ export class FilteredExpression implements Expression {
       }
     }
 
-    return func.call(
-      new FilterContext(context, this.span, kwargs),
-      left,
-      ...args,
-    );
+    return func.call(new FilterContext(context, this.span, kwargs), left, ...args);
   }
 
   toString(): string {
@@ -153,16 +146,12 @@ export class OrExpression implements Expression {
 
   async evaluate(context: RenderContext): Promise<unknown> {
     const left = await this.left.evaluate(context);
-    return context.env.isTruthy(left, context)
-      ? left
-      : await this.right.evaluate(context);
+    return context.env.isTruthy(left, context) ? left : await this.right.evaluate(context);
   }
 
   evaluateSync(context: RenderContext): unknown {
     const left = this.left.evaluateSync(context);
-    return context.env.isTruthy(left, context)
-      ? left
-      : this.right.evaluateSync(context);
+    return context.env.isTruthy(left, context) ? left : this.right.evaluateSync(context);
   }
 
   toString(): string {
@@ -187,16 +176,12 @@ export class AndExpression implements Expression {
 
   async evaluate(context: RenderContext): Promise<unknown> {
     const left = await this.left.evaluate(context);
-    return context.env.isTruthy(left, context)
-      ? await this.right.evaluate(context)
-      : left;
+    return context.env.isTruthy(left, context) ? await this.right.evaluate(context) : left;
   }
 
   evaluateSync(context: RenderContext): unknown {
     const left = this.left.evaluateSync(context);
-    return context.env.isTruthy(left, context)
-      ? this.right.evaluateSync(context)
-      : left;
+    return context.env.isTruthy(left, context) ? this.right.evaluateSync(context) : left;
   }
 
   toString(): string {
@@ -493,17 +478,13 @@ export class Variable implements Expression {
 
   async evaluate(context: RenderContext): Promise<unknown> {
     const rootSegment =
-      this.root instanceof Variable
-        ? await this.root.evaluate(context)
-        : this.root.value;
+      this.root instanceof Variable ? await this.root.evaluate(context) : this.root.value;
 
     const root = isString(rootSegment) ? context.resolve(rootSegment) : Nothing;
 
     const [obj, index] = await context.resolvePath(
       root,
-      await Promise.all(
-        this.segments.map(async (s) => await s.evaluate(context)),
-      ),
+      await Promise.all(this.segments.map(async (s) => await s.evaluate(context))),
     );
 
     if (obj === Nothing) {
@@ -520,9 +501,7 @@ export class Variable implements Expression {
 
   evaluateSync(context: RenderContext): unknown {
     const rootSegment =
-      this.root instanceof Variable
-        ? this.root.evaluateSync(context)
-        : this.root.value;
+      this.root instanceof Variable ? this.root.evaluateSync(context) : this.root.value;
 
     const root = isString(rootSegment) ? context.resolve(rootSegment) : Nothing;
 
@@ -555,7 +534,7 @@ export class Variable implements Expression {
       return `${root}${_segments}`;
     }
 
-    return `${root}`;
+    return root;
   }
 
   toString(): string {
@@ -626,15 +605,11 @@ export class StringLiteral implements Expression {
   }
 
   evaluateSync(context: RenderContext): unknown {
-    return context.env.autoEscape
-      ? HTMLSafeString.from(this.value)
-      : this.value;
+    return context.env.autoEscape ? HTMLSafeString.from(this.value) : this.value;
   }
 
   toString(): string {
-    return this.token.kind === T.DOUBLE_QUOTED
-      ? `"${this.value}"`
-      : `'${this.value}'`;
+    return this.token.kind === T.DOUBLE_QUOTED ? `"${this.value}"` : `'${this.value}'`;
   }
 
   /**
@@ -815,33 +790,17 @@ export class RangeLiteral implements Expression {
   }
 
   async evaluate(context: RenderContext): Promise<unknown> {
-    const start = context.env.toNumber(
-      await this.start.evaluate(context),
-      context,
-      this.span,
-    );
+    const start = context.env.toNumber(await this.start.evaluate(context), context, this.span);
 
-    const stop = context.env.toNumber(
-      await this.stop.evaluate(context),
-      context,
-      this.span,
-    );
+    const stop = context.env.toNumber(await this.stop.evaluate(context), context, this.span);
 
     return range(start, stop);
   }
 
   evaluateSync(context: RenderContext): unknown {
-    const start = context.env.toNumber(
-      this.start.evaluateSync(context),
-      context,
-      this.span,
-    );
+    const start = context.env.toNumber(this.start.evaluateSync(context), context, this.span);
 
-    const stop = context.env.toNumber(
-      this.stop.evaluateSync(context),
-      context,
-      this.span,
-    );
+    const stop = context.env.toNumber(this.stop.evaluateSync(context), context, this.span);
 
     return range(start, stop);
   }
@@ -862,10 +821,7 @@ export class Filter implements Traversable {
     this.span =
       args.length === 0
         ? token
-        : span(
-            token,
-            (args[args.length - 1] as Expression | KeywordArgument).span,
-          );
+        : span(token, (args[args.length - 1] as Expression | KeywordArgument).span);
   }
 
   children(context: RenderContext): Traversable[] {

@@ -1,5 +1,5 @@
-import { parse } from "../src/liquidscript";
-import { Float, Integer, NAN } from "../src/number";
+import { parse } from "../src/liquidscript.js";
+import { Float, Integer, NAN } from "../src/number.js";
 
 // See https://github.com/microsoft/TypeScript/issues/2361
 

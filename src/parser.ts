@@ -1,20 +1,9 @@
-import type { Environment } from "./environment";
-import { TemplateSyntaxError } from "./errors";
-import type {
-  Expression,
-  KeywordArgument,
-  Name,
-  StringLiteral,
-} from "./expression";
-import type { Block } from "./markup";
-import "./tags";
-import {
-  getTokenValue,
-  REVERSE_T,
-  T,
-  type Token,
-  type TokenKind,
-} from "./token";
+import type { Environment } from "./environment.js";
+import type { Expression, KeywordArgument, Name, StringLiteral } from "./expression.js";
+import type { Block } from "./markup.js";
+
+import { TemplateSyntaxError } from "./errors.js";
+import { getTokenValue, REVERSE_T, T, type Token, type TokenKind } from "./token.js";
 
 export const TERMINATE_EXPRESSION: Set<TokenKind> = new Set([
   T.WC,
@@ -45,13 +34,8 @@ export abstract class Parser {
     this.eoi = { kind: T.EOI, start: source.length, end: source.length };
   }
 
-  static parse<P extends Parser>(
-    this: new (
-      env: Environment,
-      source: string,
-      templateName: string,
-      tokens: Token[],
-    ) => P,
+  static parse(
+    this: new (env: Environment, source: string, templateName: string, tokens: Token[]) => Parser,
     env: Environment,
     source: string,
     templateName: string,
@@ -93,7 +77,7 @@ export abstract class Parser {
    * Assert and consume a token of kind `kind`.
    * Raises a syntax error if the current token's kind is not `kind`.
    */
-  eat(kind: TokenKind, message: string | undefined = undefined): Token {
+  eat(kind: TokenKind, message?: string): Token {
     const token = this.tokens[this.pos] || this.eoi;
     if (token.kind !== kind) {
       throw new TemplateSyntaxError(
@@ -210,9 +194,7 @@ export abstract class Parser {
    * @param requireCommas When true, throw a syntax error if there is no comma
    *   between each argument.
    */
-  abstract parseArguments(
-    requireCommas?: boolean,
-  ): Array<Expression | KeywordArgument>;
+  abstract parseArguments(requireCommas?: boolean): Array<Expression | KeywordArgument>;
 
   /**
    * Parse template text and markup until reaching a named tag.
@@ -248,9 +230,7 @@ export abstract class Parser {
    * Assumes any leading commas have been consumed by the caller, if they are
    * allowed.
    */
-  abstract parseKeywordArguments(
-    requireCommas?: boolean,
-  ): Array<KeywordArgument>;
+  abstract parseKeywordArguments(requireCommas?: boolean): Array<KeywordArgument>;
 
   /**
    * Parse newline terminated markup from the `{% liquid %}` tag.
@@ -297,12 +277,7 @@ export abstract class Parser {
     if (token.kind === T.WC) token = this.peek();
 
     if (token.kind !== T.TAG_NAME) {
-      throw new TemplateSyntaxError(
-        "missing tag name",
-        token,
-        this.source,
-        this.templateName,
-      );
+      throw new TemplateSyntaxError("missing tag name", token, this.source, this.templateName);
     }
 
     return getTokenValue(token, this.source);
@@ -313,6 +288,7 @@ export abstract class Parser {
     if (token.kind === T.WC) {
       return getTokenValue(token, this.source);
     }
+    return undefined;
   }
 
   skipWhitespaceControl(): void {
@@ -330,9 +306,7 @@ export abstract class Parser {
       token = this.peek(2);
     }
 
-    return (
-      token.kind === T.TAG_NAME && getTokenValue(token, this.source) == name
-    );
+    return token.kind === T.TAG_NAME && getTokenValue(token, this.source) == name;
   }
 
   /**
@@ -346,7 +320,7 @@ export abstract class Parser {
     }
 
     if (token.kind !== T.TAG_NAME) {
-      return;
+      return undefined;
     }
 
     const name = getTokenValue(token, this.source);
@@ -354,5 +328,6 @@ export abstract class Parser {
     if (names.has(name)) {
       return name;
     }
+    return undefined;
   }
 }

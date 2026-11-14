@@ -1,6 +1,7 @@
 // Comparing sync and concurrent async batches with a very rough simulation of IO.
 import fs from "fs";
 import path from "path";
+
 import {
   Environment,
   ObjectLoader,
@@ -138,12 +139,14 @@ async function benchmark(name, fn) {
   console.log(name, ":", results, "ms");
 }
 
-benchmark("async batch", () => runBatch(template.render.bind(template), n));
+void benchmark("async batch", () =>
+  runBatch(template.render.bind(template), n),
+);
 
-benchmark("async concurrent", () =>
+void benchmark("async concurrent", () =>
   runBatchConcurrent(template.render.bind(template), n),
 );
 
-benchmark("sync batch", () =>
+void benchmark("sync batch", () =>
   runBatchSync(template.renderSync.bind(template), n),
 );

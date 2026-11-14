@@ -1,11 +1,9 @@
-import { ArgumentError } from "../errors";
-import type { FilterContext } from "../filter";
+import type { FilterContext } from "../filter.js";
 
-const RE_BASE64 =
-  /^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/;
+import { ArgumentError } from "../errors.js";
 
-const RE_BASE64_URL_SAFE =
-  /^([0-9a-zA-Z\\-_]{4})*(([0-9a-zA-Z\\-_]{2}==)|([0-9a-zA-Z\\-_]{3}=))?$/;
+const RE_BASE64 = /^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/;
+const RE_BASE64_URL_SAFE = /^([0-9a-zA-Z\\-_]{4})*(([0-9a-zA-Z\\-_]{2}==)|([0-9a-zA-Z\\-_]{3}=))?$/;
 
 export function base64Encode(this: FilterContext, left: unknown): string {
   this.assertArgs(arguments.length, 1);
@@ -14,10 +12,7 @@ export function base64Encode(this: FilterContext, left: unknown): string {
   return toBase64(bytes, { alphabet: "base64", omitPadding: false });
 }
 
-export function base64URLSafeEncode(
-  this: FilterContext,
-  left: unknown,
-): string {
+export function base64URLSafeEncode(this: FilterContext, left: unknown): string {
   this.assertArgs(arguments.length, 1);
   const encoder = new TextEncoder();
   const bytes = encoder.encode(this.toString(left, ""));
@@ -45,10 +40,7 @@ export function base64Decode(this: FilterContext, left: unknown): string {
   return new TextDecoder().decode(bytes);
 }
 
-export function base64URLSafeDecode(
-  this: FilterContext,
-  left: unknown,
-): string {
+export function base64URLSafeDecode(this: FilterContext, left: unknown): string {
   this.assertArgs(arguments.length, 1);
   const left_ = this.toString(left, "");
 
@@ -76,10 +68,7 @@ export interface ToBase64Options {
   omitPadding?: boolean;
 }
 
-export function toBase64(
-  bytes: Uint8Array,
-  options: ToBase64Options = {},
-): string {
+export function toBase64(bytes: Uint8Array, options: ToBase64Options = {}): string {
   let binary = "";
   for (let i = 0; i < bytes.length; i++) {
     binary += String.fromCharCode(bytes[i] as number);
@@ -92,7 +81,6 @@ export function toBase64(
   }
 
   if (options.omitPadding) {
-    // eslint-disable-next-line sonarjs/slow-regex
     base64 = base64.replace(/=+$/, "");
   }
 
@@ -104,10 +92,7 @@ export interface FromBase64Options {
   lastChunkHandling?: "strict" | "loose";
 }
 
-export function fromBase64(
-  input: string,
-  options: FromBase64Options = {},
-): Uint8Array {
+export function fromBase64(input: string, options: FromBase64Options = {}): Uint8Array {
   let str = input;
 
   if (options.alphabet === "base64url") {

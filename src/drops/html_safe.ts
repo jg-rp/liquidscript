@@ -1,13 +1,8 @@
-import {
-  Drop,
-  toHTMLSafeStringSync,
-  toLiquid,
-  toLiquidSync,
-  type ContextHint,
-} from "../drop";
-import { Nothing } from "../runtime";
-import { escape } from "../escape";
-import type { RenderContext } from "../context";
+import type { RenderContext } from "../context.js";
+
+import { Drop, toHTMLSafeStringSync, toLiquid, toLiquidSync, type ContextHint } from "../drop.js";
+import { escape } from "../escape.js";
+import { Nothing } from "../runtime.js";
 
 /**
  * A string wrapper class used to indicate that the wrapped string is safe for
@@ -53,7 +48,6 @@ export class HTMLSafeString extends Drop {
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   override [toHTMLSafeStringSync](context: RenderContext): string {
     return this.#s;
   }

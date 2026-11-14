@@ -1,8 +1,9 @@
-import type { Namespace, RenderContext } from "../context";
-import type { Environment } from "../environment";
-import { TemplateNotFoundError } from "../errors";
-import { TemplateLoader, type TemplateSource } from "../loader";
-import type { Template } from "../template";
+import type { Namespace, RenderContext } from "../context.js";
+import type { Environment } from "../environment.js";
+import type { Template } from "../template.js";
+
+import { TemplateNotFoundError } from "../errors.js";
+import { TemplateLoader, type TemplateSource } from "../loader.js";
 
 /**
  * A template loader that will try each of an array of loaders until

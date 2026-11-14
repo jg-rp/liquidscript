@@ -1,4 +1,4 @@
-import { getTokenValue, type Token } from "./token";
+import { getTokenValue, type Token } from "./token.js";
 
 export interface Diagnostic {
   span: Token;
@@ -53,8 +53,7 @@ export function lineCol(index: number, lines: string[]): [number, number] {
     }
   }
 
-  if (targetLineIndex === -1)
-    return [lines.length, (lines[lines.length - 1] ?? " ").length];
+  if (targetLineIndex === -1) return [lines.length, (lines[lines.length - 1] ?? " ").length];
 
   const lineNumber = targetLineIndex + 1;
   const line = lines[targetLineIndex] || "";

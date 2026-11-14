@@ -1,5 +1,5 @@
-import { Environment } from "../src/environment";
-import { ChoiceLoader, MapLoader, NodeFileSystemLoader } from "../src/loaders";
+import { Environment } from "../src/environment.js";
+import { ChoiceLoader, MapLoader, NodeFileSystemLoader } from "../src/loaders/index.js";
 
 describe("choice template loader", () => {
   test("chose from one of multiple template loaders synchronously", () => {

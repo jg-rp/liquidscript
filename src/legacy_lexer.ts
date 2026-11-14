@@ -1,11 +1,10 @@
-import { Lexer, type StateFn } from "./lexer";
-import { T } from "./token";
+import { Lexer, type StateFn } from "./lexer.js";
+import { T } from "./token.js";
 
 const reCommentSegment = /\{%-?\s*(comment|raw|endcomment|endraw).*?-?%\}/gs;
 const reFloat = /-?\d+\.\d+/y;
 const reIdent = /[a-zA-Z_][a-zA-Z0-9_-]*\??/y;
 const reInt = /-?\d+/y;
-// eslint-disable-next-line sonarjs/slow-regex
 const reLineCommentSegment = /\n\s*(comment|endcomment).*/g;
 const reLineTrivia = /[ \t\f\r]+/y;
 const reMarkup = /\{[%{]/y;
@@ -14,7 +13,6 @@ const reOutEnd = /-?(\}\}?|%\}(?!\}))/g;
 const rePunctuation = /[.!=<>]{1,2}|[?[\]|:,()]/y;
 const reTagEnd = /-?%\}/y;
 const reTagEndIndex = /-?%\}/g;
-// eslint-disable-next-line sonarjs/concise-regex
 const reTagName = /#|[a-zA-Z0-9_]+/y;
 const reTrivia = /[ \n\r\t\f]+/y;
 
@@ -379,7 +377,6 @@ export class LegacyLexer extends Lexer {
     }
   }
 
-  // eslint-disable-next-line sonarjs/cognitive-complexity
   override scanMarkup(): StateFn | null {
     let limit: number | undefined;
 
@@ -421,7 +418,6 @@ export class LegacyLexer extends Lexer {
           }
 
         // No more `%}`, but there could be `{{` and `}}`. Fall through.
-        // eslint-disable-next-line no-fallthrough
         default:
           if (this.scanUntil(reMarkupStart)) {
             this.emit(T.TEXT);

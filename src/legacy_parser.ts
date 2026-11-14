@@ -1,18 +1,13 @@
-import type { Environment } from "./environment";
-import { TemplateSyntaxError } from "./errors";
-import type { Expression } from "./expression";
-import type { Block, Markup } from "./markup";
-import { Parser, TERMINATE_EXPRESSION } from "./parser";
-import { OutputStatement } from "./tags";
-import {
-  getTokenValue,
-  REVERSE_T,
-  T,
-  type Token,
-  type TokenKind,
-} from "./token";
-import * as expr from "./expression";
-import { Float, Integer } from "./number";
+import type { Environment } from "./environment.js";
+import type { Expression } from "./expression.js";
+import type { Block, Markup } from "./markup.js";
+
+import { TemplateSyntaxError } from "./errors.js";
+import * as expr from "./expression.js";
+import { Float, Integer } from "./number.js";
+import { Parser, TERMINATE_EXPRESSION } from "./parser.js";
+import { OutputStatement } from "./tags/index.js";
+import { getTokenValue, REVERSE_T, T, type Token, type TokenKind } from "./token.js";
 
 export const PRECEDENCE_LOWEST = 1;
 const PRECEDENCE_LOGICAL_RIGHT = 3;
@@ -101,9 +96,7 @@ export class LegacyParser extends Parser {
     ]);
   }
 
-  override parseArguments(
-    requireCommas: boolean = true,
-  ): Array<Expression | expr.KeywordArgument> {
+  override parseArguments(requireCommas: boolean = true): Array<Expression | expr.KeywordArgument> {
     const args: Array<Expression | expr.KeywordArgument> = [];
     let kind: TokenKind;
 
@@ -118,9 +111,7 @@ export class LegacyParser extends Parser {
         // Named argument.
         const name = this.parseIdent();
         this.eat(T.COLON);
-        args.push(
-          new expr.KeywordArgument(name.token, name, this.parseExpression()),
-        );
+        args.push(new expr.KeywordArgument(name.token, name, this.parseExpression()));
       } else {
         args.push(this.parseExpression());
       }
@@ -194,10 +185,9 @@ export class LegacyParser extends Parser {
 
     switch (token.kind) {
       case T.INT:
-        segment = new expr.IndexSelector(
-          token,
-          Number(getTokenValue(token, this.source)),
-        ).with(this.eat(T.RBRACKET));
+        segment = new expr.IndexSelector(token, Number(getTokenValue(token, this.source))).with(
+          this.eat(T.RBRACKET),
+        );
         break;
       case T.IDENT:
       case T.BLANK:
@@ -271,10 +261,7 @@ export class LegacyParser extends Parser {
     for (;;) {
       kind = this.kind();
 
-      if (
-        (PRECEDENCES.get(kind) || PRECEDENCE_LOWEST) < precedence ||
-        !INFIX_OPERATORS.has(kind)
-      ) {
+      if ((PRECEDENCES.get(kind) || PRECEDENCE_LOWEST) < precedence || !INFIX_OPERATORS.has(kind)) {
         break;
       }
 
@@ -328,9 +315,7 @@ export class LegacyParser extends Parser {
         // A keyword argument.
         const param = this.parseIdent();
         this.eat(T.COLON);
-        args.push(
-          new expr.KeywordArgument(param.token, param, this.parseExpression()),
-        );
+        args.push(new expr.KeywordArgument(param.token, param, this.parseExpression()));
       } else {
         args.push(this.parseExpression());
       }
@@ -353,16 +338,14 @@ export class LegacyParser extends Parser {
     );
   }
 
-  override parseFilteredExpression(
-    precedence: number = PRECEDENCE_LOWEST,
-  ): Expression {
-    let expr = this.parseExpression(precedence);
+  override parseFilteredExpression(precedence: number = PRECEDENCE_LOWEST): Expression {
+    let expression = this.parseExpression(precedence);
 
     if (this.kind() === T.PIPE) {
-      expr = this.parseFilters(expr);
+      expression = this.parseFilters(expression);
     }
 
-    return expr;
+    return expression;
   }
 
   protected parseFilters(left: Expression): expr.FilteredExpression {
@@ -375,10 +358,7 @@ export class LegacyParser extends Parser {
 
   protected parseFloatLiteral(): Expression {
     const token = this.next();
-    return new expr.FloatLiteral(
-      token,
-      new Float(getTokenValue(token, this.source)),
-    );
+    return new expr.FloatLiteral(token, new Float(getTokenValue(token, this.source)));
   }
 
   override parseIdent(): expr.Name {
@@ -397,10 +377,7 @@ export class LegacyParser extends Parser {
   protected parseInfix(left: Expression): Expression {
     const opToken = this.next();
     const kind = opToken.kind;
-    const right = this.parseExpression(
-      PRECEDENCES.get(kind) || PRECEDENCE_LOWEST,
-      true,
-    );
+    const right = this.parseExpression(PRECEDENCES.get(kind) || PRECEDENCE_LOWEST, true);
 
     const infixCtor = INFIX_OPERATORS.get(kind) as InfixConstructor;
     return new infixCtor(opToken, left, right);
@@ -408,15 +385,10 @@ export class LegacyParser extends Parser {
 
   protected parseIntLiteral(): Expression {
     const token = this.next();
-    return new expr.IntegerLiteral(
-      token,
-      new Integer(getTokenValue(token, this.source)),
-    );
+    return new expr.IntegerLiteral(token, new Integer(getTokenValue(token, this.source)));
   }
 
-  override parseKeywordArguments(
-    requireCommas?: boolean,
-  ): Array<expr.KeywordArgument> {
+  override parseKeywordArguments(requireCommas?: boolean): Array<expr.KeywordArgument> {
     const args: Array<expr.KeywordArgument> = [];
     let kind: TokenKind;
 
@@ -429,9 +401,7 @@ export class LegacyParser extends Parser {
 
       const name = this.parseIdent();
       this.eat(T.COLON);
-      args.push(
-        new expr.KeywordArgument(name.token, name, this.parseExpression()),
-      );
+      args.push(new expr.KeywordArgument(name.token, name, this.parseExpression()));
 
       kind = this.kind();
       if (requireCommas && !TERMINATE_EXPRESSION.has(kind)) {
@@ -505,10 +475,10 @@ export class LegacyParser extends Parser {
   protected parseOutput(): OutputStatement {
     const token = this.tokens[this.pos - 1] as Token;
     this.skipWhitespaceControl();
-    const expr = this.parseFilteredExpression();
+    const expression = this.parseFilteredExpression();
     this.carryWhitespaceControl();
     this.eat(T.OUT_END);
-    return new OutputStatement(token, expr);
+    return new OutputStatement(token, expression);
   }
 
   protected parsePath(): expr.Variable {
