@@ -1,6 +1,6 @@
 {
   "$schema": "./node_modules/oxfmt/configuration_schema.json",
-  "ignorePatterns": ["dist/**", "coverage/**", "docs/**"],
+  "ignorePatterns": ["dist/**", "coverage/**", "docs/**", "tests/golden_liquid/**"],
   "printWidth": 100,
   "singleQuote": false,
   "trailingComma": "all",

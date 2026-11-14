@@ -43,16 +43,16 @@
   "devDependencies": {
     "@types/bun": "latest",
     "@types/jest": "^30.0.0",
-    "@types/luxon": "^3.7.1",
-    "@vitest/browser-playwright": "^4.1.7",
+    "@types/luxon": "^3.7.6",
+    "@vitest/browser-playwright": "^4.1.12",
     "decimal.js": "^10.6.0",
-    "globals": "^17.4.0",
+    "globals": "^17.14.0",
     "luxon": "^3.7.2",
     "oxlint": "^1.93.0",
     "oxlint-tsgolint": "^7.0.2007",
-    "playwright": "^1.60.0",
-    "tinybench": "^6.0.0",
+    "playwright": "^1.65.1",
+    "tinybench": "^6.2.3",
     "typescript": "^7.0.2",
-    "vitest": "^4.1.7"
+    "vitest": "^4.1.12"
   }
 }
