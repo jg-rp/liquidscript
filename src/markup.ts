@@ -1,13 +1,13 @@
-/* eslint-disable sonarjs/cognitive-complexity */
-import type { RenderContext } from "./context";
-import type { Token } from "./token";
-import type { Parser } from "./parser";
-import type { Expression, Name } from "./expression";
-import { isString } from "./type_guards";
-import type { OutputBuffer } from "./output";
-import { DisabledTagError, ResourceLimitError } from "./errors";
-import type { Template } from "./template";
-import { STOP_RENDER } from "./tags/extends";
+import type { RenderContext } from "./context.js";
+import type { Expression, Name } from "./expression.js";
+import type { OutputBuffer } from "./output.js";
+import type { Parser } from "./parser.js";
+import type { Template } from "./template.js";
+import type { Token } from "./token.js";
+
+import { DisabledTagError, ResourceLimitError } from "./errors.js";
+import { STOP_RENDER } from "./tags/extends.js";
+import { isString } from "./type_guards.js";
 
 export type Node = string | Markup | Expression;
 export type Block = Array<string | Markup>;
@@ -120,18 +120,13 @@ export type Partial = {
 /**
  * Render `block` to output buffer `buffer` with data from `context`.
  */
-export async function renderBlock(
-  block: Block,
-  context: RenderContext,
-  buffer: OutputBuffer,
-) {
+export async function renderBlock(block: Block, context: RenderContext, buffer: OutputBuffer) {
   if (context.env.maxRenderScore || context.env.maxRenderScoreCumulative) {
     context.renderScore += block.length;
     context.renderScoreCumulative += block.length;
 
     if (
-      (context.env.maxRenderScore &&
-        context.renderScore > context.env.maxRenderScore) ||
+      (context.env.maxRenderScore && context.renderScore > context.env.maxRenderScore) ||
       (context.env.maxRenderScoreCumulative &&
         context.renderScoreCumulative > context.env.maxRenderScoreCumulative)
     ) {
@@ -161,10 +156,7 @@ export async function renderBlock(
       break;
     }
 
-    if (
-      context.env.maxRenderSize &&
-      buffer.length > context.env.maxRenderSize
-    ) {
+    if (context.env.maxRenderSize && buffer.length > context.env.maxRenderSize) {
       throw new ResourceLimitError("memory limits exceeded");
     }
   }
@@ -173,18 +165,13 @@ export async function renderBlock(
 /**
  * Render `block` to output buffer `buffer` with data from `context`.
  */
-export function renderBlockSync(
-  block: Block,
-  context: RenderContext,
-  buffer: OutputBuffer,
-) {
+export function renderBlockSync(block: Block, context: RenderContext, buffer: OutputBuffer) {
   if (context.env.maxRenderScore || context.env.maxRenderScoreCumulative) {
     context.renderScore += block.length;
     context.renderScoreCumulative += block.length;
 
     if (
-      (context.env.maxRenderScore &&
-        context.renderScore > context.env.maxRenderScore) ||
+      (context.env.maxRenderScore && context.renderScore > context.env.maxRenderScore) ||
       (context.env.maxRenderScoreCumulative &&
         context.renderScoreCumulative > context.env.maxRenderScoreCumulative)
     ) {
@@ -214,10 +201,7 @@ export function renderBlockSync(
       break;
     }
 
-    if (
-      context.env.maxRenderSize &&
-      buffer.length > context.env.maxRenderSize
-    ) {
+    if (context.env.maxRenderSize && buffer.length > context.env.maxRenderSize) {
       throw new ResourceLimitError("memory limits exceeded");
     }
   }

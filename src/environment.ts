@@ -1,7 +1,10 @@
-import type { Filter } from "./filter";
-import { LegacyLexer } from "./legacy_lexer";
-import { LegacyParser } from "./legacy_parser";
-import type { Block, Tag } from "./markup";
+import type { Namespace, RenderContext } from "./context.js";
+import type { Filter } from "./filter.js";
+import type { TemplateLoader } from "./loader.js";
+import type { Block, Tag } from "./markup.js";
+import type { Token } from "./token.js";
+
+import { ReadOnlyChainMap } from "./chain_map.js";
 import {
   containsSync,
   Drop,
@@ -9,11 +12,20 @@ import {
   lessThanSync,
   toHTMLSafeStringSync,
   toLiquidSync,
-} from "./drop";
-import * as tags from "./tags";
-import * as filters from "./filters";
-import { Template } from "./template";
-import type { Token } from "./token";
+} from "./drop.js";
+import { Undefined } from "./drops/undefined.js";
+import { TemplateTypeError } from "./errors.js";
+import { escape } from "./escape.js";
+import * as filters from "./filters/index.js";
+import { LegacyLexer } from "./legacy_lexer.js";
+import { LegacyParser } from "./legacy_parser.js";
+import { MapLoader } from "./loaders/map_loader.js";
+import { isLiquidNumber, isPrimitiveNumber, LiquidNumber } from "./number.js";
+import { stringOutputBufferFactory, type BufferFactory } from "./output.js";
+import { Nothing } from "./runtime.js";
+import { EXTENDS_STACK } from "./tags/extends.js";
+import * as tags from "./tags/index.js";
+import { Template } from "./template.js";
 import {
   isArray,
   isBoolean,
@@ -23,42 +35,18 @@ import {
   isObject,
   isPropertyKey,
   isString,
-} from "./type_guards";
-import type { Namespace, RenderContext } from "./context";
-import { TemplateTypeError } from "./errors";
-import { Undefined } from "./drops/undefined";
-import { isLiquidNumber, isPrimitiveNumber, LiquidNumber } from "./number";
-import type { TemplateLoader } from "./loader";
-import { MapLoader } from "./loaders";
-import { Nothing } from "./runtime";
-import { stringOutputBufferFactory, type BufferFactory } from "./output";
-import { escape } from "./escape";
-import { ReadOnlyChainMap } from "./chain_map";
-import { EXTENDS_STACK } from "./tags/extends";
+} from "./type_guards.js";
 
-// eslint-disable-next-line sonarjs/class-name
 export interface _Parser {
-  parse(
-    env: Environment,
-    source: string,
-    templateName: string,
-    startIndex?: number,
-  ): Block;
+  parse(env: Environment, source: string, templateName: string, startIndex?: number): Block;
 }
 
-// eslint-disable-next-line sonarjs/class-name
 export interface _Lexer {
   tokenize(env: Environment, source: string, startIndex?: number): Token[];
 }
 
-// eslint-disable-next-line sonarjs/class-name
 export interface _Undefined {
-  new (
-    path: string,
-    token: Token,
-    source: string,
-    templateName: string,
-  ): Undefined;
+  new (path: string, token: Token, source: string, templateName: string): Undefined;
 }
 
 /**
@@ -225,13 +213,7 @@ export class Environment {
     this.undefinedType = options?.undefinedType ?? Undefined;
   }
 
-  // eslint-disable-next-line sonarjs/cognitive-complexity
-  contains(
-    left: unknown,
-    right: unknown,
-    context: RenderContext,
-    token: Token,
-  ): boolean {
+  contains(left: unknown, right: unknown, context: RenderContext, token: Token): boolean {
     if (left instanceof Drop) {
       return left[containsSync](right, context);
     }
@@ -306,42 +288,26 @@ export class Environment {
       return right[equals](left, context);
     }
 
-    if (
-      (left === null || left === undefined) &&
-      (right === null || right === undefined)
-    ) {
+    if ((left === null || left === undefined) && (right === null || right === undefined)) {
       return true;
     }
 
     if (isArray(left) && isArray(right)) {
-      return (
-        left.length === right.length && left.every((v, i) => v === right[i])
-      );
+      return left.length === right.length && left.every((v, i) => v === right[i]);
     }
 
-    if (
-      left instanceof LiquidNumber &&
-      (isNumber(right) || right instanceof LiquidNumber)
-    ) {
+    if (left instanceof LiquidNumber && (isNumber(right) || right instanceof LiquidNumber)) {
       return left.eq(right);
     }
 
-    if (
-      right instanceof LiquidNumber &&
-      (isNumber(left) || left instanceof LiquidNumber)
-    ) {
+    if (right instanceof LiquidNumber && (isNumber(left) || left instanceof LiquidNumber)) {
       return right.eq(left);
     }
 
     return left === right;
   }
 
-  isLessThan(
-    left: unknown,
-    right: unknown,
-    context: RenderContext,
-    token: Token,
-  ): boolean {
+  isLessThan(left: unknown, right: unknown, context: RenderContext, token: Token): boolean {
     if (left instanceof Drop) {
       return left[lessThanSync](right, context);
     }
@@ -362,22 +328,16 @@ export class Environment {
       return left < right;
     }
 
-    if (
-      left instanceof LiquidNumber &&
-      (isNumber(right) || right instanceof LiquidNumber)
-    ) {
+    if (left instanceof LiquidNumber && (isNumber(right) || right instanceof LiquidNumber)) {
       return left.lt(right);
     }
 
-    if (
-      right instanceof LiquidNumber &&
-      (isNumber(left) || left instanceof LiquidNumber)
-    ) {
+    if (right instanceof LiquidNumber && (isNumber(left) || left instanceof LiquidNumber)) {
       return right.gt(left);
     }
 
     throw new TemplateTypeError(
-      `${left && left.constructor.name} and ${right && right.constructor.name} are not comparable`,
+      `${left?.constructor.name} and ${right?.constructor.name} are not comparable`,
       token,
       context.template.source,
       context.template.name,
@@ -385,12 +345,7 @@ export class Environment {
   }
 
   isNil(obj: unknown): boolean {
-    return (
-      obj === undefined ||
-      obj === null ||
-      obj === Nothing ||
-      obj instanceof Undefined
-    );
+    return obj === undefined || obj === null || obj === Nothing || obj instanceof Undefined;
   }
 
   isTruthy(obj: unknown, context: RenderContext): boolean {
@@ -428,10 +383,7 @@ export class Environment {
   /**
    * Parse and render template source code `source` with variables from `data`.
    */
-  async render(
-    source: string,
-    data?: Record<string, unknown>,
-  ): Promise<string> {
+  async render(source: string, data?: Record<string, unknown>): Promise<string> {
     return await this.parse(source).render(data);
   }
 
@@ -591,7 +543,7 @@ export class Environment {
     }
 
     if (obj instanceof Drop) {
-      return obj[toLiquidSync]("string", context) as string;
+      obj = obj[toLiquidSync]("string", context);
     }
 
     if (isArray(obj)) {

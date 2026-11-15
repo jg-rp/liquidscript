@@ -1,10 +1,7 @@
-import { HTMLSafeString } from "../drops/html_safe";
-import { type FilterContext } from "../filter";
+import { HTMLSafeString } from "../drops/html_safe.js";
+import { type FilterContext } from "../filter.js";
 
-export function downcase(
-  this: FilterContext,
-  left: unknown,
-): string | HTMLSafeString {
+export function downcase(this: FilterContext, left: unknown): string | HTMLSafeString {
   this.assertArgs(arguments.length, 1);
   const left_ = this.toStringSafe(left, "");
 

@@ -1,5 +1,5 @@
-import { HTMLSafeString } from "../drops/html_safe";
-import { type FilterContext } from "../filter";
+import { HTMLSafeString } from "../drops/html_safe.js";
+import { type FilterContext } from "../filter.js";
 
 export function removeLast(
   this: FilterContext,
@@ -18,9 +18,7 @@ export function removeLast(
 
     if (index === -1) return left_;
 
-    return new HTMLSafeString(
-      s.substring(0, index) + s.substring(index + sub.length + 1),
-    );
+    return new HTMLSafeString(s.substring(0, index) + s.substring(index + sub.length + 1));
   }
 
   const s = left_.valueOf();

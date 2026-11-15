@@ -18,10 +18,7 @@ const ESCAPE_MAP = {
   "\r": "\\u000D",
 };
 
-const ESCAPE_PATTERN = new RegExp(
-  Object.keys(ESCAPE_MAP).map(escapeRegex).join("|"),
-  "g",
-);
+const ESCAPE_PATTERN = new RegExp(Object.keys(ESCAPE_MAP).map(escapeRegex).join("|"), "g");
 
 function escapeRegex(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");

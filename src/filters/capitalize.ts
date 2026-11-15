@@ -1,18 +1,13 @@
-import { HTMLSafeString } from "../drops/html_safe";
-import { type FilterContext } from "../filter";
+import { HTMLSafeString } from "../drops/html_safe.js";
+import { type FilterContext } from "../filter.js";
 
-export function capitalize(
-  this: FilterContext,
-  left: unknown,
-): string | HTMLSafeString {
+export function capitalize(this: FilterContext, left: unknown): string | HTMLSafeString {
   this.assertArgs(arguments.length, 1);
   const left_ = this.toStringSafe(left, "");
 
   if (left_ instanceof HTMLSafeString) {
     const s = left_.valueOf();
-    return new HTMLSafeString(
-      s.charAt(0).toLocaleUpperCase() + s.slice(1).toLocaleLowerCase(),
-    );
+    return new HTMLSafeString(s.charAt(0).toLocaleUpperCase() + s.slice(1).toLocaleLowerCase());
   }
 
   return new HTMLSafeString(

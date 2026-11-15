@@ -1,9 +1,11 @@
 import { DateTime } from "luxon";
-import { DefaultMap } from "../default_map";
-import type { FilterContext } from "../filter";
-import { isLiquidNumber, isPrimitiveNumber } from "../number";
-import { isString } from "../type_guards";
-import { ArgumentError } from "../errors";
+
+import type { FilterContext } from "../filter.js";
+
+import { DefaultMap } from "../default_map.js";
+import { ArgumentError } from "../errors.js";
+import { isLiquidNumber, isPrimitiveNumber } from "../number.js";
+import { isString } from "../type_guards.js";
 
 const FORMAT_TOKENS = new DefaultMap<string, string>(
   () => "",
@@ -40,10 +42,7 @@ const FORMAT_TOKENS = new DefaultMap<string, string>(
   ],
 );
 
-const RE_DATE_FORMAT = new RegExp(
-  ["%%", ...FORMAT_TOKENS.keys()].join("|"),
-  "g",
-);
+const RE_DATE_FORMAT = new RegExp(["%%", ...FORMAT_TOKENS.keys()].join("|"), "g");
 
 function replaceDateFormat(format: string): string {
   return format.replace(RE_DATE_FORMAT, (match) => FORMAT_TOKENS.get(match));
@@ -76,11 +75,7 @@ function parseDateString(s: string): DateTime {
  * date it will be converted to a string and parsed using one of the common
  * date representation standards.
  */
-export function date(
-  this: FilterContext,
-  left: unknown,
-  format: unknown,
-): string {
+export function date(this: FilterContext, left: unknown, format: unknown): string {
   this.assertArgs(arguments.length, 2);
   if (this.isNil(left)) return "";
   if (this.isNil(format)) return this.toString(left, "");

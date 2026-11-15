@@ -1,5 +1,6 @@
-import type { Environment } from "./environment";
-import { T, type Token } from "./token";
+import type { Environment } from "./environment.js";
+
+import { T, type Token } from "./token.js";
 
 export type StateFn = () => StateFn | null;
 
@@ -19,8 +20,8 @@ export abstract class Lexer {
     this.pos = startIndex;
   }
 
-  static tokenize<L extends Lexer>(
-    this: new (env: Environment, source: string, startIndex?: number) => L,
+  static tokenize(
+    this: new (env: Environment, source: string, startIndex?: number) => Lexer,
     env: Environment,
     source: string,
     startIndex: number = 0,
@@ -56,6 +57,7 @@ export abstract class Lexer {
   }
 
   run(): void {
+    // oxlint-disable-next-line typescript/unbound-method
     let state: StateFn | null = this.scanMarkup;
     while (state) {
       state = state.apply(this);
@@ -75,6 +77,7 @@ export abstract class Lexer {
       this.pos += match[0].length;
       return match[0];
     }
+    return undefined;
   }
 
   abstract scanMarkup(): StateFn | null;
@@ -123,5 +126,6 @@ export abstract class Lexer {
       this.pos = match.index;
       return match;
     }
+    return undefined;
   }
 }

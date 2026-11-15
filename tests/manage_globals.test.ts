@@ -1,4 +1,4 @@
-import { Environment } from "../src/liquidscript";
+import { Environment } from "../src/liquidscript.js";
 
 describe("manage global variables", () => {
   test("environment globals", () => {

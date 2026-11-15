@@ -1,20 +1,16 @@
-import type { Namespace, RenderContext } from "../context";
-import { ForLoop } from "../drops";
-import { NoSuchTemplateError, TemplateNotFoundError } from "../errors";
-import {
-  Name,
-  type Expression,
-  type KeywordArgument,
-  type StringLiteral,
-} from "../expression";
-import { fnv1a32 } from "../fnv";
-import { Scope, type Markup, type Partial } from "../markup";
-import type { OutputBuffer } from "../output";
-import type { Parser } from "../parser";
-import { isNothing, Nothing } from "../runtime";
-import type { Template } from "../template";
-import { T, type Token } from "../token";
-import { isArray } from "../type_guards";
+import type { Namespace, RenderContext } from "../context.js";
+import type { OutputBuffer } from "../output.js";
+import type { Parser } from "../parser.js";
+import type { Template } from "../template.js";
+
+import { ForLoop } from "../drops/index.js";
+import { NoSuchTemplateError, TemplateNotFoundError } from "../errors.js";
+import { Name, type Expression, type KeywordArgument, type StringLiteral } from "../expression.js";
+import { fnv1a32 } from "../fnv.js";
+import { Scope, type Markup, type Partial } from "../markup.js";
+import { isNothing, Nothing } from "../runtime.js";
+import { T, type Token } from "../token.js";
+import { isArray } from "../type_guards.js";
 
 const DISABLED_TAGS = new Set(["include"]);
 
@@ -87,12 +83,9 @@ export class RenderTag implements Markup {
   }
 
   partialSync(staticContext: RenderContext): Partial {
-    const template = staticContext.env.getTemplateSync(
-      this.name.value,
-      undefined,
-      staticContext,
-      { tag: "render" },
-    );
+    const template = staticContext.env.getTemplateSync(this.name.value, undefined, staticContext, {
+      tag: "render",
+    });
 
     const scope: Name[] = this.args.map((arg) => arg.name);
 
@@ -124,12 +117,7 @@ export class RenderTag implements Markup {
     let template: Template;
 
     try {
-      template = await context.env.getTemplate(
-        templateName,
-        undefined,
-        context,
-        { tag: "render" },
-      );
+      template = await context.env.getTemplate(templateName, undefined, context, { tag: "render" });
     } catch (err) {
       if (err instanceof TemplateNotFoundError) {
         // Promote TemplateNotFoundError to NoSuchTemplateError
@@ -144,8 +132,7 @@ export class RenderTag implements Markup {
       throw err;
     }
 
-    const bindKey =
-      this.alias?.value || (template.name.split(".", 1)[0] as string);
+    const bindKey = this.alias?.value || template.name.split(".", 1)[0] || "";
 
     let bindValue: unknown;
 
@@ -206,8 +193,7 @@ export class RenderTag implements Markup {
       throw err;
     }
 
-    const bindKey =
-      this.alias?.value || (template.name.split(".", 1)[0] as string);
+    const bindKey = this.alias?.value || template.name.split(".", 1)[0] || "";
 
     let bindValue: unknown;
 

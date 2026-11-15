@@ -1,4 +1,4 @@
-import { LiquidNumber } from "./number";
+import { LiquidNumber } from "./number.js";
 
 /**
  * A type predicate for the primitive string.
@@ -25,9 +25,7 @@ export function isArray(value: unknown): value is unknown[] {
  */
 export function isObject(value: unknown): value is object {
   const _type = typeof value;
-  return (value !== null && _type === "object") || _type === "function"
-    ? true
-    : false;
+  return (value !== null && _type === "object") || _type === "function";
 }
 
 /**
@@ -62,9 +60,7 @@ export function isBoolean(value: unknown): value is boolean {
  */
 export function isPropertyKey(value: unknown): value is PropertyKey {
   const _type = typeof value;
-  return _type === "string" || _type === "number" || _type === "symbol"
-    ? true
-    : false;
+  return _type === "string" || _type === "number" || _type === "symbol";
 }
 
 /**
@@ -85,8 +81,6 @@ export function isFunction(value: unknown): value is CallableFunction {
   return typeof value === "function";
 }
 
-export function isComparable(
-  value: unknown,
-): value is number | LiquidNumber | string {
+export function isComparable(value: unknown): value is number | LiquidNumber | string {
   return isNumber(value) || isString(value) || value instanceof LiquidNumber;
 }

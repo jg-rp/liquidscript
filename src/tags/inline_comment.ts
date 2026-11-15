@@ -1,14 +1,15 @@
-import type { RenderContext } from "../context";
-import { TemplateSyntaxError } from "../errors";
-import type { Markup } from "../markup";
-import type { OutputBuffer } from "../output";
-import type { Parser } from "../parser";
-import { getTokenValue, T, type Token } from "../token";
+// oxlint-disable no-unused-vars
+import type { RenderContext } from "../context.js";
+import type { Markup } from "../markup.js";
+import type { OutputBuffer } from "../output.js";
+import type { Parser } from "../parser.js";
+
+import { TemplateSyntaxError } from "../errors.js";
+import { getTokenValue, T, type Token } from "../token.js";
 
 export class InlineCommentTag implements Markup {
   readonly blank = true;
 
-  // eslint-disable-next-line sonarjs/slow-regex
   protected static RE_INVALID_INLINE_COMMENT = /\n\s*[^#\s]/m;
 
   readonly tag = "#";
@@ -36,9 +37,7 @@ export class InlineCommentTag implements Markup {
     return new InlineCommentTag(token, text);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async render(context: RenderContext, buffer: OutputBuffer): Promise<void> {}
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   renderSync(context: RenderContext, buffer: OutputBuffer): void {}
 }

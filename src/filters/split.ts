@@ -1,10 +1,6 @@
-import { type FilterContext } from "../filter";
+import { type FilterContext } from "../filter.js";
 
-export function split(
-  this: FilterContext,
-  left: unknown,
-  sep: unknown,
-): string[] {
+export function split(this: FilterContext, left: unknown, sep: unknown): string[] {
   this.assertArgs(arguments.length, 2);
   const left_ = this.toString(left, "");
   if (left_.length === 0) return [];

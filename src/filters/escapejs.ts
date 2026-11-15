@@ -1,5 +1,6 @@
-import { HTMLSafeString } from "../drops/html_safe";
-import type { FilterContext } from "../filter";
+import type { FilterContext } from "../filter.js";
+
+import { HTMLSafeString } from "../drops/html_safe.js";
 
 const ESCAPE_MAP: Record<string, string> = {
   "\\": "\\u005C",
@@ -48,15 +49,9 @@ const ESCAPE_MAP: Record<string, string> = {
   "\x1f": "\\u001F",
 };
 
-const RE_ESCAPE = new RegExp(
-  Object.keys(ESCAPE_MAP).map(escapeRegex).join("|"),
-  "g",
-);
+const RE_ESCAPE = new RegExp(Object.keys(ESCAPE_MAP).map(escapeRegex).join("|"), "g");
 
-export function escapeJS(
-  this: FilterContext,
-  left: unknown,
-): string | HTMLSafeString {
+export function escapeJS(this: FilterContext, left: unknown): string | HTMLSafeString {
   this.assertArgs(arguments.length, 1);
 
   const left_ = this.toStringSafe(left, "").valueOf();

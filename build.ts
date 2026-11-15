@@ -1,5 +1,6 @@
 // Use `bun run dist` to build distribution bundles and emit types.
 import { readFileSync } from "fs";
+
 import pkg from "./package.json" with { type: "json" };
 
 const license = readFileSync("./LICENSE", { encoding: "utf8" });

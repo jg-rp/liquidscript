@@ -1,18 +1,14 @@
-import type { Namespace, RenderContext } from "../context";
-import { TableRowLoop } from "../drops/tablerowloop";
-import { TemplateSyntaxError } from "../errors";
-import { KeywordArgument, Name, type Expression } from "../expression";
-import {
-  renderBlock,
-  renderBlockSync,
-  type Block,
-  type Markup,
-} from "../markup";
-import type { OutputBuffer } from "../output";
-import type { Parser } from "../parser";
-import { T, type Token } from "../token";
-import { isString } from "../type_guards";
-import { BREAK } from "./for";
+import type { Namespace, RenderContext } from "../context.js";
+import type { OutputBuffer } from "../output.js";
+import type { Parser } from "../parser.js";
+
+import { TableRowLoop } from "../drops/tablerowloop.js";
+import { TemplateSyntaxError } from "../errors.js";
+import { KeywordArgument, Name, type Expression } from "../expression.js";
+import { renderBlock, renderBlockSync, type Block, type Markup } from "../markup.js";
+import { T, type Token } from "../token.js";
+import { isString } from "../type_guards.js";
+import { BREAK } from "./for.js";
 
 const END_TABLEROW_BLOCK = new Set(["endtablerow"]);
 
@@ -42,10 +38,7 @@ export class TableRowTag implements Markup {
       parser.eat(T.COMMA);
     }
 
-    const [cols, offset, limit] = this.unpackArgs(
-      parser,
-      parser.parseKeywordArguments(false),
-    );
+    const [cols, offset, limit] = this.unpackArgs(parser, parser.parseKeywordArguments(false));
 
     parser.carryWhitespaceControl();
     parser.eat(T.TAG_END);
@@ -122,10 +115,7 @@ export class TableRowTag implements Markup {
 
     const length = a.length;
 
-    const tablerowloop = new TableRowLoop(
-      length,
-      await context.toInteger(this.cols, length),
-    );
+    const tablerowloop = new TableRowLoop(length, await context.toInteger(this.cols, length));
 
     const namespace: Namespace = { tablerowloop };
 
@@ -160,10 +150,7 @@ export class TableRowTag implements Markup {
     const a = array.slice(offset, offset + limit);
     const length = a.length;
 
-    const tablerowloop = new TableRowLoop(
-      length,
-      context.toIntegerSync(this.cols, length),
-    );
+    const tablerowloop = new TableRowLoop(length, context.toIntegerSync(this.cols, length));
 
     const namespace: Namespace = { tablerowloop };
 

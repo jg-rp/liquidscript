@@ -1,12 +1,8 @@
-import { ArgumentError } from "../errors";
-import { type FilterContext } from "../filter";
-import { Nothing } from "../runtime";
+import { ArgumentError } from "../errors.js";
+import { type FilterContext } from "../filter.js";
+import { Nothing } from "../runtime.js";
 
-export function compact(
-  this: FilterContext,
-  left: unknown,
-  prop?: unknown,
-): unknown[] {
+export function compact(this: FilterContext, left: unknown, prop?: unknown): unknown[] {
   this.assertArgs(arguments.length, 1, 2);
 
   if (prop === undefined) {

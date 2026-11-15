@@ -1,4 +1,4 @@
-import { DefaultMap } from "../src/default_map";
+import { DefaultMap } from "../src/default_map.js";
 
 describe("default map", () => {
   test("map of strings to numbers", () => {
@@ -13,10 +13,7 @@ describe("default map", () => {
   });
 
   test("map of strings to numbers with initializing iterable", () => {
-    const m: DefaultMap<string, number> = new DefaultMap(
-      () => 0,
-      [["foo", 99]],
-    );
+    const m: DefaultMap<string, number> = new DefaultMap(() => 0, [["foo", 99]]);
     expect(m.get("foo")).toBe(99);
     expect(m.get("bar")).toBe(0);
 
@@ -25,14 +22,14 @@ describe("default map", () => {
   });
 
   test("default factory function", () => {
+    // oxlint-disable-next-line unicorn/consistent-function-scoping
     const factory = () => new DefaultMap<string, number>(() => 5);
-    const m: DefaultMap<string, DefaultMap<string, number>> = new DefaultMap(
-      factory,
-    );
+    const m: DefaultMap<string, DefaultMap<string, number>> = new DefaultMap(factory);
     expect(m.get("foo").get("bar")).toBe(5);
   });
 
   test("set default on get", () => {
+    // oxlint-disable-next-line unicorn/consistent-function-scoping
     const factory = (): string[] => [];
     const m: DefaultMap<string, string[]> = new DefaultMap(factory);
     m.get("foo").push("bar");

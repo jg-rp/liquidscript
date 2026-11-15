@@ -1,6 +1,6 @@
-import { Environment, ObjectLoader } from "../src/liquidscript";
-import { RenderContext } from "../src/context";
-import { ResourceLimitError } from "../src/errors";
+import { RenderContext } from "../src/context.js";
+import { ResourceLimitError } from "../src/errors.js";
+import { Environment, ObjectLoader } from "../src/liquidscript.js";
 
 describe("assign score", () => {
   test("assign score limit", async () => {
@@ -32,9 +32,7 @@ describe("assign score", () => {
       foo: "{% assign bar = 'goodbye' %}",
     });
     const env = new Environment({ loader, maxAssignScoreCumulative: 24 });
-    const template = env.parse(
-      "{% assign greeting = 'hello' %}{% render 'foo' %}",
-    );
+    const template = env.parse("{% assign greeting = 'hello' %}{% render 'foo' %}");
     const ctx = new RenderContext(template, {});
 
     await template.renderWithContext(ctx, env.bufferFactory());
@@ -49,9 +47,7 @@ describe("assign score", () => {
       foo: "{% assign bar = 'goodbye' %}",
     });
     const env = new Environment({ loader, maxAssignScoreCumulative: 24 });
-    const template = env.parse(
-      "{% assign greeting = 'hello' %}{% render 'foo' %}",
-    );
+    const template = env.parse("{% assign greeting = 'hello' %}{% render 'foo' %}");
     const ctx = new RenderContext(template, {});
 
     template.renderWithContextSync(ctx, env.bufferFactory());

@@ -1,4 +1,4 @@
-import type { FilterContext } from "../filter";
+import type { FilterContext } from "../filter.js";
 
 export function reject(
   this: FilterContext,

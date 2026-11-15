@@ -1,6 +1,6 @@
-import { assignScoreOf } from "../src/context";
-import { Range } from "../src/drops/range";
-import { Float, Integer } from "../src/number";
+import { assignScoreOf } from "../src/context.js";
+import { Range } from "../src/drops/range.js";
+import { Float, Integer } from "../src/number.js";
 
 describe("assign score of", () => {
   test("number", () => {

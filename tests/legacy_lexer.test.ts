@@ -1,6 +1,6 @@
-import { Environment } from "../src/environment";
-import { LegacyLexer } from "../src/legacy_lexer";
-import { getTokenValue, REVERSE_T } from "../src/token";
+import { Environment } from "../src/environment.js";
+import { LegacyLexer } from "../src/legacy_lexer.js";
+import { getTokenValue, REVERSE_T } from "../src/token.js";
 
 function tokenize(source: string): Array<[string, string]> {
   const env = new Environment();
@@ -15,9 +15,7 @@ describe("tokenize", () => {
   });
 
   test("just text", () => {
-    expect(tokenize("Hello, World!")).toStrictEqual([
-      ["TEXT", "Hello, World!"],
-    ]);
+    expect(tokenize("Hello, World!")).toStrictEqual([["TEXT", "Hello, World!"]]);
   });
 
   test("just output", () => {
@@ -148,9 +146,7 @@ describe("tokenize", () => {
   });
 
   test("raw, whitespace control", () => {
-    expect(
-      tokenize("Hello, {%- raw -%}{{ you }}{%- endraw -%}!"),
-    ).toStrictEqual([
+    expect(tokenize("Hello, {%- raw -%}{{ you }}{%- endraw -%}!")).toStrictEqual([
       ["TEXT", "Hello, "],
       ["TAG_START", "{%"],
       ["WC", "-"],

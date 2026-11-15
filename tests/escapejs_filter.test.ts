@@ -1,4 +1,4 @@
-import { renderSync } from "../src/liquidscript";
+import { renderSync } from "../src/liquidscript.js";
 
 describe("escapejs filter", () => {
   test("script tag", () => {

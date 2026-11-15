@@ -1,5 +1,5 @@
-import { HTMLSafeString } from "../drops/html_safe";
-import { type FilterContext } from "../filter";
+import { HTMLSafeString } from "../drops/html_safe.js";
+import { type FilterContext } from "../filter.js";
 
 export function append(
   this: FilterContext,
@@ -13,8 +13,7 @@ export function append(
 
   if (left_ instanceof HTMLSafeString || right_ instanceof HTMLSafeString) {
     return new HTMLSafeString(
-      HTMLSafeString.escape(left_).valueOf() +
-        HTMLSafeString.escape(right_).valueOf(),
+      HTMLSafeString.escape(left_).valueOf() + HTMLSafeString.escape(right_).valueOf(),
     );
   }
 

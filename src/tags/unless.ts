@@ -1,19 +1,14 @@
-import type { RenderContext } from "../context";
-import { type Expression } from "../expression";
-import { PRECEDENCE_LOWEST } from "../legacy_parser";
-import {
-  isBlankBlock,
-  renderBlock,
-  renderBlockSync,
-  type Block,
-  type Markup,
-} from "../markup";
-import type { OutputBuffer } from "../output";
-import type { Parser } from "../parser";
-import { T, type Token } from "../token";
-import { isString } from "../type_guards";
-import { ElseBlock } from "./else";
-import { IfBlock } from "./if";
+import type { RenderContext } from "../context.js";
+import type { OutputBuffer } from "../output.js";
+import type { Parser } from "../parser.js";
+
+import { type Expression } from "../expression.js";
+import { PRECEDENCE_LOWEST } from "../legacy_parser.js";
+import { isBlankBlock, renderBlock, renderBlockSync, type Block, type Markup } from "../markup.js";
+import { T, type Token } from "../token.js";
+import { isString } from "../type_guards.js";
+import { ElseBlock } from "./else.js";
+import { IfBlock } from "./if.js";
 
 const END_UNLESS_BLOCK = new Set(["else", "elsif", "endunless"]);
 const IF_BLOCKS = new Set(["else", "elsif"]);
@@ -55,9 +50,7 @@ export class UnlessTag implements Markup {
         // Any remaining `else` or `elsif` blocks are guaranteed to be ignored,
         // but we keep them in the AST anyway.
         const nameToken = parser.eatTag("else");
-        blocks.push(
-          new ElseBlock(nameToken, parser.parseBlock(END_UNLESS_BLOCK)),
-        );
+        blocks.push(new ElseBlock(nameToken, parser.parseBlock(END_UNLESS_BLOCK)));
       } else {
         break;
       }
@@ -75,11 +68,7 @@ export class UnlessTag implements Markup {
     const expression = parser.parseExpression(PRECEDENCE_LOWEST, true);
     parser.carryWhitespaceControl();
     parser.eat(T.TAG_END);
-    return new ElsIfBlock(
-      token,
-      expression,
-      parser.parseBlock(END_UNLESS_BLOCK),
-    );
+    return new ElsIfBlock(token, expression, parser.parseBlock(END_UNLESS_BLOCK));
   }
 
   childrenSync(): Markup[] {
@@ -89,14 +78,10 @@ export class UnlessTag implements Markup {
   async render(context: RenderContext, buffer: OutputBuffer): Promise<void> {
     for (const alt of this.alts) {
       if (alt instanceof UnlessBlock) {
-        if (
-          !context.env.isTruthy(await alt.expression.evaluate(context), context)
-        ) {
+        if (!context.env.isTruthy(await alt.expression.evaluate(context), context)) {
           return await alt.render(context, buffer);
         }
-      } else if (
-        context.env.isTruthy(await alt.expression.evaluate(context), context)
-      ) {
+      } else if (context.env.isTruthy(await alt.expression.evaluate(context), context)) {
         return await alt.render(context, buffer);
       }
     }
@@ -105,14 +90,10 @@ export class UnlessTag implements Markup {
   renderSync(context: RenderContext, buffer: OutputBuffer): void {
     for (const alt of this.alts) {
       if (alt instanceof UnlessBlock) {
-        if (
-          !context.env.isTruthy(alt.expression.evaluateSync(context), context)
-        ) {
+        if (!context.env.isTruthy(alt.expression.evaluateSync(context), context)) {
           return alt.renderSync(context, buffer);
         }
-      } else if (
-        context.env.isTruthy(alt.expression.evaluateSync(context), context)
-      ) {
+      } else if (context.env.isTruthy(alt.expression.evaluateSync(context), context)) {
         return alt.renderSync(context, buffer);
       }
     }

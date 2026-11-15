@@ -1,12 +1,8 @@
-import type { FilterContext } from "../filter";
-import { LiquidNumber } from "../number";
+import type { FilterContext } from "../filter.js";
 
-export function find(
-  this: FilterContext,
-  left: unknown,
-  prop: unknown,
-  value?: unknown,
-): unknown {
+import { LiquidNumber } from "../number.js";
+
+export function find(this: FilterContext, left: unknown, prop: unknown, value?: unknown): unknown {
   this.assertArgs(arguments.length, 2, 3);
   const left_ = this.inputArray(left);
 

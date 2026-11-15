@@ -1,7 +1,8 @@
-import { Drop, length } from "../drop";
-import { Undefined } from "../drops/undefined";
-import type { FilterContext } from "../filter";
-import { isArray, isNumeric, isObject, isString } from "../type_guards";
+import type { FilterContext } from "../filter.js";
+
+import { Drop, length } from "../drop.js";
+import { Undefined } from "../drops/undefined.js";
+import { isArray, isNumeric, isObject, isString } from "../type_guards.js";
 
 export function size(this: FilterContext, left: unknown): number {
   this.assertArgs(arguments.length, 1);

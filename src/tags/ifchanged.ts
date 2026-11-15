@@ -1,13 +1,9 @@
-import type { RenderContext } from "../context";
-import {
-  renderBlock,
-  renderBlockSync,
-  type Block,
-  type Markup,
-} from "../markup";
-import type { OutputBuffer } from "../output";
-import type { Parser } from "../parser";
-import { T, type Token } from "../token";
+import type { RenderContext } from "../context.js";
+import type { OutputBuffer } from "../output.js";
+import type { Parser } from "../parser.js";
+
+import { renderBlock, renderBlockSync, type Block, type Markup } from "../markup.js";
+import { T, type Token } from "../token.js";
 
 const END_IFCHANGED_BLOCK = new Set(["endifchanged"]);
 const IFCHANGED = Symbol.for("liquid.tags.ifchanged");
@@ -35,9 +31,7 @@ export class IfChangedTag implements Markup {
     await renderBlock(this.block, context, buf);
     const buffered = buf.join("");
 
-    const last = context.registers.has(IFCHANGED)
-      ? context.registers.get(IFCHANGED)
-      : undefined;
+    const last = context.registers.has(IFCHANGED) ? context.registers.get(IFCHANGED) : undefined;
 
     if (last !== buffered) {
       buffer.push(buffered);
@@ -50,9 +44,7 @@ export class IfChangedTag implements Markup {
     renderBlockSync(this.block, context, buf);
     const buffered = buf.join("");
 
-    const last = context.registers.has(IFCHANGED)
-      ? context.registers.get(IFCHANGED)
-      : undefined;
+    const last = context.registers.has(IFCHANGED) ? context.registers.get(IFCHANGED) : undefined;
 
     if (last !== buffered) {
       buffer.push(buffered);

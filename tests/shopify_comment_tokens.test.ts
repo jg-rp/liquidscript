@@ -5,9 +5,9 @@
  *
  * See https://github.com/Shopify/liquid/blob/main/LICENSE
  */
-import { Environment } from "../src/environment";
-import { LegacyLexer } from "../src/legacy_lexer";
-import { getTokenValue, REVERSE_T } from "../src/token";
+import { Environment } from "../src/environment.js";
+import { LegacyLexer } from "../src/legacy_lexer.js";
+import { getTokenValue, REVERSE_T } from "../src/token.js";
 
 function tokenize(source: string): Array<[string, string]> {
   const env = new Environment();
@@ -74,10 +74,7 @@ describe("tokenize block comment", () => {
       ["TAG_START", ""],
       ["TAG_NAME", "comment"],
       ["TAG_END", ""],
-      [
-        "COMMENT",
-        "\n        comment\n        else\n          echo 123\n        endcomment",
-      ],
+      ["COMMENT", "\n        comment\n        else\n          echo 123\n        endcomment"],
       ["TAG_START", ""],
       ["TAG_NAME", "endcomment"],
       ["TAG_END", ""],
@@ -199,10 +196,7 @@ describe("tokenize block comment", () => {
       ["TAG_START", "{%"],
       ["TAG_NAME", "comment"],
       ["TAG_END", "%}"],
-      [
-        "COMMENT",
-        "\n        {% raw %}\n          {% endcomment %}\n        {% endraw %}\n      ",
-      ],
+      ["COMMENT", "\n        {% raw %}\n          {% endcomment %}\n        {% endraw %}\n      "],
       ["TAG_START", "{%"],
       ["TAG_NAME", "endcomment"],
       ["TAG_END", "%}"],
@@ -220,10 +214,7 @@ describe("tokenize block comment", () => {
       ["TAG_START", "{%"],
       ["TAG_NAME", "comment"],
       ["TAG_END", "%}"],
-      [
-        "UNKNOWN",
-        "\n          {% raw %}\n          {% endcomment %}\n        {% endcomment %}",
-      ],
+      ["UNKNOWN", "\n          {% raw %}\n          {% endcomment %}\n        {% endcomment %}"],
     ]);
   });
 

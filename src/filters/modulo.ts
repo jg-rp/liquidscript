@@ -1,12 +1,9 @@
-import { ArgumentError } from "../errors";
-import type { FilterContext } from "../filter";
-import { ZERO, type LiquidNumber } from "../number";
+import type { FilterContext } from "../filter.js";
 
-export function modulo(
-  this: FilterContext,
-  left: unknown,
-  right: unknown,
-): LiquidNumber {
+import { ArgumentError } from "../errors.js";
+import { ZERO, type LiquidNumber } from "../number.js";
+
+export function modulo(this: FilterContext, left: unknown, right: unknown): LiquidNumber {
   this.assertArgs(arguments.length, 2);
   const divisor = this.toLiquidNumber(right, ZERO);
 

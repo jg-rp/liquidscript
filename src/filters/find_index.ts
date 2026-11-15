@@ -1,5 +1,6 @@
-import type { FilterContext } from "../filter";
-import { LiquidNumber } from "../number";
+import type { FilterContext } from "../filter.js";
+
+import { LiquidNumber } from "../number.js";
 
 export function findIndex(
   this: FilterContext,

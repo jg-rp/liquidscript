@@ -1,4 +1,4 @@
-import { Nothing } from "./runtime";
+import { Nothing } from "./runtime.js";
 
 export const ChainKeys = Symbol("ChainKeys");
 export const ChainPush = Symbol("ChainPush");
@@ -33,16 +33,12 @@ export class ReadOnlyChainMap {
   private readonly _maps: Record<string, unknown>[];
 
   constructor(...maps: Readonly<Record<string, unknown>>[]) {
-    this._maps = maps.filter(Boolean).reverse() as Record<string, unknown>[];
+    // oxlint-disable-next-line unicorn/no-array-reverse
+    this._maps = maps.filter(Boolean).reverse();
 
     return new Proxy(this, {
       get(target, prop, receiver) {
-        if (
-          prop === ChainKeys ||
-          prop === ChainPush ||
-          prop === ChainPop ||
-          prop === ChainSize
-        ) {
+        if (prop === ChainKeys || prop === ChainPush || prop === ChainPop || prop === ChainSize) {
           const value = target[prop as keyof typeof target];
           return typeof value === "function" ? value.bind(target) : value;
         }
@@ -105,27 +101,19 @@ export class ReadOnlyChainMap {
       },
 
       set() {
-        throw new TypeError(
-          "ReadOnlyChainMap does not support property assignment",
-        );
+        throw new TypeError("ReadOnlyChainMap does not support property assignment");
       },
 
       deleteProperty() {
-        throw new TypeError(
-          "ReadOnlyChainMap does not support property deletion",
-        );
+        throw new TypeError("ReadOnlyChainMap does not support property deletion");
       },
 
       defineProperty() {
-        throw new TypeError(
-          "ReadOnlyChainMap does not support property assignment",
-        );
+        throw new TypeError("ReadOnlyChainMap does not support property assignment");
       },
 
       setPrototypeOf() {
-        throw new TypeError(
-          "ReadOnlyChainMap does not support setting it prototype",
-        );
+        throw new TypeError("ReadOnlyChainMap does not support setting it prototype");
       },
     });
   }
@@ -154,8 +142,7 @@ export class ReadOnlyChainMap {
     for (let i = this._maps.length - 1; i >= 0; i--) {
       const map = this._maps[i] as Record<string, unknown>;
 
-      const keys =
-        map instanceof ReadOnlyChainMap ? map[ChainKeys]() : Object.keys(map);
+      const keys = map instanceof ReadOnlyChainMap ? map[ChainKeys]() : Object.keys(map);
 
       for (const key of keys) {
         uniqueKeys.add(key);

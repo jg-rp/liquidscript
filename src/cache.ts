@@ -15,9 +15,9 @@ export class LRUCache<K, V> extends Map<K, V> {
 
   override get(key: K): V | undefined {
     const val = super.get(key);
-    if (this.has(key)) {
+    if (val !== undefined && this.has(key)) {
       this.delete(key);
-      this.set(key, val as V);
+      this.set(key, val);
     }
     return val;
   }

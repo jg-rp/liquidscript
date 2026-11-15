@@ -1,11 +1,5 @@
-import {
-  ChainKeys,
-  ChainPop,
-  ChainPush,
-  ChainSize,
-  ReadOnlyChainMap,
-} from "../src/chain_map";
-import { Nothing } from "../src/runtime";
+import { ChainKeys, ChainPop, ChainPush, ChainSize, ReadOnlyChainMap } from "../src/chain_map.js";
+import { Nothing } from "../src/runtime.js";
 
 describe("read only chain map", () => {
   test("empty chain", () => {
@@ -102,11 +96,7 @@ describe("read only chain map", () => {
     const finalScope = new ReadOnlyChainMap(requestContext, coreChain);
 
     expect(finalScope.region).toStrictEqual("us-east");
-    expect(finalScope[ChainKeys]()).toStrictEqual([
-      "requestId",
-      "environment",
-      "region",
-    ]);
+    expect(finalScope[ChainKeys]()).toStrictEqual(["requestId", "environment", "region"]);
   });
 
   test("read only", () => {

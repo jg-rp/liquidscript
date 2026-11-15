@@ -1,18 +1,13 @@
-import type { RenderContext } from "../context";
-import type { Expression } from "../expression";
-import { PRECEDENCE_LOWEST } from "../legacy_parser";
-import {
-  isBlankBlock,
-  renderBlock,
-  renderBlockSync,
-  type Block,
-  type Markup,
-} from "../markup";
-import type { OutputBuffer } from "../output";
-import type { Parser } from "../parser";
-import { T, type Token, type TokenKind } from "../token";
-import { isString } from "../type_guards";
-import { ElseBlock } from "./else";
+import type { RenderContext } from "../context.js";
+import type { Expression } from "../expression.js";
+import type { OutputBuffer } from "../output.js";
+import type { Parser } from "../parser.js";
+
+import { PRECEDENCE_LOWEST } from "../legacy_parser.js";
+import { isBlankBlock, renderBlock, renderBlockSync, type Block, type Markup } from "../markup.js";
+import { T, type Token, type TokenKind } from "../token.js";
+import { isString } from "../type_guards.js";
+import { ElseBlock } from "./else.js";
 
 const END_CASE_BLOCK = new Set(["endcase", "when", "else"]);
 const CASE_BLOCKS = new Set(["when", "else"]);
@@ -58,9 +53,7 @@ export class CaseTag implements Markup {
         blocks.push(this.parseWhen(parser));
       } else if (tagName === "else") {
         const nameToken = parser.eatTag("else");
-        blocks.push(
-          new ElseBlock(nameToken, parser.parseBlock(END_CASE_BLOCK)),
-        );
+        blocks.push(new ElseBlock(nameToken, parser.parseBlock(END_CASE_BLOCK)));
       } else {
         break;
       }
@@ -114,14 +107,7 @@ export class CaseTag implements Markup {
       }
 
       for (const expr of block.right) {
-        if (
-          context.env.isEqual(
-            left,
-            await expr.evaluate(context),
-            context,
-            expr.span,
-          )
-        ) {
+        if (context.env.isEqual(left, await expr.evaluate(context), context, expr.span)) {
           alt = false;
           await block.render(context, buffer);
         }
@@ -142,14 +128,7 @@ export class CaseTag implements Markup {
       }
 
       for (const expr of block.right) {
-        if (
-          context.env.isEqual(
-            left,
-            expr.evaluateSync(context),
-            context,
-            expr.span,
-          )
-        ) {
+        if (context.env.isEqual(left, expr.evaluateSync(context), context, expr.span)) {
           alt = false;
           block.renderSync(context, buffer);
         }

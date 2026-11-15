@@ -1,27 +1,17 @@
-import type { Namespace, RenderContext } from "../context";
-import { TemplateSyntaxError } from "../errors";
-import {
-  KeywordArgument,
-  Name,
-  Variable,
-  type Expression,
-} from "../expression";
-import {
-  isBlankBlock,
-  renderBlock,
-  renderBlockSync,
-  type Block,
-  type Markup,
-} from "../markup";
-import type { Parser } from "../parser";
-import { T, type Token } from "../token";
-import { isString } from "../type_guards";
-import { ForLoop } from "../drops";
-import { Nothing } from "../runtime";
-import { Drop } from "../drop";
-import * as drop from "../drop";
-import { Undefined } from "../drops/undefined";
-import type { OutputBuffer } from "../output";
+import type { Namespace, RenderContext } from "../context.js";
+import type { OutputBuffer } from "../output.js";
+import type { Parser } from "../parser.js";
+
+import { Drop } from "../drop.js";
+import * as drop from "../drop.js";
+import { ForLoop } from "../drops/index.js";
+import { Undefined } from "../drops/undefined.js";
+import { TemplateSyntaxError } from "../errors.js";
+import { KeywordArgument, Name, Variable, type Expression } from "../expression.js";
+import { isBlankBlock, renderBlock, renderBlockSync, type Block, type Markup } from "../markup.js";
+import { Nothing } from "../runtime.js";
+import { T, type Token } from "../token.js";
+import { isString } from "../type_guards.js";
 
 const END_FOR_BLOCK = new Set(["else", "endfor"]);
 const FOR_STACK = Symbol.for("liquid.tags.for");
@@ -55,10 +45,7 @@ export class ForTag implements Markup {
       parser.eat(T.COMMA);
     }
 
-    const [reversed, offset, limit] = this.unpackArgs(
-      parser,
-      parser.parseArguments(false),
-    );
+    const [reversed, offset, limit] = this.unpackArgs(parser, parser.parseArguments(false));
 
     parser.carryWhitespaceControl();
     parser.eat(T.TAG_END);
@@ -75,8 +62,7 @@ export class ForTag implements Markup {
     parser.eatEmptyTag("endfor");
 
     const blank = isBlankBlock(block) && (!_default || isBlankBlock(_default));
-    if (blank && _default)
-      _default = _default.filter((node) => !isString(node));
+    if (blank && _default) _default = _default.filter((node) => !isString(node));
 
     return new ForTag(
       token,
@@ -174,19 +160,14 @@ export class ForTag implements Markup {
     limit: unknown,
     context: RenderContext,
   ): Promise<Drop> {
-    const [normalizedOffset, normalizedLimit, offsets, offsetKey] =
-      this.normalizedOffsetAndLimit(
-        offset,
-        limit,
-        sequence[drop.length](),
-        context,
-      );
-
-    const it = await sequence[drop.slice](
-      normalizedOffset,
-      normalizedLimit,
-      this.reversed,
+    const [normalizedOffset, normalizedLimit, offsets, offsetKey] = this.normalizedOffsetAndLimit(
+      offset,
+      limit,
+      sequence[drop.length](),
+      context,
     );
+
+    const it = await sequence[drop.slice](normalizedOffset, normalizedLimit, this.reversed);
 
     offsets.set(offsetKey, normalizedOffset + it[drop.length]());
     return it;
@@ -198,19 +179,14 @@ export class ForTag implements Markup {
     limit: unknown,
     context: RenderContext,
   ): Drop {
-    const [normalizedOffset, normalizedLimit, offsets, offsetKey] =
-      this.normalizedOffsetAndLimit(
-        offset,
-        limit,
-        sequence[drop.length](),
-        context,
-      );
-
-    const it = sequence[drop.sliceSync](
-      normalizedOffset,
-      normalizedLimit,
-      this.reversed,
+    const [normalizedOffset, normalizedLimit, offsets, offsetKey] = this.normalizedOffsetAndLimit(
+      offset,
+      limit,
+      sequence[drop.length](),
+      context,
     );
+
+    const it = sequence[drop.sliceSync](normalizedOffset, normalizedLimit, this.reversed);
 
     offsets.set(offsetKey, normalizedOffset + it[drop.length]());
     return it;
@@ -222,10 +198,7 @@ export class ForTag implements Markup {
     length: number,
     context: RenderContext,
   ): [number, number | undefined, Map<string, number>, string] {
-    const offsets = context.getRegister(
-      FOR_STACK,
-      () => new Map<string, number>(),
-    );
+    const offsets = context.getRegister(FOR_STACK, () => new Map<string, number>());
 
     const offsetKey = `${this.name.value}-${this.expression}`;
 
@@ -235,17 +208,12 @@ export class ForTag implements Markup {
     if (offset instanceof Undefined && offset.path === "continue") {
       normalizedOffset = offsets.get(offsetKey) as number;
     } else if (offset !== undefined) {
-      normalizedOffset = context.env.toInteger(
-        offset,
-        context,
-        this.expression.span,
-      );
+      normalizedOffset = context.env.toInteger(offset, context, this.expression.span);
     }
 
     if (limit !== undefined) {
       normalizedLimit =
-        normalizedOffset +
-        context.env.toInteger(limit, context, this.expression.span);
+        normalizedOffset + context.env.toInteger(limit, context, this.expression.span);
     }
 
     return [normalizedOffset, normalizedLimit, offsets, offsetKey];
@@ -266,9 +234,7 @@ export class ForTag implements Markup {
     context: RenderContext,
     buffer: OutputBuffer,
   ): Promise<void> {
-    const offset = this.offset
-      ? await this.offset.evaluate(context)
-      : undefined;
+    const offset = this.offset ? await this.offset.evaluate(context) : undefined;
 
     const limit = this.limit ? await this.limit.evaluate(context) : undefined;
 
@@ -322,11 +288,7 @@ export class ForTag implements Markup {
     }
   }
 
-  private renderForArraySync(
-    target: unknown,
-    context: RenderContext,
-    buffer: OutputBuffer,
-  ): void {
+  private renderForArraySync(target: unknown, context: RenderContext, buffer: OutputBuffer): void {
     const offset = this.offset ? this.offset.evaluateSync(context) : undefined;
     const limit = this.limit ? this.limit.evaluateSync(context) : undefined;
 
@@ -384,9 +346,7 @@ export class ForTag implements Markup {
     context: RenderContext,
     buffer: OutputBuffer,
   ): Promise<void> {
-    const offset = this.offset
-      ? await this.offset.evaluate(context)
-      : undefined;
+    const offset = this.offset ? await this.offset.evaluate(context) : undefined;
 
     const limit = this.limit ? await this.limit.evaluate(context) : undefined;
     const it = await this.lazySlice(target, offset, limit, context);
@@ -430,11 +390,7 @@ export class ForTag implements Markup {
     }
   }
 
-  private renderForIterableSync(
-    target: Drop,
-    context: RenderContext,
-    buffer: OutputBuffer,
-  ): void {
+  private renderForIterableSync(target: Drop, context: RenderContext, buffer: OutputBuffer): void {
     const offset = this.offset ? this.offset.evaluateSync(context) : undefined;
     const limit = this.limit ? this.limit.evaluateSync(context) : undefined;
     const it = this.lazySliceSync(target, offset, limit, context);
@@ -498,12 +454,17 @@ export class ForTag implements Markup {
     limit: unknown,
     context: RenderContext,
   ): unknown[] {
-    const [normalizedOffset, normalizedLimit, offsets, offsetKey] =
-      this.normalizedOffsetAndLimit(offset, limit, target.length, context);
+    const [normalizedOffset, normalizedLimit, offsets, offsetKey] = this.normalizedOffsetAndLimit(
+      offset,
+      limit,
+      target.length,
+      context,
+    );
 
     const result = target.slice(normalizedOffset, normalizedLimit);
 
     offsets.set(offsetKey, normalizedOffset + result.length);
+    // oxlint-disable-next-line unicorn/no-array-reverse
     return this.reversed ? result.reverse() : result;
   }
 }

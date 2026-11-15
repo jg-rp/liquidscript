@@ -1,16 +1,14 @@
-import { Environment } from "../src/environment";
-import { WithTag } from "../src/tags";
+import { Environment } from "../src/environment.js";
+import { WithTag } from "../src/tags/index.js";
 
 describe("with tag", () => {
   const env = new Environment();
   env.tags["with"] = WithTag;
 
   test("block scoped variable", async () => {
-    const template = env.parse(
-      "{{ x }}{% with x: 'foo' %}{{ x }}{% endwith %}{{ x }}",
-    );
+    const template = env.parse("{{ x }}{% with x: 'foo' %}{{ x }}{% endwith %}{{ x }}");
     expect(template.renderSync()).toBe("foo");
-    expect(template.render()).resolves.toBe("foo");
+    void expect(template.render()).resolves.toBe("foo");
   });
 
   test("block scoped alias", async () => {
@@ -23,17 +21,15 @@ describe("with tag", () => {
     );
     const data = { collection: { products: [{ title: "A Shoe" }] } };
     expect(template.renderSync(data)).toBe("A ShoeA Shoe");
-    expect(template.render(data)).resolves.toBe("A ShoeA Shoe");
+    void expect(template.render(data)).resolves.toBe("A ShoeA Shoe");
   });
 
   test("multiple block scoped variables", async () => {
     const template = env.parse(
-      "{% with a: 1, b: 3.4 %}" +
-        "{{ a }} + {{ b }} = {{ a | plus: b }}" +
-        "{% endwith %}",
+      "{% with a: 1, b: 3.4 %}{{ a }} + {{ b }} = {{ a | plus: b }}{% endwith %}",
     );
     expect(template.renderSync()).toBe("1 + 3.4 = 4.4");
-    expect(template.render()).resolves.toBe("1 + 3.4 = 4.4");
+    void expect(template.render()).resolves.toBe("1 + 3.4 = 4.4");
   });
 
   test("loop interrupt inside with block", async () => {
@@ -48,6 +44,6 @@ describe("with tag", () => {
         "{{ a | upcase }}",
     );
     expect(template.renderSync()).toBe("hello");
-    expect(template.render()).resolves.toBe("hello");
+    void expect(template.render()).resolves.toBe("hello");
   });
 });

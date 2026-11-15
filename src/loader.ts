@@ -1,6 +1,6 @@
-import type { Namespace, RenderContext } from "./context";
-import type { Environment } from "./environment";
-import type { Template } from "./template";
+import type { Namespace, RenderContext } from "./context.js";
+import type { Environment } from "./environment.js";
+import type { Template } from "./template.js";
 
 /**
  * Template source text and meta data.

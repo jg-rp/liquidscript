@@ -1,7 +1,7 @@
-import { Range } from "../drops/range";
-import { Undefined } from "../drops/undefined";
-import { type FilterContext } from "../filter";
-import { isArray, isString } from "../type_guards";
+import { Range } from "../drops/range.js";
+import { Undefined } from "../drops/undefined.js";
+import { type FilterContext } from "../filter.js";
+import { isArray, isString } from "../type_guards.js";
 
 export function last(this: FilterContext, left: unknown): unknown {
   this.assertArgs(arguments.length, 1);

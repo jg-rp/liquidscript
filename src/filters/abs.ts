@@ -1,5 +1,5 @@
-import { type FilterContext } from "../filter";
-import { LiquidNumber, ZERO } from "../number";
+import { type FilterContext } from "../filter.js";
+import { LiquidNumber, ZERO } from "../number.js";
 
 /**
  * Return the absolute value of a number. Given a value that can't be cast to

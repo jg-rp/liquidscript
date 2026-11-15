@@ -1,28 +1,24 @@
-import type { Namespace, RenderContext } from "../context";
-import { DefaultMap } from "../default_map";
-import { containsSync, dispatch, dispatchSync, Drop } from "../drop";
+import type { Namespace, RenderContext } from "../context.js";
+import type { Block, Markup } from "../markup.js";
+import type { OutputBuffer } from "../output.js";
+import type { Parser } from "../parser.js";
+import type { Template } from "../template.js";
+
+import { DefaultMap } from "../default_map.js";
+import { containsSync, dispatch, dispatchSync, Drop } from "../drop.js";
 import {
   ArgumentError,
   NoSuchTemplateError,
   RequiredBlockError,
   TemplateInheritanceError,
   TemplateNotFoundError,
-} from "../errors";
-import {
-  Name,
-  Variable,
-  type Expression,
-  type KeywordArgument,
-} from "../expression";
-import { fnv1a32 } from "../fnv";
-import type { Block, Markup } from "../markup";
-import { type Partial, renderBlock, renderBlockSync, Scope } from "../markup";
-import type { OutputBuffer } from "../output";
-import type { Parser } from "../parser";
-import { Nothing } from "../runtime";
-import type { Template } from "../template";
-import { T, type Token } from "../token";
-import { isString } from "../type_guards";
+} from "../errors.js";
+import { Name, Variable, type Expression, type KeywordArgument } from "../expression.js";
+import { fnv1a32 } from "../fnv.js";
+import { type Partial, renderBlock, renderBlockSync, Scope } from "../markup.js";
+import { Nothing } from "../runtime.js";
+import { T, type Token } from "../token.js";
+import { isString } from "../type_guards.js";
 
 export const EXTENDS_STACK = Symbol.for("liquid.tags.extends");
 export const STOP_RENDER = Symbol.for("liquid.runtime.stop");
@@ -101,12 +97,9 @@ export class ExtendsTag implements Markup {
   }
 
   partialSync(staticContext: RenderContext): Partial {
-    const template = staticContext.env.getTemplateSync(
-      this.name.value,
-      undefined,
-      staticContext,
-      { tag: "extends" },
-    );
+    const template = staticContext.env.getTemplateSync(this.name.value, undefined, staticContext, {
+      tag: "extends",
+    });
 
     return {
       template,
@@ -120,10 +113,7 @@ export class ExtendsTag implements Markup {
    * Visit all templates in the inheritance chain and build a stack for each
    * `block` tag.
    */
-  protected async stackBlocks(
-    context: RenderContext,
-    template: Template,
-  ): Promise<Template> {
+  protected async stackBlocks(context: RenderContext, template: Template): Promise<Template> {
     const stacks = context.getRegister(
       EXTENDS_STACK,
       () => new DefaultMap<string, ExtendsStackItem[]>(() => []),
@@ -132,10 +122,7 @@ export class ExtendsTag implements Markup {
     const seenExtends: Set<string> = new Set();
 
     const visit = async (template_: Template): Promise<Template | null> => {
-      const [extendsNodes, blockNodes] = this.inheritanceNodes(
-        context,
-        template_,
-      );
+      const [extendsNodes, blockNodes] = this.inheritanceNodes(context, template_);
 
       const seenBlocks: Set<string> = new Set();
 
@@ -186,12 +173,9 @@ export class ExtendsTag implements Markup {
       seenExtends.add(extendsNode.name.value);
 
       try {
-        return await context.env.getTemplate(
-          extendsNode.name.value,
-          {},
-          context,
-          { tag: "extends" },
-        );
+        return await context.env.getTemplate(extendsNode.name.value, {}, context, {
+          tag: "extends",
+        });
       } catch (err) {
         if (err instanceof TemplateNotFoundError) {
           // Promote TemplateNotFoundError to NoSuchTemplateError
@@ -217,10 +201,7 @@ export class ExtendsTag implements Markup {
     return base as Template;
   }
 
-  protected stackBlocksSync(
-    context: RenderContext,
-    template: Template,
-  ): Template {
+  protected stackBlocksSync(context: RenderContext, template: Template): Template {
     const stacks = context.getRegister(
       EXTENDS_STACK,
       () => new DefaultMap<string, ExtendsStackItem[]>(() => []),
@@ -229,10 +210,7 @@ export class ExtendsTag implements Markup {
     const seenExtends: Set<string> = new Set();
 
     const visit = (template_: Template): Template | null => {
-      const [extendsNodes, blockNodes] = this.inheritanceNodes(
-        context,
-        template_,
-      );
+      const [extendsNodes, blockNodes] = this.inheritanceNodes(context, template_);
 
       const seenBlocks: Set<string> = new Set();
 
@@ -283,14 +261,9 @@ export class ExtendsTag implements Markup {
       seenExtends.add(extendsNode.name.value);
 
       try {
-        return context.env.getTemplateSync(
-          extendsNode.name.value,
-          {},
-          context,
-          {
-            tag: "extends",
-          },
-        );
+        return context.env.getTemplateSync(extendsNode.name.value, {}, context, {
+          tag: "extends",
+        });
       } catch (err) {
         if (err instanceof TemplateNotFoundError) {
           // Promote TemplateNotFoundError to NoSuchTemplateError
@@ -371,10 +344,7 @@ export class BlockTag implements Markup {
     return new BlockTag(token, name, block, required);
   }
 
-  static unpackArgs(
-    parser: Parser,
-    args: Array<Expression | KeywordArgument>,
-  ): boolean {
+  static unpackArgs(parser: Parser, args: Array<Expression | KeywordArgument>): boolean {
     let required = false;
 
     for (const arg of args) {
@@ -523,10 +493,7 @@ class BlockDrop extends Drop {
     return obj === "super";
   }
 
-  override async [dispatch](
-    name: string,
-    context: RenderContext,
-  ): Promise<unknown> {
+  override async [dispatch](name: string, context: RenderContext): Promise<unknown> {
     if (name !== "super") {
       return Nothing;
     }
@@ -537,17 +504,10 @@ class BlockDrop extends Drop {
 
     const buffer = context.env.bufferFactory();
     const namespace: Namespace = Object.create(null);
-    namespace["block"] = new BlockDrop(
-      this.parent.template.name,
-      this.parent.parent,
-    );
+    namespace["block"] = new BlockDrop(this.parent.template.name, this.parent.parent);
 
     await context.extend(namespace, async () => {
-      await renderBlock(
-        (this.parent as ExtendsStackItem).block.block,
-        context,
-        buffer,
-      );
+      await renderBlock((this.parent as ExtendsStackItem).block.block, context, buffer);
     });
 
     return buffer.join("");
@@ -564,17 +524,10 @@ class BlockDrop extends Drop {
 
     const buffer = context.env.bufferFactory();
     const namespace: Namespace = Object.create(null);
-    namespace["block"] = new BlockDrop(
-      this.parent.template.name,
-      this.parent.parent,
-    );
+    namespace["block"] = new BlockDrop(this.parent.template.name, this.parent.parent);
 
     context.extendSync(namespace, () => {
-      renderBlockSync(
-        (this.parent as ExtendsStackItem).block.block,
-        context,
-        buffer,
-      );
+      renderBlockSync((this.parent as ExtendsStackItem).block.block, context, buffer);
     });
 
     return buffer.join("");

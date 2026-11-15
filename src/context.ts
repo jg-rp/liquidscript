@@ -1,8 +1,14 @@
-/* eslint-disable sonarjs/cognitive-complexity */
-import type { Environment } from "./environment";
-import { Nothing } from "./runtime";
-import { Drop } from "./drop";
-import type { Template } from "./template";
+import type { ForLoop } from "./drops/forloop.js";
+import type { Environment } from "./environment.js";
+import type { Expression } from "./expression.js";
+import type { Template } from "./template.js";
+
+import { ChainPop, ChainPush, ReadOnlyChainMap } from "./chain_map.js";
+import { Drop } from "./drop.js";
+import * as drop from "./drop.js";
+import { ContextDepthError, ResourceLimitError } from "./errors.js";
+import { LiquidNumber } from "./number.js";
+import { Nothing } from "./runtime.js";
 import {
   isArray,
   isFunction,
@@ -12,13 +18,7 @@ import {
   isObject,
   isPropertyKey,
   isString,
-} from "./type_guards";
-import type { ForLoop } from "./drops";
-import * as drop from "./drop";
-import type { Expression } from "./expression";
-import { LiquidNumber } from "./number";
-import { ContextDepthError, ResourceLimitError } from "./errors";
-import { ChainPop, ChainPush, ReadOnlyChainMap } from "./chain_map";
+} from "./type_guards.js";
 
 /**
  * A mapping of template variable names to values.
@@ -91,7 +91,7 @@ export class RenderContext {
   /**
    * The namespace for `{% increment %}` and `{% decrement %}`.
    */
-  private counters: Namespace = Object.create(null);
+  private counters: Record<string, number> = Object.create(null);
 
   /**
    * Names of tags that are disallowed in this context.
@@ -168,11 +168,7 @@ export class RenderContext {
     // after they've been "merged".
     //
     // Scopes are searched from right to left. New scopes are push on the right.
-    this.scopes = new ReadOnlyChainMap(
-      this.locals,
-      this.globals,
-      this.counters,
-    );
+    this.scopes = new ReadOnlyChainMap(this.locals, this.globals, this.counters);
 
     this.disabledTags = options?.disabledTags;
     this.contextDepth = options?.contextDepth ?? 0;
@@ -189,8 +185,7 @@ export class RenderContext {
       this.assignScore += score;
       this.assignScoreCumulative += score;
       if (
-        (this.env.maxAssignScore &&
-          this.assignScore > this.env.maxAssignScore) ||
+        (this.env.maxAssignScore && this.assignScore > this.env.maxAssignScore) ||
         (this.env.maxAssignScoreCumulative &&
           this.assignScoreCumulative > this.env.maxAssignScoreCumulative)
       ) {
@@ -207,10 +202,7 @@ export class RenderContext {
    * The caller is responsible for updating renderScoreCumulative when the new
    * context is no longer needed.
    */
-  copy(
-    namespace: Record<string, unknown>,
-    options: ContextCopyOptions = {},
-  ): RenderContext {
+  copy(namespace: Record<string, unknown>, options: ContextCopyOptions = {}): RenderContext {
     this.throwForContextDepth();
     let globals: Namespace;
 
@@ -238,7 +230,7 @@ export class RenderContext {
   }
 
   decrement(name: string): number {
-    let val = this.counters[name] as number | undefined;
+    let val = this.counters[name];
 
     if (val === undefined) {
       val = 0;
@@ -305,11 +297,7 @@ export class RenderContext {
    * templates share render context state, with additional partial-scoped
    * variables.
    */
-  extendSync(
-    namespace: Record<string, unknown>,
-    callback: () => void,
-    template?: Template,
-  ) {
+  extendSync(namespace: Record<string, unknown>, callback: () => void, template?: Template) {
     this.throwForContextDepth();
 
     const originalAssignScore = this.assignScore;
@@ -348,7 +336,7 @@ export class RenderContext {
   }
 
   increment(name: string): number {
-    let val = this.counters[name] as number | undefined;
+    let val = this.counters[name];
 
     if (val === undefined) {
       val = 0;
@@ -371,10 +359,7 @@ export class RenderContext {
    * exist, the special `Nothing` value is returned along with the index of
    * the last segment to be successfully resolved.
    */
-  async resolvePath(
-    obj: unknown,
-    segments: unknown[],
-  ): Promise<[unknown, number]> {
+  async resolvePath(obj: unknown, segments: unknown[]): Promise<[unknown, number]> {
     let segmentIndex = -1;
 
     for (let segment of segments) {
@@ -492,9 +477,7 @@ export class RenderContext {
 
   private throwForContextDepth(): void {
     if (this.contextDepth + 1 > this.env.maxContextDepth) {
-      throw new ContextDepthError(
-        "maximum context depth reached, possible recursive render",
-      );
+      throw new ContextDepthError("maximum context depth reached, possible recursive render");
     }
   }
 
@@ -511,34 +494,22 @@ export class RenderContext {
    * Evaluate `expression` and coerce the result to an array.
    */
   toArraySync(expression: Expression | undefined): unknown[] {
-    return expression
-      ? this.env.toArray(expression.evaluateSync(this), this, expression.span)
-      : [];
+    return expression ? this.env.toArray(expression.evaluateSync(this), this, expression.span) : [];
   }
 
   /**
    * Evaluate `expression` and coerce the result to an integer.
    */
-  async toInteger<T>(
-    expression: Expression | undefined,
-    default_: T,
-  ): Promise<number | T> {
+  async toInteger<T>(expression: Expression | undefined, default_: T): Promise<number | T> {
     return expression
-      ? this.env.toInteger(
-          await expression.evaluate(this),
-          this,
-          expression.span,
-        )
+      ? this.env.toInteger(await expression.evaluate(this), this, expression.span)
       : default_;
   }
 
   /**
    * Evaluate `expression` and coerce the result to an integer.
    */
-  toIntegerSync<T>(
-    expression: Expression | undefined,
-    default_: T,
-  ): number | T {
+  toIntegerSync<T>(expression: Expression | undefined, default_: T): number | T {
     return expression
       ? this.env.toInteger(expression.evaluateSync(this), this, expression.span)
       : default_;
@@ -558,10 +529,7 @@ function normalizeIndex(index: unknown, length: number): number | undefined {
  * Return true of `obj` or an object in the prototype chain of `obj` contains `key`.
  * Excludes `Object.prototype` and function valued properties. Getters are OK.
  */
-function isNonFunctionProperty(
-  obj: object,
-  key: unknown,
-): key is keyof typeof obj {
+function isNonFunctionProperty(obj: object, key: unknown): key is keyof typeof obj {
   if (!isPropertyKey(key)) return false;
 
   for (let p = obj; p && p !== Object.prototype; p = Object.getPrototypeOf(p)) {
@@ -627,7 +595,7 @@ function resolveStringSegment(obj: string, segment: unknown): unknown {
 
 function resolveObjectSegment(obj: object, segment: unknown): unknown {
   if (isNonFunctionProperty(obj, segment)) {
-    return obj[segment as keyof typeof obj];
+    return obj[segment];
   }
 
   switch (segment) {

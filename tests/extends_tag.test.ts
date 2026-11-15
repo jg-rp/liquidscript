@@ -1,9 +1,10 @@
 import { readFileSync } from "fs";
-import { Environment } from "../src/environment";
-import { BlockTag } from "../src/tags";
-import { ExtendsTag } from "../src/tags";
-import { ObjectLoader } from "../src/loaders";
-import { LiquidError } from "../src/errors";
+
+import { Environment } from "../src/environment.js";
+import { LiquidError } from "../src/errors.js";
+import { ObjectLoader } from "../src/loaders/index.js";
+import { BlockTag } from "../src/tags/index.js";
+import { ExtendsTag } from "../src/tags/index.js";
 
 type Case = {
   name: string;

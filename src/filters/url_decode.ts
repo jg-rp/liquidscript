@@ -1,4 +1,4 @@
-import type { FilterContext } from "../filter";
+import type { FilterContext } from "../filter.js";
 
 export function urlDecode(this: FilterContext, left: unknown): string {
   this.assertArgs(arguments.length, 1);

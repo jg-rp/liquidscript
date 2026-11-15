@@ -1,14 +1,8 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import type { RenderContext } from "../context";
-import {
-  Drop,
-  equals,
-  toLiquid,
-  toLiquidSync,
-  type ContextHint,
-} from "../drop";
-import { isArray, isObject, isString } from "../type_guards";
-import { Blank } from "./blank";
+import type { RenderContext } from "../context.js";
+
+import { Drop, equals, toLiquid, toLiquidSync, type ContextHint } from "../drop.js";
+import { isArray, isObject, isString } from "../type_guards.js";
+import { Blank } from "./blank.js";
 
 export class Empty extends Drop {
   override [equals](obj: unknown, context: RenderContext): boolean {
@@ -17,17 +11,13 @@ export class Empty extends Drop {
     if (isString(obj) || isArray(obj)) return !obj.length;
     if (obj instanceof Map || obj instanceof Set) return obj.size === 0;
     if (isObject(obj)) {
-      // eslint-disable-next-line sonarjs/no-unused-vars
       for (const _ in obj) return false;
       return true;
     }
     return false;
   }
 
-  override async [toLiquid](
-    hint: ContextHint,
-    context?: RenderContext,
-  ): Promise<unknown> {
+  override async [toLiquid](hint: ContextHint, context?: RenderContext): Promise<unknown> {
     return this[toLiquidSync](hint, context);
   }
 

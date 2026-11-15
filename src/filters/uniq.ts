@@ -1,10 +1,6 @@
-import type { FilterContext } from "../filter";
+import type { FilterContext } from "../filter.js";
 
-export function uniq(
-  this: FilterContext,
-  left: unknown,
-  prop?: unknown,
-): unknown[] {
+export function uniq(this: FilterContext, left: unknown, prop?: unknown): unknown[] {
   this.assertArgs(arguments.length, 1, 2);
   const _map = new Map<string, unknown>();
   let key: string;

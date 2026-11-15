@@ -1,5 +1,6 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import type { RenderContext } from "../context";
+import type { RenderContext } from "../context.js";
+import type { Token } from "../token.js";
+
 import {
   containsSync,
   dispatchSync,
@@ -10,10 +11,9 @@ import {
   sliceSync,
   toLiquidSync,
   type ContextHint,
-} from "../drop";
-import { UndefinedVariableError } from "../errors";
-import type { Token } from "../token";
-import { Blank } from "./blank";
+} from "../drop.js";
+import { UndefinedVariableError } from "../errors.js";
+import { Blank } from "./blank.js";
 
 /**
  * The default and base "Undefined" type.
@@ -36,12 +36,7 @@ export class Undefined extends Drop {
   }
 
   override [equals](obj: unknown, context: RenderContext): boolean {
-    return (
-      obj === null ||
-      obj === undefined ||
-      obj instanceof Undefined ||
-      obj instanceof Blank
-    );
+    return obj === null || obj === undefined || obj instanceof Undefined || obj instanceof Blank;
   }
 
   get first() {
@@ -105,19 +100,11 @@ export class StrictUndefined extends Undefined {
     this.error();
   }
 
-  override [sliceSync](
-    offset?: number,
-    limit?: number,
-    reversed?: boolean,
-  ): Drop {
+  override [sliceSync](offset?: number, limit?: number, reversed?: boolean): Drop {
     this.error();
   }
 
-  override async *[Symbol.asyncIterator](): AsyncGenerator<
-    unknown,
-    void,
-    void
-  > {
+  override async *[Symbol.asyncIterator](): AsyncGenerator<unknown, void, void> {
     this.error();
     yield;
   }
@@ -149,7 +136,7 @@ export class FalsyStrictUndefined extends StrictUndefined {
     if (hint === "boolean") {
       return false;
     }
-    this.error();
+    return this.error();
   }
 
   override [containsSync](obj: unknown, context: RenderContext): boolean {

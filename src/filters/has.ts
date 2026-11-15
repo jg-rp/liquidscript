@@ -1,12 +1,8 @@
-import type { FilterContext } from "../filter";
-import { LiquidNumber } from "../number";
+import type { FilterContext } from "../filter.js";
 
-export function has(
-  this: FilterContext,
-  left: unknown,
-  prop: unknown,
-  value?: unknown,
-): boolean {
+import { LiquidNumber } from "../number.js";
+
+export function has(this: FilterContext, left: unknown, prop: unknown, value?: unknown): boolean {
   this.assertArgs(arguments.length, 2, 3);
   const left_ = this.inputArray(left);
 

@@ -1,4 +1,4 @@
-import { parse } from "../src/liquidscript";
+import { parse } from "../src/liquidscript.js";
 
 const SOURCE = `\
 Hello, {{ you }}!
@@ -35,25 +35,13 @@ describe("static analysis helpers", () => {
 
   test("segments", async () => {
     expect((await TEMPLATE.variableSegments()).toSorted()).toStrictEqual(
-      [
-        ["you"],
-        ["x"],
-        ["ch"],
-        ["you", "first_name"],
-        ["you", "last_name"],
-      ].toSorted(),
+      [["you"], ["x"], ["ch"], ["you", "first_name"], ["you", "last_name"]].toSorted(),
     );
   });
 
   test("segments sync", () => {
     expect(TEMPLATE.variableSegmentsSync().toSorted()).toStrictEqual(
-      [
-        ["you"],
-        ["x"],
-        ["ch"],
-        ["you", "first_name"],
-        ["you", "last_name"],
-      ].toSorted(),
+      [["you"], ["x"], ["ch"], ["you", "first_name"], ["you", "last_name"]].toSorted(),
     );
   });
 
@@ -102,15 +90,11 @@ describe("static analysis helpers", () => {
   });
 
   test("tag names", async () => {
-    expect((await TEMPLATE.tagNames()).toSorted()).toStrictEqual(
-      ["assign", "for"].toSorted(),
-    );
+    expect((await TEMPLATE.tagNames()).toSorted()).toStrictEqual(["assign", "for"].toSorted());
   });
 
   test("tag names sync", () => {
-    expect(TEMPLATE.tagNamesSync().toSorted()).toStrictEqual(
-      ["assign", "for"].toSorted(),
-    );
+    expect(TEMPLATE.tagNamesSync().toSorted()).toStrictEqual(["assign", "for"].toSorted());
   });
 
   test("comment nodes", () => {

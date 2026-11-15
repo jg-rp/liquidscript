@@ -1,5 +1,5 @@
-import { HTMLSafeString } from "../drops/html_safe";
-import { type FilterContext } from "../filter";
+import { HTMLSafeString } from "../drops/html_safe.js";
+import { type FilterContext } from "../filter.js";
 
 export function removeFirst(
   this: FilterContext,
@@ -13,9 +13,7 @@ export function removeFirst(
 
   if (left_ instanceof HTMLSafeString) {
     return new HTMLSafeString(
-      left_
-        .valueOf()
-        .replace(new RegExp(HTMLSafeString.escape(right_).valueOf()), ""),
+      left_.valueOf().replace(new RegExp(HTMLSafeString.escape(right_).valueOf()), ""),
     );
   }
 

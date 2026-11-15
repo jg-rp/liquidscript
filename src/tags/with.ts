@@ -1,15 +1,11 @@
-import type { Namespace, RenderContext } from "../context";
-import type { KeywordArgument, Name } from "../expression";
-import {
-  renderBlock,
-  renderBlockSync,
-  type Block,
-  type Markup,
-} from "../markup";
-import type { OutputBuffer } from "../output";
-import type { Parser } from "../parser";
-import { T, type Token } from "../token";
-import { isString } from "../type_guards";
+import type { Namespace, RenderContext } from "../context.js";
+import type { KeywordArgument, Name } from "../expression.js";
+import type { OutputBuffer } from "../output.js";
+import type { Parser } from "../parser.js";
+
+import { renderBlock, renderBlockSync, type Block, type Markup } from "../markup.js";
+import { T, type Token } from "../token.js";
+import { isString } from "../type_guards.js";
 
 const END_WITH_BLOCK = new Set(["endwith"]);
 

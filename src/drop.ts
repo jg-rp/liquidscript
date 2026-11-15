@@ -1,6 +1,7 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import type { RenderContext } from "./context";
-import { Nothing } from "./runtime";
+// oxlint-disable no-unused-vars
+import type { RenderContext } from "./context.js";
+
+import { Nothing } from "./runtime.js";
 
 /**
  * Drop type coercion hints.
@@ -68,11 +69,7 @@ export abstract class Drop {
     return false;
   }
 
-  async [slice](
-    offset?: number,
-    limit?: number,
-    reversed?: boolean,
-  ): Promise<Drop> {
+  async [slice](offset?: number, limit?: number, reversed?: boolean): Promise<Drop> {
     return this[sliceSync](offset, limit, reversed);
   }
 
@@ -84,10 +81,7 @@ export abstract class Drop {
 
   *[Symbol.iterator](): Iterator<unknown> {}
 
-  async [toLiquid](
-    hint: ContextHint,
-    context: RenderContext,
-  ): Promise<unknown> {
+  async [toLiquid](hint: ContextHint, context: RenderContext): Promise<unknown> {
     return this[toLiquidSync](hint, context);
   }
 
@@ -101,12 +95,12 @@ export abstract class Drop {
         return null;
       case "numeric":
         return 0;
+      default:
+        return Nothing;
     }
   }
 
-  async [toHTMLSafeString](
-    context: RenderContext,
-  ): Promise<string | undefined> {
+  async [toHTMLSafeString](context: RenderContext): Promise<string | undefined> {
     return this[toHTMLSafeStringSync](context);
   }
 

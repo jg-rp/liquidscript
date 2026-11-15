@@ -1,4 +1,4 @@
-import type { FilterContext } from "../filter";
+import type { FilterContext } from "../filter.js";
 
 export function truncate(
   this: FilterContext,

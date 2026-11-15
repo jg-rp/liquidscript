@@ -1,8 +1,9 @@
-import type { HTMLSafeString } from "../drops/html_safe";
-import { ArgumentError } from "../errors";
-import type { FilterContext } from "../filter";
-import { Integer } from "../number";
-import { isArray } from "../type_guards";
+import type { HTMLSafeString } from "../drops/html_safe.js";
+import type { FilterContext } from "../filter.js";
+
+import { ArgumentError } from "../errors.js";
+import { Integer } from "../number.js";
+import { isArray } from "../type_guards.js";
 
 // This range is smaller than the reference implementation.
 const MAX_SLICE_ARG = Number.MAX_SAFE_INTEGER;
@@ -23,9 +24,7 @@ export function slice(
 
   const left_ = isArray(left) ? left : this.toString(left, "");
   const offset_ = clamp(integerOrThrow.call(this, offset));
-  const length_ = clamp(
-    this.isNil(length) ? 1 : integerOrThrow.call(this, length),
-  );
+  const length_ = clamp(this.isNil(length) ? 1 : integerOrThrow.call(this, length));
   const start = offset_ < 0 ? left_.length + offset_ : offset_;
   return left_.slice(start, start + length_);
 }

@@ -1,22 +1,18 @@
-import { ReadOnlyChainMap } from "./chain_map";
-import { RenderContext, type Namespace } from "./context";
-import type { Environment, TemplateMeta } from "./environment";
-import {
-  renderBlock,
-  renderBlockSync,
-  type Block,
-  type Markup,
-} from "./markup";
-import type { OutputBuffer } from "./output";
+import type { Environment, TemplateMeta } from "./environment.js";
+import type { OutputBuffer } from "./output.js";
+
+import { ReadOnlyChainMap } from "./chain_map.js";
+import { RenderContext, type Namespace } from "./context.js";
+import { renderBlock, renderBlockSync, type Block, type Markup } from "./markup.js";
 import {
   analyze,
   analyzeSync,
   type AnalysisOptions,
   type Segments,
   type TemplateAnalysis,
-} from "./static_analysis";
-import { CommentTag, DocTag, InlineCommentTag } from "./tags";
-import { isString } from "./type_guards";
+} from "./static_analysis.js";
+import { CommentTag, DocTag, InlineCommentTag } from "./tags/index.js";
+import { isString } from "./type_guards.js";
 
 /**
  * A compiled template bound to a Liquid {@link Environment}, ready to be
@@ -86,10 +82,7 @@ export class Template {
     return buffer.join("");
   }
 
-  async renderWithContext(
-    context: RenderContext,
-    buffer: OutputBuffer,
-  ): Promise<void> {
+  async renderWithContext(context: RenderContext, buffer: OutputBuffer): Promise<void> {
     // Note that `renderBlock` handles interrupts, even if we're not inside a
     // tag that intuitively could produce an interrupt.
     await renderBlock(this.nodes, context, buffer);
@@ -123,9 +116,7 @@ export class Template {
    * When the `includePartials` option is true, attempt to load and analyze
    * included/rendered templates too.
    */
-  async analyze(
-    options: AnalysisOptions = { includePartials: true },
-  ): Promise<TemplateAnalysis> {
+  async analyze(options: AnalysisOptions = { includePartials: true }): Promise<TemplateAnalysis> {
     return await analyze(this, options);
   }
 
@@ -135,9 +126,7 @@ export class Template {
    * When the `includePartials` option is true, attempt to load and analyze
    * included/rendered templates too.
    */
-  analyzeSync(
-    options: AnalysisOptions = { includePartials: true },
-  ): TemplateAnalysis {
+  analyzeSync(options: AnalysisOptions = { includePartials: true }): TemplateAnalysis {
     return analyzeSync(this, options);
   }
 
@@ -150,9 +139,7 @@ export class Template {
    * When the `includePartials` option is true, attempt to load and analyze
    * included/rendered templates too.
    */
-  async variables(
-    options: AnalysisOptions = { includePartials: true },
-  ): Promise<string[]> {
+  async variables(options: AnalysisOptions = { includePartials: true }): Promise<string[]> {
     return Array.from(Object.keys((await this.analyze(options)).variables));
   }
 
@@ -165,9 +152,7 @@ export class Template {
    * When the `includePartials` option is true, attempt to load and analyze
    * included/rendered templates too.
    */
-  variablesSync(
-    options: AnalysisOptions = { includePartials: true },
-  ): string[] {
+  variablesSync(options: AnalysisOptions = { includePartials: true }): string[] {
     return Array.from(Object.keys(this.analyzeSync(options).variables));
   }
 
@@ -180,13 +165,9 @@ export class Template {
    * When the `includePartials` option is true, attempt to load and analyze
    * included/rendered templates too.
    */
-  async variablePaths(
-    options: AnalysisOptions = { includePartials: true },
-  ): Promise<string[]> {
+  async variablePaths(options: AnalysisOptions = { includePartials: true }): Promise<string[]> {
     return unique(
-      Object.values((await this.analyze(options)).variables).flatMap((s) =>
-        s.map((v) => v.path),
-      ),
+      Object.values((await this.analyze(options)).variables).flatMap((s) => s.map((v) => v.path)),
     );
   }
 
@@ -199,13 +180,9 @@ export class Template {
    * When the `includePartials` option is true, attempt to load and analyze
    * included/rendered templates too.
    */
-  variablePathsSync(
-    options: AnalysisOptions = { includePartials: true },
-  ): string[] {
+  variablePathsSync(options: AnalysisOptions = { includePartials: true }): string[] {
     return unique(
-      Object.values(this.analyzeSync(options).variables).flatMap((s) =>
-        s.map((v) => v.path),
-      ),
+      Object.values(this.analyzeSync(options).variables).flatMap((s) => s.map((v) => v.path)),
     );
   }
 
@@ -237,13 +214,9 @@ export class Template {
    * When the `includePartials` option is true, attempt to load and analyze
    * included/rendered templates too.
    */
-  variableSegmentsSync(
-    options: AnalysisOptions = { includePartials: true },
-  ): Segments[] {
+  variableSegmentsSync(options: AnalysisOptions = { includePartials: true }): Segments[] {
     return unique(
-      Object.values(this.analyzeSync(options).variables).flatMap((s) =>
-        s.map((v) => v.segments),
-      ),
+      Object.values(this.analyzeSync(options).variables).flatMap((s) => s.map((v) => v.segments)),
     );
   }
 
@@ -256,9 +229,7 @@ export class Template {
    * When the `includePartials` option is true, attempt to load and analyze
    * included/rendered templates too.
    */
-  async globalVariables(
-    options: AnalysisOptions = { includePartials: true },
-  ): Promise<string[]> {
+  async globalVariables(options: AnalysisOptions = { includePartials: true }): Promise<string[]> {
     return Array.from(Object.keys((await this.analyze(options)).globals));
   }
 
@@ -271,9 +242,7 @@ export class Template {
    * When the `includePartials` option is true, attempt to load and analyze
    * included/rendered templates too.
    */
-  globalVariablesSync(
-    options: AnalysisOptions = { includePartials: true },
-  ): string[] {
+  globalVariablesSync(options: AnalysisOptions = { includePartials: true }): string[] {
     return Array.from(Object.keys(this.analyzeSync(options).globals));
   }
 
@@ -281,9 +250,7 @@ export class Template {
     options: AnalysisOptions = { includePartials: true },
   ): Promise<string[]> {
     return unique(
-      Object.values((await this.analyze(options)).globals).flatMap((s) =>
-        s.map((v) => v.path),
-      ),
+      Object.values((await this.analyze(options)).globals).flatMap((s) => s.map((v) => v.path)),
     );
   }
 
@@ -296,13 +263,9 @@ export class Template {
    * When the `includePartials` option is true, attempt to load and analyze
    * included/rendered templates too.
    */
-  globalVariablePathsSync(
-    options: AnalysisOptions = { includePartials: true },
-  ): string[] {
+  globalVariablePathsSync(options: AnalysisOptions = { includePartials: true }): string[] {
     return unique(
-      Object.values(this.analyzeSync(options).globals).flatMap((s) =>
-        s.map((v) => v.path),
-      ),
+      Object.values(this.analyzeSync(options).globals).flatMap((s) => s.map((v) => v.path)),
     );
   }
 
@@ -319,9 +282,7 @@ export class Template {
     options: AnalysisOptions = { includePartials: true },
   ): Promise<Segments[]> {
     return unique(
-      Object.values((await this.analyze(options)).globals).flatMap((s) =>
-        s.map((v) => v.segments),
-      ),
+      Object.values((await this.analyze(options)).globals).flatMap((s) => s.map((v) => v.segments)),
     );
   }
 
@@ -334,40 +295,30 @@ export class Template {
    * When the `includePartials` option is true, attempt to load and analyze
    * included/rendered templates too.
    */
-  globalVariableSegmentsSync(
-    options: AnalysisOptions = { includePartials: true },
-  ): Segments[] {
+  globalVariableSegmentsSync(options: AnalysisOptions = { includePartials: true }): Segments[] {
     return unique(
-      Object.values(this.analyzeSync(options).globals).flatMap((s) =>
-        s.map((v) => v.segments),
-      ),
+      Object.values(this.analyzeSync(options).globals).flatMap((s) => s.map((v) => v.segments)),
     );
   }
 
   /**
    * Return an array of filter names used in this template.
    */
-  async filterNames(
-    options: AnalysisOptions = { includePartials: true },
-  ): Promise<string[]> {
+  async filterNames(options: AnalysisOptions = { includePartials: true }): Promise<string[]> {
     return Object.keys((await this.analyze(options)).filters);
   }
 
   /**
    * Return an array of filter names used in this template.
    */
-  filterNamesSync(
-    options: AnalysisOptions = { includePartials: true },
-  ): string[] {
+  filterNamesSync(options: AnalysisOptions = { includePartials: true }): string[] {
     return Object.keys(this.analyzeSync(options).filters);
   }
 
   /**
    * Return an array of tag names used in this template.
    */
-  async tagNames(
-    options: AnalysisOptions = { includePartials: true },
-  ): Promise<string[]> {
+  async tagNames(options: AnalysisOptions = { includePartials: true }): Promise<string[]> {
     return Object.keys((await this.analyze(options)).tags);
   }
 
