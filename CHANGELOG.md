@@ -1,5 +1,9 @@
 # LiquidScript Change Log
 
+## Version 2.0.2
+
+Fixed type resolution by adding explicit `.js` file extensions to all relative imports.
+
 ## Version 2.0.1
 
 Fix package.json.
